@@ -37,7 +37,11 @@ export default async function PlatformLayout({ children, params }: Props) {
               {t("title")}
             </Link>
             <nav aria-label={t("nav.label")} className="flex items-center gap-1">
+              <NavLink href="/nitaq/schools">{t("nav.schools")}</NavLink>
+              <NavLink href="/nitaq/users">{t("nav.users")}</NavLink>
               <NavLink href="/nitaq/curriculum">{t("nav.curriculum")}</NavLink>
+              <NavLink href="/nitaq/audit-log">{t("nav.auditLog")}</NavLink>
+              <NavLink href="/nitaq/certificates">{t("nav.certificates")}</NavLink>
             </nav>
           </div>
           <div className="flex items-center gap-2">

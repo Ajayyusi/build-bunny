@@ -9,12 +9,15 @@ interface NavLinkProps {
   href: string;
   children: ReactNode;
   className?: string;
+  /** Only highlight on an exact path match — for a section root whose href
+   * would otherwise prefix-match every one of its own sibling sub-pages. */
+  exact?: boolean;
 }
 
 /** Shell nav item with aria-current styling; 44px tall for student surfaces. */
-export function NavLink({ href, children, className }: NavLinkProps) {
+export function NavLink({ href, children, className, exact = false }: NavLinkProps) {
   const pathname = usePathname();
-  const active = pathname === href || pathname.startsWith(`${href}/`);
+  const active = exact ? pathname === href : pathname === href || pathname.startsWith(`${href}/`);
 
   return (
     <Link

@@ -3,20 +3,26 @@ import type {
   WorldFixture,
   blockCodingPayload,
   debuggingPayload,
+  sequencingPayload,
 } from "@/modules/curriculum/schemas";
 
 /**
- * World 3 — Robot Lab (m3-contracts wave 3). Five levels: explicit collect
- * (autoCollect OFF for the whole world — power cells must be picked up on
- * purpose), sensors + If, If/Else, a two-bug DEBUGGING level, and a HARD
- * capstone. The "power cells" the copy talks about are grid "C" tiles —
- * the reskin is visual (lab theme), the legend never changes. Every recorded
- * solution here survives the REAL solutionRuns publish gate: regenerated
+ * World 3 — Robot Lab (m3-contracts wave 3, plus the m4 SEQUENCING level
+ * "sensor-sequence" appended as repairs-and-trials/3, after the capstone —
+ * every pre-existing level keeps its moduleId/order, so nothing needed
+ * renumbering). Six levels: explicit collect (autoCollect OFF for the whole
+ * world — power cells must be picked up on purpose), sensors + If, If/Else,
+ * a two-bug DEBUGGING level, a HARD capstone, and a closing sense→decide→act
+ * routine to reorder (synthesizing collect/sense/decide from the first
+ * three). The "power cells" the copy talks about are grid "C" tiles — the
+ * reskin is visual (lab theme), the legend never changes. Every recorded
+ * grid solution here survives the REAL solutionRuns publish gate: regenerated
  * through server codegen, run on every variant, must PASS with 3 stars.
  */
 
 type BlockCodingDraft = z.input<typeof blockCodingPayload>;
 type DebuggingDraft = z.input<typeof debuggingPayload>;
+type SequencingDraft = z.input<typeof sequencingPayload>;
 
 const startWorkspace = {
   blocks: {
@@ -627,7 +633,7 @@ export const robotLab: WorldFixture = {
             en: "Reach the charging dock at the end of the gauntlet and collect EVERY power cell on the way — with ONE program that beats BOTH tracks. Think like the plaque: at every step, either the way is blocked (turn!) or it's open (advance — and grab whatever you land on).",
           },
           explanation: {
-            en: "Five blocks. Two tracks it had never seen. Zero cells left behind. Your loop asked one question every single step — blocked or open? — and had exactly one answer for each: turn, or advance-and-collect. That tiny decision, repeated until the dock, is a full navigation strategy; robotics engineers literally call it wall-following. Notice what you did NOT do: you never counted hops, never memorized a track. You taught the robot judgment instead of directions — and judgment travels. Robot Lab: complete. The Data Desert is already shimmering on the horizon.",
+            en: "Five blocks. Two tracks it had never seen. Zero cells left behind. Your loop asked one question every single step — blocked or open? — and had exactly one answer for each: turn, or advance-and-collect. That tiny decision, repeated until the dock, is a full navigation strategy; robotics engineers literally call it wall-following. Notice what you did NOT do: you never counted hops, never memorized a track. You taught the robot judgment instead of directions — and judgment travels.",
           },
           teacherNotes: {
             en: "Capstone and demo piece. Students who unroll 20+ blocks can pass on one track but will almost never beat BOTH — the second variant is the honest examiner, and 'why does your long program fail track B?' is the best discussion this world offers. The Collect-on-every-tile trick (collecting on empty floor does nothing) surprises students who expect an error — that tolerance is worth naming. Watch the playback thought bubbles during the corner checks. Challenge extension: predict the robot's total hop count on each track BEFORE running; closest guess wins.",
@@ -749,6 +755,95 @@ export const robotLab: WorldFixture = {
               },
             },
           } satisfies BlockCodingDraft,
+        },
+
+        // ── SENSOR SEQUENCE — SEQUENCING, closes out Robot Lab ────────────
+        // Appended after the capstone rather than mid-power-and-sensors: no
+        // existing level's moduleId/order moves, so nothing needed
+        // renumbering (@@unique([moduleId, order]) stays untouched for every
+        // pre-existing level).
+        {
+          slug: "sensor-sequence",
+          order: 3,
+          activityType: "SEQUENCING",
+          track: "PROGRAMMING",
+          title: { en: "Sensor Sequence", ar: "تسلسل الاستشعار" },
+          story: {
+            en: "The gauntlet is cleared, the dock is charged — and pinned to the charging bay door is the lab's maintenance manual for the very first docking routine you ever ran here. It fell off its clipboard months ago; the pages scattered, and nobody's fixed it since. One last job before graduation: put it back together.",
+          },
+          objective: {
+            en: "Reconstruct the correct step order of a sense → decide → act → collect docking routine, synthesizing the collect, sensor-check and if/else lessons from this lab.",
+          },
+          instructions: {
+            en: "Drag the steps into the right order — or use the up/down buttons on each step. The routine only works one way: think about what Robo Bunny needs to know or do BEFORE each later step makes sense.",
+          },
+          explanation: {
+            en: "Sense, then decide, then act, then collect — that order isn't arbitrary, it's the actual shape of every routine you've built in this lab. You can't decide which way to turn before you've asked the sensor a question, and you can't collect a power cell before you've moved onto its tile. Real robots (and real programs) run their instructions in exactly the order they're written — reordering steps out of sequence is one of the most common bugs there is, and now you know what it looks like from both directions: writing it, and rebuilding it. Robot Lab: complete. The Data Desert is already shimmering on the horizon.",
+          },
+          teacherNotes: {
+            en: "This level runs no code and touches no grid — it's a pure sequencing/synthesis check, placed as the lab's closing checkpoint so students reconstruct the pattern from memory (collect from Power Up, sense+decide from Sensor Check and Smart Turns) rather than reading it fresh. If a group finishes fast, ask them to explain OUT LOUD why 'collect' can't come before 'move forward through the door' — the answer (the cell isn't on this tile yet) is the whole lesson. Challenge extension: ask students to invent one MORE valid step that could be inserted between two existing ones without breaking the routine (e.g., a second sensor check before turning back).",
+          },
+          difficulty: "MEDIUM",
+          recommendedGradeMin: 4,
+          recommendedGradeMax: 7,
+          estimatedMinutes: 6,
+          xpReward: 65,
+          tags: ["robot", "logic", "sensors", "sequencing"],
+          requires: [],
+          hints: [
+            {
+              tier: 1,
+              text: {
+                en: "Ask yourself, for every step: what does Robo Bunny need to already know or already be standing on before this step makes sense?",
+              },
+            },
+            {
+              tier: 2,
+              text: {
+                en: "You already built this shape twice: Sensor Check and Smart Turns both sense the path BEFORE deciding which way to turn — never after.",
+              },
+            },
+            {
+              tier: 3,
+              text: {
+                en: "The routine ends the way Power Up taught you: Robo Bunny must be standing ON the power cell's tile before Collect does anything. Collect goes last.",
+              },
+            },
+            {
+              tier: 4,
+              text: {
+                en: "The full order: reach the junction, read the sensor, turn if it's blocked, move through the door, then collect. Sense before you decide; decide before you act; act before you collect.",
+              },
+            },
+          ],
+          payload: {
+            prompt: {
+              en: "Robo Bunny's docking routine lost its page numbers — put these five steps back in the right order.",
+            },
+            items: [
+              {
+                id: "approach",
+                text: { en: "Move forward until Robo Bunny reaches the junction." },
+              },
+              {
+                id: "sense",
+                text: { en: "Read the path-ahead sensor to check for a blocked door." },
+              },
+              {
+                id: "turn",
+                text: { en: "If the sensor reports blocked, turn toward the open door." },
+              },
+              {
+                id: "advance",
+                text: { en: "Move forward through the door onto the next tile." },
+              },
+              {
+                id: "collect",
+                text: { en: "Use Collect to pick up whatever is waiting on that tile." },
+              },
+            ],
+            correctOrder: ["approach", "sense", "turn", "advance", "collect"],
+          } satisfies SequencingDraft,
         },
       ],
     },

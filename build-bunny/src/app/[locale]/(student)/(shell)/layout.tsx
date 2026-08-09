@@ -54,6 +54,7 @@ export default async function StudentShellLayout({ children, params }: Props) {
               {adventureEnabled ? (
                 <NavLink href="/adventure">{t("nav.adventure")}</NavLink>
               ) : null}
+              <NavLink href="/achievements">{t("nav.achievements")}</NavLink>
               <NavLink href="/profile">{t("nav.profile")}</NavLink>
             </nav>
           </div>

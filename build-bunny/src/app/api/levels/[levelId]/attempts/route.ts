@@ -4,24 +4,56 @@ import { z } from "zod";
 import { createRateLimiter } from "@/lib/rate-limit";
 import { hasPermission } from "@/modules/auth/permissions";
 import { getSessionContext } from "@/modules/auth/server/session";
-import { submitAttempt } from "@/modules/grading/server/submit";
+import { getPublishedLevelSnapshot } from "@/modules/curriculum/server/queries";
+import { submitAttempt, type AttemptInput } from "@/modules/grading/server/submit";
 
 /**
  * POST /api/levels/[levelId]/attempts — the only write path for gameplay
- * results (m3 contract). The client's optimistic run is UI sugar; whatever
- * this endpoint returns is the authority on verdict/stars/XP/unlocks.
- * All heavy lifting lives in modules/grading/server/submit.ts.
+ * results (m3/m4 contract). The client's optimistic run is UI sugar;
+ * whatever this endpoint returns is the authority on verdict/stars/XP/
+ * unlocks. All heavy lifting lives in modules/grading/server/submit.ts.
+ *
+ * The body is a discriminated union on the level's activityType (m4 task 4):
+ * grid types (BLOCK_CODING/DEBUGGING) send the raw workspace; CODE_PREDICTION
+ * sends `{ answer: { optionId } }`; SEQUENCING sends `{ answer: { order } }`.
+ * .strict() on every branch means a body shaped for one type is rejected —
+ * not silently accepted — when sent against a level of another type.
  */
 
-const bodySchema = z.object({
-  attemptRunId: z.string().uuid(),
-  workspaceJson: z.unknown(),
-  clientVerdict: z.enum(["PASS", "PARTIAL", "FAIL"]).optional(),
-  durationMs: z.number().int().nonnegative().optional(),
-});
+const gridBodySchema = z
+  .object({
+    attemptRunId: z.string().uuid(),
+    workspaceJson: z.unknown(),
+    clientVerdict: z.enum(["PASS", "PARTIAL", "FAIL"]).optional(),
+    durationMs: z.number().int().nonnegative().optional(),
+  })
+  .strict();
+
+const codePredictionBodySchema = z
+  .object({
+    attemptRunId: z.string().uuid(),
+    answer: z.object({ optionId: z.string().min(1) }).strict(),
+  })
+  .strict();
+
+const sequencingBodySchema = z
+  .object({
+    attemptRunId: z.string().uuid(),
+    answer: z.object({ order: z.array(z.string().min(1)).min(1) }).strict(),
+  })
+  .strict();
+
+const GRID_ACTIVITY_TYPES = new Set(["BLOCK_CODING", "DEBUGGING"]);
 
 /** 30 submissions per minute per student (anti-hammering, not a quota). */
 const limiter = createRateLimiter({ limit: 30, windowMs: 60_000 });
+
+function validationError(issues?: Record<string, string[] | undefined>) {
+  return NextResponse.json(
+    { error: "VALIDATION", ...(issues ? { issues } : {}) },
+    { status: 400 },
+  );
+}
 
 export async function POST(
   request: NextRequest,
@@ -43,22 +75,39 @@ export async function POST(
   try {
     raw = await request.json();
   } catch {
-    return NextResponse.json({ error: "VALIDATION" }, { status: 400 });
-  }
-  const parsed = bodySchema.safeParse(raw);
-  if (!parsed.success) {
-    return NextResponse.json(
-      { error: "VALIDATION", issues: parsed.error.flatten().fieldErrors },
-      { status: 400 },
-    );
+    return validationError();
   }
 
   const { levelId } = await params;
+
+  // Published snapshot decides which body shape this level accepts. An
+  // unknown/locked/unpublished level has no shape to validate against —
+  // submitAttempt rejects it with LOCKED regardless of body content, so the
+  // lenient grid-shaped parse below just keeps this branch from crashing.
+  const published = await getPublishedLevelSnapshot(levelId);
+  const activityType = published?.snapshot.activityType;
+
+  let input: AttemptInput;
+  if (activityType === "CODE_PREDICTION") {
+    const parsed = codePredictionBodySchema.safeParse(raw);
+    if (!parsed.success) return validationError(parsed.error.flatten().fieldErrors);
+    input = parsed.data;
+  } else if (activityType === "SEQUENCING") {
+    const parsed = sequencingBodySchema.safeParse(raw);
+    if (!parsed.success) return validationError(parsed.error.flatten().fieldErrors);
+    input = parsed.data;
+  } else if (!activityType || GRID_ACTIVITY_TYPES.has(activityType)) {
+    const parsed = gridBodySchema.safeParse(raw);
+    if (!parsed.success) return validationError(parsed.error.flatten().fieldErrors);
+    input = { ...parsed.data, workspaceJson: parsed.data.workspaceJson ?? null };
+  } else {
+    // A registered ActivityType with no V1 engine yet (e.g. QUIZ) — no body
+    // shape is valid.
+    return validationError();
+  }
+
   try {
-    const outcome = await submitAttempt(ctx, levelId, {
-      ...parsed.data,
-      workspaceJson: parsed.data.workspaceJson ?? null,
-    });
+    const outcome = await submitAttempt(ctx, levelId, input);
     return NextResponse.json(outcome.body, { status: outcome.status });
   } catch (err) {
     console.error("[attempts] submit failed:", err);

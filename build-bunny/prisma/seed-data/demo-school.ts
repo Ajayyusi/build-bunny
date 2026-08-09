@@ -122,12 +122,15 @@ export interface StudentSeed {
 
 /**
  * 16 students, 8 per class — a deliberate spread of curriculum states so every
- * surface has something honest to show (M2 world layout: Bunny Meadow = 5
- * levels, Logic Forest = 5 levels, 10 total):
+ * surface has something honest to show (world layout: Bunny Meadow = 5
+ * levels, Logic Forest = 6 levels incl. the CODE_PREDICTION level added in
+ * M4's activity-engines wave, 11 total for both worlds):
  *  - 3 fresh accounts that never played (only the first level gets unlocked);
  *  - 6 mid-World-1 (1–4 levels done, next one unlocked);
  *  - 4 finished World 1 and into World 2 (6–7 levels done);
- *  - 3 advanced (8–10 done) — Aisha K. has all 10, the certificate candidate.
+ *  - 3 advanced (8–11 done) — Aisha K. has all 11, the certificate candidate
+ *    (genuinely passes — not just completes — every level of both worlds,
+ *    so the real issuance path awards her both certificates; m4-contracts).
  * Adam B. (4 levels, silent for 3 weeks) stays the needs-attention demo case.
  */
 export const STUDENTS: StudentSeed[] = [
@@ -135,7 +138,9 @@ export const STUDENTS: StudentSeed[] = [
   {
     firstName: "Aisha", lastInitial: "K", username: "aisha", studentIdentifier: "DEMO-1001",
     className: "Grade 3A", grade: 3, password: "star-bunny-31",
-    progress: { completedStars: [3, 3, 3, 3, 3, 3, 2, 3, 3, 3], streakCurrent: 9, streakBest: 9, lastActiveDaysAgo: 0 },
+    // All 5 Bunny Meadow + all 6 Logic Forest levels, every one at ≥2 stars
+    // (a genuine PASS, never just PARTIAL) — the certificate task's gate.
+    progress: { completedStars: [3, 3, 3, 3, 3, 3, 2, 3, 3, 3, 3], streakCurrent: 9, streakBest: 9, lastActiveDaysAgo: 0 },
     loginTrailDays: 5,
   },
   {

@@ -1,6 +1,7 @@
 import "server-only";
 
 import { db } from "@/lib/db";
+import { AUDIT } from "@/lib/audit";
 import type { SessionContext } from "@/modules/auth/server/session";
 
 /**
@@ -62,9 +63,16 @@ export async function listTeachers(ctx: SessionContext) {
 
 export async function listStudents(
   ctx: SessionContext,
-  filter?: { classId?: string; grade?: number },
+  filter?: {
+    classId?: string;
+    grade?: number;
+    /** Matches display name, username or student identifier (case-insensitive). */
+    search?: string;
+    status?: "active" | "disabled";
+  },
 ) {
   const schoolId = requireSchool(ctx);
+  const search = filter?.search?.trim();
   return db.user.findMany({
     where: {
       schoolId,
@@ -77,6 +85,21 @@ export async function listStudents(
             classMemberships: {
               some: { classId: filter.classId, schoolId },
             },
+          }
+        : {}),
+      ...(filter?.status === "active" ? { banned: { not: true } } : {}),
+      ...(filter?.status === "disabled" ? { banned: true } : {}),
+      ...(search
+        ? {
+            OR: [
+              { displayName: { contains: search, mode: "insensitive" } },
+              { displayUsername: { contains: search, mode: "insensitive" } },
+              {
+                studentProfile: {
+                  studentIdentifier: { contains: search, mode: "insensitive" },
+                },
+              },
+            ],
           }
         : {}),
     },
@@ -94,6 +117,10 @@ export async function listStudents(
           streakCurrent: true,
           lastActiveDate: true,
         },
+      },
+      classMemberships: {
+        where: { schoolId, role: "STUDENT" },
+        select: { class: { select: { id: true, name: true } } },
       },
     },
     orderBy: { displayName: "asc" },
@@ -192,6 +219,97 @@ export async function listSchoolAuditLogs(ctx: SessionContext, limit = 50) {
   });
 }
 
+/** Academic years for the class create/edit form, most recent first. */
+export async function listAcademicYears(ctx: SessionContext) {
+  const schoolId = requireSchool(ctx);
+  return db.academicYear.findMany({
+    where: { schoolId },
+    orderBy: [{ isActive: "desc" }, { startsAt: "desc" }],
+  });
+}
+
+/**
+ * Recent CSV-import runs for this school, read from the audit trail (there is
+ * no separate import-batch table — the audit entry IS the record, with
+ * created/updated/error counts in its meta).
+ */
+export async function listImportHistory(ctx: SessionContext, limit = 20) {
+  const schoolId = requireSchool(ctx);
+  return db.auditLog.findMany({
+    where: { schoolId, action: AUDIT.students.imported },
+    orderBy: { createdAt: "desc" },
+    take: Math.min(limit, 100),
+  });
+}
+
+export interface StudentProgressReportRow {
+  studentId: string;
+  displayName: string;
+  username: string | null;
+  studentIdentifier: string;
+  className: string | null;
+  grade: number;
+  xpTotal: number;
+  starsTotal: number;
+  streakCurrent: number;
+  levelsCompleted: number;
+  lastActiveDate: Date | null;
+}
+
+/** One row per student — the source data for the /school/reports CSV export. */
+export async function getSchoolProgressReport(
+  ctx: SessionContext,
+): Promise<StudentProgressReportRow[]> {
+  const schoolId = requireSchool(ctx);
+  const [students, completions] = await Promise.all([
+    db.user.findMany({
+      where: { schoolId, role: "STUDENT" },
+      select: {
+        id: true,
+        displayName: true,
+        displayUsername: true,
+        studentProfile: {
+          select: {
+            studentIdentifier: true,
+            grade: true,
+            xpTotal: true,
+            starsTotal: true,
+            streakCurrent: true,
+            lastActiveDate: true,
+          },
+        },
+        classMemberships: {
+          where: { schoolId, role: "STUDENT" },
+          take: 1,
+          select: { class: { select: { name: true } } },
+        },
+      },
+      orderBy: { displayName: "asc" },
+    }),
+    db.studentProgress.groupBy({
+      by: ["studentUserId"],
+      where: { schoolId, status: "COMPLETED" },
+      _count: { _all: true },
+    }),
+  ]);
+  const completedByStudent = new Map(
+    completions.map((c) => [c.studentUserId, c._count._all]),
+  );
+  return students.map((s) => ({
+    studentId: s.id,
+    displayName: s.displayName,
+    username: s.displayUsername,
+    studentIdentifier: s.studentProfile?.studentIdentifier ?? "",
+    className: s.classMemberships[0]?.class.name ?? null,
+    grade: s.studentProfile?.grade ?? 0,
+    xpTotal: s.studentProfile?.xpTotal ?? 0,
+    starsTotal: s.studentProfile?.starsTotal ?? 0,
+    streakCurrent: s.studentProfile?.streakCurrent ?? 0,
+    levelsCompleted: completedByStudent.get(s.id) ?? 0,
+    lastActiveDate: s.studentProfile?.lastActiveDate ?? null,
+  }));
+}
+
 /**
  * Registry for the tenant-isolation test suite. EVERY exported query above
  * must be listed; tests iterate this and verify cross-school leakage is
@@ -206,4 +324,7 @@ export const tenantScopedQueries = {
   getClassDetail,
   listMyClasses,
   listSchoolAuditLogs,
+  listAcademicYears,
+  listImportHistory,
+  getSchoolProgressReport,
 } as const;

@@ -5,11 +5,12 @@ import path from "node:path";
 
 /**
  * Seed verification CLI: `npx tsx scripts/verify-seed.ts` proves the demo
- * database is in the coherent M3 state the seed promises — 15 published
- * levels (Worlds 1–3) with version snapshots, per-level progress behind
- * every profile cache, the 12 achievement definitions, and the tightened
- * world gate materialized: whoever finished Worlds 1–2 has Robot Lab's
- * first level UNLOCKED. Read-only; exits 1 on any failed check.
+ * database is in the coherent M4 state the seed promises — 17 published
+ * levels (Worlds 1–3, including the m4 CODE_PREDICTION/SEQUENCING levels)
+ * with version snapshots, per-level progress behind every profile cache, the
+ * 12 achievement definitions, and the tightened world gate materialized:
+ * whoever finished Worlds 1–2 has Robot Lab's first level UNLOCKED.
+ * Read-only; exits 1 on any failed check.
  */
 
 // ── Runtime shim (same technique as prisma/seed.ts) ───────────────────────
@@ -50,17 +51,17 @@ async function main(): Promise<void> {
       module: { select: { world: { select: { slug: true } } } },
     },
   });
-  check("published levels (with snapshot id)", "15", String(publishedLevels.length),
-    publishedLevels.length === 15);
+  check("published levels (with snapshot id)", "17", String(publishedLevels.length),
+    publishedLevels.length === 17);
 
   const robotLabLevels = publishedLevels.filter(
     (l) => l.module.world.slug === "robot-lab",
   );
-  check("published Robot Lab levels", "5", String(robotLabLevels.length),
-    robotLabLevels.length === 5);
+  check("published Robot Lab levels", "6", String(robotLabLevels.length),
+    robotLabLevels.length === 6);
 
   const versionCount = await db.levelVersion.count();
-  check("LevelVersion snapshots", "≥ 15", String(versionCount), versionCount >= 15);
+  check("LevelVersion snapshots", "≥ 17", String(versionCount), versionCount >= 17);
 
   const achievementCount = await db.achievement.count();
   check("achievement definitions", "12", String(achievementCount), achievementCount === 12);
@@ -74,9 +75,16 @@ async function main(): Promise<void> {
   const worldOneTwoIds = publishedLevels
     .filter((l) => ["bunny-meadow", "logic-forest"].includes(l.module.world.slug))
     .map((l) => l.id);
-  check("published Worlds 1–2 levels", "10", String(worldOneTwoIds.length),
-    worldOneTwoIds.length === 10);
+  // 10 original + 1 (m4 loop-detective, appended at the end of logic-forest).
+  check("published Worlds 1–2 levels", "11", String(worldOneTwoIds.length),
+    worldOneTwoIds.length === 11);
 
+  // KNOWN m4 follow-up: seed-data/demo-school.ts's completedStars arrays
+  // were authored against the pre-m4 10-level Worlds 1–2 total. The demo
+  // "certificate candidate" (10/10 finisher, e.g. Aisha) now reads as 10/11
+  // — one star entry short of loop-detective — until whoever owns that seed
+  // data appends one more entry to her array. Left as a follow-up rather
+  // than edited here to avoid clobbering concurrent seed-data work.
   const grouped = await db.studentProgress.groupBy({
     by: ["studentUserId"],
     where: { status: "COMPLETED", levelId: { in: worldOneTwoIds } },

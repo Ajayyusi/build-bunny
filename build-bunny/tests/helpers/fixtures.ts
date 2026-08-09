@@ -13,6 +13,10 @@ export const SYSTEM_ACTOR = { userId: "system", role: "SYSTEM" } as const;
  * this in beforeAll so each file starts from a known-empty test database.
  */
 export async function wipeDatabase(): Promise<void> {
+  // M4 teaching/certificates tables first (children before parents).
+  await db.teacherFeedback.deleteMany();
+  await db.assignment.deleteMany();
+  await db.certificate.deleteMany();
   // M3 attempts/rewards tables first (children before parents).
   await db.studentAchievement.deleteMany();
   await db.achievement.deleteMany();
@@ -138,7 +142,7 @@ export async function createTestLevel(
     requires?: string[];
     /** Real gradeable payload (grading suite); default keeps the SECRET marker. */
     payload?: Record<string, unknown>;
-    activityType?: "BLOCK_CODING" | "DEBUGGING";
+    activityType?: "BLOCK_CODING" | "DEBUGGING" | "CODE_PREDICTION" | "SEQUENCING";
     difficulty?: "EASY" | "MEDIUM" | "HARD";
     xpReward?: number;
     tags?: string[];

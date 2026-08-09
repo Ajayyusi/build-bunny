@@ -63,6 +63,10 @@ model User {
   hintUsages       HintUsage[]
   dailyActivity    StudentDailyActivity[]
   achievements     StudentAchievement[]
+  feedbackReceived TeacherFeedback[]      @relation("FeedbackForStudent")
+  feedbackGiven    TeacherFeedback[]      @relation("FeedbackByTeacher")
+  assignmentsMade  Assignment[]
+  certificates     Certificate[]
 
   @@index([schoolId, role])
 }
@@ -150,6 +154,9 @@ model School {
   schoolPrograms   SchoolProgram[]
   studentProgress  StudentProgress[]
   attempts         ActivityAttempt[]
+  feedback         TeacherFeedback[]
+  assignments      Assignment[]
+  certificates     Certificate[]
 }
 
 enum LicenceStatus {
@@ -204,6 +211,7 @@ model Class {
   updatedAt      DateTime     @updatedAt
 
   memberships ClassMembership[]
+  assignments Assignment[]
 
   @@unique([schoolId, academicYearId, name])
   @@index([schoolId])
@@ -414,6 +422,7 @@ model Level {
   requiredBy    LevelPrerequisite[] @relation("LevelPrereqSource")
   progress      StudentProgress[]
   attempts      ActivityAttempt[]
+  feedback      TeacherFeedback[]
 
   @@unique([moduleId, slug])
   @@unique([moduleId, order])
@@ -626,6 +635,99 @@ model StudentAchievement {
 
   @@unique([studentUserId, achievementId])
   @@index([schoolId, earnedAt])
+}
+
+// ──────────────────── TEACHING & RECOGNITION (M4) ───────────────────────
+
+// Teacher feedback on a student's work. Attached to a level (not a single
+// attempt) so the note survives attempt-payload pruning.
+model TeacherFeedback {
+  id            String   @id @default(cuid())
+  schoolId      String
+  school        School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  studentUserId String
+  student       User     @relation("FeedbackForStudent", fields: [studentUserId], references: [id], onDelete: Cascade)
+  teacherUserId String
+  teacher       User     @relation("FeedbackByTeacher", fields: [teacherUserId], references: [id], onDelete: Cascade)
+  levelId       String
+  level         Level    @relation(fields: [levelId], references: [id], onDelete: Cascade)
+  attemptId     String?
+  body          String
+  readAt        DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([schoolId, studentUserId, createdAt])
+  @@index([studentUserId, readAt])
+}
+
+enum AssignmentTarget {
+  WORLD
+  MODULE
+  LEVEL
+}
+
+// Teacher-set work for a class. Assignments may force-unlock their content
+// ahead of the normal progression (StudentProgress.unlockSource ASSIGNMENT).
+model Assignment {
+  id            String           @id @default(cuid())
+  schoolId      String
+  school        School           @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  classId       String
+  class         Class            @relation(fields: [classId], references: [id], onDelete: Cascade)
+  createdById   String
+  createdBy     User             @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  target        AssignmentTarget
+  worldId       String?
+  moduleId      String?
+  levelId       String?
+  title         String
+  note          String?
+  dueAt         DateTime?
+  closedAt      DateTime?
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  @@index([schoolId, classId, createdAt])
+}
+
+enum CertificateKind {
+  WORLD_COMPLETION
+  PROGRAM_COMPLETION
+}
+
+// Issued once per (student, kind, scope). Display fields are FROZEN at issue
+// so a certificate stays truthful after a name change or erasure, and the
+// public verify page reads only these (plan §1.2 / §0.1-15).
+model Certificate {
+  id            String          @id @default(cuid())
+  schoolId      String
+  school        School          @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  // SetNull, not Cascade: an erased student's certificate stays verifiable.
+  studentUserId String?
+  student       User?           @relation(fields: [studentUserId], references: [id], onDelete: SetNull)
+  kind          CertificateKind
+  worldId       String?
+  programId     String?
+
+  // Human-readable, printed on the certificate. NOT a lookup key.
+  serial        String          @unique
+  // Unguessable public lookup key used by the QR/verify URL (anti-enumeration).
+  verifySlug    String          @unique
+
+  // Frozen display fields.
+  studentName   String
+  schoolName    String
+  title         Json
+  starsEarned   Int             @default(0)
+  levelsCount   Int             @default(0)
+
+  issuedAt      DateTime        @default(now())
+  revokedAt     DateTime?
+  revokeReason  String?
+
+  @@unique([studentUserId, kind, worldId])
+  @@index([schoolId, issuedAt])
 }
 
 // ─────────────────────────── AUDIT & ANALYTICS ──────────────────────────

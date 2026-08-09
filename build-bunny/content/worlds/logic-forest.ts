@@ -1,17 +1,23 @@
 import type { z } from "zod";
-import type { WorldFixture, blockCodingPayload } from "@/modules/curriculum/schemas";
+import type {
+  WorldFixture,
+  blockCodingPayload,
+  codePredictionPayload,
+} from "@/modules/curriculum/schemas";
 
 /**
- * World 2 — Logic Forest (seed levels 6–10, curriculum-content.md §5).
- * Levels 8–10 are multi-variant (2 maps each): ONE program must pass ALL
- * variants, which is what makes If / Repeat-Until honest instead of
- * memorizable. Rock/tree tiles are both "#" (fatal bump with located
- * feedback); condition-controlled loops use the adjudicated
- * bb_repeatUntilGoal block, so levels 9–10 teach "loop until the burrow"
- * rather than the doc's original repeat-until-blocked phrasing.
+ * World 2 — Logic Forest (seed levels 6–10, curriculum-content.md §5, plus
+ * the m4 CODE_PREDICTION level "loop-detective" appended as
+ * forest-decisions/4, after the capstone). Levels 8–10 are multi-variant (2
+ * maps each): ONE program must pass ALL variants, which is what makes If /
+ * Repeat-Until honest instead of memorizable. Rock/tree tiles are both "#"
+ * (fatal bump with located feedback); condition-controlled loops use the
+ * adjudicated bb_repeatUntilGoal block, so levels 9–10 teach "loop until the
+ * burrow" rather than the doc's original repeat-until-blocked phrasing.
  */
 
 type BlockCodingDraft = z.input<typeof blockCodingPayload>;
+type CodePredictionDraft = z.input<typeof codePredictionPayload>;
 
 const startWorkspace = {
   blocks: {
@@ -592,7 +598,7 @@ export const logicForest: WorldFixture = {
             en: "Reach the Great Golden Burrow at the heart of the spiral and collect every carrot — with ONE program that solves BOTH mazes. Remember the trail signs: hop toward the burrow; when you can't, turn.",
           },
           explanation: {
-            en: "Look at what you built: a decision INSIDE a loop. The loop keeps going until the Golden Burrow; each time around, the If checks the path and takes the corner when it must. Four blocks solved a maze of twenty hops — and the SAME four blocks solved a completely different maze. That's the deepest secret in this forest: great programmers don't write longer programs for bigger problems — they find the pattern and let the loops do the work. Worlds 1 and 2: complete. Robot Lab is waiting.",
+            en: "Look at what you built: a decision INSIDE a loop. The loop keeps going until the Golden Burrow; each time around, the If checks the path and takes the corner when it must. Four blocks solved a maze of twenty hops — and the SAME four blocks solved a completely different maze. That's the deepest secret in this forest: great programmers don't write longer programs for bigger problems — they find the pattern and let the loops do the work.",
           },
           teacherNotes: {
             en: "This is the level to project on the big screen in demos. Students who unroll it: pass them, then run their ~20 blocks and the 4-block version side by side — the class will gasp; that gasp is the lesson. Expected help hotspot: leaving out the If (Robo Bunny bumps the wall at the first corner — the located failure message is a great debugging moment).",
@@ -684,7 +690,7 @@ export const logicForest: WorldFixture = {
                                 CONDITION: {
                                   block: { type: "bb_pathAhead", id: "s1" },
                                 },
-                                DO: {
+                DO: {
                                   block: { type: "bb_turnRight", id: "t1" },
                                 },
                               },
@@ -701,6 +707,90 @@ export const logicForest: WorldFixture = {
               },
             },
           } satisfies BlockCodingDraft,
+        },
+
+        // ── LOOP DETECTIVE — CODE_PREDICTION, closes out Logic Forest ─────
+        // Deliberately placed AFTER the capstone, not mid-module: it doesn't
+        // touch a grid, and appending it here means every existing level's
+        // moduleId/order (and therefore its position in program order) is
+        // completely undisturbed — the m4 registrar's insertion note ("mind
+        // @@unique([moduleId, order]) — renumber siblings carefully") is
+        // satisfied by NOT needing to renumber any sibling at all.
+        {
+          slug: "loop-detective",
+          order: 4,
+          activityType: "CODE_PREDICTION",
+          track: "PROGRAMMING",
+          title: { en: "Loop Detective", ar: "محقق الحلقات" },
+          story: {
+            en: "The Golden Burrow is won, the spiral is solved — but one last note is pinned beside the trailhead home, in Robo Bunny's own handwriting. Not a map this time: a page torn from the programming notebook. Before the gate to Robot Lab opens, the forest wants to know: can you read a loop as well as you can write one?",
+          },
+          objective: {
+            en: "Read a short program built around a Repeat loop and predict its total effect — specifically how many times a repeated action actually runs.",
+          },
+          instructions: {
+            en: "Read the program below. It uses a loop, just like every trail you've solved in this forest. Work out what it actually does, then pick the option that matches.",
+          },
+          explanation: {
+            en: "A loop doesn't repeat ONE action — it repeats its WHOLE body, every statement inside it, every single time around. This program's loop ran 3 times, and each time around it hopped forward twice before turning. So the forward hops didn't just add up to 3 — they added up to 3 groups of 2. Programmers call this 'reading code': predicting what a program does before ever running it. It's the same skill as writing a loop, just aimed the other way, and it's exactly how you'll spot bugs later without a single test run. Worlds 1 and 2: complete. Robot Lab is waiting.",
+          },
+          teacherNotes: {
+            en: "The classic trap is counting loop ITERATIONS (3) instead of total statement executions (6) — if a student answers 3, ask them to physically act out one full lap of the loop and count their own hops, then do it three times. This level never runs on a grid; it's pure code reading, placed as the forest's closing checkpoint so the mental model ('a loop repeats a PATTERN, not a step') gets tested once more before Robot Lab raises the stakes. Challenge extension: ask students to write the equivalent program with plain Move/Turn blocks (no loop) and count the blocks — 9 total (6 moves + 3 turns) versus this program's 4 lines.",
+          },
+          difficulty: "EASY",
+          recommendedGradeMin: 4,
+          recommendedGradeMax: 7,
+          estimatedMinutes: 4,
+          xpReward: 35,
+          tags: ["loops", "reading-code"],
+          requires: [],
+          hints: [
+            {
+              tier: 1,
+              text: {
+                en: "This loop's body isn't just one line — look carefully at everything between its curly braces { }.",
+              },
+            },
+            {
+              tier: 2,
+              text: {
+                en: "The loop header says `i < 3`, so the whole body runs 3 times. But how many `moveForward();` lines are INSIDE the body?",
+              },
+            },
+            {
+              tier: 3,
+              text: {
+                en: "Two `moveForward();` calls sit inside the loop body. Each lap around the loop runs both of them — so one lap is 2 hops, not 1.",
+              },
+            },
+            {
+              tier: 4,
+              text: {
+                en: "Two moveForward() calls happen inside the loop, and the loop runs 3 times (i < 3). Two hops, three times over — work out 2 × 3 to find the total hops.",
+              },
+            },
+          ],
+          payload: {
+            code:
+              "for (var i = 0; i < 3; i++) {\n" +
+              "  moveForward();\n" +
+              "  moveForward();\n" +
+              "  turnRight();\n" +
+              "}\n",
+            prompt: {
+              en: "How many times does this program call moveForward() in total?",
+            },
+            options: [
+              { id: "two", text: { en: "2 times" } },
+              { id: "three", text: { en: "3 times" } },
+              { id: "six", text: { en: "6 times" } },
+              { id: "nine", text: { en: "9 times" } },
+            ],
+            correctOptionId: "six",
+            wrongFeedback: {
+              en: "Count again: the loop's body has TWO moveForward() calls, and the whole body repeats 3 times — not just one hop per lap.",
+            },
+          } satisfies CodePredictionDraft,
         },
       ],
     },

@@ -30,7 +30,7 @@ export default async function StaffLayout({ children, params }: Props) {
   return (
     <div data-theme="pro" className="flex min-h-dvh flex-col bg-surface text-ink">
       {ctx.impersonatedBy ? <ImpersonationBanner /> : null}
-      <header className="border-b border-border-token bg-surface-raised">
+      <header className="border-b border-border-token bg-surface-raised print:hidden">
         <div className="bb-container flex flex-wrap items-center justify-between gap-x-4 gap-y-2 py-3">
           <div className="flex min-w-0 items-center gap-4 sm:gap-6">
             <Link
@@ -44,7 +44,10 @@ export default async function StaffLayout({ children, params }: Props) {
               {school?.name ?? t("header.noSchool")}
             </span>
             <nav aria-label={t("nav.label")} className="flex items-center gap-1">
-              <NavLink href="/teach">{t("nav.teach")}</NavLink>
+              <NavLink href="/teach" exact>{t("nav.teach")}</NavLink>
+              {ctx.role === "TEACHER" ? (
+                <NavLink href="/teach/assignments">{t("nav.assignments")}</NavLink>
+              ) : null}
               {ctx.role === "SCHOOL_ADMIN" ? (
                 <NavLink href="/school">{t("nav.school")}</NavLink>
               ) : null}

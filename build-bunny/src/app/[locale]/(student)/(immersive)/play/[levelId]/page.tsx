@@ -1,6 +1,19 @@
 import { setRequestLocale } from "next-intl/server";
 
 import { redirect } from "@/i18n/navigation";
+import { ActivityPlayer } from "@/modules/activities/players/ActivityPlayer";
+import { getActivityEngine } from "@/modules/activities/server/registry";
+import { codePredictionStudentPayload } from "@/modules/activities/server/code-prediction";
+import {
+  sequencingStudentPayload,
+  shuffleSequencingItems,
+} from "@/modules/activities/server/sequencing";
+import type {
+  ActivityIntro,
+  CodePredictionActivityPayload,
+  GridActivityPayload,
+  SequencingActivityPayload,
+} from "@/modules/activities/types";
 import { requireRole } from "@/modules/auth/server/session";
 import {
   blockCodingPayload,
@@ -20,15 +33,9 @@ import { getPlayableLevel } from "@/modules/learning/server/queries";
 import { isFeatureEnabled } from "@/modules/shared/features";
 import { getMyStudentSnapshot } from "@/modules/students/server/queries";
 
-import { PlayerShell } from "./_components/PlayerShell";
-import type { PlayerLevelVM, PlayerPayload } from "./_components/types";
-
 interface Props {
   params: Promise<{ locale: string; levelId: string }>;
 }
-
-/** V1 activity types the grid-world player can actually run. */
-const PLAYABLE_TYPES = new Set(["BLOCK_CODING", "DEBUGGING"]);
 
 /**
  * Walk the trail in map order to find the level's world theme and its
@@ -72,9 +79,14 @@ export default async function PlayLevelPage({ params }: Props) {
     getPlayableLevel(ctx, levelId),
     computeAdventureState(ctx),
   ]);
-  // Locked / unpublished / foreign levels never load a player; V1 plays
-  // grid-world activities only.
-  if (!playable || !PLAYABLE_TYPES.has(playable.activityType)) {
+
+  // The registry is the single source of truth for "is this playable" (m4
+  // task 4) — a level whose activityType has no registered engine (locked,
+  // unpublished, foreign, or a future type with no engine yet) never loads.
+  // The SERVER half answers this; the matching player is selected inside the
+  // client boundary (a server component cannot call into "use client" code).
+  const engine = playable ? getActivityEngine(playable.activityType) : undefined;
+  if (!playable || !engine) {
     redirect({ href: "/adventure", locale });
     return null;
   }
@@ -82,34 +94,9 @@ export default async function PlayLevelPage({ params }: Props) {
   // First open flips UNLOCKED → IN_PROGRESS and records LEVEL_STARTED (once).
   await markLevelStarted({ levelId });
 
-  // Re-parse the (student-stripped) payload so schema defaults are applied,
-  // then rebuild it field-by-field: answer-bearing keys cannot leak to the
-  // client even if an upstream strip regresses.
-  let resetWorkspace: unknown;
-  let parsed: ReturnType<typeof blockCodingPayload.parse>;
-  if (playable.activityType === "DEBUGGING") {
-    const debug = debuggingPayload.parse(playable.payload);
-    parsed = debug;
-    // DEBUGGING preloads the broken program as the workspace to repair.
-    resetWorkspace =
-      playable.startWorkspace ?? debug.brokenWorkspace ?? debug.startWorkspace ?? null;
-  } else {
-    parsed = blockCodingPayload.parse(playable.payload);
-    resetWorkspace = playable.startWorkspace ?? parsed.startWorkspace ?? null;
-  }
-  const payload: PlayerPayload = {
-    toolbox: parsed.toolbox,
-    variants: parsed.variants,
-    autoCollect: parsed.autoCollect,
-    nonFatalBumps: parsed.nonFatalBumps,
-    budgets: parsed.budgets,
-    checks: parsed.checks,
-    starCriteria: parsed.starCriteria,
-  };
-
   const { theme, next } = locateOnTrail(adventure, levelId);
 
-  const vm: PlayerLevelVM = {
+  const intro: ActivityIntro = {
     levelId: playable.id,
     activityType: playable.activityType,
     title: resolveText(playable.title, locale),
@@ -124,14 +111,69 @@ export default async function PlayLevelPage({ params }: Props) {
     hintsUsedTiers: playable.hintsUsedTiers,
     worldTheme: theme,
     nextLevel: next,
-    payload,
-    initialWorkspace: playable.draftWorkspace ?? resetWorkspace,
-    resetWorkspace,
   };
 
+  // Re-parse the (student-stripped) payload per activity type so schema
+  // defaults are applied and the client-facing shape is rebuilt field by
+  // field: answer-bearing keys cannot leak even if an upstream strip
+  // regresses — grid payloads have no required answer field (solution is
+  // optional and simply never copied below); CODE_PREDICTION/SEQUENCING use
+  // dedicated answer-FREE schemas, so a stripped payload that still carried
+  // correctOptionId/correctOrder would fail this parse loudly instead of
+  // shipping it.
+  let payload: GridActivityPayload | CodePredictionActivityPayload | SequencingActivityPayload;
+  if (playable.activityType === "DEBUGGING") {
+    const parsed = debuggingPayload.parse(playable.payload);
+    const resetWorkspace =
+      playable.startWorkspace ?? parsed.brokenWorkspace ?? parsed.startWorkspace ?? null;
+    payload = {
+      toolbox: parsed.toolbox,
+      variants: parsed.variants,
+      autoCollect: parsed.autoCollect,
+      nonFatalBumps: parsed.nonFatalBumps,
+      budgets: parsed.budgets,
+      checks: parsed.checks,
+      starCriteria: parsed.starCriteria,
+      initialWorkspace: playable.draftWorkspace ?? resetWorkspace,
+      resetWorkspace,
+    } satisfies GridActivityPayload;
+  } else if (playable.activityType === "CODE_PREDICTION") {
+    const parsed = codePredictionStudentPayload.parse(playable.payload);
+    payload = {
+      code: parsed.code,
+      prompt: parsed.prompt,
+      options: parsed.options,
+      wrongFeedback: parsed.wrongFeedback ?? null,
+    } satisfies CodePredictionActivityPayload;
+  } else if (playable.activityType === "SEQUENCING") {
+    const parsed = sequencingStudentPayload.parse(playable.payload);
+    payload = {
+      prompt: parsed.prompt,
+      // Deterministic per (level, student): stable across reloads, varies
+      // across students.
+      items: shuffleSequencingItems(parsed.items, `${playable.id}:${ctx.userId}`),
+    } satisfies SequencingActivityPayload;
+  } else {
+    const parsed = blockCodingPayload.parse(playable.payload);
+    const resetWorkspace = playable.startWorkspace ?? parsed.startWorkspace ?? null;
+    payload = {
+      toolbox: parsed.toolbox,
+      variants: parsed.variants,
+      autoCollect: parsed.autoCollect,
+      nonFatalBumps: parsed.nonFatalBumps,
+      budgets: parsed.budgets,
+      checks: parsed.checks,
+      starCriteria: parsed.starCriteria,
+      initialWorkspace: playable.draftWorkspace ?? resetWorkspace,
+      resetWorkspace,
+    } satisfies GridActivityPayload;
+  }
+
   return (
-    <PlayerShell
-      vm={vm}
+    <ActivityPlayer
+      activityType={playable.activityType}
+      intro={intro}
+      payload={payload}
       revealHintAction={revealHint}
       saveDraftAction={saveWorkspaceDraft}
     />

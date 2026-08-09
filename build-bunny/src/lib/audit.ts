@@ -58,6 +58,7 @@ export const AUDIT = {
     passwordReset: "students.password_reset",
     disabled: "students.disabled",
     enabled: "students.enabled",
+    imported: "students.imported",
   },
   staff: {
     created: "staff.created",
@@ -70,11 +71,13 @@ export const AUDIT = {
     created: "schools.created",
     updated: "schools.updated",
     deactivated: "schools.deactivated",
+    reactivated: "schools.reactivated",
   },
   classes: {
     created: "classes.created",
     updated: "classes.updated",
     rosterChanged: "classes.roster_changed",
+    joinCodeRotated: "classes.join_code_rotated",
   },
   impersonation: {
     start: "impersonation.start",

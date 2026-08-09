@@ -70,6 +70,7 @@ async function loadAppModules() {
   );
   const { recomputeUnlocks } = await import("../src/modules/learning/server/adventure");
   const { XP_BY_DIFFICULTY } = await import("../src/modules/curriculum/schemas");
+  const { issueWorldCertificate } = await import("../src/modules/certificates/server/issue");
   const { bundle } = await import("../content");
   return {
     db,
@@ -84,6 +85,7 @@ async function loadAppModules() {
     transitionStatus,
     recomputeUnlocks,
     XP_BY_DIFFICULTY,
+    issueWorldCertificate,
     bundle,
   };
 }
@@ -888,6 +890,45 @@ async function ensureLoginTrail(
   logCreated(`login trail for ${student.username} (${trail.length} school days)`);
 }
 
+/**
+ * Certificates through the REAL issuance path (m4 task contract) — walks
+ * every non-horizon world the student has touched and calls
+ * issueWorldCertificate for it. That function re-derives its own "genuine
+ * full-PASS" eligibility (every published level COMPLETED with stars >= 2,
+ * never just a PARTIAL) and is idempotent by the (student, kind, world)
+ * unique, so this is safe to re-run on every seed pass. Walking every world
+ * (rather than special-casing Aisha by username) keeps the seed correct if
+ * the demo roster's progress ever changes — with today's STUDENTS data only
+ * Aisha K. (10/10 across Bunny Meadow + Logic Forest) actually qualifies.
+ */
+async function ensureCertificates(
+  app: App,
+  curriculum: SeedLevel[],
+  schoolId: string,
+  userId: string,
+  student: StudentSeed,
+): Promise<void> {
+  const worldIds = [...new Set(curriculum.map((l) => l.worldId))];
+  const progress = await app.db.studentProgress.findMany({
+    where: { studentUserId: userId, schoolId, status: "COMPLETED" },
+    select: { levelId: true, stars: true },
+  });
+  const passedLevelIds = new Set(progress.filter((p) => p.stars >= 2).map((p) => p.levelId));
+
+  for (const worldId of worldIds) {
+    const levelsInWorld = curriculum.filter((l) => l.worldId === worldId);
+    if (!levelsInWorld.every((l) => passedLevelIds.has(l.id))) continue;
+    const worldSlug = levelsInWorld[0]!.worldSlug;
+    const result = await app.issueWorldCertificate({ schoolId, studentUserId: userId, worldId });
+    if (!result.certificate) continue; // shouldn't happen given the check above, but never fatal
+    if (result.alreadyIssued) {
+      logSkipped(`certificate ${student.username} · ${worldSlug} (${result.certificate.serial})`);
+    } else {
+      logCreated(`certificate ${student.username} · ${worldSlug} (${result.certificate.serial})`);
+    }
+  }
+}
+
 // ── Verification ──────────────────────────────────────────────────────────
 
 async function verifyCounts(
@@ -1017,6 +1058,15 @@ async function verifyCounts(
         where: { schoolId, type: "LEVEL_COMPLETED" },
       }),
     },
+    {
+      // Aisha K. is the only student who has genuinely passed every level of
+      // two full worlds (Bunny Meadow + Logic Forest) — a lower bound since
+      // real demo play can only add more.
+      label: "certificates issued",
+      expected: 2,
+      atLeast: true,
+      actual: await app.db.certificate.count({ where: { schoolId } }),
+    },
   ];
 
   console.log("\nVerification:");
@@ -1097,7 +1147,9 @@ async function writeCredentialsFile(
     // Seeded progress covers Worlds 1–2 (10 levels); Robot Lab (levels
     // 11–15) opens via the tightened world gate once Worlds 1–2 are done.
     const certificate =
-      n === 10 ? " — **Worlds 1–2 complete** (Robot Lab unlocked)" : "";
+      n === 10
+        ? " — **Worlds 1–2 complete, certificates issued** (Robot Lab unlocked; verify at /verify/[slug])"
+        : "";
     return `- ${studentDisplayName(s)} (\`${s.username}\`): ${n}/${totalLevels} levels${certificate}`;
   };
   lines.push("## Demo state", "");
@@ -1223,6 +1275,7 @@ async function main(): Promise<void> {
     await ensureStreaks(app, userId, student, trail);
     if (trail) await ensureLoginTrail(app, school.id, userId, student, trail);
     await ensureCompletionEvents(app, curriculum, school.id, userId, student);
+    await ensureCertificates(app, curriculum, school.id, userId, student);
   }
 
   await verifyCounts(app, school.id, curriculum);

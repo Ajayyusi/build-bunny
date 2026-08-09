@@ -1,35 +1,31 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
 
+import { Link } from "@/i18n/navigation";
 import { requireRole } from "@/modules/auth/server/session";
-import {
-  getSchoolSummary,
-  listClasses,
-  listTeachers,
-} from "@/modules/schools/server/queries";
-import {
-  Badge,
-  DataTable,
-  ErrorState,
-  PageHeader,
-  StatCard,
-  type DataTableColumn,
-} from "@/ui";
+import { getSchoolSummary } from "@/modules/schools/server/queries";
+import { Card, CardBody, ErrorState, PageHeader, StatCard } from "@/ui";
 
 interface Props {
   params: Promise<{ locale: string }>;
 }
 
-// Read-only in M1 — school management actions arrive in M4, so there are no
-// action buttons here yet.
+const SECTIONS = [
+  { href: "/school/teachers", navKey: "teachers", icon: "🧑‍🏫" },
+  { href: "/school/students", navKey: "students", icon: "🎒" },
+  { href: "/school/classes", navKey: "classes", icon: "🏫" },
+  { href: "/school/imports", navKey: "imports", icon: "📥" },
+  { href: "/school/certificates", navKey: "certificates", icon: "🏅" },
+  { href: "/school/reports", navKey: "reports", icon: "📊" },
+] as const;
+
 export default async function SchoolPage({ params }: Props) {
   const { locale } = await params;
   setRequestLocale(locale);
   const ctx = await requireRole("SCHOOL_ADMIN");
-  const [summary, teachers, classes, t] = await Promise.all([
+  const [summary, t, tNav] = await Promise.all([
     getSchoolSummary(ctx),
-    listTeachers(ctx),
-    listClasses(ctx),
     getTranslations("staff.school"),
+    getTranslations("staff.school.nav"),
   ]);
 
   if (!summary) {
@@ -42,57 +38,6 @@ export default async function SchoolPage({ params }: Props) {
     );
   }
 
-  type TeacherRow = (typeof teachers)[number];
-  type ClassRow = (typeof classes)[number];
-
-  const teacherColumns: DataTableColumn<TeacherRow>[] = [
-    {
-      key: "name",
-      header: t("name"),
-      cell: (row) => <span className="font-medium">{row.displayName}</span>,
-    },
-    { key: "email", header: t("email"), cell: (row) => row.email },
-    {
-      key: "status",
-      header: t("status"),
-      cell: (row) =>
-        row.banned ? (
-          <Badge variant="danger">{t("statusDisabled")}</Badge>
-        ) : (
-          <Badge variant="positive">{t("statusActive")}</Badge>
-        ),
-    },
-  ];
-
-  const classColumns: DataTableColumn<ClassRow>[] = [
-    {
-      key: "name",
-      header: t("name"),
-      cell: (row) => <span className="font-medium">{row.name}</span>,
-    },
-    {
-      key: "grade",
-      header: t("grade"),
-      cell: (row) => <span className="tabular-nums">{row.grade}</span>,
-      align: "end",
-    },
-    {
-      key: "year",
-      header: t("year"),
-      // Year ranges like "2026–2027" are direction-neutral and would visually
-      // reverse in RTL; isolate them as LTR.
-      cell: (row) => <span dir="ltr">{row.academicYear.name}</span>,
-    },
-    {
-      key: "students",
-      header: t("classStudents"),
-      cell: (row) => (
-        <span className="tabular-nums">{row._count.memberships}</span>
-      ),
-      align: "end",
-    },
-  ];
-
   return (
     <div className="flex flex-col gap-8">
       <PageHeader title={summary.name} description={t("subtitle")} />
@@ -102,22 +47,23 @@ export default async function SchoolPage({ params }: Props) {
         <StatCard label={t("classes")} value={summary.counts.classes} />
       </div>
       <section className="flex flex-col gap-3">
-        <h2 className="font-display text-lg font-semibold">{t("teachers")}</h2>
-        <DataTable
-          columns={teacherColumns}
-          rows={teachers}
-          rowKey={(row) => row.id}
-          emptyMessage={t("noTeachers")}
-        />
-      </section>
-      <section className="flex flex-col gap-3">
-        <h2 className="font-display text-lg font-semibold">{t("classes")}</h2>
-        <DataTable
-          columns={classColumns}
-          rows={classes}
-          rowKey={(row) => row.id}
-          emptyMessage={t("noClasses")}
-        />
+        <h2 className="font-display text-lg font-semibold">{t("manageHeading")}</h2>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {SECTIONS.map((section) => (
+            <Link key={section.href} href={section.href}>
+              <Card className="transition-colors hover:bg-surface-sunken">
+                <CardBody className="flex items-center gap-3">
+                  <span aria-hidden className="text-2xl">
+                    {section.icon}
+                  </span>
+                  <span className="font-display font-semibold text-ink">
+                    {tNav(section.navKey)}
+                  </span>
+                </CardBody>
+              </Card>
+            </Link>
+          ))}
+        </div>
       </section>
     </div>
   );

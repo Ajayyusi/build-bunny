@@ -5,6 +5,8 @@ import { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
 import { recordLearningEvent } from "@/lib/events";
 import { computeStars, ENGINE_VERSION } from "@/engine";
+import { getActivityEngine } from "@/modules/activities/server/registry";
+import type { ActivityGradeResult } from "@/modules/activities/types";
 import type { SessionContext } from "@/modules/auth/server/session";
 import { recomputeUnlocks } from "@/modules/learning/server/adventure";
 import {
@@ -13,22 +15,37 @@ import {
   type LocalizedText,
 } from "@/modules/curriculum/schemas";
 import { getPublishedLevelSnapshot } from "@/modules/curriculum/server/queries";
+import { issueWorldCertificate } from "@/modules/certificates/server/issue";
 import { evaluateAchievements, type NewAchievement } from "./achievements";
-import { gradeWorkspace, type GradeOutcome } from "./grade";
 import { applyDailyActivity } from "./streak";
 
 /**
- * The authoritative attempt pipeline (m3 contract): grade → idempotent reward
- * transaction → unlocks → events → pinned response shape. The HTTP route is a
- * thin adapter (session, body validation, rate limit) around submitAttempt so
- * the whole pipeline is testable with a hand-built SessionContext.
+ * The authoritative attempt pipeline (m3/m4 contract): grade → idempotent
+ * reward transaction → unlocks → events → pinned response shape. The HTTP
+ * route is a thin adapter (session, body validation, rate limit) around
+ * submitAttempt so the whole pipeline is testable with a hand-built
+ * SessionContext. Grading itself is dispatched through the activity-engine
+ * registry (src/modules/activities) — this file never assumes a grid.
  */
 
-export interface AttemptInput {
+/** Grid types (BLOCK_CODING/DEBUGGING) submit the raw Blockly workspace. */
+export interface GridAttemptInput {
   attemptRunId: string;
   workspaceJson: unknown;
   clientVerdict?: "PASS" | "PARTIAL" | "FAIL";
   durationMs?: number;
+}
+
+/** CODE_PREDICTION/SEQUENCING submit a small structured answer instead. */
+export interface AnswerAttemptInput {
+  attemptRunId: string;
+  answer: { optionId: string } | { order: string[] };
+}
+
+export type AttemptInput = GridAttemptInput | AnswerAttemptInput;
+
+function isGridAttemptInput(input: AttemptInput): input is GridAttemptInput {
+  return "workspaceJson" in input;
 }
 
 export interface AttemptResponse {
@@ -42,13 +59,15 @@ export interface AttemptResponse {
   newAchievements: NewAchievement[];
   unlockedLevelIds: string[];
   worldCompleted: { slug: string; name: LocalizedText } | null;
+  /** Set only on the run that completes a world AND issues (or already holds) its certificate. */
+  certificate: { serial: string; verifySlug: string } | null;
   feedback: { code: string; data?: Record<string, unknown> } | null;
   gradeMismatch: boolean;
 }
 
 export type SubmitOutcome =
   | { status: 200; body: AttemptResponse }
-  | { status: 403 | 409; body: { error: string } };
+  | { status: 400 | 403 | 409; body: { error: string } };
 
 /** Injectable clock so streak tests can simulate calendar days. */
 export interface SubmitOptions {
@@ -77,12 +96,14 @@ function storedResponseOf(resultSummary: Prisma.JsonValue): AttemptResponse | nu
 }
 
 function summaryJson(
-  grade: GradeOutcome,
+  grade: ActivityGradeResult,
   response?: AttemptResponse,
 ): Prisma.InputJsonValue {
   return JSON.parse(
     JSON.stringify({
-      perVariant: grade.perVariant,
+      // Grid engines contribute perVariant here; CODE_PREDICTION/SEQUENCING
+      // contribute their own small audit detail (optionId/order + correct).
+      ...grade.summary,
       primaryFeedback: grade.primaryFeedback,
       qualityPassed: grade.qualityPassed,
       ...(response ? { response } : {}),
@@ -108,6 +129,16 @@ export async function submitAttempt(
   if (!progress) return { status: 403, body: { error: "LOCKED" } };
   const published = await getPublishedLevelSnapshot(levelId);
   if (!published) return { status: 403, body: { error: "LOCKED" } };
+
+  // ── Body shape must match the level's own activity type — the attempts
+  // route already validates this per type with Zod; this is the pipeline's
+  // own belt-and-suspenders check for any caller that reaches submitAttempt
+  // directly (tests, or a future non-HTTP caller). ────────────────────────
+  const activityType = published.snapshot.activityType;
+  const isGridType = activityType === "BLOCK_CODING" || activityType === "DEBUGGING";
+  if (isGridAttemptInput(input) !== isGridType) {
+    return { status: 400, body: { error: "VALIDATION" } };
+  }
 
   // ── Idempotency: a replayed attemptRunId returns the stored response ───
   const existing = await db.activityAttempt.findUnique({
@@ -143,22 +174,35 @@ export async function submitAttempt(
         newAchievements: [],
         unlockedLevelIds: [],
         worldCompleted: null,
+        certificate: null,
         feedback: null,
         gradeMismatch: false,
       },
     };
   }
 
-  // ── Authoritative grade against the pinned published snapshot ──────────
-  const grade = gradeWorkspace(published.snapshot, input.workspaceJson);
+  // ── Authoritative grade against the pinned published snapshot, dispatched
+  // through the activity-engine registry (grid workspaceJson or a
+  // CODE_PREDICTION/SEQUENCING answer — never assumed here). ──────────────
+  const engine = getActivityEngine(activityType);
+  if (!engine) {
+    // Publish gates only allow V1_ACTIVITY_TYPES to go live, so this means
+    // the content/registry drifted apart — an infrastructure bug, not
+    // anything the student did. Let the route's catch-all report it.
+    throw new Error(`No activity engine registered for type ${activityType}`);
+  }
+  const gradeInput: unknown = isGridAttemptInput(input) ? input.workspaceJson : input.answer;
+  const clientVerdict = isGridAttemptInput(input) ? input.clientVerdict : undefined;
+  const durationMs = isGridAttemptInput(input) ? input.durationMs : undefined;
+
+  const grade = engine.grade(published.snapshot, gradeInput);
   const hintAgg = await db.hintUsage.aggregate({
     where: { studentUserId: ctx.userId, schoolId, levelId },
     _max: { tier: true },
   });
   const hintTierUsed = hintAgg._max.tier ?? 0;
   const stars = computeStars(grade.verdict, grade.qualityPassed, hintTierUsed);
-  const gradeMismatch =
-    input.clientVerdict !== undefined && input.clientVerdict !== grade.verdict;
+  const gradeMismatch = clientVerdict !== undefined && clientVerdict !== grade.verdict;
 
   const attemptBase = {
     attemptRunId: input.attemptRunId,
@@ -167,16 +211,18 @@ export async function submitAttempt(
     levelId,
     levelVersion: published.version,
     engineVersion: ENGINE_VERSION,
+    // "Inputs, not frames": the grid workspace JSON or the small structured
+    // answer object, whichever the level's engine graded.
     workspaceJson: JSON.parse(
-      JSON.stringify(input.workspaceJson ?? {}),
+      JSON.stringify(gradeInput ?? {}),
     ) as Prisma.InputJsonValue,
     generatedCode: grade.generatedCode,
     verdict: grade.verdict,
     starsEarned: stars,
-    durationMs: input.durationMs ?? null,
-    blockCount: grade.blockStats.totalBlocks,
+    durationMs: durationMs ?? null,
+    blockCount: grade.blockCount,
     hintTierUsed,
-    clientVerdict: input.clientVerdict ?? null,
+    clientVerdict: clientVerdict ?? null,
     gradeMismatch,
   };
 
@@ -196,6 +242,7 @@ export async function submitAttempt(
       newAchievements: [],
       unlockedLevelIds: [],
       worldCompleted: null,
+      certificate: null,
       feedback: grade.primaryFeedback,
       gradeMismatch,
     };
@@ -397,6 +444,28 @@ export async function submitAttempt(
       .filter((id) => !beforeIds.has(id));
   }
 
+  // ── Certificate issuance (m4-contracts): only on the run that just
+  // completed a world. Issuance re-derives its own eligibility (genuine
+  // full-PASS, not just PARTIAL-completion) and is idempotent by design —
+  // a failure here must never break the grading response, only skip the
+  // certificate chip for this run (a later completion detection, or the
+  // seed/admin tooling, can still issue it). ──────────────────────────────
+  let certificate: { serial: string; verifySlug: string } | null = null;
+  if (txResult.worldCompleted) {
+    try {
+      const issued = await issueWorldCertificate({
+        schoolId,
+        studentUserId: ctx.userId,
+        worldId: txResult.worldCompleted.id,
+      });
+      if (issued.certificate) {
+        certificate = { serial: issued.certificate.serial, verifySlug: issued.certificate.verifySlug };
+      }
+    } catch (err) {
+      console.error("[certificates] issuance failed", err);
+    }
+  }
+
   const response: AttemptResponse = {
     verdict: grade.verdict,
     stars,
@@ -408,6 +477,7 @@ export async function submitAttempt(
     worldCompleted: txResult.worldCompleted
       ? { slug: txResult.worldCompleted.slug, name: txResult.worldCompleted.name }
       : null,
+    certificate,
     feedback: grade.primaryFeedback,
     gradeMismatch,
   };

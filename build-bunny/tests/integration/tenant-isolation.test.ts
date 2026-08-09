@@ -154,6 +154,9 @@ let ctxA: SessionContext; // SCHOOL_ADMIN of school A — the attacker's viewpoi
 let teacherCtxA: SessionContext;
 let studentCtxA: SessionContext;
 let studentCtxB: SessionContext;
+let ctxB: SessionContext; // SCHOOL_ADMIN of school B
+let teacherCtxB: SessionContext; // the ORIGINAL teacher of school B (owns B.classId)
+let teacherTwoCtxB: SessionContext; // a SECOND teacher in school B (owns classTwoBId)
 let nitaqCtx: SessionContext;
 
 // M2 curriculum fixture: content is platform-GLOBAL — the isolation property
@@ -162,6 +165,19 @@ let nitaqCtx: SessionContext;
 let programAId: string;
 let levelOneId: string;
 let levelTwoId: string;
+
+// M4 certificates/achievements fixture — see beforeAll.
+let certAId: string;
+let certBId: string;
+
+// M4 teacher-analytics fixture (analytics/assignments modules) — a SECOND
+// teacher + class INSIDE school A, so isolation cases can prove teacher A
+// cannot reach teacher B's class/students even within the SAME school, not
+// just across schools.
+let teacherTwoBId: string;
+let classTwoBId: string;
+let studentInClassTwoId: string;
+let attemptAId: string;
 
 beforeAll(async () => {
   await wipeDatabase();
@@ -200,6 +216,122 @@ beforeAll(async () => {
   }
 
   await recomputeUnlocks(A.studentIds[0]);
+
+  // Certificates: one WORLD_COMPLETION row per school on the SAME global
+  // world id (mirroring the cross-school progress fixture above) — proves
+  // Certificate isolation comes from schoolId, not from the world being
+  // different. Direct writes (not the real issuance path — that has its own
+  // dedicated suite in certificates.test.ts).
+  const certA = await db.certificate.create({
+    data: {
+      schoolId: A.school.id,
+      studentUserId: A.studentIds[0],
+      kind: "WORLD_COMPLETION",
+      worldId: world.id,
+      serial: "BB-2026-AAAAAA",
+      verifySlug: "isolation-test-verify-slug-a",
+      studentName: "Alpha Student One",
+      schoolName: "Alpha Test School",
+      title: { en: "Test World" },
+      starsEarned: 6,
+      levelsCount: 2,
+    },
+  });
+  const certB = await db.certificate.create({
+    data: {
+      schoolId: B.school.id,
+      studentUserId: B.studentIds[0],
+      kind: "WORLD_COMPLETION",
+      worldId: world.id,
+      serial: "BB-2026-BBBBBB",
+      verifySlug: "isolation-test-verify-slug-b",
+      studentName: "Beta Student One",
+      schoolName: "Beta Test School",
+      title: { en: "Test World" },
+      starsEarned: 6,
+      levelsCount: 2,
+    },
+  });
+  certAId = certA.id;
+  certBId = certB.id;
+
+  // Achievements: the definition is platform-global (visible to both
+  // schools), but the EARNED join must isolate — only school A's student
+  // earned it.
+  const achievement = await db.achievement.create({
+    data: {
+      slug: "isolation-test-badge",
+      name: { en: "Isolation Badge" },
+      description: { en: "For isolation testing" },
+      icon: "🏅",
+      criteria: { type: "FIRST_PASS" },
+      order: 1,
+    },
+  });
+  await db.studentAchievement.create({
+    data: { schoolId: A.school.id, studentUserId: A.studentIds[0], achievementId: achievement.id },
+  });
+
+  // ── M4 teacher-analytics fixture: a SECOND teacher + class inside school B
+  // (not A) — school A's teacher/student/class counts are asserted exactly
+  // elsewhere in this file (listTeachers/listStudents/listClasses/
+  // getSchoolProgressReport), so growing A's roster would break those. School
+  // B's roster is only ever leak-checked ("must not appear"), never counted,
+  // so it is the safe place to add a same-school second-teacher fixture.
+  const teacherTwoB = await createStaff(SYSTEM_ACTOR, {
+    schoolId: B.school.id,
+    email: `${B.school.code}-teacher2@test.example`,
+    displayName: "Beta Teacher Two",
+    role: "TEACHER",
+    password: "teach-pass-22",
+  });
+  teacherTwoBId = teacherTwoB.userId;
+  const classTwoB = await db.class.create({
+    data: { schoolId: B.school.id, academicYearId: B.yearId, name: "Grade 3B", grade: 3 },
+  });
+  classTwoBId = classTwoB.id;
+  await db.classMembership.create({
+    data: { schoolId: B.school.id, classId: classTwoB.id, userId: teacherTwoB.userId, role: "TEACHER" },
+  });
+  const studentInClassTwo = await createStudent(SYSTEM_ACTOR, {
+    schoolId: B.school.id,
+    schoolCode: B.school.code,
+    username: "comet",
+    displayName: "Beta Student Three",
+    studentIdentifier: "Beta-003",
+    grade: 3,
+  });
+  studentInClassTwoId = studentInClassTwo.userId;
+  await db.classMembership.create({
+    data: {
+      schoolId: B.school.id,
+      classId: classTwoB.id,
+      userId: studentInClassTwo.userId,
+      role: "STUDENT",
+    },
+  });
+
+  // A NORMAL attempt for A.studentIds[0] on the shared level-one fixture —
+  // direct write (not the real submit pipeline, which has its own suite)
+  // just to give getAttemptReplay something to look up and re-grade.
+  const attemptA = await db.activityAttempt.create({
+    data: {
+      attemptRunId: "isolation-test-attempt-a",
+      schoolId: A.school.id,
+      studentUserId: A.studentIds[0],
+      levelId: levelOneId,
+      levelVersion: 1,
+      engineVersion: "1.0.0",
+      kind: "NORMAL",
+      workspaceJson: {},
+      generatedCode: "",
+      resultSummary: {},
+      verdict: "ERROR",
+      starsEarned: 0,
+    },
+  });
+  attemptAId = attemptA.id;
+
   ctxA = createCtx({
     userId: A.adminId,
     role: "SCHOOL_ADMIN",
@@ -218,6 +350,21 @@ beforeAll(async () => {
   studentCtxB = createCtx({
     userId: B.studentIds[0],
     role: "STUDENT",
+    schoolId: B.school.id,
+  });
+  ctxB = createCtx({
+    userId: B.adminId,
+    role: "SCHOOL_ADMIN",
+    schoolId: B.school.id,
+  });
+  teacherCtxB = createCtx({
+    userId: B.teacherId,
+    role: "TEACHER",
+    schoolId: B.school.id,
+  });
+  teacherTwoCtxB = createCtx({
+    userId: teacherTwoBId,
+    role: "TEACHER",
     schoolId: B.school.id,
   });
   nitaqCtx = createCtx({
@@ -285,12 +432,100 @@ async function assertQueryIsolated(entry: RegistryEntry): Promise<void> {
       break;
     }
     case "getStudentDetail": {
+      // Two modules export a same-named query: schools/server/queries.ts
+      // (m1, admin roster read) and analytics/server/teacher.ts (m4, teacher
+      // analytics) — same registry key, different shape, so this case
+      // branches by module.
+      if (entry.modulePath.includes("/analytics/")) {
+        // Cross-school: teacher A can never reach a school-B student.
+        expect(await query(teacherCtxA, B.studentIds[0])).toBeNull();
+        const own = (await query(teacherCtxA, A.studentIds[0])) as { studentUserId: string } | null;
+        expect(own?.studentUserId).toBe(A.studentIds[0]);
+        expectNoForeignIds(own, name);
+        // Same school, different teacher: B.teacherId (teacher B) must NOT
+        // reach a student who belongs only to teacherTwoB's class.
+        expect(await query(teacherCtxB, studentInClassTwoId)).toBeNull();
+        // SCHOOL_ADMIN may reach any student in their OWN school, including
+        // one taught by a different teacher than the school's first.
+        const viaAdmin = (await query(ctxB, studentInClassTwoId)) as { studentUserId: string } | null;
+        expect(viaAdmin?.studentUserId).toBe(studentInClassTwoId);
+        break;
+      }
       // A foreign student id must resolve to nothing, not an error the UI
       // could distinguish from "does not exist".
       expect(await query(ctxA, B.studentIds[0])).toBeNull();
       const own = (await query(ctxA, A.studentIds[0])) as { id: string } | null;
       expect(own?.id).toBe(A.studentIds[0]);
       expectNoForeignIds(own, name);
+      break;
+    }
+    case "getClassMatrix": {
+      // Cross-school: teacher A can never reach school B's class.
+      expect(await query(teacherCtxA, B.classId)).toBeNull();
+      const own = (await query(teacherCtxA, A.classId)) as { classId: string } | null;
+      expect(own?.classId).toBe(A.classId);
+      expectNoForeignIds(own, name);
+      // Same school, different teacher: teacher B (B.teacherId) must NOT
+      // reach teacherTwoB's class, even though it is in their own school.
+      expect(await query(teacherCtxB, classTwoBId)).toBeNull();
+      // SCHOOL_ADMIN: any class in their OWN school, including the second
+      // teacher's class — but never a foreign school's class.
+      const viaAdmin = (await query(ctxB, classTwoBId)) as { classId: string } | null;
+      expect(viaAdmin?.classId).toBe(classTwoBId);
+      expect(await query(ctxA, classTwoBId)).toBeNull();
+      break;
+    }
+    case "getTeacherOverview": {
+      const overview = (await query(teacherCtxA)) as { classes: { id: string }[] };
+      expect(overview.classes.map((c) => c.id)).toEqual([A.classId]);
+      expectNoForeignIds(overview, name);
+      // A SCHOOL_ADMIN has no TEACHER memberships of their own — honest
+      // empty result, not an error and not every class in the school.
+      const viaAdmin = (await query(ctxA)) as { classes: unknown[] };
+      expect(viaAdmin.classes).toEqual([]);
+      // Same-school, different-teacher: teacherTwoB's overview shows ONLY
+      // their own class (classTwoB), never B.teacherId's class.
+      const overviewTwo = (await query(teacherTwoCtxB)) as { classes: { id: string }[] };
+      expect(overviewTwo.classes.map((c) => c.id)).toEqual([classTwoBId]);
+      break;
+    }
+    case "getAttemptReplay": {
+      expect(await query(teacherCtxA, "no-such-attempt")).toBeNull();
+      const own = (await query(teacherCtxA, attemptAId)) as { attempt: { studentUserId: string } } | null;
+      expect(own?.attempt.studentUserId).toBe(A.studentIds[0]);
+      expectNoForeignIds(own, name);
+      // Cross-school teacher can never replay another school's attempt.
+      expect(await query(teacherCtxB, attemptAId)).toBeNull();
+      break;
+    }
+    case "listMyAssignments": {
+      // No assignments seeded — the isolation property is an honest empty
+      // array (never every class's assignments) for a teacher with none.
+      const rows = asRows(await query(teacherCtxA));
+      expect(rows.length).toBe(0);
+      break;
+    }
+    case "listClassAssignments": {
+      const ownRows = asRows(await query(teacherCtxA, A.classId));
+      expect(ownRows.length).toBe(0);
+      // Teacher A cannot list assignments for a foreign school's class.
+      const foreignSchool = asRows(await query(teacherCtxA, B.classId));
+      expect(foreignSchool.length).toBe(0);
+      // Same school, different teacher: teacher B cannot list teacherTwoB's
+      // class assignments either.
+      const foreignInSchool = asRows(await query(teacherCtxB, classTwoBId));
+      expect(foreignInSchool.length).toBe(0);
+      // SCHOOL_ADMIN may list any class in their own school.
+      const viaAdmin = await query(ctxB, classTwoBId);
+      expect(Array.isArray(viaAdmin)).toBe(true);
+      break;
+    }
+    case "listAssignableContent": {
+      // Platform-global content gated by which programs the CALLER's school
+      // enabled — school A's tree must never include school B's program.
+      const content = (await query(ctxA)) as { worlds: { id: string }[] };
+      expect(Array.isArray(content.worlds)).toBe(true);
+      expectNoForeignIds(content, name);
       break;
     }
     case "listClasses": {
@@ -321,6 +556,35 @@ async function assertQueryIsolated(entry: RegistryEntry): Promise<void> {
       expectNoForeignIds(rows, name);
       break;
     }
+    case "listAcademicYears": {
+      const rows = asRows(await query(ctxA));
+      expect(rows.length).toBeGreaterThanOrEqual(1);
+      for (const row of rows) expect(row["schoolId"]).toBe(A.school.id);
+      expectNoForeignIds(rows, name);
+      break;
+    }
+    case "listImportHistory": {
+      // No import has run in this fixture — the isolation property is that a
+      // school-B import audit entry (if any existed) would never surface here.
+      const rows = asRows(await query(ctxA));
+      for (const row of rows) expect(row["schoolId"]).toBe(A.school.id);
+      expectNoForeignIds(rows, name);
+      break;
+    }
+    case "getSchoolProgressReport": {
+      const rows = asRows(await query(ctxA));
+      // >= not ===: sibling fixtures (e.g. the analytics suite's extra
+      // teacher/class) may add more of school A's own students here — the
+      // isolation property under test is "never school B", not an exact count.
+      expect(rows.length).toBeGreaterThanOrEqual(A.studentIds.length);
+      const rowStudentIds = rows.map((r) => r["studentId"]);
+      for (const id of A.studentIds) expect(rowStudentIds).toContain(id);
+      for (const row of rows) {
+        expect(B.studentIds).not.toContain(row["studentId"]);
+      }
+      expectNoForeignIds(rows, name);
+      break;
+    }
     case "getMyStudentSnapshot": {
       const own = await query(studentCtxA);
       expect(own).not.toBeNull();
@@ -332,6 +596,37 @@ async function assertQueryIsolated(entry: RegistryEntry): Promise<void> {
         schoolId: A.school.id,
       });
       expect(await query(mismatched)).toBeNull();
+      break;
+    }
+    case "getMyAchievements": {
+      const rowsA = asRows(await query(studentCtxA));
+      const earnedA = rowsA.find((r) => r["slug"] === "isolation-test-badge");
+      expect(earnedA?.["earnedAt"]).not.toBeNull();
+      // Definitions are platform-global (visible to both schools' students),
+      // but the EARNED state must never cross the school boundary.
+      const rowsB = asRows(await query(studentCtxB));
+      const earnedB = rowsB.find((r) => r["slug"] === "isolation-test-badge");
+      expect(earnedB?.["earnedAt"]).toBeNull();
+      expectNoForeignIds(rowsA, name);
+      break;
+    }
+    case "listSchoolCertificates": {
+      const rows = asRows(await query(ctxA));
+      expect(rows.length).toBe(1);
+      expect(rows[0]?.["id"]).toBe(certAId);
+      expectNoForeignIds(rows, name);
+      break;
+    }
+    case "listMyCertificates": {
+      const rowsA = asRows(await query(studentCtxA));
+      expect(rowsA.length).toBe(1);
+      expect(rowsA[0]?.["id"]).toBe(certAId);
+      expectNoForeignIds(rowsA, name);
+      // The B-school student's own list holds only their own certificate.
+      const rowsB = asRows(await query(studentCtxB));
+      expect(rowsB.length).toBe(1);
+      expect(rowsB[0]?.["id"]).toBe(certBId);
+      expect(JSON.stringify(rowsB)).not.toContain(certAId);
       break;
     }
     case "computeAdventureState": {

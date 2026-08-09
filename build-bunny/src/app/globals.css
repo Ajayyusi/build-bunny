@@ -312,3 +312,22 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* Certificate print isolation (certificates task): "Print / Save as PDF"
+   calls window.print() while a .certificate-sheet is open in an overlay —
+   this hides everything else on the page so only the A4-landscape sheet
+   prints, without the overlay/app chrome needing its own print styling. */
+@media print {
+  body:has(.certificate-sheet) > *:not(:has(.certificate-sheet)) {
+    display: none !important;
+  }
+  .certificate-sheet {
+    position: fixed;
+    inset: 0;
+    margin: 0 !important;
+  }
+  @page {
+    size: A4 landscape;
+    margin: 0;
+  }
+}
