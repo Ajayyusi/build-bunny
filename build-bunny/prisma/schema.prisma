@@ -57,6 +57,7 @@ model User {
   teacherProfile   TeacherProfile?
   classMemberships ClassMembership[]
   learningEvents   LearningEvent[]
+  studentProgress  StudentProgress[]
 
   @@index([schoolId, role])
 }
@@ -139,6 +140,8 @@ model School {
   teacherProfiles  TeacherProfile[]
   classMemberships ClassMembership[]
   learningEvents   LearningEvent[]
+  schoolPrograms   SchoolProgram[]
+  studentProgress  StudentProgress[]
 }
 
 enum LicenceStatus {
@@ -232,6 +235,9 @@ model StudentProfile {
   streakBest        Int       @default(0)
   lastActiveDate    DateTime?
   onboardedAt       DateTime?
+  // Curriculum track this student follows (one per student, plan §8 J).
+  programId         String?
+  program           Program?  @relation(fields: [programId], references: [id], onDelete: SetNull)
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
 
@@ -249,6 +255,238 @@ model TeacherProfile {
   updatedAt DateTime @updatedAt
 
   @@index([schoolId])
+}
+
+// ────────────────────────────── CURRICULUM ──────────────────────────────
+// Platform-global content (no schoolId — schools consume via SchoolProgram).
+// The DATABASE is the permanent source of truth for all curriculum entities
+// (plan §0.1-2); JSON fixtures are an import format feeding this model.
+// Localized text fields are JSONB shaped { en, ar?, arHash? }.
+
+enum ContentStatus {
+  DRAFT
+  REVIEW
+  PUBLISHED
+  ARCHIVED
+}
+
+enum ActivityType {
+  BLOCK_CODING
+  CODE_PREDICTION
+  DEBUGGING
+  SEQUENCING
+  // Registered for later phases (plan §0.1-7) — no V1 engine behind these:
+  QUIZ
+  PATTERN_RECOGNITION
+  AI_CLASSIFICATION
+  REAL_ML
+  AI_ETHICS
+  CREATIVE_PROJECT
+  AI_SIM
+  CONCEPT_CARDS
+}
+
+enum LearningTrack {
+  PROGRAMMING
+  AI_CONCEPTS
+  MACHINE_LEARNING
+}
+
+enum Difficulty {
+  EASY
+  MEDIUM
+  HARD
+}
+
+model Program {
+  id          String        @id @default(cuid())
+  slug        String        @unique
+  name        Json
+  description Json?
+  gradeMin    Int
+  gradeMax    Int
+  status      ContentStatus @default(DRAFT)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  worlds          ProgramWorld[]
+  schoolPrograms  SchoolProgram[]
+  studentProfiles StudentProfile[]
+}
+
+// Worlds are reusable across programs (grade-band packaging, plan §1.1 B2).
+model ProgramWorld {
+  id        String  @id @default(cuid())
+  programId String
+  program   Program @relation(fields: [programId], references: [id], onDelete: Cascade)
+  worldId   String
+  world     World   @relation(fields: [worldId], references: [id], onDelete: Cascade)
+  order     Int
+
+  @@unique([programId, worldId])
+  @@unique([programId, order])
+}
+
+model World {
+  id      String        @id @default(cuid())
+  slug    String        @unique
+  name    Json
+  tagline Json?
+  // Rendering theme key for the adventure map (meadow, forest, lab, ...).
+  theme   String
+  status  ContentStatus @default(DRAFT)
+  // Horizon worlds appear as roadmap art on the map with no interactive area
+  // (plan §0.1-4: no fake product areas).
+  horizon Boolean       @default(false)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  programs ProgramWorld[]
+  modules  Module[]
+}
+
+model Module {
+  id          String   @id @default(cuid())
+  worldId     String
+  world       World    @relation(fields: [worldId], references: [id], onDelete: Cascade)
+  slug        String
+  name        Json
+  description Json?
+  order       Int
+  // Optional override of the default previous-module gate (JSON rule DSL).
+  unlockRule  Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  levels Level[]
+
+  @@unique([worldId, slug])
+  @@unique([worldId, order])
+}
+
+model Level {
+  id           String        @id @default(cuid())
+  moduleId     String
+  module       Module        @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  slug         String
+  order        Int
+  activityType ActivityType
+  track        LearningTrack @default(PROGRAMMING)
+
+  title        Json
+  story        Json?
+  objective    Json?
+  instructions Json?
+  explanation  Json?
+  teacherNotes Json?
+
+  difficulty          Difficulty @default(EASY)
+  recommendedGradeMin Int?
+  recommendedGradeMax Int?
+  estimatedMinutes    Int        @default(5)
+  // Null → difficulty-derived platform default (plan §1.2 XP economy).
+  xpReward            Int?
+  maxStars            Int        @default(3)
+  tags                String[]   @default([])
+
+  // Engine config validated by per-activity-type Zod schemas at the app
+  // boundary (grids, variants, toolbox, checks, star criteria, solution).
+  payload Json
+  // Progressive 4-tier hints — server-held, never shipped in student payloads.
+  hints   Json
+
+  status             ContentStatus @default(DRAFT)
+  publishedVersionId String?       @unique
+  arComplete         Boolean       @default(false)
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+
+  versions      LevelVersion[]
+  prerequisites LevelPrerequisite[] @relation("LevelPrereqTarget")
+  requiredBy    LevelPrerequisite[] @relation("LevelPrereqSource")
+  progress      StudentProgress[]
+
+  @@unique([moduleId, slug])
+  @@unique([moduleId, order])
+  @@index([status])
+}
+
+// Immutable publish snapshots. Attempts and in-flight play pin a version at
+// start so a mid-session republish never shifts grading (plan §1.2).
+model LevelVersion {
+  id            String   @id @default(cuid())
+  levelId       String
+  level         Level    @relation(fields: [levelId], references: [id], onDelete: Cascade)
+  version       Int
+  // Full denormalized level content at publish time (text + payload + hints).
+  snapshot      Json
+  publishedAt   DateTime @default(now())
+  publishedById String?
+
+  @@unique([levelId, version])
+}
+
+// Unlocking is linear-by-order per module by default; explicit edges override
+// (all edges must be satisfied). Data layer enforces acyclicity.
+model LevelPrerequisite {
+  id              String @id @default(cuid())
+  levelId         String
+  level           Level  @relation("LevelPrereqTarget", fields: [levelId], references: [id], onDelete: Cascade)
+  requiresLevelId String
+  requiresLevel   Level  @relation("LevelPrereqSource", fields: [requiresLevelId], references: [id], onDelete: Cascade)
+
+  @@unique([levelId, requiresLevelId])
+}
+
+// Which programs a school has licensed/enabled.
+model SchoolProgram {
+  id        String   @id @default(cuid())
+  schoolId  String
+  school    School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  programId String
+  program   Program  @relation(fields: [programId], references: [id], onDelete: Cascade)
+  enabledAt DateTime @default(now())
+
+  @@unique([schoolId, programId])
+}
+
+// ─────────────────────────────── LEARNING ───────────────────────────────
+
+// Absence of a row = LOCKED. Rows exist from first unlock onward.
+enum ProgressStatus {
+  UNLOCKED
+  IN_PROGRESS
+  COMPLETED
+}
+
+model StudentProgress {
+  id            String         @id @default(cuid())
+  schoolId      String
+  school        School         @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  studentUserId String
+  student       User           @relation(fields: [studentUserId], references: [id], onDelete: Cascade)
+  levelId       String
+  level         Level          @relation(fields: [levelId], references: [id], onDelete: Cascade)
+
+  status        ProgressStatus @default(UNLOCKED)
+  // High-water mark across runs (plan §1.2).
+  stars         Int            @default(0)
+  attemptsCount Int            @default(0)
+  // ORDER | PREREQUISITE | ASSIGNMENT | SEED — how this level opened.
+  unlockSource  String         @default("ORDER")
+  // Autosaved Blockly workspace (classroom wifi reality, plan §0.1 amendments).
+  draftWorkspace   Json?
+  draftSavedAt     DateTime?
+  firstCompletedAt DateTime?
+  lastActivityAt   DateTime?
+  // LevelVersion.version the completion was graded against.
+  completedVersion Int?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@unique([studentUserId, levelId])
+  @@index([schoolId, levelId])
+  @@index([studentUserId, status])
 }
 
 // ─────────────────────────── AUDIT & ANALYTICS ──────────────────────────
