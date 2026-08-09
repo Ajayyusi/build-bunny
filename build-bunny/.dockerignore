@@ -1,0 +1,15 @@
+node_modules
+.next
+.git
+.github
+.pgdata
+.env
+.env.*
+prisma/seed-output
+docs
+tests
+coverage
+Dockerfile
+.dockerignore
+*.md
+!README.md

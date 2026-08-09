@@ -1,0 +1,191 @@
+{
+  "common": {
+    "appName": "Build Bunny",
+    "metaDescription": "A playful coding platform for Grades 3–7, built for schools by NITAQ Academy.",
+    "dismiss": "Dismiss",
+    "signOut": "Sign out",
+    "language": "Language",
+    "english": "English",
+    "arabic": "العربية",
+    "grade": "Grade {grade}",
+    "impersonation": "Support mode — you are viewing Build Bunny as this user.",
+    "roles": {
+      "SUPER_ADMIN": "Super admin",
+      "NITAQ_ADMIN": "NITAQ admin",
+      "SCHOOL_ADMIN": "School admin",
+      "TEACHER": "Teacher",
+      "STUDENT": "Student",
+      "SYSTEM": "System"
+    }
+  },
+  "landing": {
+    "tagline": "Real coding for young builders — one playful mission at a time.",
+    "studentCta": "Student sign in",
+    "staffCta": "Staff sign in",
+    "footer": "A NITAQ Academy product"
+  },
+  "auth": {
+    "staff": {
+      "title": "Staff sign in",
+      "subtitle": "Teachers and school admins sign in with their email.",
+      "email": "Email",
+      "password": "Password",
+      "submit": "Sign in",
+      "forgotLink": "Forgot your password?",
+      "studentLink": "I'm a student"
+    },
+    "student": {
+      "title": "Hi there! Let's sign in",
+      "codeSubtitle": "Type your school code to start.",
+      "accountSubtitle": "Now type your username and password.",
+      "schoolCode": "School code",
+      "schoolCodeHint": "It's on your login card. Ask your teacher if you can't find it.",
+      "continue": "Continue",
+      "changeCode": "Change",
+      "username": "Username",
+      "password": "Password",
+      "submit": "Let's go!",
+      "teacherLink": "I'm a teacher"
+    },
+    "forgot": {
+      "title": "Password help",
+      "body": "Build Bunny doesn't reset passwords by email yet. Teachers: ask your school admin to reset your password. School admins: contact NITAQ Academy and we'll reset it for you.",
+      "backLink": "Back to sign in"
+    },
+    "changePassword": {
+      "title": "Change your password",
+      "requiredNote": "Please set a new password before you continue.",
+      "current": "Current password",
+      "new": "New password",
+      "newHint": "At least 6 characters.",
+      "confirm": "Confirm new password",
+      "submit": "Save new password"
+    },
+    "errors": {
+      "invalidCredentials": "That email and password don't match. Please try again.",
+      "disabled": "This account is disabled. Please contact your school.",
+      "studentInvalid": "Hmm, that didn't match. Check your card and try again!",
+      "studentDisabled": "Your account is paused right now. Ask your teacher for help.",
+      "schoolCodeRequired": "Please type your school code first.",
+      "passwordTooShort": "Your new password needs at least 6 characters.",
+      "passwordMismatch": "The two passwords don't match.",
+      "wrongCurrentPassword": "Your current password is incorrect.",
+      "generic": "Something went wrong. Please try again."
+    }
+  },
+  "student": {
+    "nav": {
+      "label": "Main",
+      "home": "Home",
+      "profile": "My profile"
+    },
+    "header": {
+      "xpChip": "{value} XP",
+      "xpLabel": "Experience points",
+      "starsLabel": "Stars"
+    },
+    "home": {
+      "greeting": "Hi, {name}!",
+      "subtitle": "Great to see you. Here's your journey so far.",
+      "xp": "XP",
+      "stars": "Stars",
+      "streak": "Day streak",
+      "emptyTitle": "Your adventure map is being prepared",
+      "emptyBody": "Your teacher will unlock it soon — check back here!"
+    },
+    "profile": {
+      "title": "My profile",
+      "username": "Username",
+      "school": "School",
+      "grade": "Grade",
+      "language": "Language"
+    }
+  },
+  "staff": {
+    "nav": {
+      "label": "Main",
+      "teach": "My classes",
+      "school": "School"
+    },
+    "header": {
+      "noSchool": "No school assigned"
+    },
+    "teach": {
+      "title": "My classes",
+      "subtitle": "Classes you teach this school year.",
+      "studentCount": "{count, plural, =0 {No students yet} one {# student} other {# students}}",
+      "emptyTitle": "No classes assigned yet",
+      "emptyBody": "Your school admin will add you to your classes."
+    },
+    "school": {
+      "subtitle": "Your school at a glance.",
+      "teachers": "Teachers",
+      "students": "Students",
+      "classes": "Classes",
+      "name": "Name",
+      "email": "Email",
+      "status": "Status",
+      "grade": "Grade",
+      "year": "Academic year",
+      "classStudents": "Students",
+      "statusActive": "Active",
+      "statusDisabled": "Disabled",
+      "noTeachers": "No teachers yet.",
+      "noClasses": "No classes yet.",
+      "missingTitle": "School not found",
+      "missingBody": "Your account isn't linked to a school yet. Please contact NITAQ Academy."
+    }
+  },
+  "platform": {
+    "title": "Build Bunny · NITAQ Platform",
+    "overviewTitle": "Platform overview",
+    "overviewSubtitle": "Every school running Build Bunny.",
+    "stats": {
+      "schools": "Schools",
+      "activeSchools": "Active schools",
+      "students": "Students",
+      "teachers": "Teachers",
+      "expiringLicences": "Licences expiring soon",
+      "expiringHint": "Within the next 60 days"
+    },
+    "schools": {
+      "heading": "Schools",
+      "name": "Name",
+      "code": "Code",
+      "status": "Status",
+      "students": "Students",
+      "teachers": "Teachers",
+      "licence": "Licence",
+      "expiry": "Expires",
+      "statusActive": "Active",
+      "statusInactive": "Inactive",
+      "empty": "No schools onboarded yet."
+    },
+    "licence": {
+      "ACTIVE": "Active",
+      "GRACE": "Grace period",
+      "READ_ONLY": "Read-only",
+      "SUSPENDED": "Suspended",
+      "none": "No licence"
+    },
+    "audit": {
+      "heading": "Recent activity",
+      "time": "Time",
+      "action": "Action",
+      "actorRole": "Actor role",
+      "outcome": "Outcome",
+      "SUCCESS": "Success",
+      "DENIED": "Denied",
+      "ERROR": "Error",
+      "empty": "No activity recorded yet."
+    }
+  },
+  "errors": {
+    "boundaryTitle": "Something went wrong",
+    "boundaryBody": "We couldn't load this page. Please try again.",
+    "retry": "Try again",
+    "notFoundTitle": "This page hopped away",
+    "notFoundBody": "We couldn't find the page you were looking for.",
+    "goHome": "Back to the home page"
+  }
+}

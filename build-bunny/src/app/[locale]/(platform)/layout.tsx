@@ -1,0 +1,52 @@
+import type { ReactNode } from "react";
+import { getTranslations, setRequestLocale } from "next-intl/server";
+
+import { Link } from "@/i18n/navigation";
+import { requireRole } from "@/modules/auth/server/session";
+import { Avatar } from "@/ui";
+
+import { ImpersonationBanner } from "../_components/ImpersonationBanner";
+import { LocaleSwitcher } from "../_components/LocaleSwitcher";
+import { SignOutButton } from "../_components/SignOutButton";
+
+interface Props {
+  children: ReactNode;
+  params: Promise<{ locale: string }>;
+}
+
+export default async function PlatformLayout({ children, params }: Props) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+  const ctx = await requireRole("SUPER_ADMIN", "NITAQ_ADMIN");
+  const t = await getTranslations("platform");
+
+  return (
+    <div data-theme="pro" className="flex min-h-dvh flex-col bg-surface text-ink">
+      {ctx.impersonatedBy ? <ImpersonationBanner /> : null}
+      {/* Brand-colored bottom rule distinguishes the platform bar from the
+          school staff bar at a glance. */}
+      <header className="border-b-2 border-b-brand bg-surface-raised">
+        <div className="bb-container flex flex-wrap items-center justify-between gap-x-4 gap-y-2 py-3">
+          <Link
+            href="/nitaq"
+            className="inline-flex h-11 items-center gap-2 rounded-md font-display text-lg font-bold text-ink"
+          >
+            <span aria-hidden>🐰</span>
+            {t("title")}
+          </Link>
+          <div className="flex items-center gap-2">
+            <LocaleSwitcher />
+            <span className="flex items-center gap-2">
+              <Avatar displayName={ctx.displayName} size="sm" />
+              <span className="hidden text-sm font-semibold md:inline">
+                {ctx.displayName}
+              </span>
+            </span>
+            <SignOutButton variant="ghost" size="sm" />
+          </div>
+        </div>
+      </header>
+      <main className="bb-container flex-1 py-8">{children}</main>
+    </div>
+  );
+}

@@ -1,0 +1,315 @@
+// Build Bunny — schema v1 (Milestone 1: identity + schools + audit + learning events).
+// Domain boundaries (plan §0.1-12): IDENTITY · SCHOOLS · ANALYTICS/AUDIT.
+// Curriculum/learning/progress/gamification/certificates arrive in their own
+// milestone migrations. Every tenant-owned table denormalizes a non-null schoolId
+// so school analytics stay join-free and row-level security can be enabled later
+// without schema changes.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────── IDENTITY ───────────────────────────────
+// User/Session/Account/Verification are Better Auth-managed models (core +
+// username + admin plugins) extended with Build Bunny columns. Security
+// primitives (hashing, cookies, CSRF, throttling, revocation) live in the
+// framework — our layer is identity/provisioning policy only (plan §0.1-1).
+
+// Role values (validated in code; string column keeps the Better Auth admin
+// plugin compatible): SUPER_ADMIN · NITAQ_ADMIN · SCHOOL_ADMIN · TEACHER · STUDENT
+model User {
+  id            String    @id @default(cuid())
+  name          String
+  email         String    @unique
+  emailVerified Boolean   @default(false)
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Better Auth `username` plugin. Students log in with a school-scoped
+  // username; we store it namespaced (`{schoolCode}__{username}`) so the
+  // column stays globally unique while usernames stay per-school.
+  username        String? @unique
+  displayUsername String?
+
+  // Better Auth `admin` plugin (account disable + impersonation + revocation).
+  role       String    @default("STUDENT")
+  banned     Boolean?  @default(false)
+  banReason  String?
+  banExpires DateTime?
+
+  // Build Bunny extensions.
+  schoolId           String?
+  displayName        String
+  mustChangePassword Boolean @default(false)
+  locale             String  @default("en")
+  avatarId           String?
+
+  school           School?           @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  sessions         Session[]
+  accounts         Account[]
+  studentProfile   StudentProfile?
+  teacherProfile   TeacherProfile?
+  classMemberships ClassMembership[]
+  learningEvents   LearningEvent[]
+
+  @@index([schoolId, role])
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  expiresAt DateTime
+  token     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Better Auth admin plugin: set while a platform admin impersonates.
+  impersonatedBy String?
+
+  @@index([userId])
+}
+
+model Account {
+  id                    String    @id @default(cuid())
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([userId])
+}
+
+model Verification {
+  id         String   @id @default(cuid())
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+}
+
+// ─────────────────────────────── SCHOOLS ────────────────────────────────
+
+enum SchoolStatus {
+  ACTIVE
+  INACTIVE
+}
+
+model School {
+  id            String       @id @default(cuid())
+  name          String
+  slug          String       @unique
+  // Short code students type on the login screen (also namespaces usernames).
+  code          String       @unique
+  status        SchoolStatus @default(ACTIVE)
+  timezone      String       @default("Asia/Dubai")
+  defaultLocale String       @default("en")
+  logoKey       String?
+  // Feature flags (plan §0.1-20): { aiLab, mlLab, bunnyGuide, competitions, parentPortal }
+  features      Json         @default("{}")
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  users            User[]
+  licences         Licence[]
+  academicYears    AcademicYear[]
+  classes          Class[]
+  studentProfiles  StudentProfile[]
+  teacherProfiles  TeacherProfile[]
+  classMemberships ClassMembership[]
+  learningEvents   LearningEvent[]
+}
+
+enum LicenceStatus {
+  ACTIVE
+  GRACE
+  READ_ONLY
+  SUSPENDED
+}
+
+model Licence {
+  id        String        @id @default(cuid())
+  schoolId  String
+  school    School        @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  seats     Int
+  startsAt  DateTime
+  expiresAt DateTime
+  graceDays Int           @default(30)
+  status    LicenceStatus @default(ACTIVE)
+  notes     String?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  @@index([schoolId, status])
+  @@index([expiresAt])
+}
+
+model AcademicYear {
+  id       String   @id @default(cuid())
+  schoolId String
+  school   School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  name     String
+  startsAt DateTime
+  endsAt   DateTime
+  isActive Boolean  @default(true)
+
+  classes Class[]
+
+  @@unique([schoolId, name])
+}
+
+model Class {
+  id             String       @id @default(cuid())
+  schoolId       String
+  school         School       @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  academicYearId String
+  academicYear   AcademicYear @relation(fields: [academicYearId], references: [id], onDelete: Cascade)
+  name           String
+  grade          Int
+  // Crockford base32, displayed grouped (BB-XXXX-XXXX). Rotatable, disableable.
+  joinCode       String?      @unique
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  memberships ClassMembership[]
+
+  @@unique([schoolId, academicYearId, name])
+  @@index([schoolId])
+}
+
+enum ClassRole {
+  TEACHER
+  STUDENT
+}
+
+model ClassMembership {
+  id        String    @id @default(cuid())
+  schoolId  String
+  school    School    @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  classId   String
+  class     Class     @relation(fields: [classId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role      ClassRole
+  createdAt DateTime  @default(now())
+
+  @@unique([classId, userId])
+  @@index([schoolId, userId])
+}
+
+model StudentProfile {
+  userId            String    @id
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  schoolId          String
+  school            School    @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  // The school's own student ID from CSV import — dedupe/update key. Never a login secret.
+  studentIdentifier String
+  grade             Int
+  xpTotal           Int       @default(0)
+  starsTotal        Int       @default(0)
+  streakCurrent     Int       @default(0)
+  streakBest        Int       @default(0)
+  lastActiveDate    DateTime?
+  onboardedAt       DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@unique([schoolId, studentIdentifier])
+  @@index([schoolId, grade])
+}
+
+model TeacherProfile {
+  userId    String   @id
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  schoolId  String
+  school    School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  title     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([schoolId])
+}
+
+// ─────────────────────────── AUDIT & ANALYTICS ──────────────────────────
+
+enum AuditOutcome {
+  SUCCESS
+  DENIED
+  ERROR
+}
+
+// Append-only. Deliberately no FK to User: audit records must survive account
+// erasure (legal-basis retention, plan §12 / security doc §5).
+model AuditLog {
+  id               String       @id @default(cuid())
+  createdAt        DateTime     @default(now())
+  actorUserId      String?
+  actorRole        String?
+  onBehalfOfUserId String?
+  schoolId         String?
+  action           String
+  targetType       String?
+  targetId         String?
+  outcome          AuditOutcome @default(SUCCESS)
+  requestId        String?
+  ip               String?
+  meta             Json?
+
+  @@index([schoolId, createdAt])
+  @@index([actorUserId, createdAt])
+  @@index([action, createdAt])
+}
+
+enum LearningEventType {
+  STUDENT_LOGIN
+  LEVEL_STARTED
+  RUN_EXECUTED
+  RUN_FAILED
+  RUN_SUCCEEDED
+  HINT_USED
+  LEVEL_COMPLETED
+  WORLD_COMPLETED
+  ACHIEVEMENT_EARNED
+}
+
+// Append-only analytics stream (plan §0.1-14). Minimal payloads only — never
+// workspace content or student free text. FK cascade means student erasure
+// removes their events (privacy by design).
+model LearningEvent {
+  id            String            @id @default(cuid())
+  createdAt     DateTime          @default(now())
+  schoolId      String
+  school        School            @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  studentUserId String
+  student       User              @relation(fields: [studentUserId], references: [id], onDelete: Cascade)
+  classId       String?
+  type          LearningEventType
+  levelId       String?
+  worldId       String?
+  meta          Json?
+
+  @@index([schoolId, createdAt])
+  @@index([studentUserId, createdAt])
+  @@index([schoolId, type, createdAt])
+}

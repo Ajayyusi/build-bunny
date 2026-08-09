@@ -6,6 +6,16 @@
       "runtimeExecutable": "python",
       "runtimeArgs": ["-m", "http.server", "4599", "--directory", "C:/Users/User/Downloads"],
       "port": 4599
+    },
+    {
+      "name": "build-bunny-prod",
+      "url": "http://localhost:3001"
+    },
+    {
+      "name": "build-bunny-dev",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "build-bunny", "run", "dev"],
+      "port": 3000
     }
   ]
 }

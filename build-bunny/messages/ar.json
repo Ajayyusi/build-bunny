@@ -1,0 +1,191 @@
+{
+  "common": {
+    "appName": "Build Bunny",
+    "metaDescription": "منصة برمجة ممتعة لطلاب الصفوف من الثالث إلى السابع، صممتها NITAQ Academy للمدارس.",
+    "dismiss": "إغلاق",
+    "signOut": "تسجيل الخروج",
+    "language": "اللغة",
+    "english": "English",
+    "arabic": "العربية",
+    "grade": "الصف {grade}",
+    "impersonation": "وضع الدعم الفني — أنت تتصفح Build Bunny بحساب هذا المستخدم.",
+    "roles": {
+      "SUPER_ADMIN": "مشرف عام",
+      "NITAQ_ADMIN": "مشرف NITAQ",
+      "SCHOOL_ADMIN": "مدير المدرسة",
+      "TEACHER": "معلّم",
+      "STUDENT": "طالب",
+      "SYSTEM": "النظام"
+    }
+  },
+  "landing": {
+    "tagline": "بيلد باني — برمجة حقيقية لصغار المبتكرين، مهمة ممتعة تلو الأخرى.",
+    "studentCta": "دخول الطلاب",
+    "staffCta": "دخول الكادر المدرسي",
+    "footer": "أحد منتجات NITAQ Academy"
+  },
+  "auth": {
+    "staff": {
+      "title": "تسجيل دخول الكادر المدرسي",
+      "subtitle": "يسجّل المعلمون ومديرو المدارس الدخول بالبريد الإلكتروني.",
+      "email": "البريد الإلكتروني",
+      "password": "كلمة المرور",
+      "submit": "تسجيل الدخول",
+      "forgotLink": "هل نسيت كلمة المرور؟",
+      "studentLink": "أنا طالب"
+    },
+    "student": {
+      "title": "أهلًا بك! لنسجّل الدخول",
+      "codeSubtitle": "اكتب رمز مدرستك للبدء.",
+      "accountSubtitle": "والآن اكتب اسم المستخدم وكلمة المرور.",
+      "schoolCode": "رمز المدرسة",
+      "schoolCodeHint": "ستجده على بطاقة الدخول الخاصة بك، واسأل معلمك إن لم تجده.",
+      "continue": "متابعة",
+      "changeCode": "تغيير",
+      "username": "اسم المستخدم",
+      "password": "كلمة المرور",
+      "submit": "هيا بنا!",
+      "teacherLink": "أنا معلّم"
+    },
+    "forgot": {
+      "title": "المساعدة في كلمة المرور",
+      "body": "لا يدعم Build Bunny حاليًا إعادة تعيين كلمة المرور عبر البريد الإلكتروني. للمعلمين: اطلبوا من مدير المدرسة إعادة تعيين كلمة المرور. لمديري المدارس: تواصلوا مع NITAQ Academy وسنعيد تعيينها لكم.",
+      "backLink": "العودة إلى تسجيل الدخول"
+    },
+    "changePassword": {
+      "title": "تغيير كلمة المرور",
+      "requiredNote": "يرجى تعيين كلمة مرور جديدة قبل المتابعة.",
+      "current": "كلمة المرور الحالية",
+      "new": "كلمة المرور الجديدة",
+      "newHint": "6 أحرف على الأقل.",
+      "confirm": "تأكيد كلمة المرور الجديدة",
+      "submit": "حفظ كلمة المرور الجديدة"
+    },
+    "errors": {
+      "invalidCredentials": "البريد الإلكتروني وكلمة المرور غير متطابقين. يرجى المحاولة مرة أخرى.",
+      "disabled": "هذا الحساب معطّل. يرجى التواصل مع مدرستك.",
+      "studentInvalid": "همم، البيانات غير صحيحة. تحقق من بطاقتك وحاول مرة أخرى!",
+      "studentDisabled": "حسابك متوقف مؤقتًا. اطلب المساعدة من معلمك.",
+      "schoolCodeRequired": "يرجى كتابة رمز المدرسة أولًا.",
+      "passwordTooShort": "يجب ألا تقل كلمة المرور الجديدة عن 6 أحرف.",
+      "passwordMismatch": "كلمتا المرور غير متطابقتين.",
+      "wrongCurrentPassword": "كلمة المرور الحالية غير صحيحة.",
+      "generic": "حدث خطأ ما. يرجى المحاولة مرة أخرى."
+    }
+  },
+  "student": {
+    "nav": {
+      "label": "التنقل الرئيسي",
+      "home": "الرئيسية",
+      "profile": "ملفي الشخصي"
+    },
+    "header": {
+      "xpChip": "{value} XP",
+      "xpLabel": "نقاط الخبرة",
+      "starsLabel": "النجوم"
+    },
+    "home": {
+      "greeting": "أهلًا يا {name}!",
+      "subtitle": "سعداء بعودتك! هذه رحلتك حتى الآن.",
+      "xp": "نقاط الخبرة",
+      "stars": "النجوم",
+      "streak": "أيام المواظبة",
+      "emptyTitle": "خريطة مغامرتك قيد التجهيز",
+      "emptyBody": "سيفتحها لك معلمك قريبًا — عد وتفقدها لاحقًا!"
+    },
+    "profile": {
+      "title": "ملفي الشخصي",
+      "username": "اسم المستخدم",
+      "school": "المدرسة",
+      "grade": "الصف",
+      "language": "اللغة"
+    }
+  },
+  "staff": {
+    "nav": {
+      "label": "التنقل الرئيسي",
+      "teach": "صفوفي",
+      "school": "المدرسة"
+    },
+    "header": {
+      "noSchool": "لا توجد مدرسة مرتبطة بالحساب"
+    },
+    "teach": {
+      "title": "صفوفي",
+      "subtitle": "الصفوف التي تدرّسها هذا العام الدراسي.",
+      "studentCount": "{count, plural, =0 {لا يوجد طلاب بعد} one {طالب واحد} two {طالبان} few {{displayCount} طلاب} many {{displayCount} طالبًا} other {{displayCount} طالب}}",
+      "emptyTitle": "لا توجد صفوف مسندة إليك بعد",
+      "emptyBody": "سيضيفك مدير مدرستك إلى صفوفك."
+    },
+    "school": {
+      "subtitle": "نظرة عامة على مدرستك.",
+      "teachers": "المعلمون",
+      "students": "الطلاب",
+      "classes": "الصفوف",
+      "name": "الاسم",
+      "email": "البريد الإلكتروني",
+      "status": "الحالة",
+      "grade": "الصف",
+      "year": "العام الدراسي",
+      "classStudents": "الطلاب",
+      "statusActive": "نشط",
+      "statusDisabled": "معطّل",
+      "noTeachers": "لا يوجد معلمون بعد.",
+      "noClasses": "لا توجد صفوف بعد.",
+      "missingTitle": "المدرسة غير موجودة",
+      "missingBody": "حسابك غير مرتبط بأي مدرسة بعد. يرجى التواصل مع NITAQ Academy."
+    }
+  },
+  "platform": {
+    "title": "Build Bunny · منصة NITAQ",
+    "overviewTitle": "نظرة عامة على المنصة",
+    "overviewSubtitle": "جميع المدارس التي تعمل على Build Bunny.",
+    "stats": {
+      "schools": "المدارس",
+      "activeSchools": "المدارس النشطة",
+      "students": "الطلاب",
+      "teachers": "المعلمون",
+      "expiringLicences": "تراخيص تنتهي قريبًا",
+      "expiringHint": "خلال 60 يومًا القادمة"
+    },
+    "schools": {
+      "heading": "المدارس",
+      "name": "الاسم",
+      "code": "الرمز",
+      "status": "الحالة",
+      "students": "الطلاب",
+      "teachers": "المعلمون",
+      "licence": "الترخيص",
+      "expiry": "تاريخ الانتهاء",
+      "statusActive": "نشطة",
+      "statusInactive": "غير نشطة",
+      "empty": "لا توجد مدارس مسجلة بعد."
+    },
+    "licence": {
+      "ACTIVE": "ساري",
+      "GRACE": "فترة سماح",
+      "READ_ONLY": "قراءة فقط",
+      "SUSPENDED": "موقوف",
+      "none": "بدون ترخيص"
+    },
+    "audit": {
+      "heading": "آخر الأنشطة",
+      "time": "الوقت",
+      "action": "الإجراء",
+      "actorRole": "دور المنفّذ",
+      "outcome": "النتيجة",
+      "SUCCESS": "نجاح",
+      "DENIED": "مرفوض",
+      "ERROR": "خطأ",
+      "empty": "لا توجد أنشطة مسجلة بعد."
+    }
+  },
+  "errors": {
+    "boundaryTitle": "حدث خطأ ما",
+    "boundaryBody": "تعذّر تحميل هذه الصفحة. يرجى المحاولة مرة أخرى.",
+    "retry": "إعادة المحاولة",
+    "notFoundTitle": "يبدو أن هذه الصفحة قفزت بعيدًا!",
+    "notFoundBody": "لم نعثر على الصفحة التي تبحث عنها.",
+    "goHome": "العودة إلى الصفحة الرئيسية"
+  }
+}

@@ -1,0 +1,314 @@
+@import "tailwindcss";
+
+/* ════════════════════════════════════════════════════════════════════════
+   Build Bunny design tokens — three layers:
+
+   1. Primitives (--bb-*): raw palette, radius and shadow values. Never
+      referenced by components directly.
+   2. Semantic slots (--color-*, --radius-*, --font-*): what components
+      mean ("surface", "brand", "ink"). Remapped per theme via
+      [data-theme="play"] (student) and [data-theme="pro"] (staff/admin);
+      :root defaults to Play so unthemed markup still renders correctly.
+      Themes may be nested — the attribute works on any subtree.
+   3. @theme inline: exposes the semantic slots as Tailwind utilities
+      (bg-surface, text-ink, border-border-token, rounded-lg, font-display,
+      shadow-soft…). Components consume utilities only — no raw hex, no
+      --bb-* references, no theme conditionals. Both themes and RTL then
+      come for free (all primitives use logical properties).
+
+   Light theme only in V1 — Build Bunny is a school product used in
+   daylight classrooms; a dark mode would double the QA surface for no win.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* ── Layer 1 · primitives ─────────────────────────────────────────────── */
+:root {
+  /* Warm cream/paper neutrals — Play surfaces. */
+  --bb-cream-50: #fdfbf7;
+  --bb-cream-100: #f8f4ea;
+  --bb-cream-200: #f1eadb;
+  --bb-cream-300: #e4dac4;
+  --bb-cream-400: #cbbe9f;
+
+  /* Meadow green — the Build Bunny brand family. */
+  --bb-meadow-50: #eff8f1;
+  --bb-meadow-100: #d8eedd;
+  --bb-meadow-200: #b0ddbc;
+  --bb-meadow-300: #7fc593;
+  --bb-meadow-400: #4ea96c;
+  --bb-meadow-500: #2f934f;
+  --bb-meadow-600: #1e7a3c; /* ≥4.5:1 with white — safe as a text/fill pair */
+  --bb-meadow-700: #176030;
+  --bb-meadow-800: #124b26;
+  --bb-meadow-900: #0e3a1e;
+
+  /* Sky teal — info, focus, and the Pro brand's deep end. */
+  --bb-sky-50: #eff7f8;
+  --bb-sky-100: #d7ecef;
+  --bb-sky-200: #afd9df;
+  --bb-sky-300: #7fbfc9;
+  --bb-sky-400: #4ea0ae;
+  --bb-sky-500: #2e8b99;
+  --bb-sky-600: #217482; /* ≥4.5:1 with white */
+  --bb-sky-700: #1b5d68;
+  --bb-sky-800: #16464f;
+  --bb-sky-900: #113740;
+
+  /* Amber/star — rewards and accents. Light steps take dark text only. */
+  --bb-star-50: #fff8e5;
+  --bb-star-100: #feeec0;
+  --bb-star-200: #fbdf8d;
+  --bb-star-300: #f7cb53;
+  --bb-star-400: #f2b72e;
+  --bb-star-500: #dd9c0b;
+  --bb-star-600: #b57c04;
+  --bb-star-700: #8f5f00; /* ≥4.5:1 on white/cream — the warning text step */
+  --bb-star-800: #6e4a05;
+  --bb-star-900: #573a08;
+
+  /* Coral — danger and destructive actions. */
+  --bb-coral-50: #fdf1ee;
+  --bb-coral-100: #fbdcd5;
+  --bb-coral-200: #f6bbae;
+  --bb-coral-300: #ee9179;
+  --bb-coral-400: #e36448;
+  --bb-coral-500: #d14a2e;
+  --bb-coral-600: #b03a24; /* ≥4.5:1 with white */
+  --bb-coral-700: #8c301e;
+  --bb-coral-800: #6d2819;
+  --bb-coral-900: #562015;
+
+  /* Warm ink — Play text on cream. */
+  --bb-ink-50: #f6f5f2;
+  --bb-ink-100: #eceae4;
+  --bb-ink-200: #dbd8cf;
+  --bb-ink-300: #c0bcb0;
+  --bb-ink-400: #9b968a;
+  --bb-ink-500: #7c776c;
+  --bb-ink-600: #605c53; /* ≥4.5:1 on cream-50 — the muted text step */
+  --bb-ink-700: #4a473f;
+  --bb-ink-800: #383530;
+  --bb-ink-900: #292724;
+  --bb-ink-950: #1b1a17;
+
+  /* Cool slate — Pro surfaces and text. */
+  --bb-slate-50: #f7f9fa;
+  --bb-slate-100: #eff2f4;
+  --bb-slate-200: #e0e6ea;
+  --bb-slate-300: #c9d2d9;
+  --bb-slate-400: #a2aeb9;
+  --bb-slate-500: #7b8894;
+  --bb-slate-600: #5c6873; /* ≥4.5:1 on slate-50 — the muted text step */
+  --bb-slate-700: #46525c;
+  --bb-slate-800: #303b44;
+  --bb-slate-900: #1e2830;
+  --bb-slate-950: #131b21;
+
+  /* Radius scale — restrained on purpose (max 16px). Playful comes from
+     color and type, not balloon corners. */
+  --bb-radius-xs: 4px;
+  --bb-radius-sm: 6px;
+  --bb-radius-md: 10px;
+  --bb-radius-lg: 14px;
+  --bb-radius-xl: 16px;
+
+  /* Shadows — soft and low-contrast; elevation is a whisper, not a drop. */
+  --bb-shadow-soft:
+    0 1px 2px rgb(27 26 23 / 0.05), 0 2px 6px rgb(27 26 23 / 0.05);
+  --bb-shadow-raised:
+    0 2px 4px rgb(27 26 23 / 0.06), 0 8px 24px rgb(27 26 23 / 0.09);
+  --bb-shadow-overlay:
+    0 4px 12px rgb(27 26 23 / 0.1), 0 16px 48px rgb(27 26 23 / 0.16);
+
+  /* Spacing rides Tailwind's default 0.25rem scale; breakpoints are the
+     defaults (sm 40rem · md 48rem · lg 64rem · xl 80rem). Student layouts
+     collapse to a single column below md. */
+}
+
+/* ── Layer 2 · semantic slots (Play is the :root default) ─────────────── */
+:root,
+[data-theme="play"] {
+  --color-surface: var(--bb-cream-50);
+  --color-surface-raised: #ffffff;
+  --color-surface-sunken: var(--bb-cream-100);
+  --color-border: var(--bb-cream-300);
+  --color-ink: var(--bb-ink-900);
+  --color-ink-muted: var(--bb-ink-600);
+  /* ink-faint is below AA by design — decorative/disabled use only. */
+  --color-ink-faint: var(--bb-ink-400);
+  --color-brand: var(--bb-meadow-600);
+  --color-brand-strong: var(--bb-meadow-700);
+  --color-on-brand: #ffffff;
+  --color-accent: var(--bb-star-400);
+  --color-on-accent: var(--bb-ink-900);
+  --color-positive: var(--bb-meadow-600);
+  --color-warning: var(--bb-star-700);
+  --color-danger: var(--bb-coral-600);
+  --color-info: var(--bb-sky-600);
+  --color-focus: var(--bb-sky-500);
+
+  --radius-sm: var(--bb-radius-sm);
+  --radius-md: var(--bb-radius-md);
+  --radius-lg: var(--bb-radius-lg);
+  --radius-xl: var(--bb-radius-xl);
+
+  /* Locale-driven font pair: fontVariables() (src/ui/fonts.ts) applies the
+     --bb-font-* variables; fallbacks keep things readable without them. */
+  --font-display: var(
+    --bb-font-display,
+    "Baloo 2",
+    "Baloo Bhaijaan 2",
+    system-ui,
+    sans-serif
+  );
+  --font-body: var(
+    --bb-font-body,
+    "Nunito Sans",
+    "IBM Plex Sans Arabic",
+    system-ui,
+    sans-serif
+  );
+}
+
+/* Pro: cool near-white, deep teal-navy, one radius step tighter — a denser,
+   quieter feel for staff. Fonts are shared with Play: one brand voice. */
+[data-theme="pro"] {
+  --color-surface: var(--bb-slate-50);
+  --color-surface-raised: #ffffff;
+  --color-surface-sunken: var(--bb-slate-100);
+  --color-border: var(--bb-slate-200);
+  --color-ink: var(--bb-slate-900);
+  --color-ink-muted: var(--bb-slate-600);
+  --color-ink-faint: var(--bb-slate-400);
+  --color-brand: var(--bb-sky-800);
+  --color-brand-strong: var(--bb-sky-900);
+  --color-on-brand: #ffffff;
+  --color-accent: var(--bb-sky-600);
+  --color-on-accent: #ffffff;
+  --color-positive: var(--bb-meadow-600);
+  --color-warning: var(--bb-star-700);
+  --color-danger: var(--bb-coral-600);
+  --color-info: var(--bb-sky-600);
+  --color-focus: var(--bb-sky-500);
+
+  --radius-sm: var(--bb-radius-xs);
+  --radius-md: var(--bb-radius-sm);
+  --radius-lg: var(--bb-radius-md);
+  --radius-xl: var(--bb-radius-lg);
+}
+
+/* ── Layer 3 · Tailwind mapping ───────────────────────────────────────── */
+/* `inline` keeps utilities as live var() references, so a nested
+   [data-theme] subtree restyles everything inside it. */
+@theme inline {
+  --color-surface: var(--color-surface);
+  --color-surface-raised: var(--color-surface-raised);
+  --color-surface-sunken: var(--color-surface-sunken);
+  --color-border-token: var(--color-border);
+  --color-ink: var(--color-ink);
+  --color-ink-muted: var(--color-ink-muted);
+  --color-ink-faint: var(--color-ink-faint);
+  --color-brand: var(--color-brand);
+  --color-brand-strong: var(--color-brand-strong);
+  --color-on-brand: var(--color-on-brand);
+  --color-accent: var(--color-accent);
+  --color-on-accent: var(--color-on-accent);
+  --color-positive: var(--color-positive);
+  --color-warning: var(--color-warning);
+  --color-danger: var(--color-danger);
+  --color-info: var(--color-info);
+  --color-focus: var(--color-focus);
+
+  --font-display: var(--font-display);
+  --font-body: var(--font-body);
+  /* Default sans rides the body pair so bare text inherits the right font. */
+  --font-sans: var(--font-body);
+
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
+  /* Cap the big steps — no giant radii anywhere in the product. */
+  --radius-2xl: var(--radius-xl);
+  --radius-3xl: var(--radius-xl);
+  --radius-4xl: var(--radius-xl);
+
+  --shadow-soft: var(--bb-shadow-soft);
+  --shadow-raised: var(--bb-shadow-raised);
+  --shadow-overlay: var(--bb-shadow-overlay);
+
+  --animate-toast-in: bb-toast-in 160ms ease-out both;
+
+  @keyframes bb-toast-in {
+    from {
+      opacity: 0;
+      translate: 0 -0.375rem;
+    }
+    to {
+      opacity: 1;
+      translate: 0 0;
+    }
+  }
+}
+
+/* ── Base ─────────────────────────────────────────────────────────────── */
+@layer base {
+  /* Hairlines default to the semantic border color (preflight resets it
+     to currentColor, which is far too heavy). */
+  *,
+  ::before,
+  ::after {
+    border-color: var(--color-border);
+  }
+
+  body {
+    background-color: var(--color-surface);
+    color: var(--color-ink);
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-display);
+  }
+
+  ::selection {
+    background-color: color-mix(in oklab, var(--color-brand) 24%, transparent);
+  }
+
+  /* One consistent, clearly visible focus ring everywhere. */
+  :focus-visible {
+    outline: 2px solid var(--color-focus);
+    outline-offset: 2px;
+  }
+
+  dialog::backdrop {
+    /* Static scrim: ::backdrop custom-property inheritance is still patchy
+       across browsers, so no token here. */
+    background-color: rgb(19 26 31 / 0.45);
+  }
+}
+
+/* Shared page gutter — predictable line lengths on every surface. */
+@utility bb-container {
+  inline-size: 100%;
+  max-inline-size: 72rem;
+  margin-inline: auto;
+  padding-inline: clamp(1rem, 3vw, 2rem);
+}
+
+/* Vestibular safety: honor the user's motion preference globally. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
