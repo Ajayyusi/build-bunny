@@ -38,7 +38,9 @@ export async function getMyStudentSnapshot(ctx: SessionContext) {
           avatarId: true,
         },
       },
-      school: { select: { name: true } },
+      // features feeds the student shell's flag gating (e.g. the Adventure
+      // nav item) — one read serves both identity and surface visibility.
+      school: { select: { name: true, features: true } },
     },
   });
 }

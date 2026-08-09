@@ -1,0 +1,157 @@
+/* Adventure trail styles that Tailwind utilities can't express: per-theme
+   world band tints, the current-node pulse ring, the locked shake, and the
+   locked-hint bubble. Colors reference design tokens only — --bb-* primitives
+   for the world tint families (sanctioned for world bands) and --color-*
+   semantic slots for everything else. No raw hex anywhere. */
+
+/* ── World bands ──────────────────────────────────────────────────────────
+   Theme strings are authored content data, so match by substring
+   ("logic-forest" hits the forest family) and keep a neutral cream fallback
+   for anything unknown. --world-deep is the band's display-text color; every
+   pairing below is ≥ AA on its band tint (dark 800/900 steps on 50-tints). */
+.world {
+  --world-band: var(--bb-cream-100);
+  --world-edge: var(--bb-cream-300);
+  --world-deep: var(--bb-ink-800);
+  background-color: var(--world-band);
+}
+
+.world[data-world-theme*="meadow"] {
+  --world-band: var(--bb-meadow-50);
+  --world-edge: var(--bb-meadow-200);
+  --world-deep: var(--bb-meadow-800);
+}
+
+.world[data-world-theme*="forest"] {
+  /* Deeper green shading into teal — one step darker and cooler than meadow
+     so consecutive bands read as a journey, not a repeat. */
+  --world-band: color-mix(in oklab, var(--bb-meadow-100) 55%, var(--bb-sky-100));
+  --world-edge: color-mix(in oklab, var(--bb-meadow-300) 55%, var(--bb-sky-300));
+  --world-deep: var(--bb-sky-900);
+}
+
+.world[data-world-theme*="robot"],
+.world[data-world-theme*="lab"] {
+  --world-band: var(--bb-sky-50);
+  --world-edge: var(--bb-sky-200);
+  --world-deep: var(--bb-sky-900);
+}
+
+.world[data-world-theme*="desert"] {
+  --world-band: var(--bb-star-50);
+  --world-edge: var(--bb-star-200);
+  --world-deep: var(--bb-star-800);
+}
+
+.world[data-world-theme*="island"],
+.world[data-world-theme*="city"] {
+  --world-band: var(--bb-sky-50);
+  --world-edge: var(--bb-sky-200);
+  --world-deep: var(--bb-sky-800);
+}
+
+/* Segments stack flush inside one rounded strip; the hairline marks the
+   world boundary without breaking the continuous-trail feel. */
+.world + .world {
+  border-block-start: 1px solid var(--world-edge);
+}
+
+.worldTitle {
+  color: var(--world-deep);
+}
+
+/* ── Current-node pulse ring ─────────────────────────────────────────────
+   A single quiet ring breathing outward — the one animated element on the
+   map. Reduced motion swaps it for a static halo (the global reduce block
+   also zeroes the duration as a backstop). */
+.nodeCurrent::after {
+  content: "";
+  position: absolute;
+  inset: -0.375rem;
+  border-radius: calc(infinity * 1px);
+  border: 3px solid var(--color-brand);
+  pointer-events: none;
+  animation: pulse 2s ease-out infinite;
+}
+
+@keyframes pulse {
+  0% {
+    scale: 0.9;
+    opacity: 0.85;
+  }
+  70% {
+    scale: 1.15;
+    opacity: 0;
+  }
+  100% {
+    scale: 1.15;
+    opacity: 0;
+  }
+}
+
+/* ── Locked nodes ────────────────────────────────────────────────────────── */
+.nodeLocked {
+  /* Sunken: a soft inner shadow instead of elevation. */
+  box-shadow: inset 0 1px 3px color-mix(in oklab, var(--color-ink) 14%, transparent);
+}
+
+.shake {
+  animation: shake 320ms ease-in-out;
+}
+
+@keyframes shake {
+  20% {
+    translate: -4px 0;
+  }
+  45% {
+    translate: 4px 0;
+  }
+  70% {
+    translate: -3px 0;
+  }
+  90% {
+    translate: 2px 0;
+  }
+}
+
+/* ── Locked-hint bubble ──────────────────────────────────────────────────
+   Kept in the DOM at all times so aria-describedby always resolves; only its
+   visibility toggles. Logical positioning + an RTL translate flip keep it
+   centered under the node in both directions. */
+.hint {
+  position: absolute;
+  inset-block-start: calc(100% + 0.375rem);
+  inset-inline-start: 50%;
+  translate: -50% 0;
+  z-index: 10;
+  inline-size: max-content;
+  max-inline-size: 13rem;
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 140ms ease-out;
+}
+
+html[dir="rtl"] .hint {
+  translate: 50% 0;
+}
+
+.hintShown {
+  visibility: visible;
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nodeCurrent::after {
+    animation: none;
+    scale: 1;
+    opacity: 0.55;
+  }
+
+  .shake {
+    animation: none;
+  }
+
+  .hint {
+    transition: none;
+  }
+}

@@ -3,6 +3,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { Link } from "@/i18n/navigation";
 import { requireRole } from "@/modules/auth/server/session";
+import { isFeatureEnabled } from "@/modules/shared/features";
 import { getMyStudentSnapshot } from "@/modules/students/server/queries";
 import { Avatar } from "@/ui";
 
@@ -24,6 +25,12 @@ export default async function StudentLayout({ children, params }: Props) {
     getTranslations("common"),
   ]);
   const displayName = snapshot?.user.displayName ?? ctx.displayName;
+  // No dead nav: the Adventure item exists only when the school's flag is on
+  // (m2 §flags) — the /adventure page enforces the same check server-side.
+  const adventureEnabled = isFeatureEnabled(
+    snapshot?.school.features,
+    "adventure",
+  );
 
   return (
     <div data-theme="play" className="flex min-h-dvh flex-col bg-surface text-ink">
@@ -40,6 +47,9 @@ export default async function StudentLayout({ children, params }: Props) {
             </Link>
             <nav aria-label={t("nav.label")} className="flex items-center gap-1">
               <NavLink href="/home">{t("nav.home")}</NavLink>
+              {adventureEnabled ? (
+                <NavLink href="/adventure">{t("nav.adventure")}</NavLink>
+              ) : null}
               <NavLink href="/profile">{t("nav.profile")}</NavLink>
             </nav>
           </div>

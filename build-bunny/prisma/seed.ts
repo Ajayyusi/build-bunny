@@ -15,7 +15,9 @@ import {
   SEED_ACTOR,
   STUDENTS,
   TEACHERS,
+  demoStage,
   studentDisplayName,
+  type DemoStage,
   type StudentSeed,
 } from "./seed-data/demo-school";
 
@@ -58,7 +60,30 @@ async function loadAppModules() {
   const { createStaff, createStudent } = await import(
     "../src/modules/auth/server/provisioning"
   );
-  return { db, audit, AUDIT, recordLearningEvent, createStaff, createStudent };
+  const { dryRunImport, commitImport } = await import(
+    "../src/modules/curriculum/server/import"
+  );
+  const { publishLevel, transitionStatus } = await import(
+    "../src/modules/curriculum/server/publish"
+  );
+  const { recomputeUnlocks } = await import("../src/modules/learning/server/adventure");
+  const { XP_BY_DIFFICULTY } = await import("../src/modules/curriculum/schemas");
+  const { bundle } = await import("../content");
+  return {
+    db,
+    audit,
+    AUDIT,
+    recordLearningEvent,
+    createStaff,
+    createStudent,
+    dryRunImport,
+    commitImport,
+    publishLevel,
+    transitionStatus,
+    recomputeUnlocks,
+    XP_BY_DIFFICULTY,
+    bundle,
+  };
 }
 
 type App = Awaited<ReturnType<typeof loadAppModules>>;
@@ -118,6 +143,28 @@ function daysAgo(days: number): Date {
   const d = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
   d.setUTCHours(6, 0, 0, 0); // 10:00 Asia/Dubai
   return d;
+}
+
+/**
+ * The N school days (Mon–Fri) ENDING `endDaysAgo` days back, oldest first —
+ * one level completion per school day, stamped with a class-time hour
+ * (10:00–13:00 Asia/Dubai = 06:00–09:00 UTC). Anchoring the END of the run on
+ * the student's lastActiveDate keeps completion timestamps, streaks, and the
+ * needs-attention story (Adam: silent for 3 weeks) mutually coherent.
+ */
+function schoolDaysEnding(count: number, endDaysAgo: number, salt: number): Date[] {
+  const days: Date[] = [];
+  const cursor = new Date(Date.now() - endDaysAgo * 24 * 60 * 60 * 1000);
+  while (days.length < count) {
+    const dayOfWeek = cursor.getDay();
+    if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+      const day = new Date(cursor);
+      day.setUTCHours(6 + ((salt + days.length) % 3), (salt * 13 + days.length * 19) % 60, 0, 0);
+      days.push(day);
+    }
+    cursor.setDate(cursor.getDate() - 1);
+  }
+  return days.reverse();
 }
 
 // ── Entities ──────────────────────────────────────────────────────────────
@@ -291,37 +338,339 @@ async function ensureStudent(
   return { userId: created.userId };
 }
 
+// ── Curriculum (M2) ───────────────────────────────────────────────────────
+
+const PROGRAM_SLUG = "foundations";
+
 /**
- * Demo progress states. Only bootstraps profiles that are still untouched
- * (all zeros, never active) so re-seeding never clobbers real demo usage —
- * this also heals a partially-completed earlier run.
+ * Imports the bundled content through the SAME service the platform import
+ * wizard uses. The dry run decides idempotence: identical content = nothing
+ * to commit (and no audit noise); any issue in the bundle aborts the seed.
  */
-async function ensureStudentProgress(
+async function ensureCurriculumContent(app: App): Promise<void> {
+  const dry = await app.dryRunImport(app.bundle);
+  if (dry.issues.length > 0) {
+    throw new Error(`content bundle has issues:\n  ${dry.issues.join("\n  ")}`);
+  }
+  if (dry.creates.length === 0 && dry.updates.length === 0) {
+    logSkipped(`content bundle (${dry.unchanged.length} entities unchanged)`);
+    return;
+  }
+  const diff = await app.commitImport(SEED_ACTOR, app.bundle);
+  if (diff.issues.length > 0) {
+    throw new Error(`content import failed:\n  ${diff.issues.join("\n  ")}`);
+  }
+  logCreated(
+    `content bundle (${diff.creates.length} created, ${diff.updates.length} updated, ${diff.unchanged.length} unchanged)`,
+  );
+}
+
+/**
+ * Publishes everything through the real pipeline: container statuses via
+ * transitionStatus, each level via publishLevel (gates + LevelVersion
+ * snapshot). Horizon worlds get PUBLISHED too — they carry no levels, and the
+ * map only renders PUBLISHED worlds. Already-published entities are skipped,
+ * never re-versioned.
+ */
+async function ensureCurriculumPublished(app: App): Promise<void> {
+  for (const worldFx of app.bundle.worlds) {
+    const world = await app.db.world.findUnique({
+      where: { slug: worldFx.slug },
+      select: { id: true, status: true },
+    });
+    if (!world) throw new Error(`world ${worldFx.slug} missing after import`);
+    if (world.status === "PUBLISHED") {
+      logSkipped(`world ${worldFx.slug} (PUBLISHED)`);
+    } else {
+      const result = await app.transitionStatus(SEED_ACTOR, "world", world.id, "PUBLISHED");
+      if (!result.ok) {
+        throw new Error(`world ${worldFx.slug} publish failed: ${result.issues.join("; ")}`);
+      }
+      logCreated(`world ${worldFx.slug} → PUBLISHED`);
+    }
+
+    if (worldFx.horizon) continue;
+    const levels = await app.db.level.findMany({
+      where: { module: { world: { slug: worldFx.slug } } },
+      orderBy: [{ module: { order: "asc" } }, { order: "asc" }],
+      select: { id: true, slug: true, status: true, publishedVersionId: true },
+    });
+    for (const level of levels) {
+      if (level.status === "PUBLISHED" && level.publishedVersionId) {
+        logSkipped(`level ${level.slug} (PUBLISHED)`);
+        continue;
+      }
+      const result = await app.publishLevel(SEED_ACTOR, level.id);
+      if (!result.ok) {
+        const failed = result.gates
+          .filter((g) => !g.ok)
+          .map((g) => `${g.gate}: ${g.issues.join(", ")}`);
+        throw new Error(`level ${level.slug} failed publish gates — ${failed.join(" | ")}`);
+      }
+      logCreated(`level ${level.slug} → PUBLISHED v${result.version}`);
+    }
+  }
+
+  const program = await app.db.program.findUnique({
+    where: { slug: PROGRAM_SLUG },
+    select: { id: true, status: true },
+  });
+  if (!program) throw new Error(`program ${PROGRAM_SLUG} missing after import`);
+  if (program.status === "PUBLISHED") {
+    logSkipped(`program ${PROGRAM_SLUG} (PUBLISHED)`);
+  } else {
+    const result = await app.transitionStatus(SEED_ACTOR, "program", program.id, "PUBLISHED");
+    if (!result.ok) {
+      throw new Error(`program ${PROGRAM_SLUG} publish failed: ${result.issues.join("; ")}`);
+    }
+    logCreated(`program ${PROGRAM_SLUG} → PUBLISHED`);
+  }
+}
+
+/** Enables the program for the demo school + turns the adventure flag on. */
+async function ensureSchoolProgram(app: App, schoolId: string): Promise<{ programId: string }> {
+  const program = await app.db.program.findUnique({
+    where: { slug: PROGRAM_SLUG },
+    select: { id: true },
+  });
+  if (!program) throw new Error(`program ${PROGRAM_SLUG} not found`);
+
+  const existing = await app.db.schoolProgram.findUnique({
+    where: { schoolId_programId: { schoolId, programId: program.id } },
+  });
+  if (existing) {
+    logSkipped(`school program ${PROGRAM_SLUG}`);
+  } else {
+    await app.db.schoolProgram.create({ data: { schoolId, programId: program.id } });
+    logCreated(`school program ${PROGRAM_SLUG}`);
+  }
+
+  const school = await app.db.school.findUnique({
+    where: { id: schoolId },
+    select: { features: true },
+  });
+  const features =
+    school && typeof school.features === "object" && school.features !== null && !Array.isArray(school.features)
+      ? (school.features as Record<string, unknown>)
+      : {};
+  if (features.adventure === true) {
+    logSkipped(`school feature adventure`);
+  } else {
+    await app.db.school.update({
+      where: { id: schoolId },
+      data: { features: { ...features, adventure: true } },
+    });
+    logCreated(`school feature adventure = true`);
+  }
+
+  return { programId: program.id };
+}
+
+/** One published level in global program order, with its resolved XP + version. */
+interface SeedLevel {
+  id: string;
+  slug: string;
+  worldId: string;
+  worldSlug: string;
+  xp: number;
+  version: number;
+}
+
+/**
+ * The program's PUBLISHED levels in map order (program world order → module
+ * order → level order) — the axis the per-student completedStars arrays index
+ * into, with XP resolved the same way the snapshot does (explicit xpReward or
+ * difficulty default).
+ */
+async function loadPublishedCurriculum(app: App): Promise<SeedLevel[]> {
+  const programWorlds = await app.db.programWorld.findMany({
+    where: { program: { slug: PROGRAM_SLUG }, world: { horizon: false } },
+    orderBy: { order: "asc" },
+    select: {
+      world: {
+        select: {
+          id: true,
+          slug: true,
+          modules: {
+            orderBy: { order: "asc" },
+            select: {
+              levels: {
+                where: { status: "PUBLISHED", publishedVersionId: { not: null } },
+                orderBy: { order: "asc" },
+                select: {
+                  id: true,
+                  slug: true,
+                  xpReward: true,
+                  difficulty: true,
+                  publishedVersionId: true,
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  });
+
+  const flat = programWorlds.flatMap(({ world }) =>
+    world.modules.flatMap((mod) =>
+      mod.levels.map((level) => ({ world, level })),
+    ),
+  );
+  const versions = await app.db.levelVersion.findMany({
+    where: { id: { in: flat.map((f) => f.level.publishedVersionId as string) } },
+    select: { id: true, version: true },
+  });
+  const versionById = new Map(versions.map((v) => [v.id, v.version]));
+
+  return flat.map(({ world, level }) => ({
+    id: level.id,
+    slug: level.slug,
+    worldId: world.id,
+    worldSlug: world.slug,
+    xp: level.xpReward ?? app.XP_BY_DIFFICULTY[level.difficulty],
+    version: versionById.get(level.publishedVersionId as string) ?? 1,
+  }));
+}
+
+/** Pins the student to the demo program (never overrides an existing pin). */
+async function ensureProgramPin(
+  app: App,
+  userId: string,
+  programId: string,
+  student: StudentSeed,
+): Promise<void> {
+  const profile = await app.db.studentProfile.findUnique({
+    where: { userId },
+    select: { programId: true },
+  });
+  if (!profile) throw new Error(`missing StudentProfile for ${student.username}`);
+  if (profile.programId) {
+    logSkipped(`program pin for ${student.username}`);
+    return;
+  }
+  await app.db.studentProfile.update({ where: { userId }, data: { programId } });
+  logCreated(`program pin for ${student.username} → ${PROGRAM_SLUG}`);
+}
+
+/**
+ * COMPLETED StudentProgress rows for the student's first N curriculum levels
+ * (N = completedStars.length), one per school day ending on the student's
+ * lastActiveDate. Self-healing guard: any existing progress row means a demo
+ * user (or an earlier run) already played — never touch it.
+ */
+async function ensureLevelProgress(
+  app: App,
+  curriculum: SeedLevel[],
+  schoolId: string,
+  userId: string,
+  student: StudentSeed,
+  salt: number,
+): Promise<void> {
+  const stars = student.progress.completedStars;
+  if (stars.length > curriculum.length) {
+    throw new Error(`${student.username}: completedStars longer than the curriculum`);
+  }
+  const existing = await app.db.studentProgress.count({
+    where: { studentUserId: userId },
+  });
+  if (existing > 0) {
+    logSkipped(`level progress for ${student.username} (${existing} rows)`);
+    return;
+  }
+  if (stars.length === 0) return; // fresh — recomputeUnlocks opens level 1
+
+  const dates = schoolDaysEnding(
+    stars.length,
+    student.progress.lastActiveDaysAgo ?? 0,
+    salt,
+  );
+  await app.db.studentProgress.createMany({
+    data: stars.map((starCount, i) => ({
+      schoolId,
+      studentUserId: userId,
+      levelId: curriculum[i]!.id,
+      status: "COMPLETED" as const,
+      stars: starCount,
+      attemptsCount: 1 + ((salt + i) % 3),
+      unlockSource: "SEED",
+      firstCompletedAt: dates[i]!,
+      lastActivityAt: dates[i]!,
+      completedVersion: curriculum[i]!.version,
+    })),
+    skipDuplicates: true,
+  });
+  logCreated(
+    `level progress for ${student.username} (${stars.length}/${curriculum.length} levels COMPLETED)`,
+  );
+}
+
+/**
+ * xpTotal/starsTotal recomputed from the student's actual COMPLETED rows.
+ * The principled guard would be "only overwrite caches when the student has
+ * zero ActivityAttempt rows" — that table lands in M3, so for demo-school
+ * students we ALWAYS recompute (one-time migration away from the invented M1
+ * numbers, e.g. Aisha's 840 XP with no rows behind it). Streak fields are
+ * deliberately left alone.
+ */
+async function ensureProfileCaches(
+  app: App,
+  curriculum: SeedLevel[],
+  userId: string,
+  student: StudentSeed,
+): Promise<void> {
+  const rows = await app.db.studentProgress.findMany({
+    where: { studentUserId: userId, status: "COMPLETED" },
+    select: { levelId: true, stars: true },
+  });
+  const xpByLevel = new Map(curriculum.map((l) => [l.id, l.xp]));
+  const xpTotal = rows.reduce((sum, r) => sum + (xpByLevel.get(r.levelId) ?? 0), 0);
+  const starsTotal = rows.reduce((sum, r) => sum + r.stars, 0);
+
+  const profile = await app.db.studentProfile.findUnique({
+    where: { userId },
+    select: { xpTotal: true, starsTotal: true },
+  });
+  if (!profile) throw new Error(`missing StudentProfile for ${student.username}`);
+  if (profile.xpTotal === xpTotal && profile.starsTotal === starsTotal) {
+    logSkipped(`caches for ${student.username} (${xpTotal} XP, ${starsTotal} stars)`);
+    return;
+  }
+  await app.db.studentProfile.update({
+    where: { userId },
+    data: { xpTotal, starsTotal },
+  });
+  logCreated(
+    `caches for ${student.username} (${profile.xpTotal}→${xpTotal} XP, ${profile.starsTotal}→${starsTotal} stars)`,
+  );
+}
+
+/**
+ * Streak/activity bootstrap — the surviving half of the old M1 progress
+ * seeding. Only touches profiles that are still untouched on these fields so
+ * re-seeding never clobbers real demo usage.
+ */
+async function ensureStreaks(
   app: App,
   userId: string,
   student: StudentSeed,
   trail: Date[] | null,
 ): Promise<void> {
   const { progress } = student;
-  const fresh =
-    progress.xpTotal === 0 &&
-    progress.starsTotal === 0 &&
-    progress.streakBest === 0 &&
-    progress.lastActiveDaysAgo === null;
-  if (fresh) return; // defaults already say "never signed in"
-
-  const profile = await app.db.studentProfile.findUnique({ where: { userId } });
+  if (progress.streakBest === 0 && progress.lastActiveDaysAgo === null) {
+    return; // fresh — profile defaults already say "never signed in"
+  }
+  const profile = await app.db.studentProfile.findUnique({
+    where: { userId },
+    select: { streakCurrent: true, streakBest: true, lastActiveDate: true },
+  });
   if (!profile) throw new Error(`missing StudentProfile for ${student.username}`);
   const untouched =
-    profile.xpTotal === 0 &&
-    profile.starsTotal === 0 &&
-    profile.streakBest === 0 &&
-    profile.lastActiveDate === null;
+    profile.streakCurrent === 0 && profile.streakBest === 0 && profile.lastActiveDate === null;
   if (!untouched) {
-    logSkipped(`progress for ${student.username}`);
+    logSkipped(`streaks for ${student.username}`);
     return;
   }
-
   const lastTrailDay = trail?.[trail.length - 1];
   const lastActiveDate =
     lastTrailDay ??
@@ -329,15 +678,103 @@ async function ensureStudentProgress(
   await app.db.studentProfile.update({
     where: { userId },
     data: {
-      xpTotal: progress.xpTotal,
-      starsTotal: progress.starsTotal,
       streakCurrent: progress.streakCurrent,
       streakBest: progress.streakBest,
       lastActiveDate,
       onboardedAt: lastActiveDate,
     },
   });
-  logCreated(`progress for ${student.username} (${progress.xpTotal} XP, ${progress.starsTotal} stars)`);
+  logCreated(`streaks for ${student.username} (${progress.streakCurrent}/${progress.streakBest})`);
+}
+
+/**
+ * LEVEL_COMPLETED / WORLD_COMPLETED trail for the demo-active students (the
+ * ones that also carry a login trail), through the real recordLearningEvent
+ * path and backdated afterwards — same technique as the login trail, but
+ * matched by levelId/worldId so it is deterministic regardless of insert
+ * order. Timestamps mirror the StudentProgress completion dates.
+ */
+async function ensureCompletionEvents(
+  app: App,
+  curriculum: SeedLevel[],
+  schoolId: string,
+  userId: string,
+  student: StudentSeed,
+): Promise<void> {
+  if (!student.loginTrailDays) return; // only the 5 active students get a trail
+  const existing = await app.db.learningEvent.count({
+    where: { studentUserId: userId, type: "LEVEL_COMPLETED" },
+  });
+  if (existing > 0) {
+    logSkipped(`completion events for ${student.username} (${existing} events)`);
+    return;
+  }
+  const rows = await app.db.studentProgress.findMany({
+    where: { studentUserId: userId, status: "COMPLETED", firstCompletedAt: { not: null } },
+    select: { levelId: true, stars: true, firstCompletedAt: true },
+    orderBy: { firstCompletedAt: "asc" },
+  });
+  if (rows.length === 0) return;
+
+  const levelById = new Map(curriculum.map((l) => [l.id, l]));
+  const dateByLevelId = new Map<string, Date>();
+  for (const row of rows) {
+    const level = levelById.get(row.levelId);
+    if (!level) continue;
+    dateByLevelId.set(row.levelId, row.firstCompletedAt!);
+    await app.recordLearningEvent({
+      type: "LEVEL_COMPLETED",
+      schoolId,
+      studentUserId: userId,
+      levelId: row.levelId,
+      worldId: level.worldId,
+      meta: { stars: row.stars, seed: true },
+    });
+  }
+
+  // A world is completed when every one of its levels is — event stamped 30
+  // minutes after the world's final level completion.
+  const completedIds = new Set(rows.map((r) => r.levelId));
+  const dateByWorldId = new Map<string, Date>();
+  const worldIds = [...new Set(curriculum.map((l) => l.worldId))];
+  for (const worldId of worldIds) {
+    const worldLevels = curriculum.filter((l) => l.worldId === worldId);
+    if (!worldLevels.every((l) => completedIds.has(l.id))) continue;
+    const last = worldLevels
+      .map((l) => dateByLevelId.get(l.id)!)
+      .reduce((a, b) => (a > b ? a : b));
+    const at = new Date(last.getTime() + 30 * 60 * 1000);
+    dateByWorldId.set(worldId, at);
+    await app.recordLearningEvent({
+      type: "WORLD_COMPLETED",
+      schoolId,
+      studentUserId: userId,
+      worldId,
+      meta: { seed: true },
+    });
+  }
+
+  // Backdate: recordLearningEvent stamps createdAt=now; rewrite it from the
+  // level/world the event points at (safe: the count guard above means every
+  // fetched row was written by this run).
+  const events = await app.db.learningEvent.findMany({
+    where: { studentUserId: userId, type: { in: ["LEVEL_COMPLETED", "WORLD_COMPLETED"] } },
+    select: { id: true, type: true, levelId: true, worldId: true },
+  });
+  await Promise.all(
+    events.map((event) => {
+      const at =
+        event.type === "LEVEL_COMPLETED"
+          ? dateByLevelId.get(event.levelId ?? "")
+          : dateByWorldId.get(event.worldId ?? "");
+      return at
+        ? app.db.learningEvent.update({ where: { id: event.id }, data: { createdAt: at } })
+        : Promise.resolve(null);
+    }),
+  );
+  logCreated(
+    `completion events for ${student.username} (${dateByLevelId.size} levels, ${dateByWorldId.size} worlds)`,
+  );
 }
 
 /**
@@ -387,9 +824,23 @@ async function ensureLoginTrail(
 
 // ── Verification ──────────────────────────────────────────────────────────
 
-async function verifyCounts(app: App, schoolId: string): Promise<void> {
+async function verifyCounts(
+  app: App,
+  schoolId: string,
+  curriculum: SeedLevel[],
+): Promise<void> {
   const expectedEvents = STUDENTS.reduce((n, s) => n + (s.loginTrailDays ?? 0), 0);
-  const checks: { label: string; expected: number; actual: number }[] = [
+  const expectedCompleted = STUDENTS.reduce(
+    (n, s) => n + s.progress.completedStars.length,
+    0,
+  );
+  const expectedCompletionEvents = STUDENTS.reduce(
+    (n, s) => n + (s.loginTrailDays ? s.progress.completedStars.length : 0),
+    0,
+  );
+  // Real demo usage (logins, level completions) legitimately grows these
+  // streams past what the seed wrote — those checks are lower bounds.
+  const checks: { label: string; expected: number; actual: number; atLeast?: boolean }[] = [
     {
       label: "platform staff",
       expected: PLATFORM_STAFF.length,
@@ -440,8 +891,59 @@ async function verifyCounts(app: App, schoolId: string): Promise<void> {
     {
       label: "STUDENT_LOGIN events",
       expected: expectedEvents,
+      atLeast: true,
       actual: await app.db.learningEvent.count({
         where: { schoolId, type: "STUDENT_LOGIN" },
+      }),
+    },
+    {
+      label: "published levels",
+      expected: curriculum.length,
+      actual: await app.db.level.count({
+        where: { status: "PUBLISHED", publishedVersionId: { not: null } },
+      }),
+    },
+    {
+      label: "level versions",
+      expected: curriculum.length,
+      atLeast: true,
+      actual: await app.db.levelVersion.count(),
+    },
+    {
+      label: "school programs",
+      expected: 1,
+      actual: await app.db.schoolProgram.count({ where: { schoolId } }),
+    },
+    {
+      label: "program-pinned profiles",
+      expected: STUDENTS.length,
+      actual: await app.db.studentProfile.count({
+        where: { schoolId, programId: { not: null } },
+      }),
+    },
+    {
+      label: "COMPLETED progress rows",
+      expected: expectedCompleted,
+      atLeast: true,
+      actual: await app.db.studentProgress.count({
+        where: { schoolId, status: "COMPLETED" },
+      }),
+    },
+    {
+      // Every non-finished student must have an open next level: fresh get
+      // level 1, everyone below 10/10 gets their next one — so rows strictly
+      // exceed the completed count.
+      label: "progress rows incl. unlocks",
+      expected: expectedCompleted + 1,
+      atLeast: true,
+      actual: await app.db.studentProgress.count({ where: { schoolId } }),
+    },
+    {
+      label: "LEVEL_COMPLETED events",
+      expected: expectedCompletionEvents,
+      atLeast: true,
+      actual: await app.db.learningEvent.count({
+        where: { schoolId, type: "LEVEL_COMPLETED" },
       }),
     },
   ];
@@ -449,9 +951,11 @@ async function verifyCounts(app: App, schoolId: string): Promise<void> {
   console.log("\nVerification:");
   const failures: string[] = [];
   for (const check of checks) {
-    const ok = check.actual === check.expected;
+    const ok = check.atLeast
+      ? check.actual >= check.expected
+      : check.actual === check.expected;
     console.log(
-      `  ${ok ? "ok " : "FAIL"} ${check.label}: ${check.actual} (expected ${check.expected})`,
+      `  ${ok ? "ok " : "FAIL"} ${check.label}: ${check.actual} (expected ${check.atLeast ? "≥ " : ""}${check.expected})`,
     );
     if (!ok) failures.push(check.label);
   }
@@ -464,6 +968,7 @@ async function verifyCounts(app: App, schoolId: string): Promise<void> {
 
 async function writeCredentialsFile(
   classes: { name: string; joinCode: string | null }[],
+  totalLevels: number,
 ): Promise<string> {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
   const byClass = (name: string) => STUDENTS.filter((s) => s.className === name);
@@ -507,6 +1012,25 @@ async function writeCredentialsFile(
       ),
       "",
     );
+  }
+
+  // ── Demo state footer — where each student sits in the adventure ──
+  const stageTitles: Record<DemoStage, string> = {
+    fresh: "Fresh (never played — level 1 unlocked, nothing else)",
+    "mid-world-1": "Mid World 1 (Bunny Meadow in progress)",
+    "into-world-2": "Finished World 1, into World 2 (Logic Forest)",
+    advanced: "Advanced (World 2 nearly or fully complete)",
+  };
+  const describe = (s: StudentSeed): string => {
+    const n = s.progress.completedStars.length;
+    const certificate = n === totalLevels ? " — **certificate candidate** (all levels done)" : "";
+    return `- ${studentDisplayName(s)} (\`${s.username}\`): ${n}/${totalLevels} levels${certificate}`;
+  };
+  lines.push("## Demo state", "");
+  for (const stage of ["advanced", "into-world-2", "mid-world-1", "fresh"] as DemoStage[]) {
+    const group = STUDENTS.filter((s) => demoStage(s) === stage);
+    if (group.length === 0) continue;
+    lines.push(`### ${stageTitles[stage]}`, "", ...group.map(describe), "");
   }
 
   const outDir = path.join(__dirname, "seed-output");
@@ -592,6 +1116,15 @@ async function main(): Promise<void> {
     );
   }
 
+  // Curriculum before students: progress rows and unlocks need published
+  // levels + the enabled program to exist.
+  console.log("\nCurriculum:");
+  await ensureCurriculumContent(app);
+  await ensureCurriculumPublished(app);
+  const { programId } = await ensureSchoolProgram(app, school.id);
+  const curriculum = await loadPublishedCurriculum(app);
+  console.log(`  · ${curriculum.length} published levels in program order\n`);
+
   for (const [index, student] of STUDENTS.entries()) {
     const classId = classIds.get(student.className);
     if (!classId) throw new Error(`missing class for ${student.className}`);
@@ -602,16 +1135,24 @@ async function main(): Promise<void> {
       `${studentDisplayName(student)} → ${student.className}`,
     );
 
+    await ensureProgramPin(app, userId, programId, student);
+    await ensureLevelProgress(app, curriculum, school.id, userId, student, index);
+    // Materializes the next UNLOCKED row (ORDER/PREREQUISITE) after the
+    // seeded completions — same engine the app runs after a real completion.
+    await app.recomputeUnlocks(userId);
+    await ensureProfileCaches(app, curriculum, userId, student);
+
     const trail = student.loginTrailDays
       ? recentSchoolDays(student.loginTrailDays, index)
       : null;
-    await ensureStudentProgress(app, userId, student, trail);
+    await ensureStreaks(app, userId, student, trail);
     if (trail) await ensureLoginTrail(app, school.id, userId, student, trail);
+    await ensureCompletionEvents(app, curriculum, school.id, userId, student);
   }
 
-  await verifyCounts(app, school.id);
+  await verifyCounts(app, school.id, curriculum);
 
-  const credentialsPath = await writeCredentialsFile(classRecords);
+  const credentialsPath = await writeCredentialsFile(classRecords, curriculum.length);
   console.log(`\nCredentials written to ${credentialsPath}`);
   console.log(`\nDone: ${stats.created} created, ${stats.skipped} skipped.\n`);
   printSummaryTable();

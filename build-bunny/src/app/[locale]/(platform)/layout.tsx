@@ -7,6 +7,7 @@ import { Avatar } from "@/ui";
 
 import { ImpersonationBanner } from "../_components/ImpersonationBanner";
 import { LocaleSwitcher } from "../_components/LocaleSwitcher";
+import { NavLink } from "../_components/NavLink";
 import { SignOutButton } from "../_components/SignOutButton";
 
 interface Props {
@@ -27,13 +28,18 @@ export default async function PlatformLayout({ children, params }: Props) {
           school staff bar at a glance. */}
       <header className="border-b-2 border-b-brand bg-surface-raised">
         <div className="bb-container flex flex-wrap items-center justify-between gap-x-4 gap-y-2 py-3">
-          <Link
-            href="/nitaq"
-            className="inline-flex h-11 items-center gap-2 rounded-md font-display text-lg font-bold text-ink"
-          >
-            <span aria-hidden>🐰</span>
-            {t("title")}
-          </Link>
+          <div className="flex min-w-0 items-center gap-4 sm:gap-6">
+            <Link
+              href="/nitaq"
+              className="inline-flex h-11 shrink-0 items-center gap-2 rounded-md font-display text-lg font-bold text-ink"
+            >
+              <span aria-hidden>🐰</span>
+              {t("title")}
+            </Link>
+            <nav aria-label={t("nav.label")} className="flex items-center gap-1">
+              <NavLink href="/nitaq/curriculum">{t("nav.curriculum")}</NavLink>
+            </nav>
+          </div>
           <div className="flex items-center gap-2">
             <LocaleSwitcher />
             <span className="flex items-center gap-2">

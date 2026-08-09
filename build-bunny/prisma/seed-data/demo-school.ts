@@ -88,8 +88,14 @@ export const CLASSES: { name: DemoClassName; grade: number }[] = [
 ];
 
 export interface StudentProgressSeed {
-  xpTotal: number;
-  starsTotal: number;
+  /**
+   * Stars earned per COMPLETED level, in global program order (Bunny Meadow
+   * levels 1–5, then Logic Forest levels 6–10). Length = how far the student
+   * got; [] = fresh (never played). xpTotal/starsTotal are NOT seeded raw any
+   * more — the seed derives them from these per-level completions, so every
+   * cache is provably consistent with real StudentProgress rows.
+   */
+  completedStars: number[];
   streakCurrent: number;
   streakBest: number;
   /**
@@ -115,102 +121,117 @@ export interface StudentSeed {
 }
 
 /**
- * 16 students, 8 per class — a deliberate spread of progress states so every
- * dashboard view has something honest to show: top performers with streaks,
- * mid-pack, a long-inactive student (Adam B., 3 weeks — future needs-attention
- * signal), and three completely fresh accounts that never signed in.
+ * 16 students, 8 per class — a deliberate spread of curriculum states so every
+ * surface has something honest to show (M2 world layout: Bunny Meadow = 5
+ * levels, Logic Forest = 5 levels, 10 total):
+ *  - 3 fresh accounts that never played (only the first level gets unlocked);
+ *  - 6 mid-World-1 (1–4 levels done, next one unlocked);
+ *  - 4 finished World 1 and into World 2 (6–7 levels done);
+ *  - 3 advanced (8–10 done) — Aisha K. has all 10, the certificate candidate.
+ * Adam B. (4 levels, silent for 3 weeks) stays the needs-attention demo case.
  */
 export const STUDENTS: StudentSeed[] = [
   // ── Grade 3A (Sara Haddad) ──
   {
     firstName: "Aisha", lastInitial: "K", username: "aisha", studentIdentifier: "DEMO-1001",
     className: "Grade 3A", grade: 3, password: "star-bunny-31",
-    progress: { xpTotal: 840, starsTotal: 27, streakCurrent: 9, streakBest: 9, lastActiveDaysAgo: 0 },
+    progress: { completedStars: [3, 3, 3, 3, 3, 3, 2, 3, 3, 3], streakCurrent: 9, streakBest: 9, lastActiveDaysAgo: 0 },
     loginTrailDays: 5,
   },
   {
     firstName: "Mohammed", lastInitial: "R", username: "mohammed", studentIdentifier: "DEMO-1002",
     className: "Grade 3A", grade: 3, password: "mango-kite-52",
-    progress: { xpTotal: 610, starsTotal: 20, streakCurrent: 4, streakBest: 7, lastActiveDaysAgo: 1 },
+    progress: { completedStars: [3, 3, 2, 3, 3, 2, 3, 3], streakCurrent: 4, streakBest: 7, lastActiveDaysAgo: 1 },
     loginTrailDays: 4,
   },
   {
     firstName: "Layla", lastInitial: "H", username: "layla", studentIdentifier: "DEMO-1003",
     className: "Grade 3A", grade: 3, password: "coral-frog-18",
-    progress: { xpTotal: 455, starsTotal: 15, streakCurrent: 3, streakBest: 5, lastActiveDaysAgo: 1 },
+    progress: { completedStars: [3, 2, 3, 2, 3, 2], streakCurrent: 3, streakBest: 5, lastActiveDaysAgo: 1 },
     loginTrailDays: 3,
   },
   {
     firstName: "Yousef", lastInitial: "A", username: "yousef", studentIdentifier: "DEMO-1004",
     className: "Grade 3A", grade: 3, password: "tiger-cloud-74",
-    progress: { xpTotal: 320, starsTotal: 11, streakCurrent: 2, streakBest: 4, lastActiveDaysAgo: 2 },
+    progress: { completedStars: [2, 2, 3, 2, 3, 2], streakCurrent: 2, streakBest: 4, lastActiveDaysAgo: 2 },
   },
   {
     firstName: "Fatima", lastInitial: "S", username: "fatima", studentIdentifier: "DEMO-1005",
     className: "Grade 3A", grade: 3, password: "honey-daisy-26",
-    progress: { xpTotal: 180, starsTotal: 6, streakCurrent: 0, streakBest: 3, lastActiveDaysAgo: 5 },
+    progress: { completedStars: [3, 2, 2], streakCurrent: 0, streakBest: 3, lastActiveDaysAgo: 5 },
   },
   {
     firstName: "Zayed", lastInitial: "M", username: "zayed", studentIdentifier: "DEMO-1006",
     className: "Grade 3A", grade: 3, password: "eagle-river-63",
-    progress: { xpTotal: 95, starsTotal: 3, streakCurrent: 1, streakBest: 2, lastActiveDaysAgo: 3 },
+    progress: { completedStars: [2, 3], streakCurrent: 1, streakBest: 2, lastActiveDaysAgo: 3 },
   },
   {
     firstName: "Mariam", lastInitial: "T", username: "mariam", studentIdentifier: "DEMO-1007",
     className: "Grade 3A", grade: 3, password: "jelly-panda-49",
-    progress: { xpTotal: 0, starsTotal: 0, streakCurrent: 0, streakBest: 0, lastActiveDaysAgo: null },
+    progress: { completedStars: [], streakCurrent: 0, streakBest: 0, lastActiveDaysAgo: null },
   },
   {
     // Not banned, simply gone quiet for 3 weeks — the needs-attention demo case.
     firstName: "Adam", lastInitial: "B", username: "adam", studentIdentifier: "DEMO-1008",
     className: "Grade 3A", grade: 3, password: "acorn-whale-85",
-    progress: { xpTotal: 240, starsTotal: 8, streakCurrent: 0, streakBest: 6, lastActiveDaysAgo: 21 },
+    progress: { completedStars: [2, 3, 2, 2], streakCurrent: 0, streakBest: 6, lastActiveDaysAgo: 21 },
   },
   // ── Grade 4A (Omar Farouk) ──
   {
     firstName: "Noor", lastInitial: "E", username: "noor", studentIdentifier: "DEMO-1009",
     className: "Grade 4A", grade: 4, password: "violet-nest-37",
-    progress: { xpTotal: 720, starsTotal: 24, streakCurrent: 7, streakBest: 8, lastActiveDaysAgo: 0 },
+    progress: { completedStars: [3, 3, 3, 3, 2, 3, 3, 2, 3], streakCurrent: 7, streakBest: 8, lastActiveDaysAgo: 0 },
     loginTrailDays: 5,
   },
   {
     firstName: "Hamdan", lastInitial: "S", username: "hamdan", studentIdentifier: "DEMO-1010",
     className: "Grade 4A", grade: 4, password: "breeze-lemon-91",
-    progress: { xpTotal: 530, starsTotal: 17, streakCurrent: 5, streakBest: 5, lastActiveDaysAgo: 1 },
+    progress: { completedStars: [3, 2, 3, 3, 2, 3, 2], streakCurrent: 5, streakBest: 5, lastActiveDaysAgo: 1 },
     loginTrailDays: 4,
   },
   {
     firstName: "Hessa", lastInitial: "A", username: "hessa", studentIdentifier: "DEMO-1011",
     className: "Grade 4A", grade: 4, password: "olive-quest-24",
-    progress: { xpTotal: 380, starsTotal: 13, streakCurrent: 2, streakBest: 6, lastActiveDaysAgo: 2 },
+    progress: { completedStars: [2, 3, 2, 3, 2, 3], streakCurrent: 2, streakBest: 6, lastActiveDaysAgo: 2 },
   },
   {
     firstName: "Rashid", lastInitial: "K", username: "rashid", studentIdentifier: "DEMO-1012",
     className: "Grade 4A", grade: 4, password: "ember-grape-58",
-    progress: { xpTotal: 265, starsTotal: 9, streakCurrent: 1, streakBest: 3, lastActiveDaysAgo: 4 },
+    progress: { completedStars: [3, 2, 3, 2], streakCurrent: 1, streakBest: 3, lastActiveDaysAgo: 4 },
   },
   {
     firstName: "Salama", lastInitial: "M", username: "salama", studentIdentifier: "DEMO-1013",
     className: "Grade 4A", grade: 4, password: "fern-island-42",
-    progress: { xpTotal: 140, starsTotal: 5, streakCurrent: 0, streakBest: 2, lastActiveDaysAgo: 7 },
+    progress: { completedStars: [2, 2, 3], streakCurrent: 0, streakBest: 2, lastActiveDaysAgo: 7 },
   },
   {
     firstName: "Tariq", lastInitial: "J", username: "tariq", studentIdentifier: "DEMO-1014",
     className: "Grade 4A", grade: 4, password: "glow-zebra-16",
-    progress: { xpTotal: 60, starsTotal: 2, streakCurrent: 0, streakBest: 1, lastActiveDaysAgo: 12 },
+    progress: { completedStars: [2], streakCurrent: 0, streakBest: 1, lastActiveDaysAgo: 12 },
   },
   {
     firstName: "Amna", lastInitial: "F", username: "amna", studentIdentifier: "DEMO-1015",
     className: "Grade 4A", grade: 4, password: "dune-apple-77",
-    progress: { xpTotal: 0, starsTotal: 0, streakCurrent: 0, streakBest: 0, lastActiveDaysAgo: null },
+    progress: { completedStars: [], streakCurrent: 0, streakBest: 0, lastActiveDaysAgo: null },
   },
   {
     firstName: "Khalifa", lastInitial: "N", username: "khalifa", studentIdentifier: "DEMO-1016",
     className: "Grade 4A", grade: 4, password: "yoyo-cloud-29",
-    progress: { xpTotal: 0, starsTotal: 0, streakCurrent: 0, streakBest: 0, lastActiveDaysAgo: null },
+    progress: { completedStars: [], streakCurrent: 0, streakBest: 0, lastActiveDaysAgo: null },
   },
 ];
 
 export function studentDisplayName(s: StudentSeed): string {
   return `${s.firstName} ${s.lastInitial}.`;
+}
+
+/** Narrative bucket for the credentials file's Demo state section. */
+export type DemoStage = "fresh" | "mid-world-1" | "into-world-2" | "advanced";
+
+export function demoStage(s: StudentSeed): DemoStage {
+  const n = s.progress.completedStars.length;
+  if (n === 0) return "fresh";
+  if (n <= 4) return "mid-world-1";
+  if (n <= 7) return "into-world-2";
+  return "advanced";
 }

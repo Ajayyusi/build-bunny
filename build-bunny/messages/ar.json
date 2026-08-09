@@ -77,6 +77,7 @@
     "nav": {
       "label": "التنقل الرئيسي",
       "home": "الرئيسية",
+      "adventure": "المغامرة",
       "profile": "ملفي الشخصي"
     },
     "header": {
@@ -91,7 +92,44 @@
       "stars": "النجوم",
       "streak": "أيام المواظبة",
       "emptyTitle": "خريطة مغامرتك قيد التجهيز",
-      "emptyBody": "سيفتحها لك معلمك قريبًا — عد وتفقدها لاحقًا!"
+      "emptyBody": "سيفتحها لك معلمك قريبًا — عد وتفقدها لاحقًا!",
+      "adventureCardTitle": "خريطة مغامرتك جاهزة!",
+      "adventureCardBody": "مستويات وعوالم جديدة بانتظارك على المسار.",
+      "adventureCardCta": "افتح خريطة المغامرة"
+    },
+    "adventure": {
+      "title": "خريطة المغامرة",
+      "subtitle": "اتبع المسار — مستوى تلو الآخر.",
+      "emptyTitle": "مغامرتك قيد التجهيز",
+      "emptyBody": "سيفتح معلمك المسار قريبًا. عد وتفقده لاحقًا!",
+      "progressLevelsSr": "أكملت {done} من {total} من المستويات",
+      "progressStarsSr": "جمعت {earned} من {total} من النجوم",
+      "worldComplete": "مكتمل!",
+      "node": {
+        "label": "المستوى {number}: {title}",
+        "state": {
+          "LOCKED": "مقفل",
+          "UNLOCKED": "جاهز للعب",
+          "IN_PROGRESS": "قيد التنفيذ",
+          "COMPLETED": "مكتمل"
+        },
+        "stars": "{stars} من {maxStars} نجوم"
+      },
+      "lockedHint": "أكمل المستوى {number} أولًا",
+      "lockedHintWorld": "أكمل العالم السابق أولًا",
+      "intro": {
+        "objectiveHeading": "مهمتك",
+        "instructionsHeading": "طريقة اللعب",
+        "minutes": "{minutes, plural, one {دقيقة واحدة} two {دقيقتان} few {# دقائق} many {# دقيقة} other {# دقيقة}}",
+        "close": "إغلاق",
+        "difficulty": {
+          "EASY": "سهل",
+          "MEDIUM": "متوسط",
+          "HARD": "صعب"
+        }
+      },
+      "horizonHeading": "في الأفق",
+      "horizonBody": "عوالم جديدة تُرسم الآن لرحلتك."
     },
     "profile": {
       "title": "ملفي الشخصي",
@@ -138,6 +176,129 @@
   },
   "platform": {
     "title": "Build Bunny · منصة NITAQ",
+    "nav": {
+      "label": "التنقل في المنصة",
+      "curriculum": "المنهج"
+    },
+    "curriculum": {
+      "title": "المنهج",
+      "subtitle": "البرامج والعوالم والوحدات والمستويات على مستوى المنصة.",
+      "importCta": "استيراد المحتوى",
+      "programsHeading": "البرامج",
+      "programsEmptyTitle": "لا توجد برامج بعد",
+      "programsEmptyBody": "استورد حزمة محتوى لإنشاء أول برنامج.",
+      "worldsHeading": "العوالم",
+      "worldsEmptyTitle": "لا توجد عوالم بعد",
+      "worldsEmptyBody": "استورد حزمة محتوى لإنشاء أول عالم.",
+      "grades": "الصفوف {min}–{max}",
+      "counts": "{worlds, plural, one {عالم واحد} two {عالمان} few {{worlds} عوالم} many {{worlds} عالمًا} other {{worlds} عالم}} · {modules, plural, one {وحدة واحدة} two {وحدتان} few {{modules} وحدات} many {{modules} وحدة} other {{modules} وحدة}} · {levels, plural, one {مستوى واحد} two {مستويان} few {{levels} مستويات} many {{levels} مستوى} other {{levels} مستوى}}",
+      "publishedCount": "{published}/{total} منشور",
+      "reviewCount": "{count} قيد المراجعة",
+      "draftCount": "{count} مسودة",
+      "arCoverage": "العربية {done}/{total}",
+      "arReady": "العربية مكتملة",
+      "arMissing": "العربية ناقصة",
+      "horizon": "قادم",
+      "horizonHint": "عالم على خارطة الطريق — يظهر على خريطة المغامرة كمشهد فقط، دون مستويات قابلة للعب بعد.",
+      "noModules": "لا توجد وحدات في هذا العالم بعد.",
+      "status": {
+        "DRAFT": "مسودة",
+        "REVIEW": "قيد المراجعة",
+        "PUBLISHED": "منشور",
+        "ARCHIVED": "مؤرشف"
+      },
+      "activity": {
+        "BLOCK_CODING": "برمجة باللبنات",
+        "CODE_PREDICTION": "توقّع النتيجة",
+        "DEBUGGING": "تصحيح الأخطاء",
+        "SEQUENCING": "ترتيب الخطوات"
+      },
+      "difficulty": {
+        "EASY": "سهل",
+        "MEDIUM": "متوسط",
+        "HARD": "صعب"
+      },
+      "levels": {
+        "order": "#",
+        "title": "العنوان",
+        "activity": "النشاط",
+        "difficulty": "الصعوبة",
+        "status": "الحالة",
+        "arabic": "العربية",
+        "empty": "لا توجد مستويات في هذه الوحدة بعد."
+      },
+      "import": {
+        "title": "استيراد المحتوى",
+        "subtitle": "الصق حزمة JSON أو حمّل المحتوى المدمج، وراجع نتيجة الفحص التجريبي، ثم نفّذ الاستيراد.",
+        "backLink": "العودة إلى المنهج",
+        "bundleLabel": "حزمة المحتوى (JSON)",
+        "bundleHint": "كائن JSON يحتوي على مصفوفة برامج ومصفوفة عوالم. الاستيراد لا يحذف أي محتوى أبدًا، وإعادة استيراد محتوى مطابق لا تغيّر شيئًا.",
+        "loadBundled": "تحميل المحتوى المدمج",
+        "loadFile": "رفع ملف JSON",
+        "dryRun": "تشغيل الفحص التجريبي",
+        "commit": "تنفيذ الاستيراد",
+        "commitDone": "تم التنفيذ",
+        "dryRunHeading": "نتيجة الفحص التجريبي",
+        "commitHeading": "نتيجة الاستيراد",
+        "groupCreates": "إضافات",
+        "groupUpdates": "تحديثات",
+        "groupUnchanged": "دون تغيير",
+        "groupIssues": "مشكلات",
+        "none": "لا شيء",
+        "errorGeneric": "حدث خطأ ما. يرجى المحاولة مرة أخرى.",
+        "forbidden": "لا تملك صلاحية استيراد المحتوى."
+      },
+      "level": {
+        "backLink": "العودة إلى المنهج",
+        "notFoundTitle": "المستوى غير موجود",
+        "notFoundBody": "هذا المستوى غير موجود أو تمت إزالته.",
+        "fieldsHeading": "المحتوى (الإنجليزية / العربية)",
+        "field": "الحقل",
+        "english": "الإنجليزية",
+        "arabic": "العربية",
+        "missing": "غير متوفر",
+        "fields": {
+          "title": "العنوان",
+          "story": "القصة",
+          "objective": "الهدف",
+          "instructions": "التعليمات",
+          "explanation": "الشرح",
+          "teacherNotes": "ملاحظات المعلم"
+        },
+        "payloadHeading": "ملخص محتوى النشاط",
+        "variants": "{count, plural, one {نسخة واحدة} two {نسختان} few {{count} نسخ} many {{count} نسخة} other {{count} نسخة}}",
+        "options": "{count, plural, one {خيار واحد} two {خياران} few {{count} خيارات} many {{count} خيارًا} other {{count} خيار}}",
+        "items": "{count, plural, one {عنصر واحد} two {عنصران} few {{count} عناصر} many {{count} عنصرًا} other {{count} عنصر}}",
+        "solutionIncluded": "يتضمن حل المؤلف",
+        "solutionMissing": "لا يوجد حل من المؤلف",
+        "checks": "معايير التقييم",
+        "toolbox": "صندوق الأدوات",
+        "gatesHeading": "بوابات النشر",
+        "gatesReady": "جاهز للنشر",
+        "gatesBlocked": "محجوب",
+        "gatePassed": "ناجحة",
+        "gateFailed": "فاشلة",
+        "gateSkipped": "متجاوزة",
+        "hintsHeading": "التلميحات",
+        "hintTier": "المستوى {tier}",
+        "versionsHeading": "الإصدارات المنشورة",
+        "versionsEmpty": "لم يُنشر بعد.",
+        "versionColumn": "الإصدار",
+        "publishedAtColumn": "تاريخ النشر",
+        "version": "الإصدار {version}",
+        "publish": "نشر المستوى",
+        "publishSuccess": "تم نشر الإصدار {version}.",
+        "publishBlocked": "تعذّر النشر — عالج البوابات الفاشلة أولًا.",
+        "forbidden": "لا تملك صلاحية نشر المحتوى.",
+        "errorGeneric": "حدث خطأ ما. يرجى المحاولة مرة أخرى.",
+        "meta": {
+          "order": "المستوى {order}",
+          "minutes": "{minutes} دقيقة",
+          "xp": "{xp} نقطة خبرة",
+          "stars": "{stars, plural, one {نجمة واحدة} two {نجمتان} few {{stars} نجوم} many {{stars} نجمة} other {{stars} نجمة}}"
+        }
+      }
+    },
     "overviewTitle": "نظرة عامة على المنصة",
     "overviewSubtitle": "جميع المدارس التي تعمل على Build Bunny.",
     "stats": {

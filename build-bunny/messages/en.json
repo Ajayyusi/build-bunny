@@ -77,6 +77,7 @@
     "nav": {
       "label": "Main",
       "home": "Home",
+      "adventure": "Adventure",
       "profile": "My profile"
     },
     "header": {
@@ -91,7 +92,44 @@
       "stars": "Stars",
       "streak": "Day streak",
       "emptyTitle": "Your adventure map is being prepared",
-      "emptyBody": "Your teacher will unlock it soon — check back here!"
+      "emptyBody": "Your teacher will unlock it soon — check back here!",
+      "adventureCardTitle": "Your adventure map is ready!",
+      "adventureCardBody": "New levels and worlds are waiting on the trail.",
+      "adventureCardCta": "Open your adventure map"
+    },
+    "adventure": {
+      "title": "Adventure map",
+      "subtitle": "Follow the trail — one level at a time.",
+      "emptyTitle": "Your adventure is being prepared",
+      "emptyBody": "Your teacher will open the trail soon. Check back!",
+      "progressLevelsSr": "{done} of {total} levels completed",
+      "progressStarsSr": "{earned} of {total} stars earned",
+      "worldComplete": "Complete!",
+      "node": {
+        "label": "Level {number}: {title}",
+        "state": {
+          "LOCKED": "Locked",
+          "UNLOCKED": "Ready to play",
+          "IN_PROGRESS": "In progress",
+          "COMPLETED": "Completed"
+        },
+        "stars": "{stars} of {maxStars} stars"
+      },
+      "lockedHint": "Finish level {number} first",
+      "lockedHintWorld": "Finish the previous world first",
+      "intro": {
+        "objectiveHeading": "Your mission",
+        "instructionsHeading": "How to play",
+        "minutes": "{minutes, plural, one {# minute} other {# minutes}}",
+        "close": "Close",
+        "difficulty": {
+          "EASY": "Easy",
+          "MEDIUM": "Medium",
+          "HARD": "Hard"
+        }
+      },
+      "horizonHeading": "On the horizon",
+      "horizonBody": "New worlds are being charted for your journey."
     },
     "profile": {
       "title": "My profile",
@@ -138,6 +176,129 @@
   },
   "platform": {
     "title": "Build Bunny · NITAQ Platform",
+    "nav": {
+      "label": "Platform navigation",
+      "curriculum": "Curriculum"
+    },
+    "curriculum": {
+      "title": "Curriculum",
+      "subtitle": "Programs, worlds, modules and levels across the platform.",
+      "importCta": "Import content",
+      "programsHeading": "Programs",
+      "programsEmptyTitle": "No programs yet",
+      "programsEmptyBody": "Import a content bundle to create the first program.",
+      "worldsHeading": "Worlds",
+      "worldsEmptyTitle": "No worlds yet",
+      "worldsEmptyBody": "Import a content bundle to create the first world.",
+      "grades": "Grades {min}–{max}",
+      "counts": "{worlds, plural, one {# world} other {# worlds}} · {modules, plural, one {# module} other {# modules}} · {levels, plural, one {# level} other {# levels}}",
+      "publishedCount": "{published}/{total} published",
+      "reviewCount": "{count} in review",
+      "draftCount": "{count} draft",
+      "arCoverage": "AR {done}/{total}",
+      "arReady": "AR ready",
+      "arMissing": "AR missing",
+      "horizon": "Horizon",
+      "horizonHint": "Roadmap world — appears on the adventure map as scenery, with no playable levels yet.",
+      "noModules": "No modules in this world yet.",
+      "status": {
+        "DRAFT": "Draft",
+        "REVIEW": "In review",
+        "PUBLISHED": "Published",
+        "ARCHIVED": "Archived"
+      },
+      "activity": {
+        "BLOCK_CODING": "Block coding",
+        "CODE_PREDICTION": "Code prediction",
+        "DEBUGGING": "Debugging",
+        "SEQUENCING": "Sequencing"
+      },
+      "difficulty": {
+        "EASY": "Easy",
+        "MEDIUM": "Medium",
+        "HARD": "Hard"
+      },
+      "levels": {
+        "order": "#",
+        "title": "Title",
+        "activity": "Activity",
+        "difficulty": "Difficulty",
+        "status": "Status",
+        "arabic": "Arabic",
+        "empty": "No levels in this module yet."
+      },
+      "import": {
+        "title": "Import content",
+        "subtitle": "Paste a JSON bundle or load the built-in content, review the dry-run diff, then commit.",
+        "backLink": "Back to curriculum",
+        "bundleLabel": "Content bundle (JSON)",
+        "bundleHint": "A JSON object with a programs array and a worlds array. Importing never deletes content and re-importing identical content changes nothing.",
+        "loadBundled": "Load bundled content",
+        "loadFile": "Upload JSON file",
+        "dryRun": "Run dry-run",
+        "commit": "Commit import",
+        "commitDone": "Committed",
+        "dryRunHeading": "Dry-run result",
+        "commitHeading": "Commit result",
+        "groupCreates": "Creates",
+        "groupUpdates": "Updates",
+        "groupUnchanged": "Unchanged",
+        "groupIssues": "Issues",
+        "none": "None",
+        "errorGeneric": "Something went wrong. Please try again.",
+        "forbidden": "You don't have permission to import content."
+      },
+      "level": {
+        "backLink": "Back to curriculum",
+        "notFoundTitle": "Level not found",
+        "notFoundBody": "This level doesn't exist or was removed.",
+        "fieldsHeading": "Content (English / Arabic)",
+        "field": "Field",
+        "english": "English",
+        "arabic": "Arabic",
+        "missing": "Not provided",
+        "fields": {
+          "title": "Title",
+          "story": "Story",
+          "objective": "Objective",
+          "instructions": "Instructions",
+          "explanation": "Explanation",
+          "teacherNotes": "Teacher notes"
+        },
+        "payloadHeading": "Payload summary",
+        "variants": "{count, plural, one {# variant} other {# variants}}",
+        "options": "{count, plural, one {# option} other {# options}}",
+        "items": "{count, plural, one {# item} other {# items}}",
+        "solutionIncluded": "Author solution included",
+        "solutionMissing": "No author solution",
+        "checks": "Checks",
+        "toolbox": "Toolbox",
+        "gatesHeading": "Publish gates",
+        "gatesReady": "Ready to publish",
+        "gatesBlocked": "Blocked",
+        "gatePassed": "Passed",
+        "gateFailed": "Failed",
+        "gateSkipped": "Skipped",
+        "hintsHeading": "Hints",
+        "hintTier": "Tier {tier}",
+        "versionsHeading": "Published versions",
+        "versionsEmpty": "Never published.",
+        "versionColumn": "Version",
+        "publishedAtColumn": "Published at",
+        "version": "v{version}",
+        "publish": "Publish level",
+        "publishSuccess": "Published version {version}.",
+        "publishBlocked": "Publish blocked — fix the failing gates first.",
+        "forbidden": "You don't have permission to publish content.",
+        "errorGeneric": "Something went wrong. Please try again.",
+        "meta": {
+          "order": "Level {order}",
+          "minutes": "{minutes} min",
+          "xp": "{xp} XP",
+          "stars": "{stars, plural, one {# star} other {# stars}}"
+        }
+      }
+    },
     "overviewTitle": "Platform overview",
     "overviewSubtitle": "Every school running Build Bunny.",
     "stats": {

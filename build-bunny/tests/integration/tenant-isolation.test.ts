@@ -8,9 +8,16 @@ import {
   getPlatformOverview,
   listSchools,
 } from "@/modules/schools/server/platform-queries";
+import { recomputeUnlocks } from "@/modules/learning/server/adventure";
+import type { AdventureState } from "@/modules/learning/server/adventure";
 import {
+  addWorldToProgram,
   createCtx,
+  createTestLevel,
+  createTestModule,
+  createTestProgram,
   createTestSchool,
+  enableProgramForSchool,
   SYSTEM_ACTOR,
   wipeDatabase,
 } from "../helpers/fixtures";
@@ -146,12 +153,53 @@ let B: SchoolFixture;
 let ctxA: SessionContext; // SCHOOL_ADMIN of school A — the attacker's viewpoint
 let teacherCtxA: SessionContext;
 let studentCtxA: SessionContext;
+let studentCtxB: SessionContext;
 let nitaqCtx: SessionContext;
+
+// M2 curriculum fixture: content is platform-GLOBAL — the isolation property
+// for learning queries is that progress/stars come only from the calling
+// student's own rows, never from another school's student on the same levels.
+let programAId: string;
+let levelOneId: string;
+let levelTwoId: string;
 
 beforeAll(async () => {
   await wipeDatabase();
   A = await seedSchool("Alpha");
   B = await seedSchool("Beta");
+
+  // Published program with one world/module/2 levels, enabled for school A.
+  const programA = await createTestProgram({ name: "Foundations A" });
+  programAId = programA.id;
+  const world = await addWorldToProgram(programA.id, 1);
+  const mod = await createTestModule(world.id, 1);
+  const levelOne = await createTestLevel(mod.id, 1, { title: "First Hop" });
+  const levelTwo = await createTestLevel(mod.id, 2, { title: "Second Hop" });
+  levelOneId = levelOne.id;
+  levelTwoId = levelTwo.id;
+  await enableProgramForSchool(A.school.id, programA.id);
+
+  // School B runs a DIFFERENT program...
+  const programB = await createTestProgram({ name: "Foundations B" });
+  await addWorldToProgram(programB.id, 1);
+  await enableProgramForSchool(B.school.id, programB.id);
+
+  // ...but its student holds full-star COMPLETED rows on program A's global
+  // levels. Those rows must never surface in school A's adventure state.
+  for (const levelId of [levelOneId, levelTwoId]) {
+    await db.studentProgress.create({
+      data: {
+        schoolId: B.school.id,
+        studentUserId: B.studentIds[0],
+        levelId,
+        status: "COMPLETED",
+        stars: 3,
+        unlockSource: "SEED",
+      },
+    });
+  }
+
+  await recomputeUnlocks(A.studentIds[0]);
   ctxA = createCtx({
     userId: A.adminId,
     role: "SCHOOL_ADMIN",
@@ -166,6 +214,11 @@ beforeAll(async () => {
     userId: A.studentIds[0],
     role: "STUDENT",
     schoolId: A.school.id,
+  });
+  studentCtxB = createCtx({
+    userId: B.studentIds[0],
+    role: "STUDENT",
+    schoolId: B.school.id,
   });
   nitaqCtx = createCtx({
     userId: "platform-admin",
@@ -279,6 +332,93 @@ async function assertQueryIsolated(entry: RegistryEntry): Promise<void> {
         schoolId: A.school.id,
       });
       expect(await query(mismatched)).toBeNull();
+      break;
+    }
+    case "computeAdventureState": {
+      const state = (await query(studentCtxA)) as AdventureState;
+      expect(state.program?.id).toBe(programAId);
+      const world = state.worlds[0];
+      expect(world).toBeDefined();
+      const levels = world!.modules[0]!.levels;
+      const one = levels.find((l) => l.id === levelOneId);
+      const two = levels.find((l) => l.id === levelTwoId);
+      // Student A's own unlock state: level 1 opened by recomputeUnlocks,
+      // level 2 still locked...
+      expect(one?.state).toBe("UNLOCKED");
+      expect(two?.state).toBe("LOCKED");
+      expect(state.currentLevelId).toBe(levelOneId);
+      // ...and NONE of school-B student's full-star COMPLETED rows on these
+      // same global levels bleed into A's view.
+      expect(one?.stars).toBe(0);
+      expect(two?.stars).toBe(0);
+      expect(world!.starsEarned).toBe(0);
+      expect(world!.completedLevels).toBe(0);
+      expectNoForeignIds(state, name);
+      break;
+    }
+    case "getLevelIntro": {
+      const intro = (await query(studentCtxA, levelOneId)) as Record<
+        string,
+        unknown
+      > | null;
+      expect(intro).not.toBeNull();
+      // Progress comes only from the calling student's rows — school B's
+      // 3-star completion of the same global level must not appear.
+      expect(intro?.["state"]).toBe("UNLOCKED");
+      expect(intro?.["stars"]).toBe(0);
+      // Answer-bearing content never reaches the student surface.
+      expect(intro && "payload" in intro).toBe(false);
+      expect(intro && "hints" in intro).toBe(false);
+      expect(JSON.stringify(intro)).not.toContain("SECRET");
+      expectNoForeignIds(intro, name);
+      // A school-B student is on a different program: the level is foreign
+      // content for them and resolves to nothing (not an error).
+      expect(await query(studentCtxB, levelOneId)).toBeNull();
+      break;
+    }
+    // ── Curriculum content queries: platform-GLOBAL, not tenant-scoped.
+    // The isolation property is access control: browse queries must reject
+    // any school-scoped session outright (requirePlatform), and the
+    // published readers must never surface answer-bearing content.
+    case "listCurriculumPrograms":
+    case "listCurriculumWorlds": {
+      await expect(query(ctxA)).rejects.toThrow();
+      await expect(query(teacherCtxA)).rejects.toThrow();
+      await expect(query(studentCtxA)).rejects.toThrow();
+      const rows = await query(nitaqCtx);
+      expect(Array.isArray(rows)).toBe(true);
+      break;
+    }
+    case "getCurriculumLevelDetail": {
+      await expect(query(ctxA, levelOneId)).rejects.toThrow();
+      await expect(query(studentCtxA, levelOneId)).rejects.toThrow();
+      expect(await query(nitaqCtx, "no-such-level")).toBeNull();
+      break;
+    }
+    case "getPublishedLevelSnapshot": {
+      // Plain published-content reader (no session): unknown level → null,
+      // published level → snapshot (server-internal, may carry answers).
+      const read = query as unknown as (id: string) => Promise<unknown>;
+      expect(await read("no-such-level")).toBeNull();
+      const published = await read(levelOneId);
+      expect(published).not.toBeNull();
+      break;
+    }
+    case "stripStudentPayload": {
+      // Pure helper: every answer-bearing key is removed before a payload
+      // may reach a student client.
+      const strip = query as unknown as (t: string, p: unknown) => unknown;
+      const stripped = strip("SEQUENCING", {
+        prompt: { en: "Sort" },
+        items: [],
+        correctOrder: ["a"],
+        correctOptionId: "a",
+        solution: "SECRET",
+      }) as Record<string, unknown>;
+      expect(stripped["correctOrder"]).toBeUndefined();
+      expect(stripped["correctOptionId"]).toBeUndefined();
+      expect(stripped["solution"]).toBeUndefined();
+      expect(stripped["prompt"]).toEqual({ en: "Sort" });
       break;
     }
     default: {
