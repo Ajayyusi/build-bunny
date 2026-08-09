@@ -3,6 +3,7 @@ import { programs } from "./programs";
 import { bunnyMeadow } from "./worlds/bunny-meadow";
 import { horizonWorlds } from "./worlds/horizons";
 import { logicForest } from "./worlds/logic-forest";
+import { robotLab } from "./worlds/robot-lab";
 
 /**
  * Structurally identical to ImportBundle in
@@ -14,8 +15,8 @@ export interface ContentBundle {
   worlds: WorldFixture[];
 }
 
-/** Everything the import service needs to materialize Worlds 1–2 + horizons. */
+/** Everything the import service needs: Worlds 1–3 + the horizon roadmap. */
 export const bundle: ContentBundle = {
   programs,
-  worlds: [bunnyMeadow, logicForest, ...horizonWorlds],
+  worlds: [bunnyMeadow, logicForest, robotLab, ...horizonWorlds],
 };

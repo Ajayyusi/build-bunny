@@ -1,29 +1,38 @@
 import { describe, expect, it } from "vitest";
 import {
   blockCodingPayload,
+  debuggingPayload,
   hintsSchema,
   programFixtureSchema,
   validatePayload,
   worldFixtureSchema,
+  XP_BY_DIFFICULTY,
   type LevelFixture,
   type WorldFixture,
 } from "@/modules/curriculum/schemas";
+import {
+  gateReachability,
+  gateSolutionRuns,
+} from "@/modules/curriculum/server/gates";
+import type { LevelSnapshot } from "@/modules/curriculum/server/publish";
 import { bundle } from "../../content";
 
 /**
- * The shipped Worlds 1–2 content is executable test fixture: every world must
- * survive the fixture schemas, every payload must survive validatePayload, and
+ * The shipped Worlds 1–3 content is executable test fixture: every world must
+ * survive the fixture schemas, every payload must survive validatePayload,
  * the hand-authored Blockly solutions must only use blocks their level's
- * toolbox actually offers. (Solution *runs* are re-verified by the M3 engine
- * gate — structure is what M2 pins down.)
+ * toolbox offers — and, since the engine gates went live (M3 wave 3), every
+ * recorded solution must actually PASS the real solutionRuns/reachability
+ * gates with 3 stars, right here, without a database.
  */
 
-// Canonical custom-block registry (m2 contract adjudication).
+// Canonical custom-block registry (m2/m3 contract adjudication).
 const KNOWN_BLOCKS = new Set([
   "bb_whenStart",
   "bb_moveForward",
   "bb_turnLeft",
   "bb_turnRight",
+  "bb_collect",
   "bb_repeat",
   "bb_repeatUntilGoal",
   "bb_if",
@@ -32,7 +41,8 @@ const KNOWN_BLOCKS = new Set([
   "bb_pathAhead",
 ]);
 
-const MULTI_VARIANT_SLUGS = ["choose-the-path", "hidden-carrot", "forest-challenge"];
+const FOREST_MULTI_VARIANT_SLUGS = ["choose-the-path", "hidden-carrot", "forest-challenge"];
+const ROBOT_LAB_MULTI_VARIANT_SLUGS = ["sensor-check", "smart-turns", "lab-gauntlet"];
 
 const playableWorlds = bundle.worlds.filter((w) => !w.horizon);
 const horizonWorlds = bundle.worlds.filter((w) => w.horizon);
@@ -55,10 +65,13 @@ function collectBlockTypes(node: unknown, out: Set<string>): void {
 }
 
 describe("content bundle shape", () => {
-  it("contains the two playable worlds and six horizon worlds", () => {
-    expect(playableWorlds.map((w) => w.slug)).toEqual(["bunny-meadow", "logic-forest"]);
-    expect(horizonWorlds.map((w) => w.slug)).toEqual([
+  it("contains the three playable worlds and five horizon worlds", () => {
+    expect(playableWorlds.map((w) => w.slug)).toEqual([
+      "bunny-meadow",
+      "logic-forest",
       "robot-lab",
+    ]);
+    expect(horizonWorlds.map((w) => w.slug)).toEqual([
       "data-desert",
       "ai-island",
       "ml-lab",
@@ -105,12 +118,14 @@ describe("content bundle shape", () => {
     }
   });
 
-  it("horizon worlds carry no modules; playable worlds carry the 10 seed levels", () => {
+  it("horizon worlds carry no modules; playable worlds carry the 15 levels", () => {
     for (const world of horizonWorlds) {
       expect(world.modules, `horizon ${world.slug}`).toHaveLength(0);
     }
     const levelCount = playableWorlds.reduce((n, w) => n + allLevels(w).length, 0);
-    expect(levelCount).toBe(10);
+    expect(levelCount).toBe(15);
+    const robotLab = playableWorlds.find((w) => w.slug === "robot-lab");
+    expect(allLevels(robotLab as WorldFixture)).toHaveLength(5);
   });
 });
 
@@ -143,10 +158,11 @@ describe("level payloads and hints", () => {
     }
   });
 
-  it("BLOCK_CODING levels declare a 3-star block budget, a solution, and a core check", () => {
+  it("grid levels declare a 3-star block budget, a solution, and a core check", () => {
     for (const { world, level } of levels) {
-      if (level.activityType !== "BLOCK_CODING") continue;
-      const payload = blockCodingPayload.parse(level.payload);
+      if (level.activityType !== "BLOCK_CODING" && level.activityType !== "DEBUGGING") continue;
+      const schema = level.activityType === "DEBUGGING" ? debuggingPayload : blockCodingPayload;
+      const payload = schema.parse(level.payload);
       expect(
         payload.starCriteria.threeStarMaxBlocks,
         `${world.slug}/${level.slug} star budget`,
@@ -156,16 +172,20 @@ describe("level payloads and hints", () => {
         payload.checks.some((c) => c.severity === "core"),
         `${world.slug}/${level.slug} core check`,
       ).toBe(true);
-      // Worlds 1-2 adjudications: auto-collect on, bumps fatal.
-      expect(payload.autoCollect, `${world.slug}/${level.slug} autoCollect`).toBe(true);
+      // Adjudications: Worlds 1–2 auto-collect ON; Robot Lab teaches the
+      // explicit Collect block, so auto-collect is OFF for the whole world.
+      expect(payload.autoCollect, `${world.slug}/${level.slug} autoCollect`).toBe(
+        world.slug !== "robot-lab",
+      );
       expect(payload.nonFatalBumps, `${world.slug}/${level.slug} nonFatalBumps`).toBe(false);
     }
   });
 
   it("solutions and usedBlock checks only reference blocks the toolbox offers", () => {
     for (const { world, level } of levels) {
-      if (level.activityType !== "BLOCK_CODING") continue;
-      const payload = blockCodingPayload.parse(level.payload);
+      if (level.activityType !== "BLOCK_CODING" && level.activityType !== "DEBUGGING") continue;
+      const schema = level.activityType === "DEBUGGING" ? debuggingPayload : blockCodingPayload;
+      const payload = schema.parse(level.payload);
       const toolboxTypes = new Set(payload.toolbox.map((b) => b.type));
 
       for (const type of toolboxTypes) {
@@ -201,12 +221,97 @@ describe("level payloads and hints", () => {
   it("levels 8-10 use 2-3 grid variants so If / Repeat-Until stay honest", () => {
     const forest = playableWorlds.find((w) => w.slug === "logic-forest");
     expect(forest).toBeDefined();
-    for (const slug of MULTI_VARIANT_SLUGS) {
+    for (const slug of FOREST_MULTI_VARIANT_SLUGS) {
       const level = allLevels(forest as WorldFixture).find((l) => l.slug === slug);
       expect(level, slug).toBeDefined();
       const payload = blockCodingPayload.parse((level as LevelFixture).payload);
       expect(payload.variants.length, `${slug} variants`).toBeGreaterThanOrEqual(2);
       expect(payload.variants.length, `${slug} variants`).toBeLessThanOrEqual(3);
+    }
+  });
+
+  it("Robot Lab sensor/decision levels are multi-variant; broken-bot ships a broken program", () => {
+    const lab = playableWorlds.find((w) => w.slug === "robot-lab");
+    expect(lab).toBeDefined();
+    for (const slug of ROBOT_LAB_MULTI_VARIANT_SLUGS) {
+      const level = allLevels(lab as WorldFixture).find((l) => l.slug === slug);
+      expect(level, slug).toBeDefined();
+      const payload = blockCodingPayload.parse((level as LevelFixture).payload);
+      expect(payload.variants.length, `${slug} variants`).toBe(2);
+    }
+
+    const brokenBot = allLevels(lab as WorldFixture).find((l) => l.slug === "broken-bot");
+    expect(brokenBot?.activityType).toBe("DEBUGGING");
+    const payload = debuggingPayload.parse((brokenBot as LevelFixture).payload);
+    expect(payload.brokenWorkspace).toBeDefined();
+    expect(payload.solution).toBeDefined();
+    // The broken program must genuinely differ from the fix (two seeded bugs).
+    expect(JSON.stringify(payload.brokenWorkspace)).not.toBe(
+      JSON.stringify(payload.solution),
+    );
+
+    const capstone = allLevels(lab as WorldFixture).find((l) => l.slug === "lab-gauntlet");
+    expect(capstone?.difficulty).toBe("HARD");
+  });
+});
+
+describe("solutions survive the real publish gates (no DB needed)", () => {
+  /** Minimal snapshot the gates need — text fields are irrelevant to them. */
+  function snapshotOf(world: WorldFixture, level: LevelFixture): LevelSnapshot {
+    return {
+      levelId: `fixture-${level.slug}`,
+      slug: level.slug,
+      moduleId: "fixture-module",
+      moduleSlug: "fixture-module",
+      worldId: `fixture-${world.slug}`,
+      worldSlug: world.slug,
+      order: level.order,
+      activityType: level.activityType,
+      track: level.track,
+      title: level.title,
+      story: level.story ?? null,
+      objective: level.objective,
+      instructions: level.instructions,
+      explanation: level.explanation,
+      teacherNotes: level.teacherNotes ?? null,
+      difficulty: level.difficulty,
+      recommendedGradeMin: level.recommendedGradeMin ?? null,
+      recommendedGradeMax: level.recommendedGradeMax ?? null,
+      estimatedMinutes: level.estimatedMinutes,
+      xpReward: level.xpReward ?? XP_BY_DIFFICULTY[level.difficulty],
+      maxStars: 3,
+      tags: level.tags,
+      payload: level.payload,
+      hints: level.hints,
+      arComplete: false,
+    };
+  }
+
+  const gridLevels = playableWorlds.flatMap((world) =>
+    allLevels(world)
+      .filter((l) => l.activityType === "BLOCK_CODING" || l.activityType === "DEBUGGING")
+      .map((level) => ({ world, level })),
+  );
+
+  it("every recorded solution PASSES all variants with 3 stars (hints ignored)", () => {
+    for (const { world, level } of gridLevels) {
+      const result = gateSolutionRuns(snapshotOf(world, level));
+      expect(
+        result.ok,
+        `${world.slug}/${level.slug}: ${result.issues.join("; ")}`,
+      ).toBe(true);
+      expect(result.skipped, `${world.slug}/${level.slug} ran for real`).toBeUndefined();
+    }
+  });
+
+  it("every variant's goal and collectables are reachable from the start", () => {
+    for (const { world, level } of gridLevels) {
+      const result = gateReachability(snapshotOf(world, level));
+      expect(
+        result.ok,
+        `${world.slug}/${level.slug}: ${result.issues.join("; ")}`,
+      ).toBe(true);
+      expect(result.skipped, `${world.slug}/${level.slug} ran for real`).toBeUndefined();
     }
   });
 });

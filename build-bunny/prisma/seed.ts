@@ -2,9 +2,11 @@ import "dotenv/config";
 
 import Module from "node:module";
 import path from "node:path";
+import type { Prisma } from "@prisma/client";
 import { randomInt } from "node:crypto";
 import { mkdir, writeFile } from "node:fs/promises";
 
+import { ACHIEVEMENTS } from "./seed-data/achievements";
 import {
   CLASSES,
   DEMO_ACADEMIC_YEAR,
@@ -466,6 +468,70 @@ async function ensureSchoolProgram(app: App, schoolId: string): Promise<{ progra
   return { programId: program.id };
 }
 
+/**
+ * Key-order-insensitive serialization (Postgres jsonb does not preserve key
+ * order) — the idempotence test for achievement definitions.
+ */
+function stableStringify(value: unknown): string {
+  if (value === null || typeof value !== "object") {
+    return JSON.stringify(value) ?? "null";
+  }
+  if (Array.isArray(value)) return `[${value.map(stableStringify).join(",")}]`;
+  const record = value as Record<string, unknown>;
+  const keys = Object.keys(record)
+    .filter((k) => record[k] !== undefined)
+    .sort();
+  return `{${keys.map((k) => `${JSON.stringify(k)}:${stableStringify(record[k])}`).join(",")}}`;
+}
+
+/**
+ * The 12 pinned achievement definitions, upserted by slug: new slugs are
+ * created, drifted definitions are re-aligned to the fixture, identical ones
+ * are skipped — earned StudentAchievement rows always survive.
+ */
+async function ensureAchievements(app: App): Promise<void> {
+  for (const def of ACHIEVEMENTS) {
+    const existing = await app.db.achievement.findUnique({ where: { slug: def.slug } });
+    // Prisma's InputJsonValue rejects Record<string, unknown> structurally;
+    // the fixture criteria are plain JSON by construction.
+    const criteria = def.criteria as Prisma.InputJsonValue;
+    if (!existing) {
+      await app.db.achievement.create({
+        data: {
+          slug: def.slug,
+          name: def.name,
+          description: def.description,
+          icon: def.icon,
+          criteria,
+          order: def.order,
+        },
+      });
+      logCreated(`achievement ${def.slug} ${def.icon}`);
+      continue;
+    }
+    const current = {
+      name: existing.name,
+      description: existing.description,
+      icon: existing.icon,
+      criteria: existing.criteria,
+      order: existing.order,
+    };
+    const target = {
+      name: def.name,
+      description: def.description,
+      icon: def.icon,
+      criteria,
+      order: def.order,
+    };
+    if (stableStringify(current) === stableStringify(target)) {
+      logSkipped(`achievement ${def.slug}`);
+      continue;
+    }
+    await app.db.achievement.update({ where: { slug: def.slug }, data: target });
+    logCreated(`achievement ${def.slug} (definition re-aligned)`);
+  }
+}
+
 /** One published level in global program order, with its resolved XP + version. */
 interface SeedLevel {
   id: string;
@@ -910,6 +976,11 @@ async function verifyCounts(
       actual: await app.db.levelVersion.count(),
     },
     {
+      label: "achievement definitions",
+      expected: ACHIEVEMENTS.length,
+      actual: await app.db.achievement.count(),
+    },
+    {
       label: "school programs",
       expected: 1,
       actual: await app.db.schoolProgram.count({ where: { schoolId } }),
@@ -1023,7 +1094,10 @@ async function writeCredentialsFile(
   };
   const describe = (s: StudentSeed): string => {
     const n = s.progress.completedStars.length;
-    const certificate = n === totalLevels ? " — **certificate candidate** (all levels done)" : "";
+    // Seeded progress covers Worlds 1–2 (10 levels); Robot Lab (levels
+    // 11–15) opens via the tightened world gate once Worlds 1–2 are done.
+    const certificate =
+      n === 10 ? " — **Worlds 1–2 complete** (Robot Lab unlocked)" : "";
     return `- ${studentDisplayName(s)} (\`${s.username}\`): ${n}/${totalLevels} levels${certificate}`;
   };
   lines.push("## Demo state", "");
@@ -1121,6 +1195,7 @@ async function main(): Promise<void> {
   console.log("\nCurriculum:");
   await ensureCurriculumContent(app);
   await ensureCurriculumPublished(app);
+  await ensureAchievements(app);
   const { programId } = await ensureSchoolProgram(app, school.id);
   const curriculum = await loadPublishedCurriculum(app);
   console.log(`  · ${curriculum.length} published levels in program order\n`);

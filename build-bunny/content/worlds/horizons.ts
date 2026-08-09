@@ -2,21 +2,10 @@ import type { WorldFixture } from "@/modules/curriculum/schemas";
 
 /**
  * Horizon worlds: visible on the adventure map as "coming next" territory,
- * zero playable modules. Robot Lab is horizon-only for now — its levels are
- * an M3/M4 deliverable; the rest span the full program arc (design doc §6).
+ * zero playable modules. Robot Lab graduated to real content in M3 wave 3
+ * (content/worlds/robot-lab.ts); the rest span the program arc (design §6).
  */
 export const horizonWorlds: WorldFixture[] = [
-  {
-    slug: "robot-lab",
-    name: { en: "Robot Lab", ar: "مختبر الروبوتات" },
-    tagline: {
-      en: "Machines that sense, decide, and act — taught by you.",
-      ar: "آلات تستشعر وتقرّر وتتصرف — وأنت معلّمها.",
-    },
-    theme: "lab",
-    horizon: true,
-    modules: [],
-  },
   {
     slug: "data-desert",
     name: { en: "Data Desert", ar: "صحراء البيانات" },

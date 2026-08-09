@@ -209,17 +209,17 @@ describe("unlock engine", () => {
     expect(rows.has(l3Id)).toBe(false);
     // Module 2 is gated until module 1 is fully completed.
     expect(rows.has(l4Id)).toBe(false);
-    // World 2 became available (≥1 completed level in world 1) → first level opens.
-    expect(rows.get(l6Id)?.status).toBe("UNLOCKED");
-    expect(rows.get(l6Id)?.unlockSource).toBe("ORDER");
+    // TIGHTENED world gate (m3): one completed level is no longer enough —
+    // world 2 stays shut until EVERY published world-1 level is COMPLETED.
+    expect(rows.has(l6Id)).toBe(false);
     // Nothing inside the horizon world ever unlocks.
     expect(rows.has(horizonLevelId)).toBe(false);
   });
 
-  it("world states: world 1 CURRENT, world 2 AVAILABLE after first completion", async () => {
+  it("world states: world 1 CURRENT, world 2 still LOCKED after a partial world 1", async () => {
     const state = await computeAdventureState(ctx);
     expect(world(state, w1Id).state).toBe("CURRENT");
-    expect(world(state, w2Id).state).toBe("AVAILABLE");
+    expect(world(state, w2Id).state).toBe("LOCKED");
     expect(world(state, w3Id).state).toBe("HORIZON");
     expect(state.currentLevelId).toBe(l2Id);
   });
@@ -254,11 +254,18 @@ describe("unlock engine", () => {
     const rows = await progressRows();
     expect(rows.get(l4Id)?.status).toBe("UNLOCKED");
     expect(rows.get(l4Id)?.unlockSource).toBe("ORDER");
+    // World 1 still has L4 open — world 2 remains gated (tightened rule).
+    expect(rows.has(l6Id)).toBe(false);
   });
 
-  it("world completion: world 1 COMPLETED, world 2 becomes CURRENT, counters aggregate", async () => {
+  it("world completion: world 1 COMPLETED, world 2 opens and becomes CURRENT, counters aggregate", async () => {
     await completeLevel(l4Id, 1);
     await recomputeUnlocks(studentId);
+    // ALL published world-1 levels are now COMPLETED → the tightened gate
+    // finally opens world 2's first level.
+    const unlocked = await progressRows();
+    expect(unlocked.get(l6Id)?.status).toBe("UNLOCKED");
+    expect(unlocked.get(l6Id)?.unlockSource).toBe("ORDER");
     const state = await computeAdventureState(ctx);
     const one = world(state, w1Id);
     expect(one.state).toBe("COMPLETED");

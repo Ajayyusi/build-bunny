@@ -15,8 +15,8 @@ import { localizedText, type LocalizedText } from "@/modules/curriculum/schemas"
  *  - Linear-by-order unlocking inside a module; explicit LevelPrerequisite
  *    edges (ALL must be COMPLETED) override the linear rule for that level.
  *  - Module gate: previous module has all its published levels completed.
- *  - World gate: first program world, or the previous non-horizon world has
- *    at least one completed level.
+ *  - World gate (TIGHTENED, owner-approved M3 change): first program world,
+ *    or ALL published levels of the previous non-horizon world COMPLETED.
  *  - Only PUBLISHED content is ever visible; student-facing text comes from
  *    the published LevelVersion snapshot, never from draft fields.
  */
@@ -322,7 +322,7 @@ export async function computeAdventureState(ctx: SessionContext): Promise<Advent
 
   const worldNodes: AdventureWorldNode[] = [];
   let isFirstRealWorld = true;
-  let previousRealWorldHasCompletion = false;
+  let previousRealWorldCompleted = false;
 
   for (const world of worlds) {
     const moduleNodes: AdventureModuleNode[] = world.modules.map((mod) => ({
@@ -365,11 +365,13 @@ export async function computeAdventureState(ctx: SessionContext): Promise<Advent
     if (world.horizon) {
       state = "HORIZON";
     } else {
-      const available = isFirstRealWorld || previousRealWorldHasCompletion;
+      const available = isFirstRealWorld || previousRealWorldCompleted;
       const completed = totalLevels > 0 && completedLevels === totalLevels;
       state = completed ? "COMPLETED" : available ? "AVAILABLE" : "LOCKED";
       isFirstRealWorld = false;
-      previousRealWorldHasCompletion = completedLevels >= 1;
+      // Tightened world gate: the NEXT world opens only when this one is
+      // fully completed (an empty world never counts as completed).
+      previousRealWorldCompleted = completed;
     }
 
     worldNodes.push({
@@ -502,12 +504,12 @@ export async function recomputeUnlocks(studentUserId: string): Promise<void> {
   const toCreate: Array<{ levelId: string; unlockSource: "ORDER" | "PREREQUISITE" }> = [];
 
   let isFirstRealWorld = true;
-  let previousRealWorldHasCompletion = false;
+  let previousRealWorldCompleted = false;
 
   for (const world of worlds) {
     if (world.horizon) continue; // roadmap art — nothing to unlock, ever
 
-    const worldAvailable = isFirstRealWorld || previousRealWorldHasCompletion;
+    const worldAvailable = isFirstRealWorld || previousRealWorldCompleted;
     isFirstRealWorld = false;
 
     let previousModuleAllComplete = false;
@@ -543,7 +545,7 @@ export async function recomputeUnlocks(studentUserId: string): Promise<void> {
         mod.levels.length > 0 && mod.levels.every((l) => isCompleted(l.id));
     }
 
-    previousRealWorldHasCompletion = worldHasCompletion(world, isCompleted);
+    previousRealWorldCompleted = worldFullyCompleted(world, isCompleted);
   }
 
   if (toCreate.length > 0) {
@@ -562,9 +564,15 @@ export async function recomputeUnlocks(studentUserId: string): Promise<void> {
   }
 }
 
-function worldHasCompletion(
+/**
+ * Tightened world gate (m3-contracts): a world only counts as cleared when
+ * EVERY published level in it is COMPLETED. A world with zero published
+ * levels never counts — it gates the next world until it gains content.
+ */
+function worldFullyCompleted(
   world: LoadedWorld,
   isCompleted: (levelId: string) => boolean,
 ): boolean {
-  return world.modules.some((m) => m.levels.some((l) => isCompleted(l.id)));
+  const levels = world.modules.flatMap((m) => m.levels);
+  return levels.length > 0 && levels.every((l) => isCompleted(l.id));
 }

@@ -1,5 +1,7 @@
 import { randomUUID } from "node:crypto";
 
+import type { Prisma } from "@prisma/client";
+
 import { db } from "@/lib/db";
 import type { SessionContext } from "@/modules/auth/server/session";
 
@@ -11,7 +13,14 @@ export const SYSTEM_ACTOR = { userId: "system", role: "SYSTEM" } as const;
  * this in beforeAll so each file starts from a known-empty test database.
  */
 export async function wipeDatabase(): Promise<void> {
-  // M2 curriculum/learning tables first (children before parents).
+  // M3 attempts/rewards tables first (children before parents).
+  await db.studentAchievement.deleteMany();
+  await db.achievement.deleteMany();
+  await db.xpEvent.deleteMany();
+  await db.hintUsage.deleteMany();
+  await db.activityAttempt.deleteMany();
+  await db.studentDailyActivity.deleteMany();
+  // M2 curriculum/learning tables (children before parents).
   await db.studentProgress.deleteMany();
   await db.levelPrerequisite.deleteMany();
   await db.levelVersion.deleteMany();
@@ -127,11 +136,24 @@ export async function createTestLevel(
     maxStars?: number;
     /** Level ids that must ALL be COMPLETED before this level unlocks. */
     requires?: string[];
+    /** Real gradeable payload (grading suite); default keeps the SECRET marker. */
+    payload?: Record<string, unknown>;
+    activityType?: "BLOCK_CODING" | "DEBUGGING";
+    difficulty?: "EASY" | "MEDIUM" | "HARD";
+    xpReward?: number;
+    tags?: string[];
   } = {},
 ) {
   const status = opts.status ?? "PUBLISHED";
   const title = opts.title ?? `Level ${order}`;
   const maxStars = opts.maxStars ?? 3;
+  const activityType = opts.activityType ?? "BLOCK_CODING";
+  const difficulty = opts.difficulty ?? "EASY";
+  const tags = opts.tags ?? [];
+  const payload = opts.payload ?? { solution: "SECRET_PAYLOAD" };
+  // Resolved like the publish pipeline: explicit xpReward or difficulty default.
+  const xpReward =
+    opts.xpReward ?? { EASY: 50, MEDIUM: 75, HARD: 100 }[difficulty];
   const hints = [1, 2, 3, 4].map((tier) => ({
     tier,
     text: { en: `SECRET_HINT tier ${tier}` },
@@ -141,16 +163,18 @@ export async function createTestLevel(
       moduleId,
       slug: uniqueSlug("level"),
       order,
-      activityType: "BLOCK_CODING",
+      activityType,
       title: { en: `DRAFT ${title}` },
       story: { en: "DRAFT story" },
       objective: { en: "DRAFT objective" },
       instructions: { en: "DRAFT instructions" },
       explanation: { en: "DRAFT explanation" },
-      difficulty: "EASY",
+      difficulty,
       estimatedMinutes: 5,
       maxStars,
-      payload: { solution: "SECRET_PAYLOAD" },
+      xpReward: opts.xpReward,
+      tags,
+      payload: payload as Prisma.InputJsonValue,
       hints,
       status: status === "PUBLISHED" ? "DRAFT" : status,
     },
@@ -161,22 +185,24 @@ export async function createTestLevel(
         levelId: level.id,
         version: 1,
         snapshot: {
+          levelId: level.id,
           slug: level.slug,
           order,
-          activityType: "BLOCK_CODING",
+          activityType,
           track: "PROGRAMMING",
           title: { en: title },
           story: { en: `${title} story` },
           objective: { en: `${title} objective` },
           instructions: { en: `${title} instructions` },
           explanation: { en: `${title} explanation` },
-          difficulty: "EASY",
+          difficulty,
           estimatedMinutes: 5,
           maxStars,
-          tags: [],
-          payload: { solution: "SECRET_PAYLOAD" },
+          xpReward,
+          tags,
+          payload,
           hints,
-        },
+        } as Prisma.InputJsonValue,
       },
     });
     await db.level.update({

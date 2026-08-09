@@ -26,12 +26,31 @@ import { SYSTEM_ACTOR, wipeDatabase } from "../helpers/fixtures";
  * content from published readers.
  */
 
+// The recorded solution must survive the REAL solutionRuns gate: two hops
+// east land on the goal, 2 statement blocks ≤ the 3-star budget.
 const VALID_PAYLOAD = {
   toolbox: [{ type: "bb_whenStart" }, { type: "bb_moveForward" }, { type: "bb_turnRight" }],
   variants: [{ rows: ["..G", "..."], start: { x: 0, y: 0, dir: "E" } }],
   checks: [{ id: "reachedGoal", severity: "core" }],
   starCriteria: { threeStarMaxBlocks: 3 },
-  solution: { blocks: ["bb_whenStart", "bb_moveForward", "bb_moveForward"] },
+  solution: {
+    blocks: {
+      languageVersion: 0,
+      blocks: [
+        {
+          type: "bb_whenStart",
+          id: "start",
+          next: {
+            block: {
+              type: "bb_moveForward",
+              id: "m1",
+              next: { block: { type: "bb_moveForward", id: "m2" } },
+            },
+          },
+        },
+      ],
+    },
+  },
 };
 
 const HINTS = [1, 2, 3, 4].map((tier) => ({
@@ -169,9 +188,10 @@ describe("publish gates", () => {
     expect(byName.get("payloadValid")?.ok).toBe(false);
     // World is still DRAFT, so standalone level publish is blocked too.
     expect(byName.get("parentPublished")?.ok).toBe(false);
-    // Engine gates are stubbed but present, pinning the pipeline shape.
-    expect(byName.get("solutionRuns")).toMatchObject({ ok: true, skipped: true });
-    expect(byName.get("reachability")).toMatchObject({ ok: true, skipped: true });
+    // The engine gates run for real now: an unparseable payload fails both
+    // (they cannot grade or BFS a payload that doesn't validate).
+    expect(byName.get("solutionRuns")?.ok).toBe(false);
+    expect(byName.get("reachability")?.ok).toBe(false);
 
     const result = await publishLevel(SYSTEM_ACTOR, level.id);
     expect(result.ok).toBe(false);

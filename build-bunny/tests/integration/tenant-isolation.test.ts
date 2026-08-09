@@ -376,6 +376,29 @@ async function assertQueryIsolated(entry: RegistryEntry): Promise<void> {
       expect(await query(studentCtxB, levelOneId)).toBeNull();
       break;
     }
+    case "getPlayableLevel": {
+      const playable = (await query(studentCtxA, levelOneId)) as Record<
+        string,
+        unknown
+      > | null;
+      expect(playable).not.toBeNull();
+      // Progress facts come only from the calling student's own rows.
+      expect(playable?.["state"]).toBe("UNLOCKED");
+      expect(playable?.["starsBest"]).toBe(0);
+      expect(playable?.["hintsUsedTiers"]).toEqual([]);
+      // Answer-bearing payload fields are stripped and server-held hints
+      // never ship in the playable payload.
+      const payload = playable?.["payload"] as Record<string, unknown>;
+      expect(payload["solution"]).toBeUndefined();
+      expect(playable && "hints" in playable).toBe(false);
+      expect(JSON.stringify(playable)).not.toContain("SECRET");
+      expectNoForeignIds(playable, name);
+      // Locked level (no progress row) → null, and a school-B student on a
+      // different program gets null for this level, not an error.
+      expect(await query(studentCtxA, levelTwoId)).toBeNull();
+      expect(await query(studentCtxB, levelOneId)).toBeNull();
+      break;
+    }
     // ── Curriculum content queries: platform-GLOBAL, not tenant-scoped.
     // The isolation property is access control: browse queries must reject
     // any school-scoped session outright (requirePlatform), and the

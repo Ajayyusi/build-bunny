@@ -5,10 +5,11 @@ import path from "node:path";
 
 /**
  * Seed verification CLI: `npx tsx scripts/verify-seed.ts` proves the demo
- * database is in the coherent M2 state the seed promises — published levels
- * with version snapshots, per-level progress behind every profile cache, and
- * at least one certificate candidate whose xpTotal equals the real sum of the
- * levels they completed. Read-only; exits 1 on any failed check.
+ * database is in the coherent M3 state the seed promises — 15 published
+ * levels (Worlds 1–3) with version snapshots, per-level progress behind
+ * every profile cache, the 12 achievement definitions, and the tightened
+ * world gate materialized: whoever finished Worlds 1–2 has Robot Lab's
+ * first level UNLOCKED. Read-only; exits 1 on any failed check.
  */
 
 // ── Runtime shim (same technique as prisma/seed.ts) ───────────────────────
@@ -41,29 +42,73 @@ async function main(): Promise<void> {
 
   const publishedLevels = await db.level.findMany({
     where: { status: "PUBLISHED", publishedVersionId: { not: null } },
-    select: { id: true, slug: true, xpReward: true, difficulty: true },
+    select: {
+      id: true,
+      slug: true,
+      xpReward: true,
+      difficulty: true,
+      module: { select: { world: { select: { slug: true } } } },
+    },
   });
-  check("published levels (with snapshot id)", "10", String(publishedLevels.length),
-    publishedLevels.length === 10);
+  check("published levels (with snapshot id)", "15", String(publishedLevels.length),
+    publishedLevels.length === 15);
+
+  const robotLabLevels = publishedLevels.filter(
+    (l) => l.module.world.slug === "robot-lab",
+  );
+  check("published Robot Lab levels", "5", String(robotLabLevels.length),
+    robotLabLevels.length === 5);
 
   const versionCount = await db.levelVersion.count();
-  check("LevelVersion snapshots", "≥ 10", String(versionCount), versionCount >= 10);
+  check("LevelVersion snapshots", "≥ 15", String(versionCount), versionCount >= 15);
+
+  const achievementCount = await db.achievement.count();
+  check("achievement definitions", "12", String(achievementCount), achievementCount === 12);
 
   const progressRows = await db.studentProgress.count();
   check("StudentProgress rows", "> 40", String(progressRows), progressRows > 40);
 
-  // Certificate candidate: at least one student with every published level
-  // COMPLETED, whose cached xp/stars equal the sums over their real rows.
+  // Certificate candidates: seeded progress covers Worlds 1–2 (10 levels) —
+  // at least one student finished them all, and their cached xp/stars equal
+  // the sums over their real progress rows.
+  const worldOneTwoIds = publishedLevels
+    .filter((l) => ["bunny-meadow", "logic-forest"].includes(l.module.world.slug))
+    .map((l) => l.id);
+  check("published Worlds 1–2 levels", "10", String(worldOneTwoIds.length),
+    worldOneTwoIds.length === 10);
+
   const grouped = await db.studentProgress.groupBy({
     by: ["studentUserId"],
-    where: { status: "COMPLETED" },
+    where: { status: "COMPLETED", levelId: { in: worldOneTwoIds } },
     _count: { _all: true },
   });
   const finishers = grouped
-    .filter((g) => g._count._all === publishedLevels.length)
+    .filter((g) => g._count._all === worldOneTwoIds.length)
     .map((g) => g.studentUserId);
-  check("students with all levels COMPLETED", "≥ 1", String(finishers.length),
+  check("students with Worlds 1–2 fully COMPLETED", "≥ 1", String(finishers.length),
     finishers.length >= 1);
+
+  // Tightened world gate, materialized: every Worlds 1–2 finisher must have
+  // Robot Lab's first level UNLOCKED (recomputeUnlocks ran in the seed).
+  const robotLabFirst = robotLabLevels.find((l) => l.slug === "power-up");
+  check("robot-lab/power-up published", "yes", robotLabFirst ? "yes" : "no",
+    Boolean(robotLabFirst));
+  for (const userId of finishers) {
+    const profile = await db.studentProfile.findUnique({
+      where: { userId },
+      select: { user: { select: { username: true } } },
+    });
+    const who = profile?.user.username ?? userId;
+    const row = robotLabFirst
+      ? await db.studentProgress.findUnique({
+          where: { studentUserId_levelId: { studentUserId: userId, levelId: robotLabFirst.id } },
+          select: { status: true, unlockSource: true },
+        })
+      : null;
+    check(`robot-lab power-up open for finisher ${who}`, "UNLOCKED (ORDER)",
+      row ? `${row.status} (${row.unlockSource})` : "LOCKED (no row)",
+      row?.status === "UNLOCKED" && row.unlockSource === "ORDER");
+  }
 
   const xpByLevel = new Map(
     publishedLevels.map((l) => [l.id, l.xpReward ?? XP_BY_DIFFICULTY[l.difficulty]]),

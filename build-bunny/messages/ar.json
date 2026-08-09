@@ -126,10 +126,91 @@
           "EASY": "سهل",
           "MEDIUM": "متوسط",
           "HARD": "صعب"
-        }
+        },
+        "start": "ابدأ المستوى"
       },
       "horizonHeading": "في الأفق",
       "horizonBody": "عوالم جديدة تُرسم الآن لرحلتك."
+    },
+    "play": {
+      "backToMap": "العودة إلى الخريطة",
+      "run": "تشغيل",
+      "running": "قيد التشغيل…",
+      "reset": "إعادة الضبط",
+      "hint": "تلميح",
+      "starsBest": "أفضل نتيجة: {stars} من {maxStars} نجوم",
+      "variantLabel": "الخريطة {current} من {total}",
+      "simLabel": "خريطة الأرنب",
+      "simRegion": "المحاكاة",
+      "workspaceRegion": "مساحة اللبنات",
+      "codeEmpty": "أضف بعض اللبنات وسيظهر الكود هنا.",
+      "view": {
+        "label": "طريقة العرض",
+        "blocks": "اللبنات",
+        "code": "الكود"
+      },
+      "intro": {
+        "next": "التالي",
+        "skip": "تخطَّ",
+        "missionHeading": "مهمتك",
+        "howHeading": "طريقة اللعب",
+        "start": "هيا نبني!"
+      },
+      "feedback": {
+        "tryAgain": "حاول مرة أخرى",
+        "hintNudge": "جرّب تلميحًا",
+        "bumped": "اصطدم الأرنب بصخرة في الخطوة {step}. أين يجب أن يستدير؟",
+        "splashed": "سقط الأرنب في الماء في الخطوة {step}. ابحث عن طريق آمن!",
+        "carrotsLeft": "التقط الأرنب {collected} من {total} من الجزر. ما زال بعضها في الخريطة!",
+        "notOnGoal": "توقّف الأرنب بعيدًا عن الجحر. أين يجب أن ينتهي المسار؟",
+        "tooManyBlocks": "استخدمت {used} لبنة والمسموح {max}. هل يمكنك اختصار الحل؟",
+        "budget": "نفدت طاقة الأرنب! تحقّق من التكرارات التي لا تتوقف.",
+        "runtimeError": "حدث خطأ أثناء تشغيل برنامجك. يرجى المحاولة مرة أخرى.",
+        "missingBlock": "يحتاج هذا المستوى إلى لبنة “{block}” — جرّبها!",
+        "forbiddenBlock": "حاول حلّ المستوى دون استخدام لبنة “{block}”.",
+        "wrongOutput": "لم يقل الأرنب الكلمات الصحيحة — تحقّق من لبنات «قل».",
+        "generic": "ليس تمامًا! تأمّل الخريطة وحاول مرة أخرى."
+      },
+      "hints": {
+        "title": "التلميحات",
+        "tier": "التلميح {tier}",
+        "reveal": "اكشف التلميح",
+        "loading": "جارٍ تحميل التلميح…",
+        "lockedPrevious": "اكشف التلميح {tier} أولًا",
+        "lockedCountdown": "شغّل برنامجك مرة أخرى، أو انتظر {time}",
+        "starCapNote": "يحدّ هذه المحاولة بنجمتين",
+        "close": "إغلاق",
+        "error": "تعذّر تحميل هذا التلميح. حاول مرة أخرى."
+      },
+      "success": {
+        "title": "أكملت المستوى!",
+        "skip": "تخطَّ",
+        "starsSr": "حصلت على {stars} من {maxStars} نجوم",
+        "saving": "جارٍ حفظ تقدّمك…",
+        "saveFailed": "تعذّر حفظ محاولتك.",
+        "saveRetry": "إعادة المحاولة",
+        "xp": "+{xp} نقطة خبرة",
+        "gradeMismatchNote": "راجعنا هذه المحاولة على خوادمنا وحدّثنا النتيجة.",
+        "explanationHeading": "ماذا تعلّمت",
+        "improveHeading": "لمزيد من النجوم",
+        "achievementsHeading": "شارات جديدة",
+        "worldCompleted": "أنهيت {world}! عمل رائع!",
+        "next": "المستوى التالي",
+        "backToMap": "العودة إلى الخريطة"
+      },
+      "blockNames": {
+        "bb_whenStart": "عند البدء",
+        "bb_moveForward": "تقدّم للأمام",
+        "bb_turnLeft": "استدر يسارًا",
+        "bb_turnRight": "استدر يمينًا",
+        "bb_collect": "التقط",
+        "bb_say": "قل",
+        "bb_repeat": "كرّر",
+        "bb_repeatUntilGoal": "كرّر حتى الوصول إلى الهدف",
+        "bb_if": "إذا",
+        "bb_ifElse": "إذا وإلا",
+        "bb_pathAhead": "الطريق أمامي مسدود"
+      }
     },
     "profile": {
       "title": "ملفي الشخصي",

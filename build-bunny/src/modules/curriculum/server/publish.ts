@@ -13,12 +13,14 @@ import {
   type LocalizedText,
 } from "@/modules/curriculum/schemas";
 
+import { gateReachability, gateSolutionRuns } from "./gates";
+
 /**
  * Publish pipeline (plan §1.2): a level goes live only through the gate
  * pipeline, and every publish writes an immutable LevelVersion snapshot so
  * attempts/in-flight play pin a version — a mid-session republish never
- * shifts grading. Engine-dependent gates (solution re-run, reachability BFS)
- * are stubbed as named skipped gates so the pipeline SHAPE is final in M2.
+ * shifts grading. The engine-dependent gates (solution re-run through the
+ * real grading pipeline, reachability BFS) run for real since M3 wave 3.
  */
 
 export const CURRICULUM_STATUS_CHANGED_ACTION = "curriculum.status_changed";
@@ -104,10 +106,6 @@ function pass(gate: string): GateResult {
 
 function fail(gate: string, issues: string[]): GateResult {
   return { gate, ok: false, issues };
-}
-
-function stub(gate: string): GateResult {
-  return { gate, ok: true, skipped: true, reason: "engine lands in M3", issues: [] };
 }
 
 function gatePayloadValid(level: LevelWithParents): GateResult {
@@ -212,6 +210,9 @@ async function runGatesForLevel(
     where: { moduleId: level.moduleId },
     select: { id: true, order: true, slug: true },
   });
+  // The engine gates grade the DRAFT fields (the content being published),
+  // snapshotted exactly the way publishLevel will freeze them.
+  const snapshot = buildSnapshot(level);
   return [
     gatePayloadValid(level),
     gateHintsValid(level),
@@ -219,8 +220,8 @@ async function runGatesForLevel(
     gateOrderIntegrity(level, siblings),
     await gatePrereqAcyclic(level),
     gateParentPublished(level, opts?.assumeWorldPublished ?? false),
-    stub("solutionRuns"),
-    stub("reachability"),
+    gateSolutionRuns(snapshot),
+    gateReachability(snapshot),
   ];
 }
 

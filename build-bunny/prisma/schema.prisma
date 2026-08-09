@@ -58,6 +58,11 @@ model User {
   classMemberships ClassMembership[]
   learningEvents   LearningEvent[]
   studentProgress  StudentProgress[]
+  attempts         ActivityAttempt[]
+  xpEvents         XpEvent[]
+  hintUsages       HintUsage[]
+  dailyActivity    StudentDailyActivity[]
+  achievements     StudentAchievement[]
 
   @@index([schoolId, role])
 }
@@ -127,8 +132,10 @@ model School {
   timezone      String       @default("Asia/Dubai")
   defaultLocale String       @default("en")
   logoKey       String?
-  // Feature flags (plan §0.1-20): { aiLab, mlLab, bunnyGuide, competitions, parentPortal }
+  // Feature flags (plan §0.1-20): { adventure, aiLab, mlLab, bunnyGuide, ... }
   features      Json         @default("{}")
+  // School-week override for streaks; null = Mon–Fri (UAE default).
+  weekStructure Json?
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
 
@@ -142,6 +149,7 @@ model School {
   learningEvents   LearningEvent[]
   schoolPrograms   SchoolProgram[]
   studentProgress  StudentProgress[]
+  attempts         ActivityAttempt[]
 }
 
 enum LicenceStatus {
@@ -405,6 +413,7 @@ model Level {
   prerequisites LevelPrerequisite[] @relation("LevelPrereqTarget")
   requiredBy    LevelPrerequisite[] @relation("LevelPrereqSource")
   progress      StudentProgress[]
+  attempts      ActivityAttempt[]
 
   @@unique([moduleId, slug])
   @@unique([moduleId, order])
@@ -487,6 +496,136 @@ model StudentProgress {
   @@unique([studentUserId, levelId])
   @@index([schoolId, levelId])
   @@index([studentUserId, status])
+}
+
+// ────────────────────── ATTEMPTS, REWARDS & BADGES (M3) ─────────────────
+
+enum AttemptVerdict {
+  PASS
+  PARTIAL
+  FAIL
+  ERROR
+}
+
+// PREVIEW attempts (teacher/editor test-play) never touch stats or rewards.
+enum AttemptKind {
+  NORMAL
+  PREVIEW
+}
+
+model ActivityAttempt {
+  id            String  @id @default(cuid())
+  // Client-generated idempotency key: a refreshed/replayed submission can
+  // never double-award (plan §0.1-13).
+  attemptRunId  String  @unique
+  schoolId      String
+  school        School  @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  studentUserId String
+  student       User    @relation(fields: [studentUserId], references: [id], onDelete: Cascade)
+  levelId       String
+  level         Level   @relation(fields: [levelId], references: [id], onDelete: Cascade)
+  // Grading pins the published version at submission (plan §1.2).
+  levelVersion  Int
+  engineVersion String
+  kind          AttemptKind @default(NORMAL)
+
+  // Inputs, not frames: replay = deterministic re-run (plan §1.2).
+  workspaceJson Json
+  generatedCode String
+  // Per-variant check results + termination summary.
+  resultSummary Json
+
+  verdict          AttemptVerdict
+  starsEarned      Int            @default(0)
+  xpAwarded        Int            @default(0)
+  durationMs       Int?
+  blockCount       Int?
+  hintTierUsed     Int            @default(0)
+  // Client's optimistic verdict — mismatches are telemetry, never authority.
+  clientVerdict    String?
+  gradeMismatch    Boolean        @default(false)
+  viaImpersonation Boolean        @default(false)
+  createdAt        DateTime       @default(now())
+
+  @@index([studentUserId, levelId, createdAt])
+  @@index([schoolId, createdAt])
+  @@index([levelId, verdict])
+}
+
+// Append-only XP ledger. Idempotency by design: sources are LEVEL_PASS,
+// STAR_2, STAR_3 (star-improvement awards are per star tier), so the
+// compound unique makes every award replay-safe without partial indexes.
+model XpEvent {
+  id            String   @id @default(cuid())
+  schoolId      String
+  studentUserId String
+  student       User     @relation(fields: [studentUserId], references: [id], onDelete: Cascade)
+  levelId       String?
+  source        String
+  amount        Int
+  attemptId     String?
+  createdAt     DateTime @default(now())
+
+  @@unique([studentUserId, levelId, source])
+  @@index([schoolId, createdAt])
+}
+
+model HintUsage {
+  id            String   @id @default(cuid())
+  schoolId      String
+  studentUserId String
+  student       User     @relation(fields: [studentUserId], references: [id], onDelete: Cascade)
+  levelId       String
+  tier          Int
+  createdAt     DateTime @default(now())
+
+  @@unique([studentUserId, levelId, tier])
+  @@index([schoolId, levelId])
+}
+
+// One row per student per active school-day — powers streaks transactionally
+// (no cron) and doubles as the analytics time-series (plan §1.2).
+model StudentDailyActivity {
+  id            String   @id @default(cuid())
+  schoolId      String
+  studentUserId String
+  student       User     @relation(fields: [studentUserId], references: [id], onDelete: Cascade)
+  // Calendar date in the school's timezone.
+  date          DateTime @db.Date
+  runs          Int      @default(0)
+  completions   Int      @default(0)
+  xp            Int      @default(0)
+
+  @@unique([studentUserId, date])
+  @@index([schoolId, date])
+}
+
+// Platform-global badge definitions; criteria is a data-driven JSON rule
+// evaluated inside the grading transaction (plan §1.2).
+model Achievement {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  name        Json
+  description Json
+  icon        String
+  criteria    Json
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  earned StudentAchievement[]
+}
+
+model StudentAchievement {
+  id            String      @id @default(cuid())
+  schoolId      String
+  studentUserId String
+  student       User        @relation(fields: [studentUserId], references: [id], onDelete: Cascade)
+  achievementId String
+  achievement   Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+  earnedAt      DateTime    @default(now())
+
+  @@unique([studentUserId, achievementId])
+  @@index([schoolId, earnedAt])
 }
 
 // ─────────────────────────── AUDIT & ANALYTICS ──────────────────────────

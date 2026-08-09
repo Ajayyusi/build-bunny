@@ -2,6 +2,7 @@
 
 import { useTranslations } from "next-intl";
 
+import { Link } from "@/i18n/navigation";
 import { Badge, Button, cn, Dialog, type BadgeVariant } from "@/ui";
 
 import type { TrailLevelVM } from "./types";
@@ -21,8 +22,8 @@ const KNOWN_DIFFICULTIES = new Set(Object.keys(DIFFICULTY_VARIANT));
 
 /**
  * Level intro dialog — story, mission and how-to from the published snapshot.
- * M2 is browse-only: Close is the single action; the Start button is the
- * player's one-line addition in M3.
+ * Start hands off to the immersive player at /play/[levelId] (M3); Close
+ * returns to the map.
  */
 export function LevelIntroSheet({ level, onClose }: LevelIntroSheetProps) {
   const t = useTranslations("student.adventure");
@@ -40,9 +41,18 @@ export function LevelIntroSheet({ level, onClose }: LevelIntroSheetProps) {
       title={t("node.label", { number: level.number, title: intro.title })}
       closeLabel={t("intro.close")}
       footer={
-        <Button variant="secondary" size="lg" onClick={onClose}>
-          {t("intro.close")}
-        </Button>
+        <>
+          <Button variant="secondary" size="lg" onClick={onClose}>
+            {t("intro.close")}
+          </Button>
+          <Link
+            href={`/play/${level.id}`}
+            className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-brand px-5 text-base font-semibold text-on-brand transition-colors hover:bg-brand-strong"
+          >
+            <span aria-hidden="true">▶</span>
+            {t("intro.start")}
+          </Link>
+        </>
       }
     >
       <div className="flex flex-col gap-4">

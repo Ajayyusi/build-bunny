@@ -4,8 +4,8 @@ import { requireRole } from "@/modules/auth/server/session";
 import { getMyStudentSnapshot } from "@/modules/students/server/queries";
 import { Avatar, Card, CardBody, CardFooter, PageHeader } from "@/ui";
 
-import { LocaleSwitcher } from "../../_components/LocaleSwitcher";
-import { SignOutButton } from "../../_components/SignOutButton";
+import { LocaleSwitcher } from "../../../_components/LocaleSwitcher";
+import { SignOutButton } from "../../../_components/SignOutButton";
 
 interface Props {
   params: Promise<{ locale: string }>;

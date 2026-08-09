@@ -1,0 +1,108 @@
+/* Player-only motion: overlay entrances and the star burst. Everything is
+   entrance-only and short; the global prefers-reduced-motion block zeroes
+   durations as a backstop, and the star burst is skipped entirely in code
+   when reduced motion is on. Colors come from design tokens only. */
+
+.overlay {
+  animation: fade-in 180ms ease-out both;
+}
+
+.card {
+  animation: rise 240ms ease-out both;
+}
+
+.banner {
+  animation: rise 200ms ease-out both;
+}
+
+/* One big star; --pop-delay staggers the three. Dimmed (unearned) slots
+   fade in quietly after the earned ones land. */
+.burstStar {
+  opacity: 0;
+  animation: star-pop 480ms cubic-bezier(0.2, 1.4, 0.4, 1) both;
+  animation-delay: var(--pop-delay, 0ms);
+}
+
+.burstStarDim {
+  opacity: 0;
+  animation: fade-dim 320ms ease-out both;
+  animation-delay: var(--pop-delay, 0ms);
+}
+
+/* Gentle attention pulse on the hint button after repeated failures. */
+.nudgePulse {
+  animation: nudge 1.2s ease-in-out 2;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    translate: 0 0.5rem;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+@keyframes star-pop {
+  0% {
+    opacity: 0;
+    scale: 0.2;
+    rotate: -20deg;
+  }
+  60% {
+    opacity: 1;
+    scale: 1.15;
+    rotate: 6deg;
+  }
+  100% {
+    opacity: 1;
+    scale: 1;
+    rotate: 0deg;
+  }
+}
+
+@keyframes fade-dim {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 0.35;
+  }
+}
+
+@keyframes nudge {
+  0%,
+  100% {
+    scale: 1;
+  }
+  50% {
+    scale: 1.06;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .overlay,
+  .card,
+  .banner,
+  .burstStar,
+  .burstStarDim,
+  .nudgePulse {
+    animation: none;
+    opacity: 1;
+  }
+
+  .burstStarDim {
+    opacity: 0.35;
+  }
+}

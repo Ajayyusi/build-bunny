@@ -126,10 +126,91 @@
           "EASY": "Easy",
           "MEDIUM": "Medium",
           "HARD": "Hard"
-        }
+        },
+        "start": "Start level"
       },
       "horizonHeading": "On the horizon",
       "horizonBody": "New worlds are being charted for your journey."
+    },
+    "play": {
+      "backToMap": "Back to map",
+      "run": "Run",
+      "running": "Running…",
+      "reset": "Reset",
+      "hint": "Hint",
+      "starsBest": "Best score: {stars} of {maxStars} stars",
+      "variantLabel": "Map {current} of {total}",
+      "simLabel": "Bunny's map",
+      "simRegion": "Simulation",
+      "workspaceRegion": "Block workspace",
+      "codeEmpty": "Add some blocks and your code will appear here.",
+      "view": {
+        "label": "Editor view",
+        "blocks": "Blocks",
+        "code": "Code"
+      },
+      "intro": {
+        "next": "Next",
+        "skip": "Skip",
+        "missionHeading": "Your mission",
+        "howHeading": "How to play",
+        "start": "Let's build!"
+      },
+      "feedback": {
+        "tryAgain": "Try again",
+        "hintNudge": "Try a hint",
+        "bumped": "Bump! Bunny hit a rock on step {step}. Where should it turn?",
+        "splashed": "Splash! Bunny fell into the water on step {step}. Find a drier path!",
+        "carrotsLeft": "Bunny picked up {collected} of {total} carrots. Some are still out there!",
+        "notOnGoal": "Bunny finished away from the burrow. Where should the trail end?",
+        "tooManyBlocks": "You used {used} blocks — this level allows {max}. Can you make it shorter?",
+        "budget": "Bunny ran out of energy! Check for loops that never stop.",
+        "runtimeError": "Something went wrong while running your program. Please try again.",
+        "missingBlock": "This level needs the “{block}” block — give it a try!",
+        "forbiddenBlock": "Try solving this one without the “{block}” block.",
+        "wrongOutput": "Bunny didn't say the right words — check your say blocks.",
+        "generic": "Not quite! Study the map and try again."
+      },
+      "hints": {
+        "title": "Hints",
+        "tier": "Hint {tier}",
+        "reveal": "Reveal hint",
+        "loading": "Loading hint…",
+        "lockedPrevious": "Reveal hint {tier} first",
+        "lockedCountdown": "Run your code again, or wait {time}",
+        "starCapNote": "Caps this run at 2 stars",
+        "close": "Close",
+        "error": "Couldn't load this hint. Try again."
+      },
+      "success": {
+        "title": "Level complete!",
+        "skip": "Skip",
+        "starsSr": "You earned {stars} of {maxStars} stars",
+        "saving": "Saving your progress…",
+        "saveFailed": "We couldn't save your run.",
+        "saveRetry": "Retry",
+        "xp": "+{xp} XP",
+        "gradeMismatchNote": "We double-checked this run on our side and updated the result.",
+        "explanationHeading": "What you learned",
+        "improveHeading": "For more stars",
+        "achievementsHeading": "New badges",
+        "worldCompleted": "You finished {world}! Amazing work!",
+        "next": "Next level",
+        "backToMap": "Back to map"
+      },
+      "blockNames": {
+        "bb_whenStart": "when start",
+        "bb_moveForward": "move forward",
+        "bb_turnLeft": "turn left",
+        "bb_turnRight": "turn right",
+        "bb_collect": "collect",
+        "bb_say": "say",
+        "bb_repeat": "repeat",
+        "bb_repeatUntilGoal": "repeat until goal",
+        "bb_if": "if",
+        "bb_ifElse": "if–else",
+        "bb_pathAhead": "path ahead is blocked"
+      }
     },
     "profile": {
       "title": "My profile",
