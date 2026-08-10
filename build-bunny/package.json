@@ -4,7 +4,7 @@
   "private": true,
   "description": "Build Bunny — AI & coding learning platform for young learners (NITAQ Academy)",
   "engines": {
-    "node": ">=20"
+    "node": ">=22.12"
   },
   "scripts": {
     "dev": "next dev",
