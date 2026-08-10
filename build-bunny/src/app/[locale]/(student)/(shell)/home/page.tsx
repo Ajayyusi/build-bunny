@@ -50,6 +50,7 @@ export default async function StudentHomePage({ params }: Props) {
           <StatCard
             label={t("xp")}
             value={snapshot?.xpTotal ?? 0}
+            countUp
             icon={<span className="bb-spark text-xl">⚡</span>}
             iconClassName="bg-brand/15"
           />
@@ -58,6 +59,7 @@ export default async function StudentHomePage({ params }: Props) {
           <StatCard
             label={t("stars")}
             value={snapshot?.starsTotal ?? 0}
+            countUp
             icon={<span className="bb-twinkle text-xl">⭐</span>}
             iconClassName="bg-accent/20 text-accent"
           />
@@ -66,6 +68,7 @@ export default async function StudentHomePage({ params }: Props) {
           <StatCard
             label={t("streak")}
             value={snapshot?.streakCurrent ?? 0}
+            countUp
             icon={<span className="bb-flame text-xl">🔥</span>}
             iconClassName="bg-accent/15"
           />

@@ -5,12 +5,17 @@ import { CountUp } from "./CountUp";
 
 export interface StatCardProps {
   label: ReactNode;
-  /**
-   * Card value. Numbers get a client-side count-up on mount; anything else
-   * (formatted strings, JSX) renders as-is so callers with pre-formatted
-   * values keep control of presentation.
-   */
   value: ReactNode;
+  /**
+   * Opt in to a count-up tween on mount (numeric `value` only).
+   *
+   * Deliberately NOT the default: staff and platform dashboards are
+   * Operate-mode surfaces where a KPI briefly rendering a number that
+   * isn't the real one ("0 schools" on the way up to 1) reads as wrong
+   * data, not delight. Only student-facing surfaces, where the climb is
+   * itself the reward, should switch this on.
+   */
+  countUp?: boolean;
   hint?: ReactNode;
   icon?: ReactNode;
   /**
@@ -25,6 +30,7 @@ export interface StatCardProps {
 export function StatCard({
   label,
   value,
+  countUp = false,
   hint,
   icon,
   iconClassName,
@@ -40,7 +46,11 @@ export function StatCard({
       <div className="flex min-w-0 flex-col gap-1">
         <p className="text-sm font-medium text-ink-muted">{label}</p>
         <p className="font-display text-2xl font-bold tabular-nums text-ink">
-          {typeof value === "number" ? <CountUp value={value} /> : value}
+          {countUp && typeof value === "number" ? (
+            <CountUp value={value} />
+          ) : (
+            value
+          )}
         </p>
         {hint ? <p className="text-xs text-ink-muted">{hint}</p> : null}
       </div>
