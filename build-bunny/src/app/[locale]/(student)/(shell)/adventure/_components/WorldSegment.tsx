@@ -63,7 +63,7 @@ export function WorldSegment({ world, onOpenLevel }: WorldSegmentProps) {
       className={cn(styles.world, "px-4 py-10 sm:px-8")}
     >
       <header className="mx-auto flex max-w-xl flex-col items-center gap-1.5 text-center">
-        <span aria-hidden="true" className="text-3xl">
+        <span aria-hidden="true" className={cn("text-3xl", styles.headerEmoji)}>
           {themeEmoji(world.theme)}
         </span>
         <h2
@@ -111,11 +111,27 @@ export function WorldSegment({ world, onOpenLevel }: WorldSegmentProps) {
             <div className="grid grid-cols-5">
               <div
                 className={cn(
-                  "flex justify-center",
+                  "relative flex justify-center",
                   PATH_COLUMNS[index % PATH_COLUMNS.length],
                 )}
               >
-                <LevelNode level={level} onOpen={onOpenLevel} />
+                <LevelNode
+                  level={level}
+                  onOpen={onOpenLevel}
+                  index={index}
+                />
+                {/* "You are here" marker: the walking bunny hovers above
+                    the current unlocked node so a student's eye lands
+                    on where to tap next. Aria-hidden — the aria-current
+                    on the node itself carries the semantics. */}
+                {level.current ? (
+                  <span
+                    aria-hidden="true"
+                    className={cn(styles.hereMarker, "bunny-walk")}
+                  >
+                    🐰
+                  </span>
+                ) : null}
               </div>
             </div>
           </li>

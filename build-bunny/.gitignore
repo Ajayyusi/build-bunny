@@ -29,3 +29,6 @@ test-results/
 
 # seed output (contains generated demo credentials)
 prisma/seed-output/
+
+# Local Claude Code dev-server config
+.claude/

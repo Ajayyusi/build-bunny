@@ -5,12 +5,19 @@ export { Avatar, type AvatarProps, type AvatarSize } from "./Avatar";
 export { Badge, type BadgeProps, type BadgeVariant } from "./Badge";
 export { BarList, type BarListItem, type BarListProps } from "./BarList";
 export {
+  BunnyMascot,
+  type BunnyMascotProps,
+  type BunnyMood,
+  type BunnySize,
+} from "./BunnyMascot";
+export {
   Button,
   type ButtonProps,
   type ButtonSize,
   type ButtonVariant,
 } from "./Button";
 export { Card, CardBody, CardFooter, CardHeader, CardTitle } from "./Card";
+export { CountUp, type CountUpProps } from "./CountUp";
 export {
   DataTable,
   type DataTableColumn,

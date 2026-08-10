@@ -11,6 +11,11 @@ import type { TrailLevelVM } from "./types";
 interface LevelNodeProps {
   level: TrailLevelVM;
   onOpen: (level: TrailLevelVM) => void;
+  /**
+   * 0-based index in the world's trail — used to stagger entrance and
+   * shimmer so every node doesn't animate on the same frame.
+   */
+  index?: number;
 }
 
 const HINT_VISIBLE_MS = 2600;
@@ -31,7 +36,7 @@ const stateClasses: Record<TrailLevelVM["state"], string> = {
  * aria-describedby always resolves for screen readers — the click only
  * toggles its visibility for sighted users.
  */
-export function LevelNode({ level, onOpen }: LevelNodeProps) {
+export function LevelNode({ level, onOpen, index = 0 }: LevelNodeProps) {
   const t = useTranslations("student.adventure");
   const hintId = useId();
   const [shaking, setShaking] = useState(false);
@@ -70,7 +75,10 @@ export function LevelNode({ level, onOpen }: LevelNodeProps) {
     .join(" · ");
 
   return (
-    <div className="relative flex flex-col items-center">
+    <div
+      className={cn("relative flex flex-col items-center", styles.nodeEntrance)}
+      style={{ "--i": index } as React.CSSProperties}
+    >
       <button
         type="button"
         onClick={handleClick}
@@ -83,10 +91,13 @@ export function LevelNode({ level, onOpen }: LevelNodeProps) {
         className={cn(
           "relative grid size-14 place-items-center rounded-full transition-colors md:size-16",
           stateClasses[level.state],
+          !locked && styles.nodePop,
           locked && styles.nodeLocked,
           level.current && styles.nodeCurrent,
+          level.state === "COMPLETED" && styles.nodeCompleted,
           shaking && styles.shake,
         )}
+        style={{ "--i": index } as React.CSSProperties}
       >
         {locked ? (
           <svg
