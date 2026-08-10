@@ -1,18 +1,33 @@
 import { NextResponse } from "next/server";
-import { checkDbHealth } from "@/modules/platform/server/health";
+import {
+  appVersion,
+  checkDbHealth,
+  checkMigrationStatus,
+  countPublishedLevels,
+} from "@/modules/platform/server/health";
 
 // Unauthenticated by design: load balancers and uptime probes must be able to
-// hit this before any session exists. It exposes no tenant data.
+// hit this before any session exists. It exposes no tenant data — every
+// field here is an aggregate count or a boolean, never a row.
 export const dynamic = "force-dynamic";
 
 export async function GET() {
   const { db } = await checkDbHealth();
+  // Migrations/content counts only mean anything once the DB itself answers —
+  // skip them on a dead connection instead of racking up more failed queries.
+  const [migrations, publishedLevels] = db
+    ? await Promise.all([checkMigrationStatus(), countPublishedLevels()])
+    : [{ applied: 0, expected: null, upToDate: null }, 0];
+
+  const ok = db && migrations.upToDate !== false;
   return NextResponse.json(
     {
-      ok: db,
+      ok,
       db,
-      version: process.env.npm_package_version ?? "dev",
+      version: appVersion(),
+      migrations,
+      content: { publishedLevels },
     },
-    { status: db ? 200 : 503 },
+    { status: ok ? 200 : 503 },
   );
 }

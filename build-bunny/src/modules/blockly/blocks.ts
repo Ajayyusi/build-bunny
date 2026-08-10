@@ -74,7 +74,7 @@ const LABELS: Record<BlockLocale, BlockLabels> = {
     turnRight: "استدر يمينًا ↻",
     collect: "التقط",
     say: "قل %1",
-    repeat: "كرّر %1 مرة %2",
+    repeat: "كرّر %1 مرات %2",
     repeatUntilGoal: "كرّر حتى أصل إلى الهدف %1",
     if_: "إذا %1 نفّذ %2",
     ifElse: "إذا %1 نفّذ %2 وإلا %3",

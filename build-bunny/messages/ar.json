@@ -17,6 +17,7 @@
     "copied": "تم النسخ!",
     "print": "طباعة",
     "download": "تنزيل",
+    "skipToContent": "تخطَّ إلى المحتوى",
     "roles": {
       "SUPER_ADMIN": "مشرف عام",
       "NITAQ_ADMIN": "مشرف NITAQ",
@@ -460,8 +461,10 @@
         "whoIsWhere": "من أين هم",
         "onLevel": "في {level}",
         "notStarted": "لم يبدأ",
+        "completed": "مكتمل",
         "refreshNote": "يتحدّث كل 20 ثانية",
-        "emptyTitle": "لا يوجد طلاب في هذا الصف بعد"
+        "emptyTitle": "لا يوجد طلاب في هذا الصف بعد",
+        "liveRegionLabel": "حالة الصف، تتحدّث تلقائيًا"
       }
     },
     "school": {
@@ -489,9 +492,37 @@
         "classes": "الصفوف",
         "imports": "الاستيراد",
         "certificates": "الشهادات",
-        "reports": "التقارير"
+        "reports": "التقارير",
+        "privacy": "الخصوصية"
       },
       "manageHeading": "إدارة مدرستك",
+      "analytics": {
+        "heading": "لمحة عن هذا الفصل الدراسي",
+        "activeWeek": "نشطون هذا الأسبوع",
+        "activeMonth": "نشطون هذا الشهر",
+        "certificatesIssued": "الشهادات الصادرة",
+        "licenceSeats": "مقاعد الترخيص المستخدمة",
+        "licenceSeatsValue": "{used} / {total}",
+        "licenceSeatsNoLicence": "{used} (لا يوجد ترخيص مسجّل)",
+        "avgStars": "متوسط النجوم لكل مستوى مكتمل",
+        "byGradeHeading": "نسبة الإكمال حسب الصف",
+        "byGradeEmpty": "لم يُنشر أي مستوى لبرنامج هذه المدرسة بعد.",
+        "byClassHeading": "مقارنة الصفوف",
+        "columnClass": "الشعبة",
+        "columnGrade": "الصف",
+        "columnStudents": "الطلاب",
+        "columnCompletion": "نسبة الإكمال",
+        "columnAvgStars": "متوسط النجوم",
+        "columnActiveWeek": "نشطون هذا الأسبوع",
+        "byClassEmpty": "لا توجد صفوف بعد.",
+        "mostAttemptedHeading": "المستويات الأكثر تجربة",
+        "mostFailedHeading": "المستويات الأكثر فشلًا",
+        "columnLevel": "المستوى",
+        "columnWorld": "العالم",
+        "columnAttempts": "المحاولات",
+        "columnFailRate": "نسبة الفشل",
+        "levelsEmpty": "لا توجد محاولات كافية بعد لعرض هذا."
+      },
       "teachersPage": {
         "title": "المعلمون",
         "subtitle": "أضف معلمين، وأعد تعيين كلمات المرور، وأدر صلاحية الوصول للحسابات.",
@@ -560,6 +591,13 @@
         "confirmReactivateTitle": "إعادة تفعيل هذا الطالب؟",
         "confirmReactivateBody": "سيتمكن {name} من تسجيل الدخول مرة أخرى.",
         "confirmCta": "تأكيد",
+        "eraseCta": "محو البيانات",
+        "confirmEraseTitle": "محو {name} نهائيًا؟",
+        "confirmEraseBody": "سيؤدي هذا إلى حذف الحساب وبيانات الدخول وكل سجل التعلّم نهائيًا — التقدم والمحاولات ونقاط الخبرة وسلاسل الأيام والإنجازات والتلميحات وملاحظات المعلمين. لا يمكن التراجع عن هذا الإجراء. تبقى الشهادات التي حصل عليها الطالب صالحة ويمكن التحقق منها علنًا، لكنها لن تظهر مرتبطة بحساب نشط بعد الآن.",
+        "confirmEraseConfirmLabel": "اكتب {name} للتأكيد",
+        "confirmEraseTypeMismatch": "اكتب اسم الطالب بدقة لتفعيل هذا الزر.",
+        "eraseConfirmCta": "محو نهائي",
+        "eraseDoneToast": "تم محو حساب {name} وسجل تعلّمه نهائيًا.",
         "credentialSheetCta": "طباعة بطاقات الدخول",
         "credentialSheetNeedsClass": "صفِّ حسب شعبة أولًا لطباعة بطاقاتها.",
         "credentialSheetDialogTitle": "بطاقات الدخول — {className}",
@@ -603,6 +641,7 @@
         "rosterCurrentHeading": "الطلاب الحاليون",
         "rosterAddHeading": "إضافة طالب",
         "rosterAddPlaceholder": "ابحث عن الطلاب بالاسم…",
+        "rosterSearchResults": "{count, plural, =0 {لا يوجد طلاب مطابقون} one {طالب واحد مطابق} two {طالبان مطابقان} few {# طلاب مطابقون} many {# طالبًا مطابقًا} other {# طالب مطابق}}",
         "addStudentCta": "إضافة",
         "removeCta": "إزالة",
         "rosterEmpty": "لا يوجد طلاب في هذه الشعبة بعد.",
@@ -662,7 +701,9 @@
           "credentialsNote": "تُعرض كلمات المرور مرة واحدة — نزّلها أو انسخها الآن.",
           "doneCta": "تم",
           "forbidden": "لا تملك صلاحية استيراد الطلاب.",
-          "errorGeneric": "حدث خطأ ما. يرجى المحاولة مرة أخرى."
+          "errorGeneric": "حدث خطأ ما. يرجى المحاولة مرة أخرى.",
+          "fileTooLarge": "حجم هذا الملف أكبر من 2 ميغابايت — قسّمه إلى دفعات أصغر.",
+          "fileWrongType": "يرجى اختيار ملف بصيغة ‎.csv."
         }
       },
       "certificatesPage": {
@@ -681,8 +722,30 @@
       "reportsPage": {
         "title": "التقارير",
         "subtitle": "صدّر تقدّم الصفوف والطلاب كملف جدول بيانات.",
+        "studentProgressTitle": "تقدّم الطلاب",
         "downloadCta": "تنزيل تقرير التقدّم (CSV)",
-        "downloadHint": "يشمل نقاط الخبرة والنجوم والمواظبة والمستويات المكتملة لكل طالب."
+        "downloadHint": "يشمل نقاط الخبرة والنجوم والمواظبة والمستويات المكتملة لكل طالب.",
+        "classProgressTitle": "تقدّم الصفوف",
+        "classProgressHint": "نسبة الإكمال ومتوسط النجوم والنشاط الأسبوعي لكل شعبة.",
+        "classProgressCta": "تنزيل تقدّم الصفوف (CSV)",
+        "gradeProgressTitle": "التقدّم حسب الصف",
+        "gradeProgressHint": "نسبة الإكمال ومتوسط النجوم لكل صف دراسي.",
+        "gradeProgressCta": "تنزيل التقدّم حسب الصف (CSV)",
+        "certificatesTitle": "الشهادات الصادرة",
+        "certificatesHint": "كل شهادة صدرت لطالب في هذه المدرسة.",
+        "certificatesCta": "تنزيل الشهادات (CSV)"
+      },
+      "privacyPage": {
+        "title": "الخصوصية",
+        "subtitle": "صدّر كل بيانات هذه المدرسة، أو امحُ حساب طالب نهائيًا.",
+        "exportHeading": "تصدير بيانات المدرسة",
+        "exportBody": "لقطة كاملة لسجلّ مدرستك — المعلمون والطلاب ونقاط خبرتهم ونجومهم وسلاسل مواظبتهم وشعبهم وشهاداتهم الصادرة. لا شيء يتجاوز ما هو ظاهر أصلًا في صفحات المعلمين والطلاب والصفوف والشهادات، مجمّعًا في تنزيل واحد.",
+        "downloadJsonCta": "تنزيل تصدير JSON",
+        "downloadCsvCta": "تنزيل تصدير CSV",
+        "exportedNote": "يُسجَّل كل تنزيل في سجل التدقيق باسمك وعدد الصفوف المصدَّرة.",
+        "eraseHeading": "محو حساب طالب",
+        "eraseBody": "يتم حذف حساب الطالب وسجل تعلّمه نهائيًا من صفحة الطلاب، بجانب ذلك الطالب — ويتطلب كتابة تأكيد لأن هذا الإجراء لا يمكن التراجع عنه.",
+        "eraseLinkCta": "الذهاب إلى الطلاب"
       }
     }
   },
@@ -823,7 +886,40 @@
       "students": "الطلاب",
       "teachers": "المعلمون",
       "expiringLicences": "تراخيص تنتهي قريبًا",
-      "expiringHint": "خلال 60 يومًا القادمة"
+      "expiringHint": "خلال 60 يومًا القادمة",
+      "dau": "الطلاب النشطون يوميًا",
+      "wau": "الطلاب النشطون أسبوعيًا",
+      "certificatesIssued": "الشهادات الصادرة"
+    },
+    "activity": {
+      "heading": "المحاولات خلال آخر 14 يومًا",
+      "ariaLabel": "عدد المحاولات يوميًا خلال آخر 14 يومًا",
+      "total": "{count, plural, one {محاولة واحدة} two {محاولتان} few {{count} محاولات} many {{count} محاولة} other {{count} محاولة}} خلال آخر 14 يومًا",
+      "empty": "لم تُسجَّل أي محاولات خلال آخر 14 يومًا."
+    },
+    "mostFailedLevels": {
+      "heading": "المستويات الأكثر فشلًا",
+      "hint": "مؤشر على جودة المحتوى، وليس قائمة لوم.",
+      "columnLevel": "المستوى",
+      "columnWorld": "العالم",
+      "columnAttempts": "المحاولات",
+      "columnFailRate": "نسبة الفشل",
+      "empty": "لا توجد محاولات كافية بعد لعرض هذا."
+    },
+    "schoolsByActivity": {
+      "heading": "المدارس حسب النشاط",
+      "columnSchool": "المدرسة",
+      "columnActive": "نشطون هذا الأسبوع",
+      "columnStudents": "الطلاب",
+      "empty": "لا توجد مدارس مسجلة بعد."
+    },
+    "licencePipeline": {
+      "heading": "مسار انتهاء التراخيص",
+      "columnSchool": "المدرسة",
+      "columnStatus": "الحالة",
+      "columnExpires": "تاريخ الانتهاء",
+      "columnSeats": "المقاعد",
+      "empty": "لا توجد تراخيص تنتهي خلال 60 يومًا القادمة."
     },
     "schools": {
       "heading": "المدارس",

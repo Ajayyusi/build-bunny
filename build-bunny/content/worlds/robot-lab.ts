@@ -18,6 +18,9 @@ import type {
  * reskin is visual (lab theme), the legend never changes. Every recorded
  * grid solution here survives the REAL solutionRuns publish gate: regenerated
  * through server codegen, run on every variant, must PASS with 3 stars.
+ * Every student-facing field carries real Arabic (m5-contracts §1,
+ * content/i18n-glossary.md governs terminology); teacherNotes stays
+ * English-only (staff-facing).
  */
 
 type BlockCodingDraft = z.input<typeof blockCodingPayload>;
@@ -56,6 +59,7 @@ export const robotLab: WorldFixture = {
       name: { en: "Power & Sensors", ar: "الطاقة والمستشعرات" },
       description: {
         en: "In the lab, nothing happens by itself. Robots pick things up on purpose, check before they move, and choose between two plans.",
+        ar: "لا شيء يحدث من تلقاء نفسه في المختبر. الروبوتات تلتقط الأشياء عن قصد، وتتحقق قبل أن تتحرك، وتختار بين خطتين.",
       },
       levels: [
         // ── Level 1 — POWER UP: explicit collect (autoCollect OFF) ────────
@@ -67,15 +71,19 @@ export const robotLab: WorldFixture = {
           title: { en: "Power Up", ar: "شحن الطاقة" },
           story: {
             en: "Robo Bunny hops through the lab doors — and the lights are out. Two glowing power cells sit along the walkway to the charging dock. Out here in the lab, nothing gets picked up by hopping over it: a robot has to reach down and GRAB.",
+            ar: "يقفز الأرنب الآلي عبر أبواب المختبر — والأضواء مطفأة. خليتا طاقة متوهّجتان تقعان على الممر المؤدي إلى محطة الشحن. هنا في المختبر، لا شيء يُلتقط بمجرد القفز فوقه: على الروبوت أن يمدّ يده ويلتقط.",
           },
           objective: {
             en: "Use the new Collect block to pick up items deliberately, discovering that in Robot Lab nothing is collected automatically.",
+            ar: "استخدم لبنة «التقط» الجديدة لالتقاط الأشياء عن قصد، واكتشف أن مختبر الروبوتات لا يلتقط شيئًا تلقائيًا.",
           },
           instructions: {
             en: "Walk the lab corridor to the charging dock and pick up BOTH power cells on the way. New rule: hopping onto a cell isn't enough anymore — you must use the Collect block while standing on it.",
+            ar: "اعبر ممر المختبر إلى محطة الشحن والتقط خليتَي الطاقة كلتيهما في طريقك. قاعدة جديدة: القفز إلى الخلية لم يعد كافيًا — يجب أن تستخدم لبنة «التقط» وأنت واقف عليها.",
           },
           explanation: {
             en: "Welcome to precise mode! In the meadow, carrots jumped into Robo Bunny's paws. Lab robots don't work like that — every single action must be an instruction, even picking something up. That's how real robots are programmed: nothing is assumed, everything is stated. Move Forward changes where you are; Collect acts on the spot where you're standing. Try pressing Collect on an empty tile sometime — the robot just shrugs. No harm done, but no cell either.",
+            ar: "أهلًا بك في وضع الدقّة! في المرج، كانت الجزرات تقفز إلى يدَي الأرنب الآلي من تلقاء نفسها. روبوتات المختبر لا تعمل هكذا — فكل حركة يجب أن تكون تعليمة، حتى التقاط شيء ما. هكذا تُبرمَج الروبوتات الحقيقية: لا شيء يُفترض، وكل شيء يُذكر صراحة. «تقدّم للأمام» يغيّر مكانك؛ و«التقط» يعمل في المكان الذي تقف فيه بالضبط. جرّب الضغط على «التقط» فوق مربّع فارغ يومًا ما — سيهزّ الروبوت كتفيه فقط. لا ضرر، لكن لا خلية أيضًا.",
           },
           teacherNotes: {
             en: "The rule change from Worlds 1–2 (auto-collect off) is the whole lesson — say it out loud before anyone runs. Expect PARTIAL results from students who walk the corridor without collecting; the feedback message names how many cells were missed. Challenge extension: what happens if you Collect twice on the same cell? Predict, then try.",
@@ -92,24 +100,28 @@ export const robotLab: WorldFixture = {
               tier: 1,
               text: {
                 en: "Something is different in the lab: Robo Bunny hopped right over a power cell and nothing happened. What new block just appeared in the toolbox?",
+                ar: "شيء ما مختلف في المختبر: قفز الأرنب الآلي فوق خلية طاقة ولم يحدث شيء. ما اللبنة الجديدة التي ظهرت في صندوق الأدوات؟",
               },
             },
             {
               tier: 2,
               text: {
                 en: "The Collect block grabs whatever is on the tile Robo Bunny is STANDING on. Stop on a cell, then collect.",
+                ar: "لبنة «التقط» تلتقط ما يوجد على المربّع الذي يقف عليه الأرنب الآلي بالضبط. توقّف فوق الخلية، ثم التقطها.",
               },
             },
             {
               tier: 3,
               text: {
                 en: "Hop onto the first cell, Collect, then keep hopping to the second cell and Collect again before finishing at the dock.",
+                ar: "اقفز إلى الخلية الأولى، التقط، ثم واصل القفز إلى الخلية الثانية والتقطها أيضًا قبل أن تنهي عند المحطة.",
               },
             },
             {
               tier: 4,
               text: {
                 en: "Move, Collect, Move, Move, Collect, Move — grab each cell while standing on it, and end on the charging dock.",
+                ar: "تقدّم، التقط، تقدّم، تقدّم، التقط، تقدّم — التقط كل خلية وأنت واقف عليها، وأنهِ المسار عند محطة الشحن.",
               },
             },
           ],
@@ -192,15 +204,19 @@ export const robotLab: WorldFixture = {
           title: { en: "Sensor Check", ar: "فحص المستشعر" },
           story: {
             en: "The lab's delivery hall re-arranges itself overnight — sometimes the corridor runs straight to the docking bay, sometimes a supply crate blocks the way and the bay is through a side hatch. Robo Bunny's new sensor can feel what's ahead before moving. Time to trust it.",
+            ar: "تتغيّر ممرات صالة التوصيل في المختبر كل ليلة — أحيانًا يمتد الممر مستقيمًا إلى منصة الرسو، وأحيانًا يسدّه صندوق إمدادات فتصبح المنصة عبر باب جانبي. مستشعر الأرنب الآلي الجديد يستطيع الشعور بما أمامه قبل أن يتحرك. حان وقت الثقة به.",
           },
           objective: {
             en: "Write one sensor-driven program that reaches the docking bay on two different hall layouts by checking the path before committing.",
+            ar: "اكتب برنامجًا واحدًا يعتمد على المستشعر ليصل إلى منصة الرسو في تصميمَي ممر مختلفين، عبر التحقق من الطريق قبل الالتزام باتجاه.",
           },
           instructions: {
             en: "The hall has two layouts, and your ONE program must dock on BOTH. Walk to the junction, then use If with the path-ahead sensor: if a crate blocks the way, turn toward the side hatch. Run both layouts before you finish.",
+            ar: "للممر تصميمان، ويجب أن يرسو برنامجك الواحد في كليهما. سِر إلى المفترق، ثم استخدم «إذا» مع مستشعر الطريق أمامي: إذا سدّ صندوق الطريق، استدر نحو الباب الجانبي. شغّل التصميمين قبل أن تنهي.",
           },
           explanation: {
             en: "Sense, THEN act — that's the robot way. Your program didn't know which hall it would get, and it didn't need to: the sensor asked 'is the path blocked?' at exactly the right moment, and the If block acted on the answer. This is how real robots survive the real world — vacuum robots feel for walls, delivery robots check crossings, rovers on Mars test the ground before rolling. None of them memorize the route. They check.",
+            ar: "استشعر، ثم تصرّف — هذه طريقة الروبوتات. برنامجك لم يكن يعرف أي ممر سيحصل عليه، ولم يكن بحاجة لذلك: طرح المستشعر السؤال «هل الطريق مسدود؟» في اللحظة الصحيحة بالضبط، وتصرّفت «إذا» بناءً على الإجابة. هكذا تنجو الروبوتات الحقيقية في العالم الحقيقي — روبوتات التنظيف تتحسّس الجدران، وروبوتات التوصيل تتحقق من المفترقات، ومركبات استكشاف المريخ تختبر الأرض قبل أن تتحرك عليها. لا واحدة منها تحفظ الطريق عن ظهر قلب. إنها تتحقق فقط.",
           },
           teacherNotes: {
             en: "Same teaching device as Choose the Path, now in robot clothing: insist students run BOTH variants before submitting. Common bug: placing the If before reaching the junction, so the sensor checks the wrong tile. The playback thought bubble shows what the sensor answered at each check. Challenge extension: what would the program do in a hall where BOTH ways are open? Which door wins, and why?",
@@ -217,24 +233,28 @@ export const robotLab: WorldFixture = {
               tier: 1,
               text: {
                 en: "The crate is in a different place on each layout, so a fixed route can't win both. Which block lets Robo Bunny ASK about the path before moving?",
+                ar: "الصندوق في مكان مختلف في كل تصميم، فمسار ثابت لن ينجح في الاثنين معًا. أي لبنة تتيح للأرنب الآلي أن يسأل عن الطريق قبل أن يتحرك؟",
               },
             },
             {
               tier: 2,
               text: {
                 en: "Hop to the junction first — two Move Forwards. THEN check: is the path ahead blocked?",
+                ar: "اقفز إلى المفترق أولًا — لبنتا «تقدّم للأمام». ثم تحقّق: هل الطريق أمامي مسدود؟",
               },
             },
             {
               tier: 3,
               text: {
                 en: "At the junction: If the path ahead is blocked, Turn Right toward the side hatch. If it isn't, the If does nothing and straight ahead is correct.",
+                ar: "عند المفترق: إذا كان الطريق أمامي مسدودًا، استدر يمينًا نحو الباب الجانبي. وإن لم يكن كذلك، فلن تفعل «إذا» شيئًا والاستمرار مستقيمًا هو الصحيح.",
               },
             },
             {
               tier: 4,
               text: {
                 en: "Move, Move, If path ahead is blocked { Turn Right }, Move. On the open hall the If stays quiet; on the blocked hall it turns Robo Bunny to the hatch. One more hop docks it — either way.",
+                ar: "تقدّم، تقدّم، إذا الطريق أمامي مسدود { استدر يمينًا }، تقدّم. في الممر المفتوح لا تفعل «إذا» شيئًا؛ وفي الممر المسدود تُدير الأرنب الآلي نحو الباب. وقفزة أخيرة تُرسيه في الحالتين.",
               },
             },
           ],
@@ -321,15 +341,19 @@ export const robotLab: WorldFixture = {
           title: { en: "Smart Turns", ar: "انعطافات ذكية" },
           story: {
             en: "Deeper in the lab, the maintenance tunnel ends at a T-junction. The charging dock is up one arm — but which one changes with the lab's nightly shuffle. The maintenance manual is short and confident: 'Blocked to the east? Dock is south. Clear to the east? Dock is north. There is no third option.'",
+            ar: "في أعماق المختبر، ينتهي نفق الصيانة عند مفترق على شكل حرف T. محطة الشحن في أحد الفرعين — لكن أيّهما يتغيّر مع تبديل المختبر كل ليلة. دليل الصيانة قصير وواثق: «إن كان الشرق مسدودًا، فالمحطة جنوبًا. وإن كان الشرق مفتوحًا، فالمحطة شمالًا. لا خيار ثالث».",
           },
           objective: {
             en: "Use If/Else to choose between two actions — one for each answer the sensor can give — and solve both junction layouts with one program.",
+            ar: "استخدم «إذا... وإلا» للاختيار بين تصرفين — واحد لكل إجابة يعطيها المستشعر — وحلّ تصميمَي المفترق ببرنامج واحد.",
           },
           instructions: {
             en: "At the junction, the sensor's answer decides EVERYTHING: blocked means turn right toward the south dock, clear means turn left toward the north dock. Use the If/Else block so BOTH answers have a plan — and dock on both layouts with one program.",
+            ar: "عند المفترق، إجابة المستشعر تحدد كل شيء: مسدود يعني الاستدارة يمينًا نحو المحطة الجنوبية، ومفتوح يعني الاستدارة يسارًا نحو المحطة الشمالية. استخدم لبنة «إذا... وإلا» ليكون لكل إجابة خطتها — وارسُ في التصميمين ببرنامج واحد.",
           },
           explanation: {
             en: "If/Else is If with a backup plan. A plain If says 'when this is true, do something (otherwise, skip me)'. If/Else says 'when this is true do PLAN A — and when it's not, do PLAN B'. Every run picks exactly one of the two branches, never both, never neither. Programmers reach for If/Else whenever every answer needs its own action: game won or game lost, password right or wrong, path blocked or clear. Your robot now has a plan for both worlds it might wake up in.",
+            ar: "«إذا... وإلا» هي «إذا» ومعها خطة بديلة. الـ«إذا» وحدها تقول: «إن كان هذا صحيحًا، افعل كذا (وإلا، تجاهلني)». أما «إذا... وإلا» فتقول: «إن كان هذا صحيحًا نفّذ الخطة أ — وإن لم يكن، نفّذ الخطة ب». كل تشغيل يختار فرعًا واحدًا بالضبط من الاثنين، لا كليهما ولا أيًّا منهما. يلجأ المبرمجون إلى «إذا... وإلا» كلّما احتاجت كل إجابة تصرّفها الخاص: فوز أو خسارة في اللعبة، كلمة مرور صحيحة أو خاطئة، طريق مسدود أو مفتوح. روبوتك الآن لديه خطة لكل عالم قد يستيقظ فيه.",
           },
           teacherNotes: {
             en: "Contrast with Sensor Check on the board: If has one branch and an invisible 'do nothing' case; If/Else makes both cases explicit. Ask the class which levels COULD be solved with plain If plus clever geometry — this one cannot, because both answers demand a different turn. Challenge extension: swap the two branches AND flip which turn goes where — does it still work? Why?",
@@ -346,24 +370,28 @@ export const robotLab: WorldFixture = {
               tier: 1,
               text: {
                 en: "This junction has no 'just keep going' option — Robo Bunny must turn left OR right every time. Which block gives you a plan for BOTH answers?",
+                ar: "هذا المفترق ليس فيه خيار «واصل السير فقط» — على الأرنب الآلي أن يستدير يسارًا أو يمينًا في كل مرة. أي لبنة تمنحك خطة للإجابتين معًا؟",
               },
             },
             {
               tier: 2,
               text: {
                 en: "Read the manual again: blocked east means the dock is SOUTH, clear east means the dock is NORTH. That's one turn for each answer.",
+                ar: "اقرأ الدليل مرة أخرى: مسدود شرقًا يعني أن المحطة جنوبًا، ومفتوح شرقًا يعني أن المحطة شمالًا. هذه استدارة واحدة لكل إجابة.",
               },
             },
             {
               tier: 3,
               text: {
                 en: "Hop twice to the junction. Then: If path ahead is blocked { Turn Right } Else { Turn Left }. After the turn, the dock is two hops away.",
+                ar: "اقفز مرتين إلى المفترق. ثم: إذا الطريق أمامي مسدود { استدر يمينًا } وإلا { استدر يسارًا }. بعد الاستدارة، تبعد المحطة قفزتين فقط.",
               },
             },
             {
               tier: 4,
               text: {
                 en: "Move, Move, If path ahead is blocked { Turn Right } Else { Turn Left }, Move, Move. The If/Else picks the correct arm on every layout, and the same two hops finish the job.",
+                ar: "تقدّم، تقدّم، إذا الطريق أمامي مسدود { استدر يمينًا } وإلا { استدر يسارًا }، تقدّم، تقدّم. تختار «إذا... وإلا» الفرع الصحيح في كل تصميم، وتنهي القفزتان نفسهما المهمة.",
               },
             },
           ],
@@ -457,6 +485,7 @@ export const robotLab: WorldFixture = {
       name: { en: "Repairs & Trials", ar: "الإصلاح والتحدي" },
       description: {
         en: "Real engineers spend half their time fixing programs — theirs and other people's. Learn to read the clues, then face the lab's final trial.",
+        ar: "يقضي المهندسون الحقيقيون نصف وقتهم في إصلاح البرامج — برامجهم وبرامج غيرهم. تعلّم قراءة الأدلة، ثم واجه التحدي الأخير في المختبر.",
       },
       levels: [
         // ── Level 4 — BROKEN BOT: DEBUGGING with a 2-bug program ──────────
@@ -468,15 +497,19 @@ export const robotLab: WorldFixture = {
           title: { en: "Broken Bot", ar: "الروبوت المعطّل" },
           story: {
             en: "Disaster in bay 4! The night-shift robot uploaded its own delivery program… and crashed straight into the lab wall. The program is still loaded — hops, turns, the lot — but somewhere in there are TWO mistakes. The lab needs a debugger, and Robo Bunny knows just the bunny.",
+            ar: "كارثة في المنصة 4! رفع روبوت المناوبة الليلية برنامج التوصيل الخاص به... واصطدم مباشرة بجدار المختبر. البرنامج ما زال محمَّلًا — قفزات، استدارات، كل شيء — لكن يوجد بداخله خطآن. يحتاج المختبر إلى مصحّح أخطاء، والأرنب الآلي يعرف بالضبط من يستطيع فعل ذلك.",
           },
           objective: {
             en: "Repair a broken program by running it, reading the located failure message, and fixing two distinct bugs — a wrong turn and a missing collect.",
+            ar: "أصلح برنامجًا معطّلًا بتشغيله، وقراءة رسالة الفشل محددة الموقع، وإصلاح خطأين مختلفين — استدارة خاطئة والتقاط ناقص.",
           },
           instructions: {
             en: "Don't build from scratch — the broken program is already on your workspace. Run it AS IS first and watch where it goes wrong: the failure message tells you the exact step. Fix the program so the robot grabs the power cell AND parks at the charging dock. There are two bugs.",
+            ar: "لا تبنِ برنامجًا من الصفر — البرنامج المعطّل موجود بالفعل في مساحة العمل. شغّله كما هو أولًا وراقب أين يخطئ: رسالة الفشل تخبرك بالخطوة بالضبط. أصلح البرنامج ليلتقط الروبوت خلية الطاقة ويرسو عند محطة الشحن أيضًا. يوجد خطآن اثنان.",
           },
           explanation: {
             en: "You just debugged a real program, the way professionals do it: run it, read the clue, fix ONE thing, run again. The crash message named the exact step that hit the wall — that pointed you at the wrong turn. But fixing the crash wasn't the end: the run report then said a power cell was still missing, and that's a different kind of bug. A program can be crash-free and still not do its whole job. Debuggers fix the loud bug first, then re-run and listen for the quiet one.",
+            ar: "لقد صحّحت للتو برنامجًا حقيقيًا، بالطريقة نفسها التي يعمل بها المحترفون: شغّله، اقرأ الدليل، أصلح شيئًا واحدًا، شغّله مرة أخرى. رسالة الاصطدام حدّدت الخطوة بالضبط التي اصطدمت بالجدار — وهذا دلّك على الاستدارة الخاطئة. لكن إصلاح الاصطدام لم يكن النهاية: قال تقرير التشغيل بعدها إن خلية طاقة ما زالت ناقصة، وهذا نوع مختلف من الأخطاء. يمكن للبرنامج أن يعمل دون اصطدام ولا يزال لا يُنجز مهمته كاملة. يُصلح مصحّحو الأخطاء الخطأ الصاخب أولًا، ثم يعيدون التشغيل ويستمعون للخطأ الهادئ.",
           },
           teacherNotes: {
             en: "The two bugs are deliberately different species: the wrong turn CRASHES (loud, located, step-numbered), the missing Collect merely leaves the job unfinished (quiet, PARTIAL verdict). Let students discover the second bug by re-running after the first fix — do not reveal there are two upfront beyond what the instructions say. Vocabulary to land: 'bug' and 'debugging'. Challenge extension: can the repaired program be rearranged to collect the cell on the way back instead? Why not, here?",
@@ -493,24 +526,28 @@ export const robotLab: WorldFixture = {
               tier: 1,
               text: {
                 en: "Run the broken program exactly as it is and read the message. Which step crashed? Find that block in the program.",
+                ar: "شغّل البرنامج المعطّل كما هو تمامًا واقرأ الرسالة. أي خطوة اصطدمت؟ ابحث عن تلك اللبنة في البرنامج.",
               },
             },
             {
               tier: 2,
               text: {
                 en: "The crash happens right after a turn. Watch the robot's ears at that moment — is it turning toward the dock, or away from it?",
+                ar: "يحدث الاصطدام مباشرة بعد استدارة. راقب أذنَي الروبوت في تلك اللحظة — هل يستدير نحو المحطة، أم بعيدًا عنها؟",
               },
             },
             {
               tier: 3,
               text: {
                 en: "Change Turn Right to Turn Left and run again. Better! But the report says a power cell is still sitting there. Where does the robot stand on the cell — and what block is missing there?",
+                ar: "غيّر «استدر يمينًا» إلى «استدر يسارًا» وشغّل مرة أخرى. أفضل! لكن التقرير يقول إن خلية طاقة ما زالت مكانها. أين يقف الروبوت فوق الخلية — وما اللبنة الناقصة هناك؟",
               },
             },
             {
               tier: 4,
               text: {
                 en: "Two fixes: swap the Turn Right for a Turn Left, and add a Collect right after the first Move — that's when the robot is standing on the cell. Move, Collect, Move, Turn Left, Move.",
+                ar: "إصلاحان اثنان: استبدل «استدر يمينًا» بـ«استدر يسارًا»، وأضف «التقط» مباشرة بعد أول «تقدّم» — فهذه هي اللحظة التي يقف فيها الروبوت على الخلية. تقدّم، التقط، تقدّم، استدر يسارًا، تقدّم.",
               },
             },
           ],
@@ -625,15 +662,19 @@ export const robotLab: WorldFixture = {
           title: { en: "Lab Gauntlet", ar: "تحدي المختبر" },
           story: {
             en: "The lab's proving ground: a winding test track sown with power cells, rebuilt differently for every trial. No map is handed out. The plaque over the entrance reads: 'A great robot does not know the track. It knows what to do at every wall — and it leaves no cell behind.'",
+            ar: "ساحة الاختبار في المختبر: مضمار متعرّج مزروع بخلايا الطاقة، يُعاد بناؤه بشكل مختلف في كل تجربة. لا خريطة تُوزَّع. تقول اللوحة فوق المدخل: «الروبوت العظيم لا يعرف المضمار. إنه يعرف ماذا يفعل عند كل جدار — ولا يترك خلية واحدة خلفه».",
           },
           objective: {
             en: "Combine a goal-controlled loop, an If/Else decision and explicit collection into one small program that clears two unknown test tracks completely.",
+            ar: "اجمع بين حلقة مضبوطة بالهدف، وقرار «إذا... وإلا»، والتقاط صريح، في برنامج صغير واحد يجتاز مضمارَي اختبار مجهولين بالكامل.",
           },
           instructions: {
             en: "Reach the charging dock at the end of the gauntlet and collect EVERY power cell on the way — with ONE program that beats BOTH tracks. Think like the plaque: at every step, either the way is blocked (turn!) or it's open (advance — and grab whatever you land on).",
+            ar: "صِل إلى محطة الشحن في نهاية التحدي والتقط كل خلية طاقة في طريقك — ببرنامج واحد فقط يجتاز المضمارين معًا. فكّر كما تقول اللوحة: في كل خطوة، إما أن الطريق مسدود (استدر!) أو مفتوح (تقدّم — والتقط ما تجده تحتك).",
           },
           explanation: {
             en: "Five blocks. Two tracks it had never seen. Zero cells left behind. Your loop asked one question every single step — blocked or open? — and had exactly one answer for each: turn, or advance-and-collect. That tiny decision, repeated until the dock, is a full navigation strategy; robotics engineers literally call it wall-following. Notice what you did NOT do: you never counted hops, never memorized a track. You taught the robot judgment instead of directions — and judgment travels.",
+            ar: "خمس لبنات فقط. مضماران لم يرهما من قبل. ولا خلية واحدة تُركت خلفه. حلقتك طرحت سؤالًا واحدًا في كل خطوة — مسدود أم مفتوح؟ — ولها إجابة واحدة بالضبط لكل حالة: استدر، أو تقدّم والتقط. هذا القرار الصغير، مكرَّرًا حتى المحطة، هو استراتيجية تنقّل كاملة؛ يسمّيه مهندسو الروبوتات حرفيًا «تتبّع الجدار». لاحظ ما لم تفعله: لم تعدّ القفزات أبدًا، ولم تحفظ المضمار أبدًا. لقد علّمت الروبوت الحكمة بدلًا من الاتجاهات — والحكمة تصلح لكل مكان.",
           },
           teacherNotes: {
             en: "Capstone and demo piece. Students who unroll 20+ blocks can pass on one track but will almost never beat BOTH — the second variant is the honest examiner, and 'why does your long program fail track B?' is the best discussion this world offers. The Collect-on-every-tile trick (collecting on empty floor does nothing) surprises students who expect an error — that tolerance is worth naming. Watch the playback thought bubbles during the corner checks. Challenge extension: predict the robot's total hop count on each track BEFORE running; closest guess wins.",
@@ -650,24 +691,28 @@ export const robotLab: WorldFixture = {
               tier: 1,
               text: {
                 en: "The plaque is the program: at every wall do one thing, everywhere else do another — until the dock. Which loop runs until the goal? Which block chooses between two actions?",
+                ar: "اللوحة هي البرنامج نفسه: عند كل جدار افعل شيئًا، وفي كل مكان آخر افعل شيئًا آخر — حتى تصل إلى المحطة. أي حلقة تعمل حتى الهدف؟ وأي لبنة تختار بين تصرّفين؟",
               },
             },
             {
               tier: 2,
               text: {
                 en: "Build one loop that repeats until the goal. Inside it, every step is a choice: path blocked → turn right; path open → move forward. Where does Collect fit so no cell is ever missed?",
+                ar: "ابنِ حلقة واحدة تتكرر حتى الهدف. بداخلها، كل خطوة اختيار: الطريق مسدود ← استدر يمينًا؛ الطريق مفتوح ← تقدّم للأمام. أين تضع «التقط» حتى لا تفوتك خلية أبدًا؟",
               },
             },
             {
               tier: 3,
               text: {
                 en: "Repeat Until I Reach the Goal { If path ahead is blocked { Turn Right } Else { Move Forward, … } }. Collect right after every Move — collecting on an empty tile is harmless, and a cell can never be skipped.",
+                ar: "«كرّر حتى أصل إلى الهدف { إذا الطريق أمامي مسدود { استدر يمينًا } وإلا { تقدّم للأمام، ... } }». ضع «التقط» مباشرة بعد كل «تقدّم» — فالالتقاط فوق مربّع فارغ غير ضار، ولن تفوتك خلية أبدًا.",
               },
             },
             {
               tier: 4,
               text: {
                 en: "The whole program: Repeat Until I Reach the Goal { If path ahead is blocked { Turn Right } Else { Move Forward, Collect } }. Turn at every wall, grab at every step — five blocks that clear any track the lab can build.",
+                ar: "البرنامج كاملًا: «كرّر حتى أصل إلى الهدف { إذا الطريق أمامي مسدود { استدر يمينًا } وإلا { تقدّم للأمام، التقط } }». استدر عند كل جدار، والتقط في كل خطوة — خمس لبنات تجتاز أي مضمار يبنيه المختبر.",
               },
             },
           ],
@@ -770,15 +815,19 @@ export const robotLab: WorldFixture = {
           title: { en: "Sensor Sequence", ar: "تسلسل الاستشعار" },
           story: {
             en: "The gauntlet is cleared, the dock is charged — and pinned to the charging bay door is the lab's maintenance manual for the very first docking routine you ever ran here. It fell off its clipboard months ago; the pages scattered, and nobody's fixed it since. One last job before graduation: put it back together.",
+            ar: "اجتزت التحدي، وشُحنت المحطة — ومثبَّت على باب منصة الشحن دليل صيانة المختبر لأول روتين رسو نفّذته هنا على الإطلاق. سقط عن لوحته منذ أشهر؛ وتناثرت صفحاته، ولم يُصلحه أحد منذ ذلك الحين. مهمة أخيرة قبل التخرّج: أعِد ترتيبه.",
           },
           objective: {
             en: "Reconstruct the correct step order of a sense → decide → act → collect docking routine, synthesizing the collect, sensor-check and if/else lessons from this lab.",
+            ar: "أعِد بناء الترتيب الصحيح لخطوات روتين الرسو (استشعار ← قرار ← تصرّف ← التقاط)، بدمج دروس الالتقاط وفحص المستشعر و«إذا... وإلا» التي تعلّمتها في هذا المختبر.",
           },
           instructions: {
             en: "Drag the steps into the right order — or use the up/down buttons on each step. The routine only works one way: think about what Robo Bunny needs to know or do BEFORE each later step makes sense.",
+            ar: "اسحب الخطوات إلى ترتيبها الصحيح — أو استخدم زرّي الأعلى والأسفل في كل خطوة. الروتين يعمل بطريقة واحدة فقط: فكّر فيما يحتاج الأرنب الآلي أن يعرفه أو يفعله قبل أن تصبح كل خطوة لاحقة منطقية.",
           },
           explanation: {
             en: "Sense, then decide, then act, then collect — that order isn't arbitrary, it's the actual shape of every routine you've built in this lab. You can't decide which way to turn before you've asked the sensor a question, and you can't collect a power cell before you've moved onto its tile. Real robots (and real programs) run their instructions in exactly the order they're written — reordering steps out of sequence is one of the most common bugs there is, and now you know what it looks like from both directions: writing it, and rebuilding it. Robot Lab: complete. The Data Desert is already shimmering on the horizon.",
+            ar: "استشعر، ثم قرّر، ثم تصرّف، ثم التقط — هذا الترتيب ليس عشوائيًا، بل هو الشكل الحقيقي لكل روتين بنيته في هذا المختبر. لا يمكنك أن تقرر أي اتجاه تستدير إليه قبل أن تسأل المستشعر، ولا يمكنك أن تلتقط خلية طاقة قبل أن تقف على مربّعها. الروبوتات الحقيقية (والبرامج الحقيقية) تنفّذ تعليماتها بالترتيب الذي كُتبت به بالضبط — وتغيير ترتيب الخطوات هو أحد أكثر الأخطاء البرمجية شيوعًا، والآن تعرف شكله من الاتجاهين: كتابته، وإعادة بنائه. مختبر الروبوتات: اكتمل. صحراء البيانات تلمع بالفعل في الأفق.",
           },
           teacherNotes: {
             en: "This level runs no code and touches no grid — it's a pure sequencing/synthesis check, placed as the lab's closing checkpoint so students reconstruct the pattern from memory (collect from Power Up, sense+decide from Sensor Check and Smart Turns) rather than reading it fresh. If a group finishes fast, ask them to explain OUT LOUD why 'collect' can't come before 'move forward through the door' — the answer (the cell isn't on this tile yet) is the whole lesson. Challenge extension: ask students to invent one MORE valid step that could be inserted between two existing ones without breaking the routine (e.g., a second sensor check before turning back).",
@@ -795,51 +844,71 @@ export const robotLab: WorldFixture = {
               tier: 1,
               text: {
                 en: "Ask yourself, for every step: what does Robo Bunny need to already know or already be standing on before this step makes sense?",
+                ar: "اسأل نفسك عن كل خطوة: ماذا يحتاج الأرنب الآلي أن يعرفه مسبقًا أو يقف عليه مسبقًا حتى تصبح هذه الخطوة منطقية؟",
               },
             },
             {
               tier: 2,
               text: {
                 en: "You already built this shape twice: Sensor Check and Smart Turns both sense the path BEFORE deciding which way to turn — never after.",
+                ar: "لقد بنيت هذا الشكل مرتين من قبل: كلٌّ من «فحص المستشعر» و«انعطافات ذكية» يستشعران الطريق قبل تحديد الاتجاه — لا بعده أبدًا.",
               },
             },
             {
               tier: 3,
               text: {
                 en: "The routine ends the way Power Up taught you: Robo Bunny must be standing ON the power cell's tile before Collect does anything. Collect goes last.",
+                ar: "ينتهي الروتين بالطريقة التي علّمك إياها «شحن الطاقة»: يجب أن يقف الأرنب الآلي فوق مربّع خلية الطاقة قبل أن تفعل «التقط» أي شيء. «التقط» تأتي أخيرًا.",
               },
             },
             {
               tier: 4,
               text: {
                 en: "The full order: reach the junction, read the sensor, turn if it's blocked, move through the door, then collect. Sense before you decide; decide before you act; act before you collect.",
+                ar: "الترتيب الكامل: صِل إلى المفترق، اقرأ المستشعر، استدر إن كان مسدودًا، تقدّم عبر الباب، ثم التقط. استشعر قبل أن تقرر؛ وقرّر قبل أن تتصرف؛ وتصرّف قبل أن تلتقط.",
               },
             },
           ],
           payload: {
             prompt: {
               en: "Robo Bunny's docking routine lost its page numbers — put these five steps back in the right order.",
+              ar: "فقد روتين رسو الأرنب الآلي أرقام صفحاته — أعِد ترتيب هذه الخطوات الخمس بالشكل الصحيح.",
             },
             items: [
               {
                 id: "approach",
-                text: { en: "Move forward until Robo Bunny reaches the junction." },
+                text: {
+                  en: "Move forward until Robo Bunny reaches the junction.",
+                  ar: "تقدّم للأمام حتى يصل الأرنب الآلي إلى المفترق.",
+                },
               },
               {
                 id: "sense",
-                text: { en: "Read the path-ahead sensor to check for a blocked door." },
+                text: {
+                  en: "Read the path-ahead sensor to check for a blocked door.",
+                  ar: "اقرأ مستشعر الطريق أمامي للتحقق من وجود باب مسدود.",
+                },
               },
               {
                 id: "turn",
-                text: { en: "If the sensor reports blocked, turn toward the open door." },
+                text: {
+                  en: "If the sensor reports blocked, turn toward the open door.",
+                  ar: "إذا أفاد المستشعر بأن الطريق مسدود، استدر نحو الباب المفتوح.",
+                },
               },
               {
                 id: "advance",
-                text: { en: "Move forward through the door onto the next tile." },
+                text: {
+                  en: "Move forward through the door onto the next tile.",
+                  ar: "تقدّم للأمام عبر الباب إلى المربّع التالي.",
+                },
               },
               {
                 id: "collect",
-                text: { en: "Use Collect to pick up whatever is waiting on that tile." },
+                text: {
+                  en: "Use Collect to pick up whatever is waiting on that tile.",
+                  ar: "استخدم «التقط» لالتقاط ما ينتظر فوق ذلك المربّع.",
+                },
               },
             ],
             correctOrder: ["approach", "sense", "turn", "advance", "collect"],

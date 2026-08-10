@@ -325,6 +325,12 @@ export default function SimulationCanvas({
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const paletteRef = useRef<SimPalette | null>(null);
   const frameRef = useRef<Frame>(idleFrame(variant));
+  // The canvas has no DOM text — "say" dialogue is otherwise invisible to a
+  // screen reader (m5 §41 audit finding). Mirrored via a ref (not React
+  // state) so announcing it doesn't force a re-render on every animation
+  // frame; only written when the bubble text actually changes.
+  const liveRegionRef = useRef<HTMLDivElement | null>(null);
+  const lastBubbleRef = useRef<string | null>(null);
   const onEndRef = useRef(onPlaybackEnd);
   const onStepRef = useRef(onStepChange);
   onEndRef.current = onPlaybackEnd;
@@ -472,6 +478,15 @@ export default function SimulationCanvas({
         ctx.globalAlpha = 1;
       }
 
+      // Mirror the bubble text into the live region exactly once per change
+      // (not per frame — frame.bubble stays the same string across every
+      // tick of a "say" segment, and re-writing textContent identically
+      // would still (mis)trigger some screen readers to re-announce it).
+      if (frame.bubble !== lastBubbleRef.current) {
+        lastBubbleRef.current = frame.bubble;
+        if (liveRegionRef.current) liveRegionRef.current.textContent = frame.bubble ?? "";
+      }
+
       // Speech bubble — drawn last, LTR-independent position above bunny.
       if (frame.bubble) {
         const text = frame.bubble;
@@ -583,6 +598,9 @@ export default function SimulationCanvas({
       className={cn("relative h-full w-full", className)}
     >
       <canvas ref={canvasRef} className="block h-full w-full" />
+      {/* "say"-block dialogue, the only run content with no DOM text
+          otherwise (m5 §41). polite: mid-run chatter shouldn't interrupt. */}
+      <div ref={liveRegionRef} aria-live="polite" className="sr-only" />
     </div>
   );
 }

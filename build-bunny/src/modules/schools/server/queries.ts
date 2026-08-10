@@ -310,6 +310,172 @@ export async function getSchoolProgressReport(
   }));
 }
 
+export interface SchoolDataExport {
+  exportedAt: string;
+  school: {
+    id: string;
+    name: string;
+    code: string;
+    slug: string;
+    status: string;
+    timezone: string;
+  };
+  teachers: {
+    id: string;
+    displayName: string;
+    email: string;
+    title: string | null;
+    banned: boolean | null;
+    createdAt: string;
+  }[];
+  students: {
+    id: string;
+    displayName: string;
+    username: string | null;
+    studentIdentifier: string;
+    grade: number;
+    classNames: string[];
+    xpTotal: number;
+    starsTotal: number;
+    streakCurrent: number;
+    streakBest: number;
+    lastActiveDate: string | null;
+    banned: boolean | null;
+    createdAt: string;
+  }[];
+  classes: {
+    id: string;
+    name: string;
+    grade: number;
+    academicYear: string;
+    studentCount: number;
+  }[];
+  certificates: {
+    serial: string;
+    kind: string;
+    studentName: string;
+    issuedAt: string;
+    revoked: boolean;
+  }[];
+}
+
+/**
+ * The full "what this school's data looks like" bundle behind the school
+ * trust pack / erasure-and-export requirement (plan §35, m5 §4b). Every
+ * field here is also individually visible somewhere in the product to a
+ * SCHOOL_ADMIN already (rosters, classes, certificates) — this just
+ * consolidates it into one downloadable snapshot instead of exposing
+ * anything new. verifySlug is deliberately excluded even though
+ * SCHOOL_ADMIN can otherwise see certificates: it is the public/anonymous
+ * lookup secret for a printed certificate, not school-administrative data,
+ * and a leaked export is a more likely path to slug harvesting than the UI.
+ */
+export async function getSchoolDataExport(ctx: SessionContext): Promise<SchoolDataExport> {
+  const schoolId = requireSchool(ctx);
+  const [school, teachers, students, classes, certificates] = await Promise.all([
+    db.school.findUniqueOrThrow({
+      where: { id: schoolId },
+      select: { id: true, name: true, code: true, slug: true, status: true, timezone: true },
+    }),
+    db.user.findMany({
+      where: { schoolId, role: "TEACHER" },
+      select: {
+        id: true,
+        displayName: true,
+        email: true,
+        banned: true,
+        createdAt: true,
+        teacherProfile: { select: { title: true } },
+      },
+      orderBy: { displayName: "asc" },
+    }),
+    db.user.findMany({
+      where: { schoolId, role: "STUDENT" },
+      select: {
+        id: true,
+        displayName: true,
+        displayUsername: true,
+        banned: true,
+        createdAt: true,
+        studentProfile: {
+          select: {
+            studentIdentifier: true,
+            grade: true,
+            xpTotal: true,
+            starsTotal: true,
+            streakCurrent: true,
+            streakBest: true,
+            lastActiveDate: true,
+          },
+        },
+        classMemberships: {
+          where: { schoolId, role: "STUDENT" },
+          select: { class: { select: { name: true } } },
+        },
+      },
+      orderBy: { displayName: "asc" },
+    }),
+    db.class.findMany({
+      where: { schoolId },
+      select: {
+        id: true,
+        name: true,
+        grade: true,
+        academicYear: { select: { name: true } },
+        _count: { select: { memberships: { where: { role: "STUDENT" } } } },
+      },
+      orderBy: [{ grade: "asc" }, { name: "asc" }],
+    }),
+    db.certificate.findMany({
+      where: { schoolId },
+      select: { serial: true, kind: true, studentName: true, issuedAt: true, revokedAt: true },
+      orderBy: { issuedAt: "desc" },
+    }),
+  ]);
+
+  return {
+    exportedAt: new Date().toISOString(),
+    school,
+    teachers: teachers.map((t) => ({
+      id: t.id,
+      displayName: t.displayName,
+      email: t.email,
+      title: t.teacherProfile?.title ?? null,
+      banned: t.banned,
+      createdAt: t.createdAt.toISOString(),
+    })),
+    students: students.map((s) => ({
+      id: s.id,
+      displayName: s.displayName,
+      username: s.displayUsername,
+      studentIdentifier: s.studentProfile?.studentIdentifier ?? "",
+      grade: s.studentProfile?.grade ?? 0,
+      classNames: s.classMemberships.map((m) => m.class.name),
+      xpTotal: s.studentProfile?.xpTotal ?? 0,
+      starsTotal: s.studentProfile?.starsTotal ?? 0,
+      streakCurrent: s.studentProfile?.streakCurrent ?? 0,
+      streakBest: s.studentProfile?.streakBest ?? 0,
+      lastActiveDate: s.studentProfile?.lastActiveDate?.toISOString() ?? null,
+      banned: s.banned,
+      createdAt: s.createdAt.toISOString(),
+    })),
+    classes: classes.map((c) => ({
+      id: c.id,
+      name: c.name,
+      grade: c.grade,
+      academicYear: c.academicYear.name,
+      studentCount: c._count.memberships,
+    })),
+    certificates: certificates.map((c) => ({
+      serial: c.serial,
+      kind: c.kind,
+      studentName: c.studentName,
+      issuedAt: c.issuedAt.toISOString(),
+      revoked: c.revokedAt !== null,
+    })),
+  };
+}
+
 /**
  * Registry for the tenant-isolation test suite. EVERY exported query above
  * must be listed; tests iterate this and verify cross-school leakage is
@@ -327,4 +493,5 @@ export const tenantScopedQueries = {
   listAcademicYears,
   listImportHistory,
   getSchoolProgressReport,
+  getSchoolDataExport,
 } as const;

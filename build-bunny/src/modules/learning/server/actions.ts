@@ -2,7 +2,8 @@
 
 import { z } from "zod";
 
-import { withAuth, type ActionResult } from "@/modules/auth/server/guard";
+import { createRateLimiter } from "@/lib/rate-limit";
+import { RateLimitedError, withAuth, type ActionResult } from "@/modules/auth/server/guard";
 import {
   markLevelStartedCore,
   revealHintCore,
@@ -22,12 +23,24 @@ const revealHintSchema = z.object({
   tier: z.number().int().min(1).max(4),
 });
 
+/**
+ * Anti-hammering guard (m5 §34): revealHintCore's own tier-gating logic
+ * (previous tier revealed + 60s cooldown or a fresh attempt) already limits
+ * how fast hints normally advance, but nothing stopped a scripted client from
+ * hammering the endpoint directly — 20/min per student is generous for a
+ * human clicking "Reveal" but blocks that.
+ */
+const hintLimiter = createRateLimiter({ limit: 20, windowMs: 60_000 });
+
 export async function revealHint(
   input: unknown,
 ): Promise<ActionResult<RevealedHint>> {
-  return withAuth("attempts:submit", revealHintSchema, (ctx, data) =>
-    revealHintCore(ctx, data),
-  )(input);
+  return withAuth("attempts:submit", revealHintSchema, (ctx, data) => {
+    if (!hintLimiter.allow(ctx.userId)) {
+      throw new RateLimitedError("Too many hint requests");
+    }
+    return revealHintCore(ctx, data);
+  })(input);
 }
 
 const saveDraftSchema = z.object({

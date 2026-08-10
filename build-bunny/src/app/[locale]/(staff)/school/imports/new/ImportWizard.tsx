@@ -16,6 +16,12 @@ function errorMessage(t: T, code: string): string {
   return t("errorGeneric");
 }
 
+// Mirrors the server's MAX_CSV_BYTES cap (school/imports/actions.ts) — reject
+// oversized/wrong-typed files before ever reading them into memory, not just
+// after the round trip (m5 §34: "cap CSV upload size and reject non-CSV
+// content types").
+const MAX_CSV_BYTES = 2_000_000;
+
 function downloadCsv(filename: string, rows: string[][]) {
   const csv = rows
     .map((row) =>
@@ -54,9 +60,20 @@ export function ImportWizard() {
 
   async function handleFile(file: File | undefined) {
     if (!file) return;
+    resetResults();
+    // Browsers report inconsistent/empty `type` for .csv (Excel exports often
+    // say "application/vnd.ms-excel" or ""), so the extension is the
+    // reliable signal; the byte cap matches the server's hard limit exactly.
+    if (!/\.csv$/i.test(file.name)) {
+      setError(t("fileWrongType"));
+      return;
+    }
+    if (file.size > MAX_CSV_BYTES) {
+      setError(t("fileTooLarge"));
+      return;
+    }
     const text = await file.text();
     setCsvText(text);
-    resetResults();
   }
 
   async function handleValidate() {
@@ -209,7 +226,12 @@ export function ImportWizard() {
               {plan.summary.errors > 0 ? (
                 <Badge variant="danger">{t("summaryErrors", { count: plan.summary.errors })}</Badge>
               ) : null}
-              <Button onClick={handleCommit} loading={busy === "commit"} disabled={!canCommit}>
+              <Button
+                onClick={handleCommit}
+                loading={busy === "commit"}
+                disabled={!canCommit}
+                aria-describedby={!canCommit && commitResult === null ? "import-commit-hint" : undefined}
+              >
                 {t("commitCta")}
               </Button>
             </div>
@@ -225,7 +247,9 @@ export function ImportWizard() {
             />
           </CardBody>
           {!canCommit && commitResult === null ? (
-            <p className="px-5 pb-4 text-xs text-ink-muted">{t("commitDisabledHint")}</p>
+            <p id="import-commit-hint" className="px-5 pb-4 text-xs text-ink-muted">
+              {t("commitDisabledHint")}
+            </p>
           ) : null}
         </Card>
       ) : null}

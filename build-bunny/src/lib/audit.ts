@@ -1,5 +1,6 @@
 import { db } from "@/lib/db";
 import type { AuditOutcome, Prisma } from "@prisma/client";
+import { getRequestId } from "@/lib/logger";
 
 /**
  * Append-only audit trail (plan §0.1-1 / security doc §5). Every account
@@ -33,7 +34,11 @@ export async function audit(entry: AuditEntry): Promise<void> {
         targetType: entry.targetType ?? null,
         targetId: entry.targetId ?? null,
         outcome: entry.outcome ?? "SUCCESS",
-        requestId: entry.requestId ?? null,
+        // Falls back to whatever request/action context is active (set by
+        // the attempts route or the withAuth guard) so callers deep in the
+        // pipeline (e.g. certificate issuance from the grading transaction)
+        // don't have to thread requestId through their own signatures.
+        requestId: entry.requestId ?? getRequestId() ?? null,
         ip: entry.ip ?? null,
         meta: entry.meta,
       },
@@ -59,6 +64,7 @@ export const AUDIT = {
     disabled: "students.disabled",
     enabled: "students.enabled",
     imported: "students.imported",
+    erased: "students.erased",
   },
   staff: {
     created: "staff.created",
@@ -82,5 +88,8 @@ export const AUDIT = {
   impersonation: {
     start: "impersonation.start",
     stop: "impersonation.stop",
+  },
+  privacy: {
+    dataExported: "privacy.data_exported",
   },
 } as const;

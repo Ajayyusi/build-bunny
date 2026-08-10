@@ -298,29 +298,61 @@ export async function submitAttempt(
     if (stars >= 3 && !priorSources.has("STAR_3")) {
       awards.push({ source: "STAR_3", amount: 10 });
     }
-    const xpAwarded = awards.reduce((sum, a) => sum + a.amount, 0);
+    // Optimistic total from the priorXp snapshot above — corrected below to
+    // whatever actually lands, since that snapshot can be stale by the time
+    // of insert (see the per-row loop's comment).
+    const optimisticXpAwarded = awards.reduce((sum, a) => sum + a.amount, 0);
 
     const attempt = await tx.activityAttempt.create({
       data: {
         ...attemptBase,
         kind: "NORMAL",
         viaImpersonation: false,
-        xpAwarded,
+        xpAwarded: optimisticXpAwarded,
         resultSummary: summaryJson(grade),
       },
       select: { id: true },
     });
 
-    if (awards.length > 0) {
-      await tx.xpEvent.createMany({
-        data: awards.map((award) => ({
-          schoolId,
-          studentUserId: ctx.userId,
-          levelId,
-          source: award.source,
-          amount: award.amount,
-          attemptId: attempt.id,
-        })),
+    // One row at a time, not createMany: a genuinely concurrent SECOND
+    // attempt by the same student on the same level (two tabs, a fast
+    // double Run, or exactly what a classroom load test produces) can read
+    // the SAME priorXp snapshot above before either transaction commits —
+    // READ COMMITTED does not block that read. createMany would then throw
+    // P2002 on the (studentUserId, levelId, source) unique and fail the
+    // whole request with a 500 (found via scripts/load-check.ts, m5 task 6:
+    // 13/40 concurrent submissions from the same 8 students errored this
+    // way). Inserting per-row and catching P2002 turns the loser of that
+    // race into a harmless no-op instead of a crash, and — critically —
+    // xpAwarded below is corrected to what ACTUALLY landed, so the
+    // student's xpTotal cache (incremented further down) can never drift
+    // ahead of the ledger it's derived from.
+    let xpAwarded = 0;
+    for (const award of awards) {
+      try {
+        await tx.xpEvent.create({
+          data: {
+            schoolId,
+            studentUserId: ctx.userId,
+            levelId,
+            source: award.source,
+            amount: award.amount,
+            attemptId: attempt.id,
+          },
+        });
+        xpAwarded += award.amount;
+      } catch (err) {
+        if (!(err instanceof Prisma.PrismaClientKnownRequestError) || err.code !== "P2002") {
+          throw err;
+        }
+        // Lost the race for this specific award — a concurrent attempt
+        // already holds it. Not an error: exactly one attempt should win.
+      }
+    }
+    if (xpAwarded !== optimisticXpAwarded) {
+      await tx.activityAttempt.update({
+        where: { id: attempt.id },
+        data: { xpAwarded },
       });
     }
 

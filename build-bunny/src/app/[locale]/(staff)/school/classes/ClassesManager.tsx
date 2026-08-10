@@ -514,6 +514,13 @@ export function ClassesManager({
               onChange={(e) => setRosterQuery(e.target.value)}
               placeholder={t("rosterAddPlaceholder")}
             />
+            {/* Typing updates the list below silently otherwise — a screen
+                reader user gets no feedback that matches appeared (m5 §41). */}
+            <div aria-live="polite" className="sr-only">
+              {rosterQuery.trim() !== ""
+                ? t("rosterSearchResults", { count: rosterCandidates.length })
+                : ""}
+            </div>
             {rosterQuery.trim() !== "" && rosterCandidates.length > 0 ? (
               <ul className="flex flex-col divide-y divide-border-token rounded-md border border-border-token">
                 {rosterCandidates.map((s) => (

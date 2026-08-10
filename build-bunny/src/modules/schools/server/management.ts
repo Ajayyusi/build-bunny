@@ -150,6 +150,54 @@ export async function setStudentDisabled(
   await setAccountDisabled(actorFrom(ctx), { userId, schoolId, isStudent: true }, disabled);
 }
 
+/**
+ * Hard-deletes a student (plan §1.2 / m5 §35 erasure right). Every child row
+ * — StudentProfile, ClassMembership, StudentProgress, ActivityAttempt,
+ * XpEvent, HintUsage, StudentDailyActivity, StudentAchievement,
+ * TeacherFeedback, LearningEvent, Session, Account — cascades via
+ * schema.prisma's `onDelete: Cascade` on the User relation; no extra cleanup
+ * calls are needed or correct (a partial manual delete would race the FK
+ * cascade). Certificate.studentUserId is the one deliberate SetNull FK, so
+ * an already-issued certificate survives with its FROZEN display fields
+ * (studentName/schoolName/title/starsEarned/levelsCount, captured at
+ * issuance) — /verify/[slug] keeps resolving exactly as before. AuditLog has
+ * no FK to User at all (schema comment: "audit records must survive account
+ * erasure"), so the audit write below is safe to log the now-deleted id.
+ */
+export async function eraseStudent(
+  ctx: SessionContext,
+  userId: string,
+): Promise<{ displayName: string; studentIdentifier: string }> {
+  const schoolId = requireSchool(ctx);
+  const user = await db.user.findFirst({
+    where: { id: userId, schoolId, role: "STUDENT" },
+    select: {
+      displayName: true,
+      studentProfile: { select: { studentIdentifier: true } },
+    },
+  });
+  if (!user) throw new NotFoundError("Student not found in this school");
+
+  const snapshot = {
+    displayName: user.displayName,
+    studentIdentifier: user.studentProfile?.studentIdentifier ?? "",
+  };
+
+  await db.user.delete({ where: { id: userId } });
+
+  await audit({
+    action: AUDIT.students.erased,
+    actorUserId: ctx.userId,
+    actorRole: ctx.role,
+    schoolId,
+    targetType: "student",
+    targetId: userId,
+    meta: snapshot,
+  });
+
+  return snapshot;
+}
+
 /** Bulk reset for the "reset all and print" credential sheet flow. */
 export async function resetClassPasswords(
   ctx: SessionContext,

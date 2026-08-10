@@ -489,6 +489,22 @@ async function assertQueryIsolated(entry: RegistryEntry): Promise<void> {
       expect(overviewTwo.classes.map((c) => c.id)).toEqual([classTwoBId]);
       break;
     }
+    case "getSchoolAnalytics": {
+      // SCHOOL_ADMIN only — a TEACHER or STUDENT session gets null (defense
+      // in depth on top of the page-level requireRole guard).
+      expect(await query(teacherCtxA)).toBeNull();
+      expect(await query(studentCtxA)).toBeNull();
+      const analytics = (await query(ctxA)) as {
+        certificatesIssued: number;
+        byClass: { classId: string }[];
+      } | null;
+      expect(analytics).not.toBeNull();
+      // Matches the certA fixture below (one certificate, school A only).
+      expect(analytics!.certificatesIssued).toBe(1);
+      expect(analytics!.byClass.map((c) => c.classId)).toEqual([A.classId]);
+      expectNoForeignIds(analytics, name);
+      break;
+    }
     case "getAttemptReplay": {
       expect(await query(teacherCtxA, "no-such-attempt")).toBeNull();
       const own = (await query(teacherCtxA, attemptAId)) as { attempt: { studentUserId: string } } | null;
@@ -583,6 +599,26 @@ async function assertQueryIsolated(entry: RegistryEntry): Promise<void> {
         expect(B.studentIds).not.toContain(row["studentId"]);
       }
       expectNoForeignIds(rows, name);
+      break;
+    }
+    case "getSchoolDataExport": {
+      const bundle = (await query(ctxA)) as {
+        school: { id: string };
+        teachers: { id: string }[];
+        students: { id: string }[];
+        classes: { id: string }[];
+        certificates: { serial: string }[];
+      };
+      expect(bundle.school.id).toBe(A.school.id);
+      // >= not ===, same reasoning as getSchoolProgressReport above: sibling
+      // fixtures in this file add more of school A's own rows over time.
+      expect(bundle.teachers.map((t) => t.id)).toContain(A.teacherId);
+      const exportedStudentIds = bundle.students.map((s) => s.id);
+      for (const id of A.studentIds) expect(exportedStudentIds).toContain(id);
+      expect(bundle.classes.map((c) => c.id)).toContain(A.classId);
+      expect(bundle.certificates.map((c) => c.serial)).toContain("BB-2026-AAAAAA");
+      expect(bundle.certificates.map((c) => c.serial)).not.toContain("BB-2026-BBBBBB");
+      expectNoForeignIds(bundle, name);
       break;
     }
     case "getMyStudentSnapshot": {

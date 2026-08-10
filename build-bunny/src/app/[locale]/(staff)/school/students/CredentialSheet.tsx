@@ -31,10 +31,10 @@ export function CredentialSheet({
       <table className="mt-6 w-full border-collapse text-sm">
         <thead>
           <tr>
-            <th className="border border-border-token px-3 py-2 text-start">{t("columnName")}</th>
-            <th className="border border-border-token px-3 py-2 text-start">{t("sheetSchoolCode")}</th>
-            <th className="border border-border-token px-3 py-2 text-start">{t("sheetUsername")}</th>
-            <th className="border border-border-token px-3 py-2 text-start">{t("sheetPassword")}</th>
+            <th scope="col" className="border border-border-token px-3 py-2 text-start">{t("columnName")}</th>
+            <th scope="col" className="border border-border-token px-3 py-2 text-start">{t("sheetSchoolCode")}</th>
+            <th scope="col" className="border border-border-token px-3 py-2 text-start">{t("sheetUsername")}</th>
+            <th scope="col" className="border border-border-token px-3 py-2 text-start">{t("sheetPassword")}</th>
           </tr>
         </thead>
         <tbody>

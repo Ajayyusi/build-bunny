@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 
 import { CertificateSheet, type CertificateSheetLabels } from "@/modules/certificates/CertificateSheet";
-import { Button } from "@/ui";
+import { Button, useFocusTrap } from "@/ui";
 
 export interface CertificateVM {
   id: string;
@@ -35,6 +35,10 @@ export function CertificatesPanel({ certificates, locale, labels }: Props) {
   const tCert = useTranslations("certificates");
   const [openId, setOpenId] = useState<string | null>(null);
   const open = certificates.find((c) => c.id === openId) ?? null;
+  // Focus in on open + trap + restore-on-close (Dialog.tsx's native <dialog>
+  // gets this for free from showModal(); this preview is `fixed inset-0`
+  // instead, print-styled, so it stays a hand-rolled overlay).
+  const dialogRef = useFocusTrap<HTMLDivElement>(open !== null);
 
   useEffect(() => {
     if (!open) return;
@@ -84,10 +88,12 @@ export function CertificatesPanel({ certificates, locale, labels }: Props) {
 
       {open ? (
         <div
+          ref={dialogRef}
           role="dialog"
           aria-modal="true"
           aria-label={open.title}
-          className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-4 overflow-y-auto bg-ink/50 p-4 print:static print:bg-transparent print:p-0"
+          tabIndex={-1}
+          className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-4 overflow-y-auto bg-ink/50 p-4 focus:outline-none print:static print:bg-transparent print:p-0"
           onClick={(event) => {
             if (event.target === event.currentTarget) setOpenId(null);
           }}

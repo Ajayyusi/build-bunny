@@ -34,6 +34,7 @@ export default async function SchoolSectionLayout({ children, params }: Props) {
         <NavLink href="/school/imports">{t("imports")}</NavLink>
         <NavLink href="/school/certificates">{t("certificates")}</NavLink>
         <NavLink href="/school/reports">{t("reports")}</NavLink>
+        <NavLink href="/school/privacy">{t("privacy")}</NavLink>
       </nav>
       {children}
     </div>

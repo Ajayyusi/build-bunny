@@ -13,6 +13,7 @@ export const foundations: ProgramFixture = {
   },
   description: {
     en: "From a first hop to real machine learning: sequences, loops, decisions, data, and AI — one adventure across eight worlds.",
+    ar: "من القفزة الأولى إلى تعلّم الآلة الحقيقي: التسلسل، الحلقات، القرارات، البيانات، والذكاء الاصطناعي — مغامرة واحدة عبر ثمانية عوالم.",
   },
   gradeMin: 3,
   gradeMax: 7,

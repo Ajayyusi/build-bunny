@@ -3,6 +3,7 @@ export { fontVariables } from "./fonts";
 
 export { Avatar, type AvatarProps, type AvatarSize } from "./Avatar";
 export { Badge, type BadgeProps, type BadgeVariant } from "./Badge";
+export { BarList, type BarListItem, type BarListProps } from "./BarList";
 export {
   Button,
   type ButtonProps,
@@ -23,7 +24,9 @@ export { Input, type InputProps } from "./Input";
 export { PageHeader, type PageHeaderProps } from "./PageHeader";
 export { Select, type SelectProps } from "./Select";
 export { Skeleton, type SkeletonProps, type SkeletonRadius } from "./Skeleton";
+export { SkipLink, type SkipLinkProps } from "./SkipLink";
 export { Spinner, type SpinnerProps, type SpinnerSize } from "./Spinner";
+export { Sparkline, type SparklinePoint, type SparklineProps } from "./Sparkline";
 export { StatCard, type StatCardProps } from "./StatCard";
 export {
   ToastProvider,
@@ -32,3 +35,4 @@ export {
   type ToastProviderProps,
   type ToastVariant,
 } from "./Toast";
+export { useFocusTrap } from "./useFocusTrap";

@@ -89,7 +89,14 @@ function hasArabic(value: LocalizedText | undefined): boolean {
   return value === undefined || (value.ar ?? "").trim().length > 0;
 }
 
-/** A level is AR-complete when every localized field it carries has Arabic. */
+/**
+ * A level is AR-complete when every STUDENT-FACING localized field has
+ * Arabic. `teacherNotes` is deliberately excluded (m5-contracts §1):
+ * it's a staff-only field, never shown to students, never localized in
+ * the player UI, and is intentionally shipped English-only — requiring
+ * Arabic there would make `arComplete: true` impossible for content whose
+ * teaching copy is fully translated, which defeats the flag's purpose.
+ */
 function computeArComplete(level: ParsedLevel): boolean {
   const hintsArabic = level.hints.every((h) => hasArabic(h.text));
   return (
@@ -98,7 +105,6 @@ function computeArComplete(level: ParsedLevel): boolean {
     hasArabic(level.objective) &&
     hasArabic(level.instructions) &&
     hasArabic(level.explanation) &&
-    hasArabic(level.teacherNotes) &&
     hintsArabic
   );
 }

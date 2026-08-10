@@ -161,6 +161,34 @@ describe("level payloads and hints", () => {
     }
   });
 
+  it("every level has real, non-placeholder Arabic for every student-facing field (m5-contracts §1)", () => {
+    // A cheap untranslated-placeholder detector: a populated `ar` field that
+    // is byte-identical to its `en` counterpart means someone copy-pasted
+    // English instead of translating, since MSA Arabic text can never be
+    // identical to English prose.
+    function checkField(
+      label: string,
+      value: { en: string; ar?: string } | undefined,
+    ) {
+      if (value === undefined) return; // optional field (e.g. story), skip
+      expect(value.ar, `${label} missing Arabic`).toBeTruthy();
+      expect((value.ar ?? "").trim().length, `${label} Arabic is empty`).toBeGreaterThan(0);
+      expect(value.ar, `${label} Arabic is byte-identical to English`).not.toBe(value.en);
+    }
+
+    for (const { world, level } of levels) {
+      const label = `${world.slug}/${level.slug}`;
+      checkField(`${label}.title`, level.title);
+      checkField(`${label}.story`, level.story);
+      checkField(`${label}.objective`, level.objective);
+      checkField(`${label}.instructions`, level.instructions);
+      checkField(`${label}.explanation`, level.explanation);
+      for (const hint of level.hints) {
+        checkField(`${label}.hint[tier ${hint.tier}]`, hint.text);
+      }
+    }
+  });
+
   it("grid levels declare a 3-star block budget, a solution, and a core check", () => {
     for (const { world, level } of levels) {
       if (level.activityType !== "BLOCK_CODING" && level.activityType !== "DEBUGGING") continue;

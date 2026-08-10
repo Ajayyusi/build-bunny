@@ -17,6 +17,7 @@
     "copied": "Copied!",
     "print": "Print",
     "download": "Download",
+    "skipToContent": "Skip to content",
     "roles": {
       "SUPER_ADMIN": "Super admin",
       "NITAQ_ADMIN": "NITAQ admin",
@@ -460,8 +461,10 @@
         "whoIsWhere": "Who's where",
         "onLevel": "On {level}",
         "notStarted": "Not started",
+        "completed": "Completed",
         "refreshNote": "Updates every 20 seconds",
-        "emptyTitle": "No students in this class yet"
+        "emptyTitle": "No students in this class yet",
+        "liveRegionLabel": "Class status, updates automatically"
       }
     },
     "school": {
@@ -489,9 +492,37 @@
         "classes": "Classes",
         "imports": "Imports",
         "certificates": "Certificates",
-        "reports": "Reports"
+        "reports": "Reports",
+        "privacy": "Privacy"
       },
       "manageHeading": "Manage your school",
+      "analytics": {
+        "heading": "This term at a glance",
+        "activeWeek": "Active this week",
+        "activeMonth": "Active this month",
+        "certificatesIssued": "Certificates issued",
+        "licenceSeats": "Licence seats used",
+        "licenceSeatsValue": "{used} / {total}",
+        "licenceSeatsNoLicence": "{used} (no licence on file)",
+        "avgStars": "Avg. stars per completed level",
+        "byGradeHeading": "Completion by grade",
+        "byGradeEmpty": "No levels published for this school's program yet.",
+        "byClassHeading": "Class comparison",
+        "columnClass": "Class",
+        "columnGrade": "Grade",
+        "columnStudents": "Students",
+        "columnCompletion": "Completion",
+        "columnAvgStars": "Avg. stars",
+        "columnActiveWeek": "Active this week",
+        "byClassEmpty": "No classes yet.",
+        "mostAttemptedHeading": "Most-attempted levels",
+        "mostFailedHeading": "Most-failed levels",
+        "columnLevel": "Level",
+        "columnWorld": "World",
+        "columnAttempts": "Attempts",
+        "columnFailRate": "Fail rate",
+        "levelsEmpty": "Not enough attempts yet to show this."
+      },
       "teachersPage": {
         "title": "Teachers",
         "subtitle": "Add teachers, reset their passwords and manage account access.",
@@ -560,6 +591,13 @@
         "confirmReactivateTitle": "Reactivate this student?",
         "confirmReactivateBody": "{name} will be able to sign in again.",
         "confirmCta": "Confirm",
+        "eraseCta": "Erase data",
+        "confirmEraseTitle": "Permanently erase {name}?",
+        "confirmEraseBody": "This permanently deletes the account, sign-in and all learning history — progress, attempts, XP, streaks, achievements, hints and teacher feedback. This cannot be undone. Certificates already earned stay valid and publicly verifiable, but no longer show as linked to an active account.",
+        "confirmEraseConfirmLabel": "Type {name} to confirm",
+        "confirmEraseTypeMismatch": "Type the student's name exactly to enable this button.",
+        "eraseConfirmCta": "Permanently erase",
+        "eraseDoneToast": "{name}'s account and learning history have been erased.",
         "credentialSheetCta": "Print credential sheet",
         "credentialSheetNeedsClass": "Filter by a class first to print its credential sheet.",
         "credentialSheetDialogTitle": "Credential sheet — {className}",
@@ -603,6 +641,7 @@
         "rosterCurrentHeading": "Current students",
         "rosterAddHeading": "Add a student",
         "rosterAddPlaceholder": "Search students by name…",
+        "rosterSearchResults": "{count, plural, =0 {No students found} one {# student found} other {# students found}}",
         "addStudentCta": "Add",
         "removeCta": "Remove",
         "rosterEmpty": "No students in this class yet.",
@@ -662,7 +701,9 @@
           "credentialsNote": "Passwords are shown once — download or copy them now.",
           "doneCta": "Done",
           "forbidden": "You don't have permission to import students.",
-          "errorGeneric": "Something went wrong. Please try again."
+          "errorGeneric": "Something went wrong. Please try again.",
+          "fileTooLarge": "That file is larger than 2 MB — split it into smaller batches.",
+          "fileWrongType": "Please choose a .csv file."
         }
       },
       "certificatesPage": {
@@ -681,8 +722,30 @@
       "reportsPage": {
         "title": "Reports",
         "subtitle": "Export class and student progress as a spreadsheet.",
+        "studentProgressTitle": "Student progress",
         "downloadCta": "Download progress report (CSV)",
-        "downloadHint": "Includes every student's XP, stars, streak and levels completed."
+        "downloadHint": "Includes every student's XP, stars, streak and levels completed.",
+        "classProgressTitle": "Class progress",
+        "classProgressHint": "Completion rate, average stars and weekly activity for every class.",
+        "classProgressCta": "Download class progress (CSV)",
+        "gradeProgressTitle": "Progress by grade",
+        "gradeProgressHint": "Completion rate and average stars for every grade level.",
+        "gradeProgressCta": "Download progress by grade (CSV)",
+        "certificatesTitle": "Certificates issued",
+        "certificatesHint": "Every certificate issued to a student at this school.",
+        "certificatesCta": "Download certificates (CSV)"
+      },
+      "privacyPage": {
+        "title": "Privacy",
+        "subtitle": "Export everything this school's data looks like, or permanently erase a student's account.",
+        "exportHeading": "Export school data",
+        "exportBody": "A full snapshot of your school's roster, classes and issued certificates — teachers, students, their XP/stars/streaks, class rosters and certificate records. Nothing beyond what's already visible across the Teachers, Students, Classes and Certificates pages, bundled into one download.",
+        "downloadJsonCta": "Download JSON export",
+        "downloadCsvCta": "Download CSV export",
+        "exportedNote": "Every download is recorded in the audit log with your name and the row counts.",
+        "eraseHeading": "Erase a student",
+        "eraseBody": "Permanently deleting a student's account and learning history is done from the Students page, next to that student — it needs a typed confirmation because it cannot be undone.",
+        "eraseLinkCta": "Go to Students"
       }
     }
   },
@@ -823,7 +886,40 @@
       "students": "Students",
       "teachers": "Teachers",
       "expiringLicences": "Licences expiring soon",
-      "expiringHint": "Within the next 60 days"
+      "expiringHint": "Within the next 60 days",
+      "dau": "Daily active students",
+      "wau": "Weekly active students",
+      "certificatesIssued": "Certificates issued"
+    },
+    "activity": {
+      "heading": "Attempts, last 14 days",
+      "ariaLabel": "Attempts per day over the last 14 days",
+      "total": "{count} attempts in the last 14 days",
+      "empty": "No attempts recorded in the last 14 days."
+    },
+    "mostFailedLevels": {
+      "heading": "Most-failed levels",
+      "hint": "A content-quality signal, not a blame list.",
+      "columnLevel": "Level",
+      "columnWorld": "World",
+      "columnAttempts": "Attempts",
+      "columnFailRate": "Fail rate",
+      "empty": "Not enough attempts yet to show this."
+    },
+    "schoolsByActivity": {
+      "heading": "Schools by activity",
+      "columnSchool": "School",
+      "columnActive": "Active this week",
+      "columnStudents": "Students",
+      "empty": "No schools onboarded yet."
+    },
+    "licencePipeline": {
+      "heading": "Licence expiry pipeline",
+      "columnSchool": "School",
+      "columnStatus": "Status",
+      "columnExpires": "Expires",
+      "columnSeats": "Seats",
+      "empty": "No licences expiring in the next 60 days."
     },
     "schools": {
       "heading": "Schools",

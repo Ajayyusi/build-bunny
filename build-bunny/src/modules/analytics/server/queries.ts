@@ -6,16 +6,20 @@ import {
   getStudentDetail,
   getTeacherOverview,
 } from "./teacher";
+import { getSchoolAnalytics } from "./school";
 
 /**
- * Teacher-analytics tenant-scoped queries (hard rule 1). The implementations
- * live in ./teacher.ts (m4 pinned interface); this file re-exports them and
- * registers them so the tenant-isolation rig — which globs every
- * modules/x/server/queries.ts — pulls them under test automatically.
- * giveFeedbackCore is a mutation, not a read, so it is deliberately NOT
- * re-exported here (same convention as learning/server/queries.ts).
+ * Analytics tenant-scoped queries (hard rule 1). The implementations live in
+ * ./teacher.ts (m4 pinned interface) and ./school.ts (m5 school-admin
+ * dashboard); this file re-exports them and registers them so the
+ * tenant-isolation rig — which globs every modules/x/server/queries.ts —
+ * pulls them under test automatically. giveFeedbackCore is a mutation, not a
+ * read, so it is deliberately NOT re-exported here (same convention as
+ * learning/server/queries.ts). Platform-wide analytics (./platform.ts) is
+ * intentionally NOT re-exported here — it is cross-tenant by design, guarded
+ * like schools/server/platform-queries.ts instead of registered.
  */
-export { getAttemptReplay, getClassMatrix, getStudentDetail, getTeacherOverview };
+export { getAttemptReplay, getClassMatrix, getStudentDetail, getTeacherOverview, getSchoolAnalytics };
 
 /** Registry walked by the tenant-isolation test suite. */
 export const tenantScopedQueries = {
@@ -23,4 +27,5 @@ export const tenantScopedQueries = {
   getTeacherOverview,
   getStudentDetail,
   getAttemptReplay,
+  getSchoolAnalytics,
 } as const;

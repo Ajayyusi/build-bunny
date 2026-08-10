@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 
 import { Link } from "@/i18n/navigation";
-import { Button, Spinner, cn } from "@/ui";
+import { Button, Spinner, cn, useFocusTrap } from "@/ui";
 
 import styles from "./player.module.css";
 
@@ -68,6 +68,12 @@ export function SuccessOverlay({
     return () => window.clearTimeout(timer);
   }, [stage]);
 
+  // Same manual trap as IntroOverlay (this overlay can't use the native
+  // <dialog>-based Dialog component — see its comment). resetKey=stage
+  // re-focuses when the burst gives way to the explanation card, since that
+  // swaps the whole role="dialog" subtree in place.
+  const dialogRef = useFocusTrap<HTMLDivElement>(true, stage);
+
   const starsRow = (size: string) => (
     <span
       role="img"
@@ -96,10 +102,12 @@ export function SuccessOverlay({
   if (stage === "burst") {
     return (
       <div
+        ref={dialogRef}
         role="dialog"
         aria-modal="true"
         aria-label={t("title")}
-        className={`${styles.overlay} absolute inset-0 z-30 flex flex-col items-center justify-center gap-8 bg-surface p-6`}
+        tabIndex={-1}
+        className={`${styles.overlay} absolute inset-0 z-30 flex flex-col items-center justify-center gap-8 bg-surface p-6 focus:outline-none`}
       >
         <p className="font-display text-2xl font-bold text-ink">{t("title")}</p>
         {starsRow("text-6xl")}
@@ -112,10 +120,12 @@ export function SuccessOverlay({
 
   return (
     <div
+      ref={dialogRef}
       role="dialog"
       aria-modal="true"
       aria-label={t("title")}
-      className={`${styles.overlay} absolute inset-0 z-30 flex items-center justify-center overflow-y-auto bg-surface p-4`}
+      tabIndex={-1}
+      className={`${styles.overlay} absolute inset-0 z-30 flex items-center justify-center overflow-y-auto bg-surface p-4 focus:outline-none`}
     >
       <div
         className={`${styles.card} flex w-full max-w-md flex-col gap-4 rounded-xl border border-border-token bg-surface-raised p-6 shadow-raised`}

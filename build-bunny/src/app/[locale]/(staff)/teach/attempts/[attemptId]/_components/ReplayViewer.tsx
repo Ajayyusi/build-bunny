@@ -137,6 +137,8 @@ function GridReplay({
                   <button
                     key={index}
                     type="button"
+                    aria-pressed={index === variantIndex}
+                    aria-label={t("variantLabel", { current: index + 1, total: variants.length })}
                     onClick={() => {
                       setVariantIndex(index);
                       setPlaying(false);
@@ -144,7 +146,7 @@ function GridReplay({
                     className={cn(
                       "flex h-8 min-w-8 items-center justify-center rounded-md px-2 text-xs font-bold transition-colors",
                       index === variantIndex
-                        ? "bg-brand/10 text-brand"
+                        ? "bg-brand/10 text-brand underline decoration-2 underline-offset-4"
                         : "text-ink-muted hover:bg-surface-sunken",
                     )}
                   >

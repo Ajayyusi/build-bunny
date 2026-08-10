@@ -50,7 +50,7 @@ export function PublishButton({ levelId }: { levelId: string }) {
         {t("publish")}
       </Button>
       {publishedVersion !== null ? (
-        <p className="text-sm font-medium text-positive">
+        <p role="status" className="text-sm font-medium text-positive">
           {t("publishSuccess", { version: publishedVersion })}
         </p>
       ) : null}

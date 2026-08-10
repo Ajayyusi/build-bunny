@@ -5,6 +5,7 @@ import { z } from "zod";
 import { withAuth, type ActionResult } from "@/modules/auth/server/guard";
 import {
   createStudentAccount,
+  eraseStudent,
   resetClassPasswords,
   resetStudentPassword,
   setStudentDisabled,
@@ -48,6 +49,18 @@ const disableInput = z.object({ userId: z.string().min(1), disabled: z.boolean()
 export async function setStudentDisabledAction(input: unknown): Promise<ActionResult<void>> {
   return withAuth("accounts:disable", disableInput, (ctx, { userId, disabled }) =>
     setStudentDisabled(ctx, userId, disabled),
+  )(input);
+}
+
+/**
+ * Hard-delete erasure (m5 §35). SCHOOL_ADMIN only — "students:manage" is
+ * not granted to TEACHER, unlike "students:write"/"credentials:reset".
+ */
+export async function eraseStudentAction(
+  input: unknown,
+): Promise<ActionResult<{ displayName: string; studentIdentifier: string }>> {
+  return withAuth("students:manage", userIdInput, (ctx, { userId }) =>
+    eraseStudent(ctx, userId),
   )(input);
 }
 

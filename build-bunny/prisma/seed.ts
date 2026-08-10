@@ -346,19 +346,32 @@ async function ensureStudent(
 
 const PROGRAM_SLUG = "foundations";
 
+/** Pulls the trailing `level:<slug>` segment out of an import diff label. */
+function levelSlugFromLabel(label: string): string | null {
+  const match = /\/level:([a-z0-9-]+)$/.exec(label);
+  return match ? match[1]! : null;
+}
+
 /**
  * Imports the bundled content through the SAME service the platform import
  * wizard uses. The dry run decides idempotence: identical content = nothing
  * to commit (and no audit noise); any issue in the bundle aborts the seed.
+ * Returns the slugs of levels the import actually changed (created OR
+ * updated) — snapshots are immutable, so a content-only edit to an
+ * ALREADY-PUBLISHED level (e.g. the m5 Arabic pass) updates its DRAFT fields
+ * but does nothing to what students see until it is explicitly republished;
+ * `ensureCurriculumPublished` uses this set to force exactly those levels
+ * through a fresh `publishLevel` call even though their status is already
+ * PUBLISHED.
  */
-async function ensureCurriculumContent(app: App): Promise<void> {
+async function ensureCurriculumContent(app: App): Promise<Set<string>> {
   const dry = await app.dryRunImport(app.bundle);
   if (dry.issues.length > 0) {
     throw new Error(`content bundle has issues:\n  ${dry.issues.join("\n  ")}`);
   }
   if (dry.creates.length === 0 && dry.updates.length === 0) {
     logSkipped(`content bundle (${dry.unchanged.length} entities unchanged)`);
-    return;
+    return new Set();
   }
   const diff = await app.commitImport(SEED_ACTOR, app.bundle);
   if (diff.issues.length > 0) {
@@ -367,16 +380,30 @@ async function ensureCurriculumContent(app: App): Promise<void> {
   logCreated(
     `content bundle (${diff.creates.length} created, ${diff.updates.length} updated, ${diff.unchanged.length} unchanged)`,
   );
+  const changedLevelSlugs = new Set<string>();
+  for (const label of [...diff.creates, ...diff.updates]) {
+    const slug = levelSlugFromLabel(label);
+    if (slug) changedLevelSlugs.add(slug);
+  }
+  return changedLevelSlugs;
 }
 
 /**
  * Publishes everything through the real pipeline: container statuses via
  * transitionStatus, each level via publishLevel (gates + LevelVersion
  * snapshot). Horizon worlds get PUBLISHED too — they carry no levels, and the
- * map only renders PUBLISHED worlds. Already-published entities are skipped,
- * never re-versioned.
+ * map only renders PUBLISHED worlds. Already-published levels are normally
+ * left alone (never re-versioned on every seed run) EXCEPT the ones in
+ * `changedLevelSlugs` — those had their DRAFT content just updated by
+ * ensureCurriculumContent, so they are force-republished to mint a NEW
+ * LevelVersion carrying the change (e.g. the m5 Arabic pass) rather than
+ * silently sitting in the DRAFT row while students keep seeing the old
+ * published snapshot.
  */
-async function ensureCurriculumPublished(app: App): Promise<void> {
+async function ensureCurriculumPublished(
+  app: App,
+  changedLevelSlugs: Set<string>,
+): Promise<void> {
   for (const worldFx of app.bundle.worlds) {
     const world = await app.db.world.findUnique({
       where: { slug: worldFx.slug },
@@ -400,7 +427,9 @@ async function ensureCurriculumPublished(app: App): Promise<void> {
       select: { id: true, slug: true, status: true, publishedVersionId: true },
     });
     for (const level of levels) {
-      if (level.status === "PUBLISHED" && level.publishedVersionId) {
+      const alreadyPublished = level.status === "PUBLISHED" && level.publishedVersionId;
+      const forceRepublish = alreadyPublished && changedLevelSlugs.has(level.slug);
+      if (alreadyPublished && !forceRepublish) {
         logSkipped(`level ${level.slug} (PUBLISHED)`);
         continue;
       }
@@ -411,7 +440,9 @@ async function ensureCurriculumPublished(app: App): Promise<void> {
           .map((g) => `${g.gate}: ${g.issues.join(", ")}`);
         throw new Error(`level ${level.slug} failed publish gates — ${failed.join(" | ")}`);
       }
-      logCreated(`level ${level.slug} → PUBLISHED v${result.version}`);
+      logCreated(
+        `level ${level.slug} → PUBLISHED v${result.version}${forceRepublish ? " (republished — content changed)" : ""}`,
+      );
     }
   }
 
@@ -1245,8 +1276,8 @@ async function main(): Promise<void> {
   // Curriculum before students: progress rows and unlocks need published
   // levels + the enabled program to exist.
   console.log("\nCurriculum:");
-  await ensureCurriculumContent(app);
-  await ensureCurriculumPublished(app);
+  const changedLevelSlugs = await ensureCurriculumContent(app);
+  await ensureCurriculumPublished(app, changedLevelSlugs);
   await ensureAchievements(app);
   const { programId } = await ensureSchoolProgram(app, school.id);
   const curriculum = await loadPublishedCurriculum(app);

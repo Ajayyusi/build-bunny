@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 
-import { Badge, Button, type BadgeVariant } from "@/ui";
+import { Badge, Button, useFocusTrap, type BadgeVariant } from "@/ui";
 
 import styles from "./player.module.css";
 
@@ -44,6 +44,11 @@ export function IntroOverlay({
   const [step, setStep] = useState<"story" | "mission">(
     hasStory ? "story" : "mission",
   );
+  // Keyboard/screen-reader parity with the native <dialog>-based Dialog
+  // component: this overlay can't use <dialog> (it's absolutely positioned
+  // inside the immersive player, not top-layer), so the trap is manual.
+  // resetKey=step re-focuses the first control when story → mission swaps.
+  const dialogRef = useFocusTrap<HTMLDivElement>(true, step);
 
   const difficultyLabel =
     difficulty in DIFFICULTY_VARIANT
@@ -52,10 +57,12 @@ export function IntroOverlay({
 
   return (
     <div
+      ref={dialogRef}
       role="dialog"
       aria-modal="true"
       aria-label={title}
-      className={`${styles.overlay} absolute inset-0 z-30 flex items-center justify-center overflow-y-auto bg-surface p-4`}
+      tabIndex={-1}
+      className={`${styles.overlay} absolute inset-0 z-30 flex items-center justify-center overflow-y-auto bg-surface p-4 focus:outline-none`}
     >
       <div
         className={`${styles.card} flex w-full max-w-md flex-col gap-4 rounded-xl border border-border-token bg-surface-raised p-6 shadow-raised`}

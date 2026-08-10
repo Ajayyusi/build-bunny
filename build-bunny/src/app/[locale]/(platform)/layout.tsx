@@ -3,7 +3,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { Link } from "@/i18n/navigation";
 import { requireRole } from "@/modules/auth/server/session";
-import { Avatar } from "@/ui";
+import { Avatar, SkipLink } from "@/ui";
 
 import { ImpersonationBanner } from "../_components/ImpersonationBanner";
 import { LocaleSwitcher } from "../_components/LocaleSwitcher";
@@ -19,10 +19,14 @@ export default async function PlatformLayout({ children, params }: Props) {
   const { locale } = await params;
   setRequestLocale(locale);
   const ctx = await requireRole("SUPER_ADMIN", "NITAQ_ADMIN");
-  const t = await getTranslations("platform");
+  const [t, tCommon] = await Promise.all([
+    getTranslations("platform"),
+    getTranslations("common"),
+  ]);
 
   return (
     <div data-theme="pro" className="flex min-h-dvh flex-col bg-surface text-ink">
+      <SkipLink label={tCommon("skipToContent")} />
       {ctx.impersonatedBy ? <ImpersonationBanner /> : null}
       {/* Brand-colored bottom rule distinguishes the platform bar from the
           school staff bar at a glance. */}
@@ -56,7 +60,9 @@ export default async function PlatformLayout({ children, params }: Props) {
           </div>
         </div>
       </header>
-      <main className="bb-container flex-1 py-8">{children}</main>
+      <main id="main-content" tabIndex={-1} className="bb-container flex-1 py-8 focus:outline-none">
+        {children}
+      </main>
     </div>
   );
 }

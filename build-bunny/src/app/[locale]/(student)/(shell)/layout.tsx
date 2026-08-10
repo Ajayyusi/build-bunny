@@ -5,7 +5,7 @@ import { Link } from "@/i18n/navigation";
 import { requireRole } from "@/modules/auth/server/session";
 import { isFeatureEnabled } from "@/modules/shared/features";
 import { getMyStudentSnapshot } from "@/modules/students/server/queries";
-import { Avatar } from "@/ui";
+import { Avatar, SkipLink } from "@/ui";
 
 import { NavLink } from "../../_components/NavLink";
 
@@ -39,6 +39,7 @@ export default async function StudentShellLayout({ children, params }: Props) {
 
   return (
     <>
+      <SkipLink label={tCommon("skipToContent")} />
       <header className="border-b border-border-token bg-surface-raised">
         <div className="bb-container flex flex-wrap items-center justify-between gap-x-4 gap-y-2 py-3">
           <div className="flex items-center gap-4 sm:gap-6">
@@ -78,7 +79,9 @@ export default async function StudentShellLayout({ children, params }: Props) {
           </div>
         </div>
       </header>
-      <main className="bb-container flex-1 py-8">{children}</main>
+      <main id="main-content" tabIndex={-1} className="bb-container flex-1 py-8 focus:outline-none">
+        {children}
+      </main>
     </>
   );
 }

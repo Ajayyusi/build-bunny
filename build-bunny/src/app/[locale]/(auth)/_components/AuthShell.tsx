@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { getTranslations } from "next-intl/server";
 
 import { Link } from "@/i18n/navigation";
-import { Card, CardBody } from "@/ui";
+import { Card, CardBody, SkipLink } from "@/ui";
 
 interface AuthShellProps {
   theme: "play" | "pro";
@@ -22,6 +22,7 @@ export async function AuthShell({
 
   return (
     <div data-theme={theme} className="flex min-h-dvh flex-col bg-surface text-ink">
+      <SkipLink label={t("skipToContent")} />
       <header className="bb-container flex h-16 items-center">
         <Link
           href="/"
@@ -31,7 +32,11 @@ export async function AuthShell({
           {t("appName")}
         </Link>
       </header>
-      <main className="flex flex-1 items-start justify-center px-4 py-8 sm:items-center sm:pb-24">
+      <main
+        id="main-content"
+        tabIndex={-1}
+        className="flex flex-1 items-start justify-center px-4 py-8 focus:outline-none sm:items-center sm:pb-24"
+      >
         <Card className="w-full max-w-md">
           <CardBody className="flex flex-col gap-6 p-6 sm:p-8">
             <div className="flex flex-col gap-1">

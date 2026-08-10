@@ -18,6 +18,7 @@ import {
 
 import {
   createStudentAction,
+  eraseStudentAction,
   resetClassPasswordsAction,
   resetStudentPasswordAction,
   setStudentDisabledAction,
@@ -91,6 +92,10 @@ export function StudentsManager({
   const [confirmTarget, setConfirmTarget] = useState<StudentRow | null>(null);
   const [confirmBusy, setConfirmBusy] = useState(false);
 
+  const [eraseTarget, setEraseTarget] = useState<StudentRow | null>(null);
+  const [eraseConfirmText, setEraseConfirmText] = useState("");
+  const [eraseBusy, setEraseBusy] = useState(false);
+
   const [rowBusy, setRowBusy] = useState<string | null>(null);
   const [rowError, setRowError] = useState<string | null>(null);
 
@@ -157,6 +162,29 @@ export function StudentsManager({
       router.refresh();
     } finally {
       setConfirmBusy(false);
+    }
+  }
+
+  function openErase(row: StudentRow) {
+    setEraseTarget(row);
+    setEraseConfirmText("");
+  }
+
+  async function handleConfirmErase() {
+    if (!eraseTarget || eraseConfirmText !== eraseTarget.displayName) return;
+    setEraseBusy(true);
+    try {
+      const result = await eraseStudentAction({ userId: eraseTarget.id });
+      if (!result.ok) {
+        toast({ title: errorMessage(t, result.error), variant: "danger" });
+        return;
+      }
+      toast({ title: t("eraseDoneToast", { name: result.data.displayName }), variant: "positive" });
+      setEraseTarget(null);
+      setEraseConfirmText("");
+      router.refresh();
+    } finally {
+      setEraseBusy(false);
     }
   }
 
@@ -278,6 +306,14 @@ export function StudentsManager({
             onClick={() => setConfirmTarget(row)}
           >
             {row.banned ? t("reactivateCta") : t("deactivateCta")}
+          </Button>
+          <Button
+            variant="danger"
+            size="sm"
+            disabled={rowBusy !== null}
+            onClick={() => openErase(row)}
+          >
+            {t("eraseCta")}
           </Button>
         </div>
       ),
@@ -452,6 +488,45 @@ export function StudentsManager({
               : t("confirmDeactivateBody", { name: confirmTarget.displayName })
             : null}
         </p>
+      </Dialog>
+
+      {/* Permanent erasure — typed-confirmation guard because, unlike
+          deactivate, this cannot be undone. */}
+      <Dialog
+        open={eraseTarget !== null}
+        onClose={() => setEraseTarget(null)}
+        title={eraseTarget ? t("confirmEraseTitle", { name: eraseTarget.displayName }) : ""}
+        closeLabel={tCommon("close")}
+        footer={
+          <>
+            <Button variant="secondary" onClick={() => setEraseTarget(null)}>
+              {tCommon("cancel")}
+            </Button>
+            <Button
+              variant="danger"
+              loading={eraseBusy}
+              disabled={!eraseTarget || eraseConfirmText !== eraseTarget.displayName}
+              onClick={handleConfirmErase}
+            >
+              {t("eraseConfirmCta")}
+            </Button>
+          </>
+        }
+      >
+        {eraseTarget ? (
+          <div className="flex flex-col gap-4">
+            <p role="alert" className="text-sm font-medium text-warning">
+              {t("confirmEraseBody")}
+            </p>
+            <Field label={t("confirmEraseConfirmLabel", { name: eraseTarget.displayName })}>
+              <Input
+                autoComplete="off"
+                value={eraseConfirmText}
+                onChange={(e) => setEraseConfirmText(e.target.value)}
+              />
+            </Field>
+          </div>
+        ) : null}
       </Dialog>
 
       {/* Credential sheet options */}

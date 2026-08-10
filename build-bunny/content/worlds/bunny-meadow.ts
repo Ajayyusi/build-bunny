@@ -5,8 +5,10 @@ import type { WorldFixture, blockCodingPayload } from "@/modules/curriculum/sche
  * World 1 — Bunny Meadow (seed levels 1–5, curriculum-content.md §5).
  * Copy is the EN ship copy from the design doc, conformed to the adjudicated
  * engine contract: auto-collect carrots, fatal bumps, bb_* block ids,
- * ".#CGW" grid legend, camelCase check ids. Arabic is provided for short
- * high-visibility strings (titles, names) only — longer fields ship EN-first.
+ * ".#CGW" grid legend, camelCase check ids. Every student-facing field
+ * (title, story, objective, instructions, explanation, all 4 hint tiers)
+ * carries real Arabic (m5-contracts §1, content/i18n-glossary.md governs
+ * terminology) — teacherNotes stays English-only (staff-facing).
  */
 
 type BlockCodingDraft = z.input<typeof blockCodingPayload>;
@@ -46,6 +48,7 @@ export const bunnyMeadow: WorldFixture = {
       name: { en: "First Hops", ar: "القفزات الأولى" },
       description: {
         en: "A program is a list of instructions. Robo Bunny does exactly what your blocks say — nothing more, nothing less.",
+        ar: "البرنامج قائمة من التعليمات. الأرنب الآلي ينفّذ بالضبط ما تقوله لبناتك — لا أكثر ولا أقل.",
       },
       levels: [
         // ── Level 1 — FIRST HOP: a block is an instruction ────────────────
@@ -57,15 +60,19 @@ export const bunnyMeadow: WorldFixture = {
           title: { en: "First Hop", ar: "القفزة الأولى" },
           story: {
             en: "Robo Bunny just woke up in Bunny Meadow — and spots a burrow one hop away. Time for the very first hop of the adventure.",
+            ar: "استيقظ الأرنب الآلي للتوّ في مرج الأرنب، ورأى جُحرًا يبعد قفزة واحدة فقط. حان وقت أول قفزة في هذه المغامرة.",
           },
           objective: {
             en: "Assemble and run a one-instruction program: connect a block under When Start and press Run.",
+            ar: "ركّب برنامجًا من تعليمة واحدة وشغّله: صِل لبنة تحت لبنة «عند البدء» ثم اضغط تشغيل.",
           },
           instructions: {
             en: "Drag a Move Forward block under When Start so they click together, then press Run to hop Robo Bunny into the burrow.",
+            ar: "اسحب لبنة «تقدّم للأمام» وضعها تحت لبنة «عند البدء» حتى تلتصقا، ثم اضغط تشغيل ليقفز الأرنب الآلي إلى الجُحر.",
           },
           explanation: {
             en: "You just wrote a program! A program is a set of instructions for a computer. Your program had one instruction: Move Forward — and Robo Bunny followed it exactly. Computers never guess and never get bored. They just do what the instructions say. Next up: what happens when you give MORE than one instruction?",
+            ar: "لقد كتبت للتو برنامجًا! البرنامج مجموعة من التعليمات لجهاز الحاسوب. برنامجك كان يحتوي على تعليمة واحدة فقط: «تقدّم للأمام» — ونفّذها الأرنب الآلي كما هي بالضبط. أجهزة الحاسوب لا تخمّن أبدًا ولا تشعر بالملل، فهي تنفّذ ما تقوله التعليمات فقط. في المرة القادمة: ماذا يحدث حين تعطيه أكثر من تعليمة واحدة؟",
           },
           teacherNotes: {
             en: "Watch for students pressing Run with a disconnected block — the #1 friction at minute one. The tier-3 hint targets it.",
@@ -82,24 +89,28 @@ export const bunnyMeadow: WorldFixture = {
               tier: 1,
               text: {
                 en: "Robo Bunny only moves when a block tells it to. Which block looks like it makes the bunny move?",
+                ar: "الأرنب الآلي لا يتحرك إلا عندما تأمره لبنة بذلك. أي لبنة تبدو أنها تجعل الأرنب يتحرك؟",
               },
             },
             {
               tier: 2,
               text: {
                 en: "Drag one Move Forward block from the toolbox into your workspace.",
+                ar: "اسحب لبنة واحدة من «تقدّم للأمام» من صندوق الأدوات إلى مساحة العمل.",
               },
             },
             {
               tier: 3,
               text: {
                 en: "Blocks only run when they're snapped underneath When Start. Is your Move Forward block connected?",
+                ar: "اللبنات لا تعمل إلا إذا كانت موصولة تحت لبنة «عند البدء». هل لبنة «تقدّم للأمام» متصلة فعلًا؟",
               },
             },
             {
               tier: 4,
               text: {
                 en: "Drag Move Forward under When Start so they click together, then press Run. One hop is all it takes.",
+                ar: "اسحب «تقدّم للأمام» تحت «عند البدء» حتى تلتصقا، ثم اضغط تشغيل. قفزة واحدة تكفي.",
               },
             },
           ],
@@ -145,15 +156,19 @@ export const bunnyMeadow: WorldFixture = {
           title: { en: "Two Steps", ar: "خطوتان" },
           story: {
             en: "The burrow moved a little further down the meadow. One hop won't cut it anymore — Robo Bunny needs a plan with more than one step.",
+            ar: "ابتعد الجُحر قليلًا داخل المرج. قفزة واحدة لم تعد كافية — يحتاج الأرنب الآلي إلى خطة من أكثر من خطوة.",
           },
           objective: {
             en: "Sequence multiple instructions and observe ordered, top-to-bottom execution.",
+            ar: "رتّب عدة تعليمات في تسلسل، ولاحظ كيف تُنفَّذ بالترتيب من الأعلى إلى الأسفل.",
           },
           instructions: {
             en: "Stack the blocks you need under When Start to reach the burrow. Blocks run in order, from top to bottom.",
+            ar: "ضع اللبنات التي تحتاجها فوق بعضها تحت «عند البدء» للوصول إلى الجُحر. اللبنات تعمل بالترتيب، من الأعلى إلى الأسفل.",
           },
           explanation: {
             en: "Programs run in order — the top block first, then the next, like a recipe. Your two Move Forward blocks made two hops, one after another. This idea is called a sequence, and it's how every program in the world works, from games to rockets. Order matters: a recipe that says 'eat, then cook' wouldn't go well.",
+            ar: "البرامج تعمل بالترتيب — اللبنة العلوية أولًا، ثم التي تليها، تمامًا كالوصفة. لبنتا «تقدّم للأمام» صنعتا قفزتين، واحدة تلو الأخرى. تُسمّى هذه الفكرة تسلسلًا، وهكذا يعمل كل برنامج في العالم، من الألعاب إلى الصواريخ. الترتيب مهم: وصفة تقول «كُل، ثم اطبخ» لن تنجح أبدًا.",
           },
           teacherNotes: {
             en: "Ask students to predict the number of hops before running — this is the seed of the code-prediction habit.",
@@ -170,24 +185,28 @@ export const bunnyMeadow: WorldFixture = {
               tier: 1,
               text: {
                 en: "How many hops does Robo Bunny need to reach the burrow? Count the tiles.",
+                ar: "كم قفزة يحتاجها الأرنب الآلي للوصول إلى الجُحر؟ عُدّ المربعات.",
               },
             },
             {
               tier: 2,
               text: {
                 en: "You can use more than one Move Forward block. They run one after another, top to bottom.",
+                ar: "يمكنك استخدام أكثر من لبنة «تقدّم للأمام». فهي تعمل واحدة بعد الأخرى، من الأعلى إلى الأسفل.",
               },
             },
             {
               tier: 3,
               text: {
                 en: "Two tiles means two Move Forward blocks, snapped in a column under When Start.",
+                ar: "مربعان يعنيان لبنتَي «تقدّم للأمام»، موصولتين فوق بعضهما تحت «عند البدء».",
               },
             },
             {
               tier: 4,
               text: {
                 en: "Stack Move Forward, Move Forward under When Start — the top one runs first, then the next.",
+                ar: "ضع «تقدّم للأمام» ثم «تقدّم للأمام» تحت «عند البدء» — العليا تعمل أولًا، ثم التي تليها.",
               },
             },
           ],
@@ -239,15 +258,19 @@ export const bunnyMeadow: WorldFixture = {
           title: { en: "Turn Around", ar: "الاستدارة" },
           story: {
             en: "The meadow path takes a sharp bend around a berry bush. Robo Bunny can hop and — new trick! — spin on the spot.",
+            ar: "يلتفّ درب المرج التفافًا حادًا حول شجيرة توت. الأرنب الآلي يستطيع القفز، وله حيلة جديدة: الاستدارة في مكانه.",
           },
           objective: {
             en: "Combine moves and turns to navigate a bend, understanding that a turn is an instruction that moves nothing.",
+            ar: "اجمع بين القفز والاستدارة لعبور الانعطاف، مع فهم أن الاستدارة تعليمة لا تُحرّك الأرنب من مكانه.",
           },
           instructions: {
             en: "Use Move Forward and the new turn blocks to steer Robo Bunny around the bend and into the burrow.",
+            ar: "استخدم لبنة «تقدّم للأمام» ولبنتَي الاستدارة الجديدتين لتوجيه الأرنب الآلي حول الانعطاف وصولًا إلى الجُحر.",
           },
           explanation: {
             en: "Turns are instructions too — they just change which way Robo Bunny is facing. Left and right are from the bunny's point of view, not yours. That's why programmers sometimes tilt their head at the screen (really!). Move changes where you are; Turn changes where you're headed. Together they can take you anywhere.",
+            ar: "الاستدارة تعليمة أيضًا — لكنها لا تغيّر إلا الاتجاه الذي يواجهه الأرنب الآلي. اليمين واليسار هما من وجهة نظر الأرنب، لا من وجهة نظرك أنت. لهذا يميل بعض المبرمجين برؤوسهم أمام الشاشة أحيانًا (حقًا!). «تقدّم للأمام» يغيّر مكانك؛ «الاستدارة» تغيّر الاتجاه الذي تتّجه إليه. ومعًا يمكنهما أن يأخذاك إلى أي مكان.",
           },
           teacherNotes: {
             en: "The left/right-from-whose-view confusion is the classic misconception here. Have students physically stand and turn if stuck (unplugged moment). Challenge extension: solve it again using Turn Right three times instead of Turn Left once — which program is shorter?",
@@ -264,24 +287,28 @@ export const bunnyMeadow: WorldFixture = {
               tier: 1,
               text: {
                 en: "Turning and moving are different. A turn spins Robo Bunny in place — it doesn't hop anywhere.",
+                ar: "الاستدارة والتقدّم أمران مختلفان. الاستدارة تُدير الأرنب الآلي في مكانه — ولا تجعله يقفز إلى أي مكان.",
               },
             },
             {
               tier: 2,
               text: {
                 en: "Hop to the corner first. Then which way should Robo Bunny face — left or right from where it's looking?",
+                ar: "اقفز إلى الزاوية أولًا. بعدها، إلى أي اتجاه يجب أن يتّجه الأرنب الآلي — يسارًا أم يمينًا بالنسبة إليه هو؟",
               },
             },
             {
               tier: 3,
               text: {
                 en: "After two Move Forwards, Robo Bunny faces the meadow edge. One Turn Left points it at the burrow.",
+                ar: "بعد لبنتَي «تقدّم للأمام»، يواجه الأرنب الآلي طرف المرج. استدارة واحدة يسارًا توجّهه نحو الجُحر.",
               },
             },
             {
               tier: 4,
               text: {
                 en: "The pattern is: Move, Move, Turn Left, Move, Move. Watch the bunny's ears — they show which way it's facing.",
+                ar: "النمط هو: تقدّم، تقدّم، استدر يسارًا، تقدّم، تقدّم. راقب أذنَي الأرنب — فهما تدلّان على الاتجاه الذي يواجهه.",
               },
             },
           ],
@@ -357,6 +384,7 @@ export const bunnyMeadow: WorldFixture = {
       name: { en: "Carrots & Loops", ar: "الجزر والحلقات" },
       description: {
         en: "When you catch yourself doing the same thing again and again… there's a block for that.",
+        ar: "عندما تجد نفسك تفعل الشيء نفسه مرارًا وتكرارًا... توجد لبنة لذلك.",
       },
       levels: [
         // ── Level 4 — CARROT COLLECTOR: multi-part goals ──────────────────
@@ -368,15 +396,19 @@ export const bunnyMeadow: WorldFixture = {
           title: { en: "Carrot Collector", ar: "جامع الجزر" },
           story: {
             en: "Carrot season! Three carrots grew along the trail to the burrow — and a good explorer never leaves a carrot behind.",
+            ar: "حان موسم الجزر! نمت ثلاث جزرات على طول الدرب المؤدي إلى الجُحر — والمستكشف الجيد لا يترك جزرة خلفه أبدًا.",
           },
           objective: {
             en: "Plan a route satisfying two success conditions (collection + destination) and read PARTIAL feedback to fix a route.",
+            ar: "خطّط مسارًا يحقق شرطَي نجاح معًا (جمع الجزر والوصول إلى الجُحر)، وتعلّم قراءة التغذية الراجعة «جزئي» لتصحيح المسار.",
           },
           instructions: {
             en: "Plan a route that collects all three carrots AND ends in the burrow. Carrots are picked up automatically when you hop onto their tile.",
+            ar: "خطّط مسارًا يجمع الجزرات الثلاث كلها وينتهي في الجُحر أيضًا. تُلتقط الجزرة تلقائيًا عندما تقفز إلى مربّعها.",
           },
           explanation: {
             en: "Robo Bunny collected carrots just by hopping over them — but the level only counted as done because you finished ALL the jobs: every carrot AND the burrow. Real programs often have a checklist like this. When you missed a carrot, the meadow told you what was missing, not how to fix it — that's what debugging feels like, and you just did it.",
+            ar: "جمع الأرنب الآلي الجزر بمجرد القفز فوقها — لكن المستوى لم يُحتسب مكتملًا إلا بعد إنجاز كل المهام: كل جزرة والجُحر أيضًا. كثير من البرامج الحقيقية تملك قائمة مهام كهذه. وعندما فاتتك جزرة، أخبرك المرج بما ينقصك، لا بكيفية إصلاحه — وهذا بالضبط شعور تصحيح الأخطاء، وقد فعلته للتو.",
           },
           teacherNotes: {
             en: "First level where PARTIAL results appear (reaching the burrow with missed carrots). Show the class the feedback message — reading grader feedback is a skill. Challenge extension: re-run a winning program and call out which hop collects each carrot before it happens.",
@@ -393,24 +425,28 @@ export const bunnyMeadow: WorldFixture = {
               tier: 1,
               text: {
                 en: "This level has TWO jobs: grab every carrot AND finish in the burrow. Trace the trail with your finger first.",
+                ar: "هذا المستوى له مهمتان: التقاط كل جزرة والوصول إلى الجُحر أيضًا. تتبّع الدرب بإصبعك أولًا.",
               },
             },
             {
               tier: 2,
               text: {
                 en: "Robo Bunny picks up a carrot just by hopping onto its tile. Which route touches all three?",
+                ar: "يلتقط الأرنب الآلي الجزرة بمجرد القفز إلى مربّعها. أي مسار يمرّ على الجزرات الثلاث كلها؟",
               },
             },
             {
               tier: 3,
               text: {
                 en: "Hop straight along the bottom row first — that collects two carrots — then turn toward the burrow.",
+                ar: "اقفز مباشرة على طول الصف السفلي أولًا — فهذا يجمع جزرتين — ثم استدر نحو الجُحر.",
               },
             },
             {
               tier: 4,
               text: {
                 en: "Three Move Forwards along the bottom, then Turn Left, then two more Move Forwards. Carrots on the way up are grabbed automatically.",
+                ar: "ثلاث لبنات «تقدّم للأمام» على طول الصف السفلي، ثم استدارة يسارًا، ثم لبنتا «تقدّم للأمام» أخريان. تُلتقط الجزرات في الطريق تلقائيًا.",
               },
             },
           ],
@@ -496,15 +532,19 @@ export const bunnyMeadow: WorldFixture = {
           title: { en: "Repeat After Me", ar: "كرّر بعدي" },
           story: {
             en: 'A long, straight stretch of meadow — hop, hop, hop, hop. Robo Bunny sighs: "Do I really have to be told the same thing four times?"',
+            ar: "امتداد طويل ومستقيم من المرج — قفزة، قفزة، قفزة، قفزة. يتنهّد الأرنب الآلي: «هل عليّ حقًا أن أُطلب مني الشيء نفسه أربع مرات؟»",
           },
           objective: {
             en: "Use Repeat to express four identical actions with one Move block, and articulate why the loop version is better.",
+            ar: "استخدم لبنة «كرّر» للتعبير عن أربع حركات متطابقة بلبنة «تقدّم» واحدة، واشرح لماذا نسخة الحلقة أفضل.",
           },
           instructions: {
             en: "The toolbox only gives you ONE Move Forward block — that's the puzzle. Use the Repeat block to reach the burrow in four hops.",
+            ar: "صندوق الأدوات يمنحك لبنة «تقدّم للأمام» واحدة فقط — وهذا هو اللغز. استخدم لبنة «كرّر» للوصول إلى الجُحر بأربع قفزات.",
           },
           explanation: {
             en: "Repeat 4 { Move Forward } does exactly the same thing as four Move Forward blocks — but you only had to say it once. That's a loop, and it's one of the most powerful ideas in all of programming. Need 100 hops? Change one number. A programmer's rule of thumb: if you're repeating yourself, there's probably a loop hiding in your plan.",
+            ar: "«كرّر 4 { تقدّم للأمام }» تفعل تمامًا ما تفعله أربع لبنات «تقدّم للأمام» — لكنك قلتها مرة واحدة فقط. هذه هي الحلقة، وهي واحدة من أقوى الأفكار في البرمجة كلها. تحتاج 100 قفزة؟ غيّر رقمًا واحدًا فقط. قاعدة كل مبرمج: إذا وجدت نفسك تكرّر الشيء نفسه، فربما تختبئ حلقة في خطتك.",
           },
           teacherNotes: {
             en: "The 'same result, shorter program' comparison is the lesson — after success, the explanation screen shows both versions side by side. Don't rush students past it. Challenge extension: change the Repeat number to 3, predict where Robo Bunny stops, then run it.",
@@ -521,24 +561,28 @@ export const bunnyMeadow: WorldFixture = {
               tier: 1,
               text: {
                 en: "Four hops, but only one Move block in the toolbox. Is there a block that can run another block more than once?",
+                ar: "أربع قفزات، لكن لبنة «تقدّم» واحدة فقط في صندوق الأدوات. هل توجد لبنة تستطيع تشغيل لبنة أخرى أكثر من مرة؟",
               },
             },
             {
               tier: 2,
               text: {
                 en: "The Repeat block is a container — blocks placed inside it run again and again. Try dropping Move Forward inside Repeat.",
+                ar: "لبنة «كرّر» وعاء — أي لبنات تضعها بداخلها تعمل مرة بعد مرة. جرّب وضع «تقدّم للأمام» داخل «كرّر».",
               },
             },
             {
               tier: 3,
               text: {
                 en: "Set the Repeat number to how many hops the burrow needs. Count the tiles: it's 4.",
+                ar: "اضبط رقم «كرّر» على عدد القفزات التي يحتاجها الوصول إلى الجُحر. عُدّ المربعات: العدد 4.",
               },
             },
             {
               tier: 4,
               text: {
                 en: "Drag Repeat under When Start, set its number to 4, and snap Move Forward inside its mouth. One block, four hops.",
+                ar: "اسحب «كرّر» تحت «عند البدء»، واضبط رقمها على 4، وضع «تقدّم للأمام» بداخلها. لبنة واحدة، وأربع قفزات.",
               },
             },
           ],

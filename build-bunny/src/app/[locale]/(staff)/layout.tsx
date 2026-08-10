@@ -5,7 +5,7 @@ import { Link } from "@/i18n/navigation";
 import { homePathForRole } from "@/modules/auth/roles";
 import { requireRole } from "@/modules/auth/server/session";
 import { getSchoolSummary } from "@/modules/schools/server/queries";
-import { Avatar } from "@/ui";
+import { Avatar, SkipLink } from "@/ui";
 
 import { ImpersonationBanner } from "../_components/ImpersonationBanner";
 import { LocaleSwitcher } from "../_components/LocaleSwitcher";
@@ -29,6 +29,7 @@ export default async function StaffLayout({ children, params }: Props) {
 
   return (
     <div data-theme="pro" className="flex min-h-dvh flex-col bg-surface text-ink">
+      <SkipLink label={tCommon("skipToContent")} />
       {ctx.impersonatedBy ? <ImpersonationBanner /> : null}
       <header className="border-b border-border-token bg-surface-raised print:hidden">
         <div className="bb-container flex flex-wrap items-center justify-between gap-x-4 gap-y-2 py-3">
@@ -65,7 +66,9 @@ export default async function StaffLayout({ children, params }: Props) {
           </div>
         </div>
       </header>
-      <main className="bb-container flex-1 py-8">{children}</main>
+      <main id="main-content" tabIndex={-1} className="bb-container flex-1 py-8 focus:outline-none">
+        {children}
+      </main>
     </div>
   );
 }

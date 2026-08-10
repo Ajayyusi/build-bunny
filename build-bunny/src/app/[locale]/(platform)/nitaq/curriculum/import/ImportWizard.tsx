@@ -153,6 +153,7 @@ export function ImportWizard() {
               onClick={handleCommit}
               loading={busy === "commit"}
               disabled={busy !== null || commitResult !== null}
+              aria-describedby={commitResult !== null ? "curriculum-commit-done" : undefined}
             >
               {t("commit")}
             </Button>
@@ -167,7 +168,9 @@ export function ImportWizard() {
         <Card>
           <CardHeader className="flex-row flex-wrap items-center justify-between gap-3">
             <CardTitle>{t("commitHeading")}</CardTitle>
-            <Badge variant="positive">{t("commitDone")}</Badge>
+            <Badge id="curriculum-commit-done" variant="positive">
+              {t("commitDone")}
+            </Badge>
           </CardHeader>
           <CardBody>
             <DiffReport diff={commitResult} />

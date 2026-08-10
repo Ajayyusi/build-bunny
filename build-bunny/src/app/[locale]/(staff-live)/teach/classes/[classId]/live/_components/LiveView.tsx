@@ -114,7 +114,15 @@ export function LiveView({
       {snapshot.students.length === 0 ? (
         <EmptyState icon={<span className="text-3xl">🧑‍🎓</span>} title={t("emptyTitle")} />
       ) : (
-        <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        // aria-atomic="false": a 20s poll re-renders the whole list, but only
+        // the cards whose text actually changed should be announced, not the
+        // full roster every refresh (m5 §41: aria-live for auto-updating data).
+        <ul
+          aria-live="polite"
+          aria-atomic="false"
+          aria-label={t("liveRegionLabel")}
+          className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3"
+        >
           {snapshot.students.map((student) => (
             <li
               key={student.userId}
@@ -122,11 +130,15 @@ export function LiveView({
             >
               <span className="font-display text-xl font-bold text-ink">{student.displayName}</span>
               <span className="text-base font-medium text-ink-muted">
-                {student.completed
-                  ? "✓"
-                  : student.currentLevelTitle
-                    ? t("onLevel", { level: student.currentLevelTitle })
-                    : t("notStarted")}
+                {student.completed ? (
+                  <span className="inline-flex items-center gap-1 text-positive">
+                    <span aria-hidden="true">✓</span> {t("completed")}
+                  </span>
+                ) : student.currentLevelTitle ? (
+                  t("onLevel", { level: student.currentLevelTitle })
+                ) : (
+                  t("notStarted")
+                )}
               </span>
             </li>
           ))}

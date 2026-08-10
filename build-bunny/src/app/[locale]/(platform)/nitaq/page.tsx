@@ -7,9 +7,17 @@ import {
   listSchools,
 } from "@/modules/schools/server/platform-queries";
 import {
+  getPlatformAnalytics,
+  type PlatformFailedLevel,
+  type PlatformLicenceExpiryEntry,
+  type PlatformSchoolActivity,
+} from "@/modules/analytics/server/platform";
+import { resolveText } from "@/modules/curriculum/schemas";
+import {
   Badge,
   DataTable,
   PageHeader,
+  Sparkline,
   StatCard,
   type BadgeVariant,
   type DataTableColumn,
@@ -49,10 +57,11 @@ export default async function PlatformOverviewPage({ params }: Props) {
   const { locale } = await params;
   setRequestLocale(locale);
   const ctx = await requireRole("SUPER_ADMIN", "NITAQ_ADMIN");
-  const [overview, schools, auditLogs, t, tCommon] = await Promise.all([
+  const [overview, schools, auditLogs, analytics, t, tCommon] = await Promise.all([
     getPlatformOverview(ctx),
     listSchools(ctx),
     listPlatformAuditLogs(ctx, 20),
+    getPlatformAnalytics(ctx),
     getTranslations("platform"),
     getTranslations("common"),
   ]);
@@ -174,6 +183,75 @@ export default async function PlatformOverviewPage({ params }: Props) {
     },
   ];
 
+  const failedLevelColumns: DataTableColumn<PlatformFailedLevel>[] = [
+    {
+      key: "level",
+      header: t("mostFailedLevels.columnLevel"),
+      cell: (row) => <span className="font-medium">{resolveText(row.title, locale)}</span>,
+    },
+    { key: "world", header: t("mostFailedLevels.columnWorld"), cell: (row) => resolveText(row.worldName, locale) },
+    {
+      key: "attempts",
+      header: t("mostFailedLevels.columnAttempts"),
+      cell: (row) => <span className="tabular-nums">{row.attempts}</span>,
+      align: "end",
+    },
+    {
+      key: "failRate",
+      header: t("mostFailedLevels.columnFailRate"),
+      cell: (row) => <span className="tabular-nums">{row.failRatePct}%</span>,
+      align: "end",
+    },
+  ];
+
+  const schoolActivityColumns: DataTableColumn<PlatformSchoolActivity>[] = [
+    {
+      key: "school",
+      header: t("schoolsByActivity.columnSchool"),
+      cell: (row) => <span className="font-medium">{row.schoolName}</span>,
+    },
+    {
+      key: "active",
+      header: t("schoolsByActivity.columnActive"),
+      cell: (row) => <span className="tabular-nums">{row.activeStudentsThisWeek}</span>,
+      align: "end",
+    },
+    {
+      key: "students",
+      header: t("schoolsByActivity.columnStudents"),
+      cell: (row) => <span className="tabular-nums">{row.totalStudents}</span>,
+      align: "end",
+    },
+  ];
+
+  const licencePipelineColumns: DataTableColumn<PlatformLicenceExpiryEntry>[] = [
+    {
+      key: "school",
+      header: t("licencePipeline.columnSchool"),
+      cell: (row) => <span className="font-medium">{row.schoolName}</span>,
+    },
+    {
+      key: "status",
+      header: t("licencePipeline.columnStatus"),
+      cell: (row) => (
+        <Badge variant={LICENCE_BADGES[row.status] ?? "neutral"}>{t(`licence.${row.status}`)}</Badge>
+      ),
+    },
+    {
+      key: "expires",
+      header: t("licencePipeline.columnExpires"),
+      cell: (row) => <span className="tabular-nums">{dateFormat.format(new Date(row.expiresAt))}</span>,
+    },
+    {
+      key: "seats",
+      header: t("licencePipeline.columnSeats"),
+      cell: (row) => <span className="tabular-nums">{row.seats}</span>,
+      align: "end",
+    },
+  ];
+
+  const totalAttempts14d = analytics.attemptsPerDay14d.reduce((sum, p) => sum + p.attempts, 0);
+
   return (
     <div className="flex flex-col gap-8">
       <PageHeader
@@ -194,6 +272,61 @@ export default async function PlatformOverviewPage({ params }: Props) {
           hint={t("stats.expiringHint")}
         />
       </div>
+      <div className="grid gap-4 sm:grid-cols-3">
+        <StatCard label={t("stats.dau")} value={analytics.dauStudents} />
+        <StatCard label={t("stats.wau")} value={analytics.wauStudents} />
+        <StatCard label={t("stats.certificatesIssued")} value={analytics.certificatesIssuedTotal} />
+      </div>
+
+      <section className="flex flex-col gap-3">
+        <h2 className="font-display text-lg font-semibold">{t("activity.heading")}</h2>
+        {totalAttempts14d > 0 ? (
+          <div className="flex flex-col gap-2 rounded-lg border border-border-token bg-surface-raised p-5 shadow-soft">
+            <Sparkline
+              points={analytics.attemptsPerDay14d.map((p) => ({ label: p.date, value: p.attempts }))}
+              ariaLabel={t("activity.ariaLabel")}
+            />
+            <p className="text-sm text-ink-muted">{t("activity.total", { count: totalAttempts14d })}</p>
+          </div>
+        ) : (
+          <p className="text-sm text-ink-muted">{t("activity.empty")}</p>
+        )}
+      </section>
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <section className="flex flex-col gap-3">
+          <div>
+            <h2 className="font-display text-lg font-semibold">{t("mostFailedLevels.heading")}</h2>
+            <p className="text-sm text-ink-muted">{t("mostFailedLevels.hint")}</p>
+          </div>
+          <DataTable
+            columns={failedLevelColumns}
+            rows={analytics.mostFailedLevels}
+            rowKey={(row) => row.levelId}
+            emptyMessage={t("mostFailedLevels.empty")}
+          />
+        </section>
+        <section className="flex flex-col gap-3">
+          <h2 className="font-display text-lg font-semibold">{t("schoolsByActivity.heading")}</h2>
+          <DataTable
+            columns={schoolActivityColumns}
+            rows={analytics.schoolsByActivity}
+            rowKey={(row) => row.schoolId}
+            emptyMessage={t("schoolsByActivity.empty")}
+          />
+        </section>
+      </div>
+
+      <section className="flex flex-col gap-3">
+        <h2 className="font-display text-lg font-semibold">{t("licencePipeline.heading")}</h2>
+        <DataTable
+          columns={licencePipelineColumns}
+          rows={analytics.licenceExpiryPipeline}
+          rowKey={(row) => `${row.schoolId}-${row.expiresAt}`}
+          emptyMessage={t("licencePipeline.empty")}
+        />
+      </section>
+
       <section className="flex flex-col gap-3">
         <h2 className="font-display text-lg font-semibold">
           {t("schools.heading")}
