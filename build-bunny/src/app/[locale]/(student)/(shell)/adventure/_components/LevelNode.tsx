@@ -121,9 +121,16 @@ export function LevelNode({ level, onOpen, index = 0 }: LevelNodeProps) {
       </button>
 
       {level.state === "COMPLETED" ? (
+        // `relative z-10` is load-bearing, not decoration: the badge tucks
+        // 8px up into the node via -mt-2, but the node button is
+        // `position: relative` with an opaque fill, and a positioned
+        // element always paints above a static one regardless of DOM
+        // order — so without its own stacking position the badge was
+        // hidden behind the circle, showing only a ~6px sliver of its
+        // 14px height.
         <span
           aria-hidden="true"
-          className="-mt-2 flex items-center gap-0.5 rounded-full border border-border-token bg-surface-raised px-1.5 py-px shadow-soft"
+          className="relative z-10 -mt-2 flex items-center gap-0.5 rounded-full border border-border-token bg-surface-raised px-1.5 py-px shadow-soft"
         >
           {Array.from({ length: level.maxStars }, (_, index) => (
             <span
