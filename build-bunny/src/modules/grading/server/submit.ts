@@ -36,10 +36,10 @@ export interface GridAttemptInput {
   durationMs?: number;
 }
 
-/** CODE_PREDICTION/SEQUENCING submit a small structured answer instead. */
+/** Non-grid types submit a small structured answer instead. */
 export interface AnswerAttemptInput {
   attemptRunId: string;
-  answer: { optionId: string } | { order: string[] };
+  answer: { optionId: string } | { order: string[] } | { blockType: string };
 }
 
 export type AttemptInput = GridAttemptInput | AnswerAttemptInput;
@@ -72,6 +72,17 @@ export type SubmitOutcome =
 /** Injectable clock so streak tests can simulate calendar days. */
 export interface SubmitOptions {
   now?: Date;
+}
+
+/**
+ * The level's own star budget. Snapshots predating the field (or a hand-built
+ * test snapshot) fall back to the platform's 3-star scale, so an absent value
+ * never silently zeroes a puzzle's reward.
+ */
+function maxStarsOf(snapshot: { maxStars?: unknown }): number {
+  return typeof snapshot.maxStars === "number" && Number.isFinite(snapshot.maxStars)
+    ? snapshot.maxStars
+    : 3;
 }
 
 function xpRewardOf(snapshot: { xpReward?: unknown; difficulty?: unknown }): number {
@@ -201,7 +212,15 @@ export async function submitAttempt(
     _max: { tier: true },
   });
   const hintTierUsed = hintAgg._max.tier ?? 0;
-  const stars = computeStars(grade.verdict, grade.qualityPassed, hintTierUsed);
+  // Clamped to the level's own star budget: the 0/1/2/3 scale and the hint
+  // cap stay exactly as they were for puzzles (maxStars 3 makes this a
+  // no-op), while a level that declares fewer stars can never award more than
+  // it advertises. This is what makes a Learn step (maxStars 0) reward XP but
+  // no stars, with computeStars and the star criteria untouched.
+  const stars = Math.min(
+    computeStars(grade.verdict, grade.qualityPassed, hintTierUsed),
+    maxStarsOf(published.snapshot),
+  );
   const gradeMismatch = clientVerdict !== undefined && clientVerdict !== grade.verdict;
 
   const attemptBase = {

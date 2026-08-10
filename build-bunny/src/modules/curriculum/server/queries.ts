@@ -333,15 +333,24 @@ export async function getPublishedLevelSnapshot(
   };
 }
 
-/** Answer-bearing payload keys that must never reach a student client. */
+/** Answer-bearing top-level payload keys that must never reach a student. */
 const ANSWER_KEYS = ["solution", "correctOptionId", "correctOrder"] as const;
+
+/**
+ * Answer-bearing keys nested one level down, as [container, key] pairs.
+ * CONCEPT_CARDS keeps its answer inside `faded` (the block type removed from
+ * the worked example), so a top-level-only sweep would ship it in the page
+ * source — the exact leak this function exists to prevent.
+ */
+const NESTED_ANSWER_KEYS = [["faded", "missingBlockType"]] as const;
 
 /**
  * Removes answer-bearing fields from a level payload before it is shipped to
  * a student surface. Hints are stored outside the payload (server-held), so
  * they never pass through here. The activityType parameter documents intent
  * and keeps the signature stable if a future activity needs bespoke rules —
- * today every V1 type strips the same key set.
+ * today the key sets are activity-agnostic, so every type is swept for all of
+ * them (a key that cannot occur in a payload is simply a no-op delete).
  */
 export function stripStudentPayload(activityType: string, payload: unknown): unknown {
   void activityType;
@@ -350,6 +359,15 @@ export function stripStudentPayload(activityType: string, payload: unknown): unk
   }
   const clone: Record<string, unknown> = { ...(payload as Record<string, unknown>) };
   for (const key of ANSWER_KEYS) delete clone[key];
+  for (const [container, key] of NESTED_ANSWER_KEYS) {
+    const nested = clone[container];
+    if (nested === null || typeof nested !== "object" || Array.isArray(nested)) continue;
+    // Shallow clone the container too: mutating it in place would edit the
+    // caller's snapshot object, which is shared with the grader.
+    const nestedClone = { ...(nested as Record<string, unknown>) };
+    delete nestedClone[key];
+    clone[container] = nestedClone;
+  }
   return clone;
 }
 

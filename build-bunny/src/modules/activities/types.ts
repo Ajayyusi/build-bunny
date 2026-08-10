@@ -68,6 +68,27 @@ export interface CodePredictionActivityPayload {
   wrongFeedback: LocalizedText | null;
 }
 
+/**
+ * Answer-free CONCEPT_CARDS payload — the Learn step's two beats. The grid
+ * fields are here because both beats run the SAME simulation the puzzles do;
+ * `faded.missingBlockType` is deliberately absent, since the answer stays
+ * server-side and the client asks the grader rather than deciding for itself.
+ */
+export interface LearnActivityPayload {
+  conceptSlug: string;
+  /** Exactly one — a lesson demonstrates, it does not generalise. */
+  variants: GridVariantSpec[];
+  autoCollect: boolean;
+  nonFatalBumps: boolean;
+  budgets: { maxCommands: number };
+  workedExample: { blocks: unknown; caption: LocalizedText };
+  faded: {
+    blocks: unknown;
+    toolbox: { type: string; limit?: number }[];
+    caption: LocalizedText;
+  };
+}
+
 export interface SequencingActivityPayload {
   prompt: LocalizedText;
   /**

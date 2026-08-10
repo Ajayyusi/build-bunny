@@ -9,6 +9,7 @@ import {
   codePredictionAnswerSchema,
   gradeCodePrediction,
 } from "./code-prediction";
+import { conceptCardsAnswerSchema, gradeConceptCards } from "./concept-cards";
 import { gradeGridActivity } from "./grid";
 import { gradeSequencing, sequencingAnswerSchema } from "./sequencing";
 
@@ -69,11 +70,21 @@ const sequencing: ActivityEngine = {
   stripPayload: (payload) => stripStudentPayload("SEQUENCING", payload),
 };
 
+/** The Learn step (LEARN-STEP-SPEC.md) — teaches a concept, grades on completion. */
+const conceptCards: ActivityEngine = {
+  grade: (snapshot, input) => {
+    const parsed = conceptCardsAnswerSchema.safeParse(input);
+    return parsed.success ? gradeConceptCards(snapshot, parsed.data) : invalidAnswer();
+  },
+  stripPayload: (payload) => stripStudentPayload("CONCEPT_CARDS", payload),
+};
+
 export const ACTIVITY_ENGINES: Partial<Record<V1ActivityType, ActivityEngine>> = {
   BLOCK_CODING: grid,
   DEBUGGING: grid,
   CODE_PREDICTION: codePrediction,
   SEQUENCING: sequencing,
+  CONCEPT_CARDS: conceptCards,
 };
 
 export function getActivityEngine(activityType: string): ActivityEngine | undefined {

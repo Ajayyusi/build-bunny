@@ -11,7 +11,11 @@ import {
   buildRunnableGenerator,
   type BunnyGenerator,
 } from "@/modules/blockly/codegen";
-import { runProgramAllVariants, type ProgramRun } from "@/modules/blockly/interpreter";
+import {
+  runProgramAllVariants,
+  type ProgramRun,
+  type RunnableLevelConfig,
+} from "@/modules/blockly/interpreter";
 import { computeBlockStats, jsonToWorkspace } from "@/modules/blockly/serialization";
 
 import type { ActivityFeedback, GridActivityPayload } from "../types";
@@ -45,6 +49,31 @@ export function generateDisplayCode(
   } finally {
     workspace.dispose();
   }
+}
+
+/**
+ * Run one authored program against one grid for PLAYBACK ONLY — no checks, no
+ * verdict, no stars, nothing posted. The Learn step's worked example uses
+ * this: it is a demonstration the student watches, not an attempt they make.
+ * Returns null if the program cannot be generated (malformed authored JSON),
+ * so the caller can fall back to a static grid rather than crash the lesson.
+ */
+export function runForPlayback(
+  workspaceJson: unknown,
+  config: RunnableLevelConfig,
+  locale: BlockLocale,
+): ProgramRun | null {
+  registerBunnyBlocks(locale);
+  const workspace = jsonToWorkspace(workspaceJson);
+  let code: string;
+  try {
+    code = generators().runnable.workspaceToCode(workspace);
+  } catch {
+    return null;
+  } finally {
+    workspace.dispose();
+  }
+  return runProgramAllVariants(code, config)[0] ?? null;
 }
 
 export interface LocalRunOutcome {

@@ -7,6 +7,7 @@ import { audit } from "@/lib/audit";
 import { db } from "@/lib/db";
 import type { Role } from "@/modules/auth/roles";
 import {
+  defaultMaxStars,
   levelFixtureSchema,
   programFixtureSchema,
   validatePayload,
@@ -336,6 +337,7 @@ async function runImport(
             recommendedGradeMax: existingLevel.recommendedGradeMax,
             estimatedMinutes: existingLevel.estimatedMinutes,
             xpReward: existingLevel.xpReward,
+            maxStars: existingLevel.maxStars,
             tags: existingLevel.tags,
             payload: existingLevel.payload,
             hints: existingLevel.hints,
@@ -356,6 +358,7 @@ async function runImport(
             recommendedGradeMax: levelFx.recommendedGradeMax ?? null,
             estimatedMinutes: levelFx.estimatedMinutes,
             xpReward: levelFx.xpReward ?? null,
+            maxStars: levelFx.maxStars ?? defaultMaxStars(levelFx.activityType),
             tags: levelFx.tags,
             payload: normalizedPayload,
             hints: levelFx.hints,
@@ -415,6 +418,7 @@ async function runImport(
             recommendedGradeMax: fx.recommendedGradeMax ?? null,
             estimatedMinutes: fx.estimatedMinutes,
             xpReward: fx.xpReward ?? null,
+            maxStars: fx.maxStars ?? defaultMaxStars(fx.activityType),
             tags: fx.tags,
             payload: plan.payload as Prisma.InputJsonValue,
             hints: fx.hints as unknown as Prisma.InputJsonValue,

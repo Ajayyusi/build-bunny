@@ -16,9 +16,10 @@ import { submitAttempt, type AttemptInput } from "@/modules/grading/server/submi
  *
  * The body is a discriminated union on the level's activityType (m4 task 4):
  * grid types (BLOCK_CODING/DEBUGGING) send the raw workspace; CODE_PREDICTION
- * sends `{ answer: { optionId } }`; SEQUENCING sends `{ answer: { order } }`.
- * .strict() on every branch means a body shaped for one type is rejected —
- * not silently accepted — when sent against a level of another type.
+ * sends `{ answer: { optionId } }`; SEQUENCING sends `{ answer: { order } }`;
+ * CONCEPT_CARDS sends `{ answer: { blockType } }`. .strict() on every branch
+ * means a body shaped for one type is rejected — not silently accepted —
+ * when sent against a level of another type.
  */
 
 const gridBodySchema = z
@@ -41,6 +42,13 @@ const sequencingBodySchema = z
   .object({
     attemptRunId: z.string().uuid(),
     answer: z.object({ order: z.array(z.string().min(1)).min(1) }).strict(),
+  })
+  .strict();
+
+const conceptCardsBodySchema = z
+  .object({
+    attemptRunId: z.string().uuid(),
+    answer: z.object({ blockType: z.string().min(1) }).strict(),
   })
   .strict();
 
@@ -114,6 +122,10 @@ export async function POST(
         input = parsed.data;
       } else if (activityType === "SEQUENCING") {
         const parsed = sequencingBodySchema.safeParse(raw);
+        if (!parsed.success) return validationError(parsed.error.flatten().fieldErrors);
+        input = parsed.data;
+      } else if (activityType === "CONCEPT_CARDS") {
+        const parsed = conceptCardsBodySchema.safeParse(raw);
         if (!parsed.success) return validationError(parsed.error.flatten().fieldErrors);
         input = parsed.data;
       } else if (!activityType || GRID_ACTIVITY_TYPES.has(activityType)) {

@@ -178,10 +178,98 @@ export const sequencingPayload = z
     }
   });
 
+// ── CONCEPT_CARDS: the Learn step (docs/build-bunny/LEARN-STEP-SPEC.md) ──
+
+/**
+ * Depth-first collect of every serialized Blockly `type` in a workspace JSON.
+ * Local to this module rather than imported from modules/blockly: schemas.ts
+ * is the neutral contract layer (no "use client", no "server-only", no
+ * Blockly) and must stay importable from fixtures, client and server alike.
+ */
+function collectBlockTypes(node: unknown, out: Set<string>): void {
+  if (Array.isArray(node)) {
+    for (const item of node) collectBlockTypes(item, out);
+    return;
+  }
+  if (node && typeof node === "object") {
+    const record = node as Record<string, unknown>;
+    if (typeof record["type"] === "string") out.add(record["type"]);
+    for (const value of Object.values(record)) collectBlockTypes(value, out);
+  }
+}
+
+/**
+ * A Learn step: three beats on one trail node — watch a worked example run,
+ * fill the single gap in a faded copy of it, then hand off to the puzzle that
+ * needs the concept. Both beats run on the SAME grid simulation the puzzles
+ * use (hence the grid fields mirroring blockCodingPayload rather than a
+ * bespoke slideshow format): the concept is shown in the medium it will be
+ * used in. This is the worked-example effect — for novices, studying a solved
+ * example then completing a faded one beats solving from scratch.
+ */
+export const conceptCardsPayload = z
+  .object({
+    /** Concept taught ("loops", "conditionals") — the handle spaced review
+     * levels and analytics select on. */
+    conceptSlug: z.string().regex(/^[a-z0-9-]+$/),
+    /**
+     * The one grid both beats run on. Exactly one by design: a lesson
+     * demonstrates a concept, it does not ask the student to generalise
+     * across maps — that is what the multi-variant puzzles after it are for.
+     */
+    variants: z.array(gridVariantSchema).length(1),
+    autoCollect: z.boolean().default(true),
+    nonFatalBumps: z.boolean().default(false),
+    budgets: z
+      .object({ maxCommands: z.number().int().positive().max(10_000).default(1000) })
+      .default({ maxCommands: 1000 }),
+    /** Beat 1 — the solved program, played back read-only with the executing
+     * block lit up. */
+    workedExample: z.object({
+      blocks: z.unknown(),
+      caption: localizedText,
+    }),
+    /** Beat 2 — the same program with exactly one block taken out. */
+    faded: z.object({
+      blocks: z.unknown(),
+      /** Blocks offered for the gap: the answer plus plausible distractors. */
+      toolbox: z.array(blockRefSchema).min(1),
+      caption: localizedText,
+      // Answer-bearing: stripped from student-facing payloads.
+      missingBlockType: z.string().min(1),
+    }),
+  })
+  .superRefine((p, ctx) => {
+    const missing = p.faded.missingBlockType;
+    if (!p.faded.toolbox.some((entry) => entry.type === missing)) {
+      ctx.addIssue({
+        code: "custom",
+        message: `faded.toolbox must offer the missing block "${missing}"`,
+      });
+    }
+    const workedTypes = new Set<string>();
+    collectBlockTypes(p.workedExample.blocks, workedTypes);
+    if (!workedTypes.has(missing)) {
+      ctx.addIssue({
+        code: "custom",
+        message: `workedExample must use "${missing}" — it is the block faded removes`,
+      });
+    }
+    const fadedTypes = new Set<string>();
+    collectBlockTypes(p.faded.blocks, fadedTypes);
+    if (fadedTypes.has(missing)) {
+      ctx.addIssue({
+        code: "custom",
+        message: `faded.blocks still contains "${missing}" — there is no gap to fill`,
+      });
+    }
+  });
+
 /** V1 activity types with a real engine behind them (plan §0.1-7). */
 export const V1_ACTIVITY_TYPES = [
   "BLOCK_CODING",
   "CODE_PREDICTION",
+  "CONCEPT_CARDS",
   "DEBUGGING",
   "SEQUENCING",
 ] as const;
@@ -190,6 +278,7 @@ export type V1ActivityType = (typeof V1_ACTIVITY_TYPES)[number];
 const PAYLOAD_SCHEMAS: Record<V1ActivityType, z.ZodTypeAny> = {
   BLOCK_CODING: blockCodingPayload,
   CODE_PREDICTION: codePredictionPayload,
+  CONCEPT_CARDS: conceptCardsPayload,
   DEBUGGING: debuggingPayload,
   SEQUENCING: sequencingPayload,
 };
@@ -245,6 +334,8 @@ export const levelFixtureSchema = z.object({
   recommendedGradeMax: z.number().int().min(1).max(12).optional(),
   estimatedMinutes: z.number().int().min(1).max(60).default(5),
   xpReward: z.number().int().positive().optional(),
+  /** Omitted → the activity type's default (see defaultMaxStars). */
+  maxStars: z.number().int().min(0).max(3).optional(),
   tags: z.array(z.string()).default([]),
   payload: z.unknown(),
   hints: hintsSchema,
@@ -290,3 +381,14 @@ export const XP_BY_DIFFICULTY: Record<"EASY" | "MEDIUM" | "HARD", number> = {
   MEDIUM: 75,
   HARD: 100,
 };
+
+/**
+ * Star budget for an activity type; Level.maxStars overrides. A Learn step
+ * teaches rather than tests, so it carries no stars at all — stars are the
+ * puzzle reward (LEARN-STEP-SPEC.md §Grading). The grading pipeline clamps
+ * every run to the level's own maxStars, so a 0-star level awards none
+ * without computeStars or the star criteria changing.
+ */
+export function defaultMaxStars(activityType: string): number {
+  return activityType === "CONCEPT_CARDS" ? 0 : 3;
+}

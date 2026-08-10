@@ -82,6 +82,17 @@ function countTypes(workspaceJson: unknown): Map<string, number> {
   return counts;
 }
 
+/**
+ * Every block type in a workspace JSON with its instance count — hat and
+ * sensor blocks included, unlike computeBlockStats below (which is the
+ * engine's statement-only program size). The Learn step uses this to work out
+ * which block a student dropped into the faded gap, by diffing the submitted
+ * workspace against the authored one.
+ */
+export function countBlockTypes(workspaceJson: unknown): Map<string, number> {
+  return countTypes(workspaceJson);
+}
+
 const STATEMENT_TYPES = new Set<string>(BUNNY_STATEMENT_BLOCKS);
 
 /**

@@ -10,7 +10,9 @@ import type { ActivityFeedback } from "../../types";
 /**
  * Located failure feedback (m3 contract, generalized in m4 task 4 for
  * CODE_PREDICTION/SEQUENCING): grid engines use the step-located codes
- * (bumped, splashed, …); the answer engines use wrongOption/wrongOrder.
+ * (bumped, splashed, …); the answer engines use wrongOption/wrongOrder, and
+ * the Learn step uses tryAnotherBlock — deliberately an invitation rather
+ * than a verdict, since a lesson has no failure state.
  * Shared across every activity engine's player.
  */
 const KNOWN_CODES = new Set([
@@ -26,6 +28,7 @@ const KNOWN_CODES = new Set([
   "wrongOutput",
   "wrongOption",
   "wrongOrder",
+  "tryAnotherBlock",
 ]);
 
 const CODE_ICON: Record<string, string> = {
@@ -41,6 +44,7 @@ const CODE_ICON: Record<string, string> = {
   wrongOutput: "💬",
   wrongOption: "🤔",
   wrongOrder: "🔀",
+  tryAnotherBlock: "🧩",
   generic: "🔍",
 };
 
