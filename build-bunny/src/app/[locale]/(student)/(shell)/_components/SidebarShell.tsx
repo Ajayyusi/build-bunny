@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 
 import { usePathname } from "@/i18n/navigation";
@@ -31,11 +31,25 @@ export function SidebarShell({
 }: SidebarShellProps) {
   const t = useTranslations("common");
   const [open, setOpen] = useState(false);
+  const [rtl, setRtl] = useState(false);
   const pathname = usePathname();
 
-  // Navigating inside the drawer should dismiss it.
   useEffect(() => {
-    setOpen(false);
+    setRtl(document.documentElement.dir === "rtl");
+  }, []);
+
+  // Navigating inside the drawer should dismiss it — but ONLY on a real
+  // route change. Running setOpen(false) on every pathname effect pass
+  // (including the mount pass, and any re-run triggered by a new pathname
+  // identity) closes the drawer in the same tick it was opened, so the
+  // hamburger appears dead. Comparing against the previous value keeps the
+  // dismissal without fighting the toggle.
+  const lastPath = useRef(pathname);
+  useEffect(() => {
+    if (lastPath.current !== pathname) {
+      lastPath.current = pathname;
+      setOpen(false);
+    }
   }, [pathname]);
 
   useEffect(() => {
@@ -46,6 +60,25 @@ export function SidebarShell({
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   }, [open]);
+
+  // Drawer offset as an inline `transform`.
+  //
+  // Three approaches were tried here; the first two are worth not
+  // repeating. Tailwind v4's translate utilities set the standalone
+  // `translate` property, so `transition-transform` never animated them,
+  // and toggling `-translate-x-full` ⇄ `translate-x-0` left the closed
+  // value winning after the class swapped. Inline `inset-inline-start`
+  // then lost to an `!important` logical-inset declaration. `transform`
+  // has no such competitor, and inline beats every non-important rule.
+  //
+  // RTL flips the travel direction, read from the document after mount.
+  // Both signs are off-screen, so the pre-hydration default is safe
+  // either way — only the direction of the slide differs.
+  const offscreen = rtl ? "translateX(100%)" : "translateX(-100%)";
+  const drawerStyle: React.CSSProperties = {
+    transform: open ? "translateX(0)" : offscreen,
+    transition: "transform 300ms cubic-bezier(0.16, 1, 0.3, 1)",
+  };
 
   return (
     <div className="flex min-h-dvh">
@@ -60,12 +93,13 @@ export function SidebarShell({
       ) : null}
 
       <aside
+        style={drawerStyle}
         className={cn(
-          "z-50 flex w-64 shrink-0 flex-col gap-6 border-e border-border-token bg-surface-raised px-4 py-5",
-          // Mobile: off-canvas drawer sliding from the inline-start edge.
-          "fixed inset-y-0 start-0 transition-transform duration-300 ease-out lg:static lg:translate-x-0 lg:transition-none",
-          open ? "translate-x-0" : "-translate-x-full rtl:translate-x-full",
-          "lg:rtl:translate-x-0",
+          "z-50 flex w-64 shrink-0 flex-col gap-6 overflow-y-auto border-e border-border-token bg-surface-raised px-4 py-5",
+          // Below lg this is a fixed off-canvas drawer moved by the inline
+          // transform above; at lg it becomes a normal static column and
+          // the transform is cleared by lg:!transform-none.
+          "fixed inset-y-0 start-0 lg:static lg:!transform-none",
         )}
       >
         {sidebar}
