@@ -1,0 +1,16 @@
+# Repository root ignores. Build Bunny's own ignores live in build-bunny/.gitignore.
+
+# Dependencies anywhere in the tree.
+node_modules/
+
+# The Nitaq CyberShield promo reel is a separate artifact that happens to sit
+# in this folder; it is not part of the Build Bunny product.
+reel-render/
+
+# Local Claude Code state.
+.claude/scheduled_tasks.lock
+.claude/worktrees/
+
+# OS junk.
+.DS_Store
+Thumbs.db
