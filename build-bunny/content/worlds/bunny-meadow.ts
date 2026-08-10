@@ -1,5 +1,9 @@
 import type { z } from "zod";
-import type { WorldFixture, blockCodingPayload } from "@/modules/curriculum/schemas";
+import type {
+  WorldFixture,
+  blockCodingPayload,
+  conceptCardsPayload,
+} from "@/modules/curriculum/schemas";
 
 /**
  * World 1 — Bunny Meadow (seed levels 1–5, curriculum-content.md §5).
@@ -12,6 +16,7 @@ import type { WorldFixture, blockCodingPayload } from "@/modules/curriculum/sche
  */
 
 type BlockCodingDraft = z.input<typeof blockCodingPayload>;
+type ConceptCardsDraft = z.input<typeof conceptCardsPayload>;
 
 // Every level starts from the locked When Start hat block; solutions chain
 // off its `next` connection. Block counts in star budgets exclude this hat
@@ -523,10 +528,176 @@ export const bunnyMeadow: WorldFixture = {
           } satisfies BlockCodingDraft,
         },
 
+        // ── Learn step — MEET REPEAT: the loop, taught before it is tested ─
+        //
+        // The first CONCEPT_CARDS level (docs/build-bunny/LEARN-STEP-SPEC.md).
+        // It sits immediately before Repeat After Me, which until now met a
+        // Grade 3 student with `repeat` for the FIRST time inside a puzzle:
+        // story and objective, but no instruction. This is the worked example
+        // that instruction was missing — watch a solved loop run, complete a
+        // faded copy of it, then go and use it.
+        //
+        // No stars by design (defaultMaxStars in curriculum/schemas.ts sends
+        // CONCEPT_CARDS to 0): stars are the puzzle reward, and this teaches
+        // rather than tests. The small xpReward is what keeps progress
+        // moving. It DOES count as a trail node — it unlocks linearly like
+        // any other level and counts toward the world's totals, because a
+        // student genuinely has to complete it to reach the puzzle after it.
+        {
+          slug: "learn-repeat",
+          order: 2,
+          activityType: "CONCEPT_CARDS",
+          track: "PROGRAMMING",
+          title: { en: "Meet Repeat", ar: "تعرّف على «كرّر»" },
+          story: {
+            en: "Before the long hop across the meadow, Robo Bunny wants to show you a trick it just learned — a block that you say once, and it does again and again.",
+            ar: "قبل القفزة الطويلة عبر المرج، يريد الأرنب الآلي أن يريك حيلة تعلّمها للتوّ: لبنة تقولها مرة واحدة فتنفّذ مرة بعد مرة.",
+          },
+          objective: {
+            en: "Watch a loop run, then complete it — understanding that the blocks inside Repeat are the ones that run again and again.",
+            ar: "شاهد حلقة تكرار وهي تعمل ثم أكملها، مع فهم أن اللبنات الموجودة داخل «كرّر» هي التي تعمل مرة بعد مرة.",
+          },
+          instructions: {
+            en: "First watch Robo Bunny hop 3 times using one Repeat block. Then put the missing block back inside the Repeat and press Check.",
+            ar: "أولًا شاهد الأرنب الآلي يقفز 3 مرات مستخدمًا لبنة «كرّر» واحدة. ثم أعد اللبنة الناقصة إلى داخل «كرّر» واضغط «تحقّق».",
+          },
+          explanation: {
+            en: "Repeat 3 { Move Forward } means: do the block inside me, 3 times. The number says HOW MANY times; whatever sits inside the Repeat's mouth is WHAT gets repeated. That is a loop. Now try it on your own — the next level hands you only one Move Forward block, so the loop is the only way through.",
+            ar: "«كرّر 3 مرات { تقدّم للأمام }» تعني: نفّذ اللبنة الموجودة بداخلي 3 مرات. الرقم يحدّد عدد المرات، وما يوضع داخل فم «كرّر» هو ما يتكرّر. هذه هي حلقة التكرار. جرّبها الآن بنفسك — المستوى التالي يمنحك لبنة «تقدّم للأمام» واحدة فقط، فالحلقة هي الطريق الوحيد.",
+          },
+          teacherNotes: {
+            en: "The worked-example step for loops: students study a solved program, then complete a faded copy of it. It awards no stars on purpose — this is instruction, not assessment, so there is nothing to lose by guessing and no reason to rush it. A confident class can skip the Watch beat with 'My turn'. The number to watch afterwards is the fail rate on Repeat After Me, which this step exists to move.",
+          },
+          difficulty: "EASY",
+          recommendedGradeMin: 3,
+          recommendedGradeMax: 7,
+          estimatedMinutes: 2,
+          xpReward: 15,
+          tags: ["loops", "learn"],
+          requires: [],
+          hints: [
+            {
+              tier: 1,
+              text: {
+                en: "Look at the Repeat block's mouth — the space inside it is empty. Something has to go in there.",
+                ar: "انظر إلى فم لبنة «كرّر» — المساحة بداخله فارغة. لا بدّ أن يوضع شيء هناك.",
+              },
+            },
+            {
+              tier: 2,
+              text: {
+                en: "Repeat runs whatever is inside it, 3 times. Robo Bunny needs to hop 3 times — so which block makes it hop?",
+                ar: "تشغّل «كرّر» ما بداخلها 3 مرات. يحتاج الأرنب الآلي إلى القفز 3 مرات — فأي لبنة تجعله يقفز؟",
+              },
+            },
+            {
+              tier: 3,
+              text: {
+                en: "Turning doesn't move Robo Bunny anywhere — it only changes which way it faces. The block you need is Move Forward.",
+                ar: "الاستدارة لا تنقل الأرنب الآلي من مكانه، فهي تغيّر الاتجاه الذي يواجهه فقط. اللبنة التي تحتاجها هي «تقدّم للأمام».",
+              },
+            },
+            {
+              tier: 4,
+              text: {
+                en: "Drag Move Forward from the toolbox into the empty space inside Repeat, so it clicks into the mouth, then press Check.",
+                ar: "اسحب «تقدّم للأمام» من صندوق الأدوات إلى الفراغ داخل «كرّر» حتى تلتصق في الفم، ثم اضغط «تحقّق».",
+              },
+            },
+          ],
+          payload: {
+            conceptSlug: "loops",
+            // A short straight run: 3 hops east to the burrow. Deliberately
+            // NOT the 4 hops of Repeat After Me — the lesson shows the idea,
+            // the puzzle then asks for it with a different number, so a
+            // student who only memorised "put 4 in the box" is not rewarded.
+            variants: [
+              {
+                rows: [".....", "...G.", "....."],
+                start: { x: 0, y: 1, dir: "E" },
+              },
+            ],
+            autoCollect: true,
+            nonFatalBumps: false,
+            workedExample: {
+              blocks: {
+                blocks: {
+                  languageVersion: 0,
+                  blocks: [
+                    {
+                      type: "bb_whenStart",
+                      id: "start",
+                      x: 24,
+                      y: 24,
+                      deletable: false,
+                      movable: false,
+                      next: {
+                        block: {
+                          type: "bb_repeat",
+                          id: "loop",
+                          fields: { TIMES: 3 },
+                          inputs: {
+                            DO: { block: { type: "bb_moveForward", id: "hop" } },
+                          },
+                        },
+                      },
+                    },
+                  ],
+                },
+              },
+              caption: {
+                en: "Watch: one Repeat block makes Robo Bunny hop 3 times.",
+                ar: "شاهد: لبنة «كرّر» واحدة تجعل الأرنب الآلي يقفز 3 مرات.",
+              },
+            },
+            faded: {
+              // The same program with the loop BODY removed — the Repeat and
+              // its 3 stay on screen, so what the student has to supply is
+              // "what gets repeated", which is the idea being taught. Filling
+              // it rebuilds the worked example exactly.
+              blocks: {
+                blocks: {
+                  languageVersion: 0,
+                  blocks: [
+                    {
+                      type: "bb_whenStart",
+                      id: "start",
+                      x: 24,
+                      y: 24,
+                      deletable: false,
+                      movable: false,
+                      next: {
+                        block: {
+                          type: "bb_repeat",
+                          id: "loop",
+                          fields: { TIMES: 3 },
+                        },
+                      },
+                    },
+                  ],
+                },
+              },
+              // The two turn blocks are real distractors, not padding: from
+              // Turn Around onwards, move-versus-turn is the live confusion
+              // in this world.
+              toolbox: [
+                { type: "bb_moveForward", limit: 1 },
+                { type: "bb_turnLeft", limit: 1 },
+                { type: "bb_turnRight", limit: 1 },
+              ],
+              missingBlockType: "bb_moveForward",
+              caption: {
+                en: "Your turn: the Repeat is here, but its mouth is empty. Which block belongs inside, so Robo Bunny hops 3 times?",
+                ar: "دورك الآن: «كرّر» موجودة، لكن فمها فارغ. أي لبنة يجب أن توضع بداخلها ليقفز الأرنب الآلي 3 مرات؟",
+              },
+            },
+          } satisfies ConceptCardsDraft,
+        },
+
         // ── Level 5 — REPEAT AFTER ME: the Repeat block ───────────────────
         {
           slug: "repeat-after-me",
-          order: 2,
+          order: 3,
           activityType: "BLOCK_CODING",
           track: "PROGRAMMING",
           title: { en: "Repeat After Me", ar: "كرّر بعدي" },

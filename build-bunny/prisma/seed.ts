@@ -923,14 +923,19 @@ async function ensureLoginTrail(
 
 /**
  * Certificates through the REAL issuance path (m4 task contract) — walks
- * every non-horizon world the student has touched and calls
- * issueWorldCertificate for it. That function re-derives its own "genuine
- * full-PASS" eligibility (every published level COMPLETED with stars >= 2,
- * never just a PARTIAL) and is idempotent by the (student, kind, world)
- * unique, so this is safe to re-run on every seed pass. Walking every world
- * (rather than special-casing Aisha by username) keeps the seed correct if
- * the demo roster's progress ever changes — with today's STUDENTS data only
- * Aisha K. (10/10 across Bunny Meadow + Logic Forest) actually qualifies.
+ * every non-horizon world in the curriculum and calls issueWorldCertificate
+ * for it. That function is the single owner of "genuine full-PASS"
+ * eligibility (every published level of the world COMPLETED at the level's
+ * own star threshold, never just a PARTIAL) and is idempotent by the
+ * (student, kind, world) unique, so this is safe to re-run on every seed
+ * pass, and a not-yet-eligible world simply comes back with no certificate.
+ *
+ * The seed deliberately does NOT pre-filter by stars itself. It used to, with
+ * a copy of the `stars >= 2` rule, which silently went wrong the moment a
+ * world gained a level that awards no stars at all (bunny-meadow's Learn
+ * step): the copy said "not eligible" and no certificate was ever issued.
+ * Walking every world (rather than special-casing Aisha by username) likewise
+ * keeps the seed correct if the demo roster's progress ever changes.
  */
 async function ensureCertificates(
   app: App,
@@ -940,18 +945,10 @@ async function ensureCertificates(
   student: StudentSeed,
 ): Promise<void> {
   const worldIds = [...new Set(curriculum.map((l) => l.worldId))];
-  const progress = await app.db.studentProgress.findMany({
-    where: { studentUserId: userId, schoolId, status: "COMPLETED" },
-    select: { levelId: true, stars: true },
-  });
-  const passedLevelIds = new Set(progress.filter((p) => p.stars >= 2).map((p) => p.levelId));
-
   for (const worldId of worldIds) {
-    const levelsInWorld = curriculum.filter((l) => l.worldId === worldId);
-    if (!levelsInWorld.every((l) => passedLevelIds.has(l.id))) continue;
-    const worldSlug = levelsInWorld[0]!.worldSlug;
     const result = await app.issueWorldCertificate({ schoolId, studentUserId: userId, worldId });
-    if (!result.certificate) continue; // shouldn't happen given the check above, but never fatal
+    if (!result.certificate) continue; // not eligible yet — the ordinary case
+    const worldSlug = curriculum.find((l) => l.worldId === worldId)!.worldSlug;
     if (result.alreadyIssued) {
       logSkipped(`certificate ${student.username} · ${worldSlug} (${result.certificate.serial})`);
     } else {

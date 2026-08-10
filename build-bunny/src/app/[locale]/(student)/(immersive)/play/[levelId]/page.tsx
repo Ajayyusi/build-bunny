@@ -4,6 +4,7 @@ import { redirect } from "@/i18n/navigation";
 import { ActivityPlayer } from "@/modules/activities/players/ActivityPlayer";
 import { getActivityEngine } from "@/modules/activities/server/registry";
 import { codePredictionStudentPayload } from "@/modules/activities/server/code-prediction";
+import { conceptCardsStudentPayload } from "@/modules/activities/server/concept-cards";
 import {
   sequencingStudentPayload,
   shuffleSequencingItems,
@@ -12,6 +13,7 @@ import type {
   ActivityIntro,
   CodePredictionActivityPayload,
   GridActivityPayload,
+  LearnActivityPayload,
   SequencingActivityPayload,
 } from "@/modules/activities/types";
 import { requireRole } from "@/modules/auth/server/session";
@@ -117,11 +119,16 @@ export default async function PlayLevelPage({ params }: Props) {
   // defaults are applied and the client-facing shape is rebuilt field by
   // field: answer-bearing keys cannot leak even if an upstream strip
   // regresses — grid payloads have no required answer field (solution is
-  // optional and simply never copied below); CODE_PREDICTION/SEQUENCING use
-  // dedicated answer-FREE schemas, so a stripped payload that still carried
-  // correctOptionId/correctOrder would fail this parse loudly instead of
-  // shipping it.
-  let payload: GridActivityPayload | CodePredictionActivityPayload | SequencingActivityPayload;
+  // optional and simply never copied below); CODE_PREDICTION, SEQUENCING and
+  // CONCEPT_CARDS use dedicated answer-FREE schemas, so a stripped payload
+  // that still carried correctOptionId / correctOrder /
+  // faded.missingBlockType would fail this parse loudly instead of shipping
+  // it.
+  let payload:
+    | GridActivityPayload
+    | CodePredictionActivityPayload
+    | SequencingActivityPayload
+    | LearnActivityPayload;
   if (playable.activityType === "DEBUGGING") {
     const parsed = debuggingPayload.parse(playable.payload);
     const resetWorkspace =
@@ -153,6 +160,26 @@ export default async function PlayLevelPage({ params }: Props) {
       // across students.
       items: shuffleSequencingItems(parsed.items, `${playable.id}:${ctx.userId}`),
     } satisfies SequencingActivityPayload;
+  } else if (playable.activityType === "CONCEPT_CARDS") {
+    const parsed = conceptCardsStudentPayload.parse(playable.payload);
+    payload = {
+      conceptSlug: parsed.conceptSlug,
+      variants: parsed.variants,
+      autoCollect: parsed.autoCollect,
+      nonFatalBumps: parsed.nonFatalBumps,
+      budgets: parsed.budgets,
+      workedExample: {
+        blocks: parsed.workedExample.blocks,
+        caption: parsed.workedExample.caption,
+      },
+      // faded.missingBlockType is deliberately not copied: the answer stays
+      // server-side and the client asks the grader for the verdict.
+      faded: {
+        blocks: parsed.faded.blocks,
+        toolbox: parsed.faded.toolbox,
+        caption: parsed.faded.caption,
+      },
+    } satisfies LearnActivityPayload;
   } else {
     const parsed = blockCodingPayload.parse(playable.payload);
     const resetWorkspace = playable.startWorkspace ?? parsed.startWorkspace ?? null;

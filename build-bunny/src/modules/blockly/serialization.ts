@@ -82,15 +82,89 @@ function countTypes(workspaceJson: unknown): Map<string, number> {
   return counts;
 }
 
+// ── Faded-gap addressing (the Learn step) ────────────────────────────────
+//
+// A Learn step shows a worked example, then the same program with ONE block
+// taken out, and asks the student to put it back (LEARN-STEP-SPEC.md). To
+// report WHICH block landed in the gap — rather than merely which block types
+// appeared anywhere — the gap is addressed structurally: diff the worked
+// example against the faded copy to find the one empty slot, then read the
+// student's workspace at exactly that address. A block dropped somewhere else
+// therefore reads as "the gap is still empty", which is the truth and the
+// right thing to re-prompt on.
+
+/** One step down a serialized program: into a statement/value input, or to
+ * the next block in a stack. */
+export type SlotStep = { kind: "next" } | { kind: "input"; name: string };
+
+/** Address of a connection, relative to a workspace's top-level block list. */
+export interface GapPath {
+  topIndex: number;
+  steps: SlotStep[];
+}
+
+function childAt(
+  block: SerializedBlock | undefined,
+  step: SlotStep,
+): SerializedBlock | undefined {
+  if (!block) return undefined;
+  if (step.kind === "next") return block.next?.block;
+  return block.inputs?.[step.name]?.block;
+}
+
+/** Inputs before `next`, so a gap inside a loop's mouth is found before one
+ * after the loop — the shape every authored faded program uses. */
+function slotsOf(block: SerializedBlock): SlotStep[] {
+  const inputs = block.inputs && typeof block.inputs === "object" ? block.inputs : {};
+  return [
+    ...Object.keys(inputs).map((name) => ({ kind: "input", name }) as SlotStep),
+    { kind: "next" } as SlotStep,
+  ];
+}
+
+function findGapIn(
+  full: SerializedBlock,
+  faded: SerializedBlock,
+  steps: SlotStep[],
+): SlotStep[] | null {
+  for (const slot of slotsOf(full)) {
+    const fullChild = childAt(full, slot);
+    if (!fullChild) continue;
+    const fadedChild = childAt(faded, slot);
+    if (!fadedChild) return [...steps, slot];
+    const deeper = findGapIn(fullChild, fadedChild, [...steps, slot]);
+    if (deeper) return deeper;
+  }
+  return null;
+}
+
 /**
- * Every block type in a workspace JSON with its instance count — hat and
- * sensor blocks included, unlike computeBlockStats below (which is the
- * engine's statement-only program size). The Learn step uses this to work out
- * which block a student dropped into the faded gap, by diffing the submitted
- * workspace against the authored one.
+ * The single connection that `full` fills and `faded` leaves empty, or null
+ * when the two programs have no such difference (which the CONCEPT_CARDS
+ * payload schema already rejects at authoring time).
  */
-export function countBlockTypes(workspaceJson: unknown): Map<string, number> {
-  return countTypes(workspaceJson);
+export function findFadedGap(full: unknown, faded: unknown): GapPath | null {
+  const fullTops = topBlocksOf(full);
+  const fadedTops = topBlocksOf(faded);
+  for (let index = 0; index < Math.min(fullTops.length, fadedTops.length); index += 1) {
+    const steps = findGapIn(fullTops[index]!, fadedTops[index]!, []);
+    if (steps) return { topIndex: index, steps };
+  }
+  return null;
+}
+
+/**
+ * The type of the block sitting at `path` in a workspace, or null when that
+ * connection is empty. Extra top-level stacks are ignored: a block dropped
+ * loose on the canvas has not been put in the gap.
+ */
+export function blockTypeAt(workspaceJson: unknown, path: GapPath): string | null {
+  let node: SerializedBlock | undefined = topBlocksOf(workspaceJson)[path.topIndex];
+  for (const step of path.steps) {
+    if (!node) return null;
+    node = childAt(node, step);
+  }
+  return node && typeof node.type === "string" ? node.type : null;
 }
 
 const STATEMENT_TYPES = new Set<string>(BUNNY_STATEMENT_BLOCKS);

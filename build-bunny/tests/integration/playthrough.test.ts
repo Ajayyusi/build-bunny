@@ -67,6 +67,15 @@ function solutionFor(level: PlayableLevel): Record<string, unknown> {
       if (!Array.isArray(order)) throw new Error(`${level.slug}: no correctOrder`);
       return { answer: { order } };
     }
+    case "CONCEPT_CARDS": {
+      // A Learn step is "solved" by putting the removed block back in the gap.
+      const faded = payload.faded as { missingBlockType?: unknown } | undefined;
+      const blockType = faded?.missingBlockType;
+      if (typeof blockType !== "string") {
+        throw new Error(`${level.slug}: no faded.missingBlockType`);
+      }
+      return { answer: { blockType } };
+    }
     default:
       throw new Error(`${level.slug}: no solution strategy for ${level.activityType}`);
   }
@@ -185,7 +194,7 @@ beforeAll(async () => {
 
 describe("playthrough — every shipped level is winnable by its own solution", () => {
   it("ships the expected curriculum", () => {
-    expect(levels.length).toBeGreaterThanOrEqual(17);
+    expect(levels.length).toBeGreaterThanOrEqual(18);
     const worlds = [...new Set(levels.map((l) => l.worldSlug))];
     expect(worlds).toEqual(["bunny-meadow", "logic-forest", "robot-lab"]);
   });

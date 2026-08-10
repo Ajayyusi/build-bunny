@@ -142,7 +142,12 @@ export async function createTestLevel(
     requires?: string[];
     /** Real gradeable payload (grading suite); default keeps the SECRET marker. */
     payload?: Record<string, unknown>;
-    activityType?: "BLOCK_CODING" | "DEBUGGING" | "CODE_PREDICTION" | "SEQUENCING";
+    activityType?:
+      | "BLOCK_CODING"
+      | "DEBUGGING"
+      | "CODE_PREDICTION"
+      | "SEQUENCING"
+      | "CONCEPT_CARDS";
     difficulty?: "EASY" | "MEDIUM" | "HARD";
     xpReward?: number;
     tags?: string[];

@@ -213,7 +213,23 @@
         "wrongOutput": "Bunny didn't say the right words — check your say blocks.",
         "wrongOption": "That's not quite what this program does — read it again and try once more.",
         "wrongOrder": "That's not the right order yet — look at the routine again.",
+        "tryAnotherBlock": "That block isn't the one. Watch the example again and try another.",
         "generic": "Not quite! Study the map and try again."
+      },
+      "learn": {
+        "stepWatch": "Step 1 of 2 · Watch",
+        "stepYourTurn": "Step 2 of 2 · Your turn",
+        "watch": "Watch",
+        "watchAgain": "Watch again",
+        "playing": "Watching…",
+        "myTurn": "My turn",
+        "check": "Check",
+        "needOneBlock": "Drag a block into the empty space in the program, then press Check.",
+        "notQuite": "That block isn't the one. Watch the example again and try another.",
+        "checkFailed": "We couldn't check that. Try once more.",
+        "retry": "Retry",
+        "doneTitle": "Now try it yourself!",
+        "tryItYourself": "Try the puzzle"
       },
       "hints": {
         "title": "Hints",

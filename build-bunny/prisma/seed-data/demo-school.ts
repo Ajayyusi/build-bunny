@@ -90,10 +90,14 @@ export const CLASSES: { name: DemoClassName; grade: number }[] = [
 export interface StudentProgressSeed {
   /**
    * Stars earned per COMPLETED level, in global program order (Bunny Meadow
-   * levels 1–5, then Logic Forest levels 6–10). Length = how far the student
+   * levels 1–6, then Logic Forest levels 7–12). Length = how far the student
    * got; [] = fresh (never played). xpTotal/starsTotal are NOT seeded raw any
    * more — the seed derives them from these per-level completions, so every
    * cache is provably consistent with real StudentProgress rows.
+   *
+   * A 0 is a real value, not a gap: Bunny Meadow's 5th entry is the
+   * learn-repeat Learn step, which awards no stars by design
+   * (docs/build-bunny/LEARN-STEP-SPEC.md). Everything else is 2–3.
    */
   completedStars: number[];
   streakCurrent: number;
@@ -122,43 +126,46 @@ export interface StudentSeed {
 
 /**
  * 16 students, 8 per class — a deliberate spread of curriculum states so every
- * surface has something honest to show (world layout: Bunny Meadow = 5
- * levels, Logic Forest = 6 levels incl. the CODE_PREDICTION level added in
- * M4's activity-engines wave, 11 total for both worlds):
+ * surface has something honest to show (world layout: Bunny Meadow = 6 levels
+ * incl. the learn-repeat Learn step, Logic Forest = 6 levels incl. the
+ * CODE_PREDICTION level added in M4's activity-engines wave, 12 total for
+ * both worlds):
  *  - 3 fresh accounts that never played (only the first level gets unlocked);
  *  - 6 mid-World-1 (1–4 levels done, next one unlocked);
- *  - 4 finished World 1 and into World 2 (6–7 levels done);
- *  - 3 advanced (8–11 done) — Aisha K. has all 11, the certificate candidate
+ *  - 4 finished World 1 and into World 2 (7–8 levels done);
+ *  - 3 advanced (9–12 done) — Aisha K. has all 12, the certificate candidate
  *    (genuinely passes — not just completes — every level of both worlds,
  *    so the real issuance path awards her both certificates; m4-contracts).
- * Adam B. (4 levels, silent for 3 weeks) stays the needs-attention demo case.
+ * Adam B. (4 levels, silent for 3 weeks) stays the needs-attention demo case —
+ * and now sits with the Learn step as his next unlocked node.
  */
 export const STUDENTS: StudentSeed[] = [
   // ── Grade 3A (Sara Haddad) ──
   {
     firstName: "Aisha", lastInitial: "K", username: "aisha", studentIdentifier: "DEMO-1001",
     className: "Grade 3A", grade: 3, password: "star-bunny-31",
-    // All 5 Bunny Meadow + all 6 Logic Forest levels, every one at ≥2 stars
-    // (a genuine PASS, never just PARTIAL) — the certificate task's gate.
-    progress: { completedStars: [3, 3, 3, 3, 3, 3, 2, 3, 3, 3, 3], streakCurrent: 9, streakBest: 9, lastActiveDaysAgo: 0 },
+    // All 6 Bunny Meadow + all 6 Logic Forest levels, every scored one at ≥2
+    // stars (a genuine PASS, never just PARTIAL) — the certificate task's
+    // gate. The 0 is the Learn step, which has no stars to earn.
+    progress: { completedStars: [3, 3, 3, 3, 0, 3, 3, 2, 3, 3, 3, 3], streakCurrent: 9, streakBest: 9, lastActiveDaysAgo: 0 },
     loginTrailDays: 5,
   },
   {
     firstName: "Mohammed", lastInitial: "R", username: "mohammed", studentIdentifier: "DEMO-1002",
     className: "Grade 3A", grade: 3, password: "mango-kite-52",
-    progress: { completedStars: [3, 3, 2, 3, 3, 2, 3, 3], streakCurrent: 4, streakBest: 7, lastActiveDaysAgo: 1 },
+    progress: { completedStars: [3, 3, 2, 3, 0, 3, 2, 3, 3], streakCurrent: 4, streakBest: 7, lastActiveDaysAgo: 1 },
     loginTrailDays: 4,
   },
   {
     firstName: "Layla", lastInitial: "H", username: "layla", studentIdentifier: "DEMO-1003",
     className: "Grade 3A", grade: 3, password: "coral-frog-18",
-    progress: { completedStars: [3, 2, 3, 2, 3, 2], streakCurrent: 3, streakBest: 5, lastActiveDaysAgo: 1 },
+    progress: { completedStars: [3, 2, 3, 2, 0, 3, 2], streakCurrent: 3, streakBest: 5, lastActiveDaysAgo: 1 },
     loginTrailDays: 3,
   },
   {
     firstName: "Yousef", lastInitial: "A", username: "yousef", studentIdentifier: "DEMO-1004",
     className: "Grade 3A", grade: 3, password: "tiger-cloud-74",
-    progress: { completedStars: [2, 2, 3, 2, 3, 2], streakCurrent: 2, streakBest: 4, lastActiveDaysAgo: 2 },
+    progress: { completedStars: [2, 2, 3, 2, 0, 3, 2], streakCurrent: 2, streakBest: 4, lastActiveDaysAgo: 2 },
   },
   {
     firstName: "Fatima", lastInitial: "S", username: "fatima", studentIdentifier: "DEMO-1005",
@@ -185,19 +192,19 @@ export const STUDENTS: StudentSeed[] = [
   {
     firstName: "Noor", lastInitial: "E", username: "noor", studentIdentifier: "DEMO-1009",
     className: "Grade 4A", grade: 4, password: "violet-nest-37",
-    progress: { completedStars: [3, 3, 3, 3, 2, 3, 3, 2, 3], streakCurrent: 7, streakBest: 8, lastActiveDaysAgo: 0 },
+    progress: { completedStars: [3, 3, 3, 3, 0, 2, 3, 3, 2, 3], streakCurrent: 7, streakBest: 8, lastActiveDaysAgo: 0 },
     loginTrailDays: 5,
   },
   {
     firstName: "Hamdan", lastInitial: "S", username: "hamdan", studentIdentifier: "DEMO-1010",
     className: "Grade 4A", grade: 4, password: "breeze-lemon-91",
-    progress: { completedStars: [3, 2, 3, 3, 2, 3, 2], streakCurrent: 5, streakBest: 5, lastActiveDaysAgo: 1 },
+    progress: { completedStars: [3, 2, 3, 3, 0, 2, 3, 2], streakCurrent: 5, streakBest: 5, lastActiveDaysAgo: 1 },
     loginTrailDays: 4,
   },
   {
     firstName: "Hessa", lastInitial: "A", username: "hessa", studentIdentifier: "DEMO-1011",
     className: "Grade 4A", grade: 4, password: "olive-quest-24",
-    progress: { completedStars: [2, 3, 2, 3, 2, 3], streakCurrent: 2, streakBest: 6, lastActiveDaysAgo: 2 },
+    progress: { completedStars: [2, 3, 2, 3, 0, 2, 3], streakCurrent: 2, streakBest: 6, lastActiveDaysAgo: 2 },
   },
   {
     firstName: "Rashid", lastInitial: "K", username: "rashid", studentIdentifier: "DEMO-1012",

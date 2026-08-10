@@ -58,7 +58,7 @@ other block labels were reviewed and judged natural, concrete classroom
 Arabic; no other change was needed.
 
 ## 4. Supplementary content vocabulary (not mandated by the brief, kept here
-for translator consistency across the 17 levels)
+for translator consistency across the 18 levels)
 
 | English                          | Arabic                  |
 |-----------------------------------|--------------------------|

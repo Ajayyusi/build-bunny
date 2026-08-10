@@ -30,12 +30,19 @@ const SequencingPlayer = dynamic(
   () => import("./SequencingPlayer").then((m) => m.SequencingPlayer),
   { ssr: false },
 );
+// ssr:false like GridPlayer — the Learn step drives Blockly for both of its
+// beats (LEARN-STEP-SPEC.md).
+const LearnPlayer = dynamic(
+  () => import("./LearnPlayer").then((m) => m.LearnPlayer),
+  { ssr: false },
+);
 
 export const ACTIVITY_PLAYERS: Partial<Record<string, ComponentType<ActivityPlayerProps>>> = {
   BLOCK_CODING: GridPlayer,
   DEBUGGING: GridPlayer,
   CODE_PREDICTION: CodePredictionPlayer,
   SEQUENCING: SequencingPlayer,
+  CONCEPT_CARDS: LearnPlayer,
 };
 
 export function getActivityPlayer(

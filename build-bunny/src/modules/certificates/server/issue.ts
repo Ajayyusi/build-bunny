@@ -21,6 +21,13 @@ import { localizedText, type LocalizedText } from "@/modules/curriculum/schemas"
  * can only ever award 2–3 stars for a PASS verdict — PARTIAL always caps at
  * 1. That makes `stars >= 2` an exact, already-persisted proxy for "this
  * level was passed for real at some point", with no extra table to query.
+ *
+ * The threshold is `min(2, maxStars)` rather than a flat 2 so the proxy stays
+ * exact for levels that award fewer stars than the standard scale. A Learn
+ * step (CONCEPT_CARDS, maxStars 0 — it teaches rather than tests) can never
+ * reach 2 stars, so a flat 2 would silently make every world containing one
+ * uncertifiable. For the 3-star levels that are everything else, min(2, 3) is
+ * 2 and nothing changes.
  */
 
 export interface IssueResult {
@@ -93,7 +100,7 @@ export async function issueWorldCertificate(args: {
 
   const publishedLevels = await db.level.findMany({
     where: { module: { worldId: world.id }, status: "PUBLISHED", publishedVersionId: { not: null } },
-    select: { id: true },
+    select: { id: true, maxStars: true },
   });
   if (publishedLevels.length === 0) return { certificate: null, alreadyIssued: false };
 
@@ -106,10 +113,10 @@ export async function issueWorldCertificate(args: {
     },
     select: { levelId: true, stars: true },
   });
-  const genuinelyPassed = new Set(
-    progressRows.filter((row) => row.stars >= 2).map((row) => row.levelId),
+  const starsByLevel = new Map(progressRows.map((row) => [row.levelId, row.stars]));
+  const fullyPassed = publishedLevels.every(
+    (level) => (starsByLevel.get(level.id) ?? -1) >= Math.min(2, level.maxStars),
   );
-  const fullyPassed = publishedLevels.every((level) => genuinelyPassed.has(level.id));
   if (!fullyPassed) return { certificate: null, alreadyIssued: false };
 
   const [student, school] = await Promise.all([

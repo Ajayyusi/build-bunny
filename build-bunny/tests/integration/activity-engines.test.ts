@@ -56,6 +56,51 @@ const SEQUENCING_PAYLOAD = {
   correctOrder: ["a", "b", "c"],
 };
 
+/** A Learn step: worked example, the same program minus its loop body. */
+const CONCEPT_CARDS_PAYLOAD = {
+  conceptSlug: "loops",
+  variants: [{ rows: [".....", "...G.", "....."], start: { x: 0, y: 1, dir: "E" } }],
+  workedExample: {
+    blocks: {
+      blocks: {
+        languageVersion: 0,
+        blocks: [
+          {
+            type: "bb_whenStart",
+            id: "start",
+            next: {
+              block: {
+                type: "bb_repeat",
+                id: "loop",
+                fields: { TIMES: 3 },
+                inputs: { DO: { block: { type: "bb_moveForward", id: "hop" } } },
+              },
+            },
+          },
+        ],
+      },
+    },
+    caption: { en: "Watch the loop run." },
+  },
+  faded: {
+    blocks: {
+      blocks: {
+        languageVersion: 0,
+        blocks: [
+          {
+            type: "bb_whenStart",
+            id: "start",
+            next: { block: { type: "bb_repeat", id: "loop", fields: { TIMES: 3 } } },
+          },
+        ],
+      },
+    },
+    toolbox: [{ type: "bb_moveForward" }, { type: "bb_turnLeft" }],
+    caption: { en: "Fill the gap." },
+    missingBlockType: "bb_moveForward",
+  },
+};
+
 // ── Minimal grid fixture (same shape as grading.test.ts, kept local) ─────
 
 type BlockNode = Record<string, unknown>;
@@ -135,9 +180,12 @@ let predictLevelId: string;
 let predictNextId: string;
 let sequenceLevelId: string;
 let sequenceNextId: string;
+let learnLevelId: string;
+let learnNextId: string;
 let gridScenario: Scenario;
 let predictScenario: Scenario;
 let sequenceScenario: Scenario;
+let learnScenario: Scenario;
 
 async function makeStudent(
   school: { id: string; code: string },
@@ -186,6 +234,22 @@ beforeAll(async () => {
   ]);
   sequenceLevelId = sequenceScenario.levelIds[0]!;
   sequenceNextId = sequenceScenario.levelIds[1]!;
+
+  // maxStars 0 is what the content pipeline gives a Learn step
+  // (defaultMaxStars) — the fixture states it explicitly so this suite proves
+  // the clamp, not the default.
+  learnScenario = await setupScenario("Learn", [
+    {
+      title: "Learn One",
+      activityType: "CONCEPT_CARDS",
+      payload: CONCEPT_CARDS_PAYLOAD,
+      maxStars: 0,
+      xpReward: 15,
+    },
+    { title: "Learn Next", activityType: "BLOCK_CODING", payload: GRID_PAYLOAD },
+  ]);
+  learnLevelId = learnScenario.levelIds[0]!;
+  learnNextId = learnScenario.levelIds[1]!;
 });
 
 // ── CODE_PREDICTION ──────────────────────────────────────────────────────
@@ -302,6 +366,110 @@ describe("SEQUENCING grading (through submitAttempt, the real pipeline)", () => 
   });
 });
 
+// ── CONCEPT_CARDS (the Learn step) ───────────────────────────────────────
+
+describe("CONCEPT_CARDS grading (through submitAttempt, the real pipeline)", () => {
+  it("right block: PASS with ZERO stars, XP still awarded, unlocks the puzzle it teaches", async () => {
+    const ctx = await makeStudent(learnScenario.school, 12);
+    const runId = uuid();
+
+    const outcome = await submitAttempt(ctx, learnLevelId, {
+      attemptRunId: runId,
+      answer: { blockType: "bb_moveForward" },
+    });
+    expect(outcome.status).toBe(200);
+    const body = outcome.body as AttemptResponse;
+    expect(body.verdict).toBe("PASS");
+    // The whole point: a lesson teaches, it does not score. Every other
+    // engine returns 3 here.
+    expect(body.stars).toBe(0);
+    expect(body.starsBest).toBe(0);
+    // ...but progress still moves.
+    expect(body.xpAwarded).toBe(15);
+    expect(body.feedback).toBeNull();
+    expect(body.unlockedLevelIds).toEqual([learnNextId]);
+
+    const attempt = await db.activityAttempt.findUnique({ where: { attemptRunId: runId } });
+    expect(attempt?.verdict).toBe("PASS");
+    expect(attempt?.starsEarned).toBe(0);
+    expect(attempt?.generatedCode).toBe(""); // no code engine involved
+    expect(attempt?.blockCount).toBeNull();
+    expect(attempt?.workspaceJson).toEqual({ blockType: "bb_moveForward" });
+
+    const progress = await db.studentProgress.findFirst({
+      where: { studentUserId: ctx.userId, levelId: learnLevelId },
+    });
+    expect(progress?.status).toBe("COMPLETED");
+    expect(progress?.stars).toBe(0);
+
+    // No STAR_2/STAR_3 bonuses can be earned on a starless level.
+    const xpSources = await db.xpEvent.findMany({
+      where: { studentUserId: ctx.userId, levelId: learnLevelId },
+      select: { source: true },
+    });
+    expect(xpSources.map((e) => e.source)).toEqual(["LEVEL_PASS"]);
+
+    // Replay: identical response, zero additional attempts/XP (idempotency).
+    const before = await countsFor(ctx.userId);
+    const replay = await submitAttempt(ctx, learnLevelId, {
+      attemptRunId: runId,
+      answer: { blockType: "bb_turnLeft" },
+    });
+    expect(replay.status).toBe(200);
+    expect(replay.body).toEqual(body);
+    expect(await countsFor(ctx.userId)).toEqual(before);
+  });
+
+  it("wrong block: re-prompts with tryAnotherBlock, costs nothing, level stays open", async () => {
+    const ctx = await makeStudent(learnScenario.school, 13);
+    const outcome = await submitAttempt(ctx, learnLevelId, {
+      attemptRunId: uuid(),
+      answer: { blockType: "bb_turnLeft" },
+    });
+    expect(outcome.status).toBe(200);
+    const body = outcome.body as AttemptResponse;
+    expect(body.verdict).toBe("FAIL");
+    expect(body.stars).toBe(0);
+    expect(body.xpAwarded).toBe(0);
+    // An invitation to try again, not a verdict — there is no failure state
+    // in a lesson.
+    expect(body.feedback?.code).toBe("tryAnotherBlock");
+    expect(body.unlockedLevelIds).toEqual([]);
+
+    const progress = await db.studentProgress.findFirst({
+      where: { studentUserId: ctx.userId, levelId: learnLevelId },
+    });
+    expect(progress?.status).not.toBe("COMPLETED");
+    expect(await db.xpEvent.count({ where: { studentUserId: ctx.userId } })).toBe(0);
+  });
+
+  it("records which block the student reached for, right or wrong (misconception signal)", async () => {
+    const ctx = await makeStudent(learnScenario.school, 14);
+    const runId = uuid();
+    await submitAttempt(ctx, learnLevelId, {
+      attemptRunId: runId,
+      answer: { blockType: "bb_turnLeft" },
+    });
+    const attempt = await db.activityAttempt.findUnique({ where: { attemptRunId: runId } });
+    const summary = attempt?.resultSummary as Record<string, unknown>;
+    expect(summary["blockType"]).toBe("bb_turnLeft");
+    expect(summary["conceptSlug"]).toBe("loops");
+    expect(summary["correct"]).toBe(false);
+  });
+
+  it("a workspaceJson-shaped submission against a CONCEPT_CARDS level is rejected", async () => {
+    const ctx = await makeStudent(learnScenario.school, 15);
+    const outcome = await submitAttempt(ctx, learnLevelId, {
+      attemptRunId: uuid(),
+      workspaceJson: { blocks: {} },
+    });
+    expect(outcome.status).toBe(400);
+    expect(
+      await db.activityAttempt.count({ where: { studentUserId: ctx.userId } }),
+    ).toBe(0);
+  });
+});
+
 // ── Answer keys never reach the student loader ──────────────────────────
 
 describe("student payload loader never exposes answer keys", () => {
@@ -329,6 +497,35 @@ describe("student payload loader never exposes answer keys", () => {
     expect("correctOrder" in payload).toBe(false);
     expect(JSON.stringify(playable)).not.toContain("correctOrder");
     expect(payload["items"]).toEqual(SEQUENCING_PAYLOAD.items);
+  });
+
+  it("CONCEPT_CARDS: the NESTED faded.missingBlockType is stripped from getPlayableLevel", async () => {
+    const ctx = await makeStudent(learnScenario.school, 16);
+    const playable = await getPlayableLevel(ctx, learnLevelId);
+    expect(playable).not.toBeNull();
+    const payload = playable?.payload as Record<string, unknown>;
+    const faded = payload["faded"] as Record<string, unknown>;
+    // A top-level-only sweep would have shipped this in the page source.
+    expect(faded["missingBlockType"]).toBeUndefined();
+    expect("missingBlockType" in faded).toBe(false);
+    expect(JSON.stringify(playable)).not.toContain("missingBlockType");
+    // Everything the lesson needs to render must survive — including the
+    // worked example, which shows the answer on purpose.
+    expect(faded["toolbox"]).toEqual(CONCEPT_CARDS_PAYLOAD.faded.toolbox);
+    expect(faded["blocks"]).toEqual(CONCEPT_CARDS_PAYLOAD.faded.blocks);
+    expect(payload["workedExample"]).toEqual(CONCEPT_CARDS_PAYLOAD.workedExample);
+  });
+
+  it("CONCEPT_CARDS: stripping does not mutate the snapshot the grader reads", async () => {
+    const ctx = await makeStudent(learnScenario.school, 17);
+    await getPlayableLevel(ctx, learnLevelId);
+    // If the strip had edited the container in place, the answer would be
+    // gone from the published snapshot and every later attempt would fail.
+    const outcome = await submitAttempt(ctx, learnLevelId, {
+      attemptRunId: uuid(),
+      answer: { blockType: "bb_moveForward" },
+    });
+    expect((outcome.body as AttemptResponse).verdict).toBe("PASS");
   });
 });
 

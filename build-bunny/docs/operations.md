@@ -60,7 +60,7 @@ applied migration count matches what's on disk; `503` otherwise. Shape:
   "db": true,
   "version": "0.1.0",
   "migrations": { "applied": 4, "expected": 4, "upToDate": true },
-  "content": { "publishedLevels": 17 }
+  "content": { "publishedLevels": 18 }
 }
 ```
 
