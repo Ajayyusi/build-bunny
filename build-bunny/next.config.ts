@@ -76,6 +76,17 @@ const nextConfig: NextConfig = {
   // standalone output under a mirrored path.
   outputFileTracingRoot: process.cwd(),
 
+  // The teacher-side grader (`src/modules/blockly/server/codegen.ts`) imports
+  // `blockly` on the server, which transitively pulls in `jsdom`. jsdom's
+  // deps (`html-encoding-sniffer` CJS → `@exodus/bytes` ESM) trip Node's
+  // CJS/ESM interop when webpack rewrites them for the serverless bundle,
+  // producing `require() of ES Module ... not supported` at request time on
+  // Vercel. Marking these packages as external keeps them as plain
+  // node_modules requires that Node resolves natively — no webpack rewrite,
+  // no interop crash. Only affects the Node/Server runtime; client bundles
+  // never load jsdom.
+  serverExternalPackages: ["blockly", "jsdom"],
+
   async headers() {
     return [
       {
