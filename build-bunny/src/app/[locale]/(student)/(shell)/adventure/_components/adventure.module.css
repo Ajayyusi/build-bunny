@@ -142,18 +142,30 @@
   transform-origin: 50% 90%;
 }
 
-/* Walking bunny that sits on top of the last completed node marking
-   "you are here." It hops in place using the shared .bunny-walk in
-   globals.css; this class only handles positioning. */
+/* Walking bunny marking "you are here" on the current node. It hops in
+   place using the shared .bunny-walk in globals.css; this class only
+   handles positioning.
+
+   Sits BELOW the node, not above: a world's first level carries a
+   centered module-label chip directly above it ("Power & Sensors"), and
+   an above-node marker overlapped that chip by ~14px. Below the node is
+   always free — the star badge only renders on COMPLETED nodes and the
+   current node is by definition not completed, while the locked-hint
+   bubble only renders on LOCKED nodes. */
 .hereMarker {
   position: absolute;
-  inset-block-start: -1.75rem;
+  inset-block-start: calc(100% + 0.25rem);
   inset-inline-start: 50%;
   translate: -50% 0;
+  z-index: 5;
   font-size: 1.5rem;
   line-height: 1;
   pointer-events: none;
   filter: drop-shadow(0 2px 4px color-mix(in oklab, var(--color-ink) 30%, transparent));
+}
+
+html[dir="rtl"] .hereMarker {
+  translate: 50% 0;
 }
 
 /* ── Locked nodes ────────────────────────────────────────────────────────── */
