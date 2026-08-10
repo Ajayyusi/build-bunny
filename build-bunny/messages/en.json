@@ -88,12 +88,17 @@
       "home": "Home",
       "adventure": "Adventure",
       "achievements": "Achievements",
-      "profile": "My profile"
+      "profile": "My profile",
+      "menu": "Open menu",
+      "sectionMain": "Learn",
+      "sectionAccount": "Account"
     },
     "header": {
       "xpChip": "{value} XP",
       "xpLabel": "Experience points",
-      "starsLabel": "Stars"
+      "starsLabel": "Stars",
+      "streakChip": "{value}d streak",
+      "streakLabel": "Day streak"
     },
     "home": {
       "greeting": "Hi, {name}!",
@@ -105,7 +110,25 @@
       "emptyBody": "Your teacher will unlock it soon — check back here!",
       "adventureCardTitle": "Your adventure map is ready!",
       "adventureCardBody": "New levels and worlds are waiting on the trail.",
-      "adventureCardCta": "Open your adventure map"
+      "adventureCardCta": "Open your adventure map",
+      "kicker": "CONTINUE LEARNING",
+      "heroTitle": "Pick up where you left off",
+      "heroBody": "Jump back into {world} and keep your streak going.",
+      "heroBodyFresh": "Your very first mission is ready. Let's hop to it!",
+      "heroCta": "Continue",
+      "heroCtaFresh": "Start learning",
+      "heroMinutes": "{minutes} mins",
+      "xpPanelTitle": "XP Progress",
+      "xpPanelBody": "Total XP earned across your worlds",
+      "badgesEarned": "Badges earned",
+      "roadmapTitle": "Your adventure",
+      "roadmapWorlds": "{count} worlds",
+      "roadmapLevels": "{count} levels",
+      "worldChapters": "{count} levels",
+      "worldProgressSr": "{done} of {total} levels complete",
+      "activityTitle": "This week",
+      "activityLevels": "Levels played",
+      "activityStars": "Stars earned"
     },
     "adventure": {
       "title": "Adventure map",
@@ -140,7 +163,16 @@
         "start": "Start level"
       },
       "horizonHeading": "On the horizon",
-      "horizonBody": "New worlds are being charted for your journey."
+      "horizonBody": "New worlds are being charted for your journey.",
+      "pathTitle": "My path",
+      "pathSubtitle": "Your learning journey",
+      "gradeBadge": "GRADE {grade}",
+      "resume": "RESUME",
+      "continueModule": "Continue world",
+      "startModule": "Start world",
+      "requiresPrefix": "Requires: {name}",
+      "worldProgressPct": "{pct}%",
+      "reviewModule": "Review world"
     },
     "play": {
       "backToMap": "Back to map",
@@ -262,7 +294,20 @@
       "certificateRevoked": "No longer valid",
       "viewCertificate": "View certificate",
       "errorTitle": "Couldn't load your achievements",
-      "errorBody": "Please try again."
+      "errorBody": "Please try again.",
+      "legacyTitle": "Your legacy.",
+      "legacyBody": "You've completed {pct}% of your adventure. Keep going to unlock every badge!",
+      "legacyProgressLabel": "Adventure progress",
+      "recentBadges": "RECENT BADGES",
+      "recentBadgesEmpty": "No badges yet — finish a level to unlock your first one!",
+      "rank": "Rank",
+      "badgesCount": "Badges",
+      "topPercent": "Top {pct}%",
+      "leaderboardTitle": "Class leaderboard",
+      "leaderboardHint": "Everyone in your class, ranked by XP.",
+      "leaderboardEmpty": "Your class leaderboard appears once your classmates start playing.",
+      "leaderboardYou": "You",
+      "xpSuffix": "{value} XP"
     }
   },
   "staff": {

@@ -646,6 +646,32 @@ async function assertQueryIsolated(entry: RegistryEntry): Promise<void> {
       expectNoForeignIds(rowsA, name);
       break;
     }
+    case "getMyClassLeaderboard": {
+      // The board is class-scoped by design (children's data — see the
+      // query's own note), so isolation has two halves: only classmates
+      // appear, and a ctx carrying another school's user gets nothing.
+      const rowsA = asRows(await query(studentCtxA));
+      const idsA = rowsA.map((r) => r["userId"]);
+      // Both of school A's students share A.classId, so both must appear…
+      expect(idsA).toContain(A.studentIds[0]);
+      expect(idsA).toContain(A.studentIds[1]);
+      // …and neither of school B's may, even though they're also STUDENTs.
+      expect(idsA).not.toContain(B.studentIds[0]);
+      expect(idsA).not.toContain(B.studentIds[1]);
+      // Exactly one row is flagged as the caller.
+      expect(rowsA.filter((r) => r["isMe"] === true)).toHaveLength(1);
+      expectNoForeignIds(rowsA, name);
+
+      // A ctx claiming school A while carrying school B's user must resolve
+      // to no membership at all — not to school A's board.
+      const mismatched = createCtx({
+        userId: B.studentIds[0],
+        role: "STUDENT",
+        schoolId: A.school.id,
+      });
+      expect(asRows(await query(mismatched))).toHaveLength(0);
+      break;
+    }
     case "listSchoolCertificates": {
       const rows = asRows(await query(ctxA));
       expect(rows.length).toBe(1);

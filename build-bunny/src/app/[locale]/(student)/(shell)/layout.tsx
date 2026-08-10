@@ -7,7 +7,15 @@ import { isFeatureEnabled } from "@/modules/shared/features";
 import { getMyStudentSnapshot } from "@/modules/students/server/queries";
 import { Avatar, SkipLink } from "@/ui";
 
-import { NavLink } from "../../_components/NavLink";
+import {
+  HomeIcon,
+  PathIcon,
+  ProfileIcon,
+  TrophyIcon,
+} from "./_components/icons";
+import { SidebarNavItem } from "./_components/SidebarNav";
+import { SidebarShell } from "./_components/SidebarShell";
+import { SidebarSignOut } from "./_components/SidebarSignOut";
 
 interface Props {
   children: ReactNode;
@@ -15,10 +23,14 @@ interface Props {
 }
 
 /**
- * Student chrome (header + nav + page container) for the browsing surfaces:
- * home, adventure map, profile. The play route lives in the (immersive)
- * sibling group and renders without any of this. requireRole is
- * request-cached, so re-deriving ctx here costs nothing.
+ * Student chrome for the browsing surfaces: home, adventure, achievements,
+ * profile. The play route lives in the (immersive) sibling group and
+ * renders without any of this.
+ *
+ * Layout is a persistent left sidebar (drawer below lg — see SidebarShell)
+ * with the progress chips moved into a top-right cluster on the pages
+ * themselves. requireRole is request-cached, so re-deriving ctx costs
+ * nothing.
  */
 export default async function StudentShellLayout({ children, params }: Props) {
   const { locale } = await params;
@@ -37,51 +49,66 @@ export default async function StudentShellLayout({ children, params }: Props) {
     "adventure",
   );
 
+  const sidebar = (
+    <>
+      {/* Brand + identity block */}
+      <div className="flex flex-col gap-4">
+        <Link
+          href="/home"
+          className="flex items-center gap-2 font-display text-lg font-bold text-ink"
+        >
+          <span aria-hidden className="text-xl">
+            🐰
+          </span>
+          {tCommon("appName")}
+        </Link>
+        <div className="flex items-center gap-3 rounded-xl bg-surface-sunken p-3">
+          <Avatar displayName={displayName} size="md" />
+          <div className="flex min-w-0 flex-col">
+            <span className="truncate font-display text-sm font-bold text-ink">
+              {displayName}
+            </span>
+            {snapshot?.school.name ? (
+              <span className="truncate text-xs text-ink-muted">
+                {snapshot.school.name}
+              </span>
+            ) : null}
+          </div>
+        </div>
+      </div>
+
+      <nav aria-label={t("nav.label")} className="flex flex-col gap-1">
+        <SidebarNavItem href="/home" icon={<HomeIcon />}>
+          {t("nav.home")}
+        </SidebarNavItem>
+        {adventureEnabled ? (
+          <SidebarNavItem href="/adventure" icon={<PathIcon />}>
+            {t("nav.adventure")}
+          </SidebarNavItem>
+        ) : null}
+        <SidebarNavItem href="/achievements" icon={<TrophyIcon />}>
+          {t("nav.achievements")}
+        </SidebarNavItem>
+      </nav>
+
+      {/* Account block pinned to the bottom of the rail. Profile carries the
+          language switcher and sign-out, so it plays the "settings" role the
+          reference layout puts down here. */}
+      <div className="mt-auto flex flex-col gap-1 border-t border-border-token pt-3">
+        <SidebarNavItem href="/profile" icon={<ProfileIcon />}>
+          {t("nav.profile")}
+        </SidebarNavItem>
+        <SidebarSignOut />
+      </div>
+    </>
+  );
+
   return (
     <>
       <SkipLink label={tCommon("skipToContent")} />
-      <header className="border-b border-border-token bg-surface-raised">
-        <div className="bb-container flex flex-wrap items-center justify-between gap-x-4 gap-y-2 py-3">
-          <div className="flex items-center gap-4 sm:gap-6">
-            <Link
-              href="/home"
-              className="inline-flex h-11 items-center gap-2 rounded-md font-display text-lg font-bold text-ink"
-            >
-              <span aria-hidden>🐰</span>
-              {tCommon("appName")}
-            </Link>
-            <nav aria-label={t("nav.label")} className="flex items-center gap-1">
-              <NavLink href="/home">{t("nav.home")}</NavLink>
-              {adventureEnabled ? (
-                <NavLink href="/adventure">{t("nav.adventure")}</NavLink>
-              ) : null}
-              <NavLink href="/achievements">{t("nav.achievements")}</NavLink>
-              <NavLink href="/profile">{t("nav.profile")}</NavLink>
-            </nav>
-          </div>
-          <div className="flex items-center gap-3">
-            <span className="inline-flex h-9 items-center gap-1 rounded-full bg-accent/25 px-3 text-sm font-bold tabular-nums">
-              <span aria-hidden>⚡</span>
-              <span className="sr-only">{t("header.xpLabel")}: </span>
-              {t("header.xpChip", { value: String(snapshot?.xpTotal ?? 0) })}
-            </span>
-            <span className="inline-flex h-9 items-center gap-1 rounded-full bg-accent/25 px-3 text-sm font-bold tabular-nums">
-              <span aria-hidden>⭐</span>
-              <span className="sr-only">{t("header.starsLabel")}: </span>
-              {snapshot?.starsTotal ?? 0}
-            </span>
-            <span className="flex items-center gap-2">
-              <Avatar displayName={displayName} size="md" />
-              <span className="hidden text-sm font-semibold sm:inline">
-                {displayName}
-              </span>
-            </span>
-          </div>
-        </div>
-      </header>
-      <main id="main-content" tabIndex={-1} className="bb-container flex-1 py-8 focus:outline-none">
+      <SidebarShell sidebar={sidebar} menuLabel={t("nav.menu")}>
         {children}
-      </main>
+      </SidebarShell>
     </>
   );
 }

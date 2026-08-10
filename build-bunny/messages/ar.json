@@ -88,12 +88,17 @@
       "home": "الرئيسية",
       "adventure": "المغامرة",
       "achievements": "الإنجازات",
-      "profile": "ملفي الشخصي"
+      "profile": "ملفي الشخصي",
+      "menu": "افتح القائمة",
+      "sectionMain": "التعلّم",
+      "sectionAccount": "الحساب"
     },
     "header": {
       "xpChip": "{value} XP",
       "xpLabel": "نقاط الخبرة",
-      "starsLabel": "النجوم"
+      "starsLabel": "النجوم",
+      "streakChip": "{value} يوم متتالٍ",
+      "streakLabel": "أيام متتالية"
     },
     "home": {
       "greeting": "أهلًا يا {name}!",
@@ -105,7 +110,25 @@
       "emptyBody": "سيفتحها لك معلمك قريبًا — عد وتفقدها لاحقًا!",
       "adventureCardTitle": "خريطة مغامرتك جاهزة!",
       "adventureCardBody": "مستويات وعوالم جديدة بانتظارك على المسار.",
-      "adventureCardCta": "افتح خريطة المغامرة"
+      "adventureCardCta": "افتح خريطة المغامرة",
+      "kicker": "تابع التعلّم",
+      "heroTitle": "أكمل من حيث توقفت",
+      "heroBody": "عُد إلى {world} وحافظ على تتابعك.",
+      "heroBodyFresh": "مهمتك الأولى جاهزة. هيا بنا!",
+      "heroCta": "متابعة",
+      "heroCtaFresh": "ابدأ التعلّم",
+      "heroMinutes": "{minutes} دقيقة",
+      "xpPanelTitle": "تقدّم النقاط",
+      "xpPanelBody": "مجموع النقاط في كل العوالم",
+      "badgesEarned": "الأوسمة المكتسبة",
+      "roadmapTitle": "مغامرتك",
+      "roadmapWorlds": "{count} عوالم",
+      "roadmapLevels": "{count} مستويات",
+      "worldChapters": "{count} مستويات",
+      "worldProgressSr": "أكملت {done} من {total} مستويات",
+      "activityTitle": "هذا الأسبوع",
+      "activityLevels": "المستويات",
+      "activityStars": "النجوم"
     },
     "adventure": {
       "title": "خريطة المغامرة",
@@ -140,7 +163,16 @@
         "start": "ابدأ المستوى"
       },
       "horizonHeading": "في الأفق",
-      "horizonBody": "عوالم جديدة تُرسم الآن لرحلتك."
+      "horizonBody": "عوالم جديدة تُرسم الآن لرحلتك.",
+      "pathTitle": "مساري",
+      "pathSubtitle": "رحلة تعلّمك",
+      "gradeBadge": "الصف {grade}",
+      "resume": "متابعة",
+      "continueModule": "تابع العالم",
+      "startModule": "ابدأ العالم",
+      "requiresPrefix": "يتطلب: {name}",
+      "worldProgressPct": "{pct}٪",
+      "reviewModule": "راجع العالم"
     },
     "play": {
       "backToMap": "العودة إلى الخريطة",
@@ -262,7 +294,20 @@
       "certificateRevoked": "لم تعد سارية",
       "viewCertificate": "عرض الشهادة",
       "errorTitle": "تعذّر تحميل إنجازاتك",
-      "errorBody": "يرجى المحاولة مرة أخرى."
+      "errorBody": "يرجى المحاولة مرة أخرى.",
+      "legacyTitle": "إنجازك.",
+      "legacyBody": "أكملت {pct}٪ من مغامرتك. واصل لتفتح كل الأوسمة!",
+      "legacyProgressLabel": "تقدّم المغامرة",
+      "recentBadges": "أحدث الأوسمة",
+      "recentBadgesEmpty": "لا أوسمة بعد — أكمل مستوى لتفتح أولها!",
+      "rank": "الترتيب",
+      "badgesCount": "الأوسمة",
+      "topPercent": "أفضل {pct}٪",
+      "leaderboardTitle": "ترتيب الصف",
+      "leaderboardHint": "كل زملائك في الصف مرتبين حسب النقاط.",
+      "leaderboardEmpty": "يظهر ترتيب صفك عندما يبدأ زملاؤك اللعب.",
+      "leaderboardYou": "أنت",
+      "xpSuffix": "{value} نقطة"
     }
   },
   "staff": {

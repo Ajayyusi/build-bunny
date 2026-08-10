@@ -89,6 +89,54 @@
   }
 }
 
+/* ── Timeline spine (My Path) ────────────────────────────────────────────
+   A dashed vertical rail the world cards hang off, alternating sides on
+   large screens and stacking to one side below lg. Drawn with a repeating
+   gradient rather than border-style:dashed so the dash rhythm stays even
+   at any height. */
+.spine {
+  position: relative;
+}
+
+.spine::before {
+  content: "";
+  position: absolute;
+  inset-block: 0.5rem;
+  inset-inline-start: 1.25rem;
+  inline-size: 3px;
+  border-radius: 3px;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    var(--color-border) 0 10px,
+    transparent 10px 20px
+  );
+}
+
+@media (min-width: 64rem) {
+  .spine::before {
+    inset-inline-start: calc(50% - 1.5px);
+  }
+}
+
+/* The connector dot that ties a card to the spine. */
+.spineDot {
+  position: absolute;
+  inset-block-start: 2rem;
+  inset-inline-start: 1.25rem;
+  translate: -50% 0;
+  z-index: 2;
+}
+
+html[dir="rtl"] .spineDot {
+  translate: 50% 0;
+}
+
+@media (min-width: 64rem) {
+  .spineDot {
+    inset-inline-start: 50%;
+  }
+}
+
 /* ── Playful hover on unlocked/completed nodes ───────────────────────────
    Kids tap map nodes rapidly; the pop wants to be springy but snap-back
    in under 100ms so it never fights repeated taps. The current-node

@@ -173,11 +173,9 @@ export default async function AdventurePage({ params }: Props) {
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title={t("title")} description={t("subtitle")} />
-      <div className="overflow-hidden rounded-xl border border-border-token shadow-soft">
-        <AdventureTrail worlds={trailWorlds} />
-        <HorizonBand worlds={horizonWorlds} />
-      </div>
+      <PageHeader title={t("pathTitle")} description={t("pathSubtitle")} />
+      <AdventureTrail worlds={trailWorlds} />
+      <HorizonBand worlds={horizonWorlds} />
     </div>
   );
 }

@@ -2,9 +2,17 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { Link } from "@/i18n/navigation";
 import { requireRole } from "@/modules/auth/server/session";
+import { resolveText } from "@/modules/curriculum/schemas";
+import {
+  computeAdventureState,
+  type AdventureWorldNode,
+} from "@/modules/learning/server/adventure";
 import { isFeatureEnabled } from "@/modules/shared/features";
 import { getMyStudentSnapshot } from "@/modules/students/server/queries";
-import { BunnyMascot, EmptyState, StatCard } from "@/ui";
+import { CountUp, EmptyState } from "@/ui";
+
+import { themeEmoji } from "../adventure/_components/theme";
+import { WorldCard, type WorldCardVM } from "./_components/WorldCard";
 
 interface Props {
   params: Promise<{ locale: string }>;
@@ -24,106 +32,184 @@ export default async function StudentHomePage({ params }: Props) {
     "adventure",
   );
 
+  // Only reach for the curriculum when the map is actually on for this
+  // school — otherwise the dashboard has nothing to show from it.
+  const state = adventureEnabled ? await computeAdventureState(ctx) : null;
+  const playableWorlds =
+    state?.worlds.filter(
+      (w: AdventureWorldNode) => !w.horizon && w.totalLevels > 0,
+    ) ?? [];
+
+  const totalLevels = playableWorlds.reduce((n, w) => n + w.totalLevels, 0);
+  const doneLevels = playableWorlds.reduce((n, w) => n + w.completedLevels, 0);
+
+  // The world holding the current level anchors the hero copy.
+  const currentWorld =
+    playableWorlds.find((w: AdventureWorldNode) =>
+      w.modules.some((m) => m.levels.some((l) => l.current)),
+    ) ?? null;
+  const currentLevel =
+    currentWorld?.modules
+      .flatMap((m) => m.levels)
+      .find((l) => l.current) ?? null;
+  const fresh = doneLevels === 0;
+
+  const worldCards: WorldCardVM[] = playableWorlds.map(
+    (w: AdventureWorldNode) => ({
+      id: w.id,
+      name: resolveText(w.name, locale),
+      theme: w.theme,
+      emoji: themeEmoji(w.theme),
+      completedLevels: w.completedLevels,
+      totalLevels: w.totalLevels,
+      locked: w.state === "LOCKED",
+    }),
+  );
+
   return (
-    <div className="flex flex-col gap-8">
-      {/* Focal moment: the mascot hops in on load and settles into an idle
-          breathing bob. It's the single authored motion beat on this
-          surface — everything else is quiet feedback. Positioned as a
-          hero panel behind the greeting so the character feels like it's
-          saying hi to the student personally. */}
-      <div className="relative flex flex-col items-center gap-4 rounded-2xl border border-border-token bg-gradient-to-b from-accent/15 to-transparent px-6 pb-6 pt-8 text-center sm:pt-10">
-        <span className="bunny-hop pointer-events-none inline-block [transform-origin:50%_90%]">
-          <span className="bunny-idle inline-block text-[88px] leading-none sm:text-[112px]">
-            <span aria-hidden="true">🐰</span>
+    <div className="flex flex-col gap-6">
+      {/* ── Row 1: hero + progress panels ─────────────────────────────── */}
+      <div className="grid gap-4 lg:grid-cols-[1fr_20rem]">
+        {/* Hero — "pick up where you left off" */}
+        <section className="bb-cascade relative overflow-hidden rounded-2xl border border-border-token bg-gradient-to-br from-brand/15 via-accent/10 to-surface-raised p-6 sm:p-8">
+          {/* Decorative mascot, hidden from AT and from narrow screens where
+              it would crowd the copy. */}
+          <span
+            aria-hidden="true"
+            className="bunny-idle pointer-events-none absolute -bottom-2 end-4 hidden text-[110px] leading-none opacity-90 sm:block"
+          >
+            🐰
           </span>
-        </span>
-        <div className="bb-cascade flex flex-col gap-1" style={{ "--i": 1 } as React.CSSProperties}>
-          <h1 className="font-display text-3xl font-bold text-ink sm:text-4xl">
-            {t("greeting", { name: displayName })}
-          </h1>
-          <p className="text-sm text-ink-muted sm:text-base">{t("subtitle")}</p>
+
+          <div className="relative flex max-w-md flex-col items-start gap-3">
+            <span className="rounded-full bg-brand px-3 py-1 text-[11px] font-bold tracking-wide text-on-brand">
+              {t("kicker")}
+            </span>
+            <h1 className="font-display text-2xl font-bold text-ink sm:text-3xl">
+              {fresh ? t("greeting", { name: displayName }) : t("heroTitle")}
+            </h1>
+            <p className="text-sm text-ink-muted">
+              {currentWorld && !fresh
+                ? t("heroBody", {
+                    world: resolveText(currentWorld.name, locale),
+                  })
+                : t("heroBodyFresh")}
+            </p>
+            {adventureEnabled ? (
+              <div className="mt-1 flex flex-wrap items-center gap-3">
+                <Link
+                  href="/adventure"
+                  className="bb-pop inline-flex h-11 items-center gap-2 rounded-lg bg-ink px-5 text-sm font-bold text-surface-raised shadow-soft"
+                >
+                  <span aria-hidden="true">▶</span>
+                  {fresh ? t("heroCtaFresh") : t("heroCta")}
+                </Link>
+                {currentLevel ? (
+                  <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-ink-muted">
+                    <span aria-hidden="true">🕒</span>
+                    {t("heroMinutes", {
+                      minutes: currentLevel.estimatedMinutes,
+                    })}
+                  </span>
+                ) : null}
+              </div>
+            ) : null}
+          </div>
+        </section>
+
+        {/* XP + badges rail */}
+        <div className="flex flex-col gap-4">
+          <section
+            className="bb-cascade rounded-2xl bg-brand-strong p-5 text-on-brand shadow-soft"
+            style={{ "--i": 1 } as React.CSSProperties}
+          >
+            <h2 className="font-display text-base font-bold">
+              {t("xpPanelTitle")}
+            </h2>
+            <p className="mt-0.5 text-xs opacity-80">{t("xpPanelBody")}</p>
+            <p className="mt-4 font-display text-3xl font-bold tabular-nums">
+              <CountUp value={snapshot?.xpTotal ?? 0} />
+              <span className="ms-1 text-base font-bold opacity-80">XP</span>
+            </p>
+          </section>
+
+          <div className="grid grid-cols-2 gap-4">
+            <section
+              className="bb-cascade flex flex-col justify-between rounded-2xl border border-border-token bg-surface-raised p-4 shadow-soft"
+              style={{ "--i": 2 } as React.CSSProperties}
+            >
+              <span
+                aria-hidden="true"
+                className="bb-twinkle grid size-9 place-items-center rounded-xl bg-accent/25 text-lg"
+              >
+                ⭐
+              </span>
+              <p className="mt-3 font-display text-2xl font-bold tabular-nums text-ink">
+                <CountUp value={snapshot?.starsTotal ?? 0} />
+              </p>
+              <p className="text-xs text-ink-muted">{t("stars")}</p>
+            </section>
+
+            <section
+              className="bb-cascade flex flex-col justify-between rounded-2xl border border-border-token bg-surface-raised p-4 shadow-soft"
+              style={{ "--i": 3 } as React.CSSProperties}
+            >
+              <span
+                aria-hidden="true"
+                className="bb-flame grid size-9 place-items-center rounded-xl bg-accent/20 text-lg"
+              >
+                🔥
+              </span>
+              <p className="mt-3 font-display text-2xl font-bold tabular-nums text-ink">
+                <CountUp value={snapshot?.streakCurrent ?? 0} />
+              </p>
+              <p className="text-xs text-ink-muted">{t("streak")}</p>
+            </section>
+          </div>
         </div>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-3">
-        <div className="bb-cascade" style={{ "--i": 2 } as React.CSSProperties}>
-          <StatCard
-            label={t("xp")}
-            value={snapshot?.xpTotal ?? 0}
-            countUp
-            icon={<span className="bb-spark text-xl">⚡</span>}
-            iconClassName="bg-brand/15"
-          />
-        </div>
-        <div className="bb-cascade" style={{ "--i": 3 } as React.CSSProperties}>
-          <StatCard
-            label={t("stars")}
-            value={snapshot?.starsTotal ?? 0}
-            countUp
-            icon={<span className="bb-twinkle text-xl">⭐</span>}
-            iconClassName="bg-accent/20 text-accent"
-          />
-        </div>
-        <div className="bb-cascade" style={{ "--i": 4 } as React.CSSProperties}>
-          <StatCard
-            label={t("streak")}
-            value={snapshot?.streakCurrent ?? 0}
-            countUp
-            icon={<span className="bb-flame text-xl">🔥</span>}
-            iconClassName="bg-accent/15"
-          />
-        </div>
-      </div>
-      {adventureEnabled ? (
-        // The map is live for this school — a real link-card, not a
-        // promise. The bb-pop class adds a playful lift on hover/tap so
-        // the CTA feels touchable to a 9-year-old.
-        <Link
-          href="/adventure"
-          className="bb-pop bb-cascade group flex items-center gap-4 rounded-lg border border-border-token bg-surface-raised p-5 shadow-soft transition-shadow hover:shadow-raised"
-          style={{ "--i": 5 } as React.CSSProperties}
-        >
-          <span
-            aria-hidden="true"
-            className="grid size-12 shrink-0 place-items-center rounded-full bg-accent/25 text-2xl"
-          >
-            <span className="bunny-idle inline-block">🗺️</span>
-          </span>
-          <span className="flex min-w-0 flex-col gap-0.5">
-            <span className="font-display text-base font-bold text-ink">
-              {t("adventureCardTitle")}
-            </span>
-            <span className="text-sm text-ink-muted">
-              {t("adventureCardBody")}
-            </span>
-            <span className="mt-1 text-sm font-semibold text-brand">
-              {t("adventureCardCta")}
-            </span>
-          </span>
-          <svg
-            aria-hidden="true"
-            viewBox="0 0 16 16"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.75"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="ms-auto size-5 shrink-0 text-ink-muted transition-transform group-hover:translate-x-1 rtl:-scale-x-100 rtl:group-hover:-translate-x-1"
-          >
-            <path d="M6 3.5 10.5 8 6 12.5" />
-          </svg>
-        </Link>
+      {/* ── Row 2: the roadmap grid ───────────────────────────────────── */}
+      {adventureEnabled && worldCards.length > 0 ? (
+        <section className="flex flex-col gap-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h2 className="font-display text-lg font-bold text-ink">
+              {t("roadmapTitle")}
+            </h2>
+            <div className="flex items-center gap-2">
+              <span className="rounded-full bg-surface-sunken px-3 py-1 text-[11px] font-bold text-ink-muted">
+                {t("roadmapWorlds", { count: worldCards.length })}
+              </span>
+              <span className="rounded-full bg-surface-sunken px-3 py-1 text-[11px] font-bold text-ink-muted">
+                {t("roadmapLevels", { count: totalLevels })}
+              </span>
+            </div>
+          </div>
+          <ul className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">
+            {worldCards.map((world, i) => (
+              <WorldCard
+                key={world.id}
+                world={world}
+                index={i}
+                levelsLabel={t("worldChapters", { count: world.totalLevels })}
+                progressSr={t("worldProgressSr", {
+                  done: world.completedLevels,
+                  total: world.totalLevels,
+                })}
+              />
+            ))}
+          </ul>
+        </section>
       ) : (
-        // Honest pre-launch state: no fake "Continue" button while the
-        // school's adventure flag is off. The mascot here softens the
-        // empty state so it doesn't read as broken.
-        <div className="bb-cascade" style={{ "--i": 5 } as React.CSSProperties}>
-          <EmptyState
-            icon={<BunnyMascot mood="wave" size="md" label={t("emptyTitle")} />}
-            title={t("emptyTitle")}
-            description={t("emptyBody")}
-          />
-        </div>
+        <EmptyState
+          icon={
+            <span className="bunny-wave inline-block text-3xl" aria-hidden>
+              🐰
+            </span>
+          }
+          title={t("emptyTitle")}
+          description={t("emptyBody")}
+        />
       )}
     </div>
   );

@@ -92,8 +92,77 @@ export async function getMyAchievements(ctx: SessionContext): Promise<MyAchievem
   });
 }
 
+export interface LeaderboardRow {
+  /** Stable key for React; never rendered. */
+  userId: string;
+  /** Already stored as "First L." (seed + CSV import) — no extra redaction needed. */
+  displayName: string;
+  xpTotal: number;
+  starsTotal: number;
+  /** 1-based position within the class. */
+  rank: number;
+  isMe: boolean;
+}
+
+/**
+ * XP leaderboard for the calling student's OWN CLASS ONLY.
+ *
+ * Deliberately class-scoped rather than school- or platform-wide. These are
+ * 8-12 year olds: a global ranking would expose one child's performance to
+ * strangers at other schools and turn a motivation feature into a privacy
+ * problem. Classmates already know each other and sit in the same room, so
+ * a class board is the widest circle that reveals nothing new — and it's
+ * the same boundary the teacher surfaces already use.
+ *
+ * Returns [] when the student is in no class, so the caller renders an
+ * empty state rather than a leaderboard of one.
+ */
+export async function getMyClassLeaderboard(
+  ctx: SessionContext,
+): Promise<LeaderboardRow[]> {
+  const schoolId = requireSchool(ctx);
+
+  // The student's class membership, scoped by school so a session pointing
+  // at another tenant's class resolves to nothing.
+  const membership = await db.classMembership.findFirst({
+    where: { userId: ctx.userId, schoolId, role: "STUDENT" },
+    select: { classId: true },
+  });
+  if (!membership) return [];
+
+  const classmates = await db.classMembership.findMany({
+    where: { classId: membership.classId, schoolId, role: "STUDENT" },
+    select: { userId: true },
+  });
+  const userIds = classmates.map((m) => m.userId);
+  if (userIds.length === 0) return [];
+
+  const profiles = await db.studentProfile.findMany({
+    where: { userId: { in: userIds }, schoolId },
+    select: {
+      userId: true,
+      xpTotal: true,
+      starsTotal: true,
+      user: { select: { displayName: true } },
+    },
+    // Ties break by stars then name so the order is stable across reloads
+    // rather than shuffling on every request.
+    orderBy: [{ xpTotal: "desc" }, { starsTotal: "desc" }],
+  });
+
+  return profiles.map((p, i) => ({
+    userId: p.userId,
+    displayName: p.user.displayName,
+    xpTotal: p.xpTotal,
+    starsTotal: p.starsTotal,
+    rank: i + 1,
+    isMe: p.userId === ctx.userId,
+  }));
+}
+
 /** Registry walked by the tenant-isolation test suite — every query above must be here. */
 export const tenantScopedQueries = {
   getMyStudentSnapshot,
   getMyAchievements,
+  getMyClassLeaderboard,
 } as const;
