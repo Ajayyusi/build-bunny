@@ -6,6 +6,10 @@ import { stripStudentPayload } from "@/modules/curriculum/server/queries";
 
 import type { ActivityGradeResult } from "../types";
 import {
+  aiClassificationAnswerSchema,
+  gradeAiClassification,
+} from "./ai-classification";
+import {
   codePredictionAnswerSchema,
   gradeCodePrediction,
 } from "./code-prediction";
@@ -79,12 +83,22 @@ const conceptCards: ActivityEngine = {
   stripPayload: (payload) => stripStudentPayload("CONCEPT_CARDS", payload),
 };
 
+/** Teach-by-example (AI Island). Fits 1-NN to the student's own labels. */
+const aiClassification: ActivityEngine = {
+  grade: (snapshot, input) => {
+    const parsed = aiClassificationAnswerSchema.safeParse(input);
+    return parsed.success ? gradeAiClassification(snapshot, parsed.data) : invalidAnswer();
+  },
+  stripPayload: (payload) => stripStudentPayload("AI_CLASSIFICATION", payload),
+};
+
 export const ACTIVITY_ENGINES: Partial<Record<V1ActivityType, ActivityEngine>> = {
   BLOCK_CODING: grid,
   DEBUGGING: grid,
   CODE_PREDICTION: codePrediction,
   SEQUENCING: sequencing,
   CONCEPT_CARDS: conceptCards,
+  AI_CLASSIFICATION: aiClassification,
 };
 
 export function getActivityEngine(activityType: string): ActivityEngine | undefined {

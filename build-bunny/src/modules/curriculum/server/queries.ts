@@ -333,8 +333,14 @@ export async function getPublishedLevelSnapshot(
   };
 }
 
-/** Answer-bearing top-level payload keys that must never reach a student. */
-const ANSWER_KEYS = ["solution", "correctOptionId", "correctOrder"] as const;
+/**
+ * Answer-bearing top-level payload keys that must never reach a student.
+ * `rule` is AI_CLASSIFICATION's ground truth (which feature decides, and at
+ * what threshold). Shipping it would turn teach-by-example into read-the-
+ * answer, since the whole activity is the student inferring that rule from
+ * specimens they can see.
+ */
+const ANSWER_KEYS = ["solution", "correctOptionId", "correctOrder", "rule"] as const;
 
 /**
  * Answer-bearing keys nested one level down, as [container, key] pairs.

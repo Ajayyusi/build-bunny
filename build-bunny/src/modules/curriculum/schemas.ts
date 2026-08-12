@@ -265,8 +265,66 @@ export const conceptCardsPayload = z
     }
   });
 
+/**
+ * One specimen a student can teach with, or the model is tested on. Two
+ * continuous features only: the child has to be able to see the whole
+ * feature space at once for the lesson to land, and two axes is the most
+ * that fits on a screen honestly.
+ */
+export const specimenSchema = z
+  .object({
+    id: z.string().min(1),
+    /** 0–1 on each axis; the player maps them to berry size and hue. */
+    size: z.number().min(0).max(1),
+    color: z.number().min(0).max(1),
+  })
+  .strict();
+
+/**
+ * AI_CLASSIFICATION — teach by example. The first activity in the product
+ * where the student does something a programmer would not: they never write
+ * a rule. They label specimens, the engine fits a 1-nearest-neighbour
+ * classifier to exactly those labels, and the model is scored on a held-out
+ * test set the student never sees the answers for. Succeeding is therefore
+ * about CHOOSING REPRESENTATIVE EXAMPLES, which is the real skill.
+ *
+ * Nothing in the student payload is answer-bearing by construction: the pool
+ * ships unlabelled because the STUDENT supplies those labels, and the test
+ * specimens ship unlabelled because the MODEL supplies those. The ground
+ * truth lives only in `rule`, which stripStudentPayload removes.
+ */
+export const aiClassificationPayload = z
+  .object({
+    conceptSlug: z.string().regex(/^[a-z0-9-]+$/),
+    /** Localized bucket names, e.g. Safe to eat / Not safe. */
+    labels: z.object({ positive: localizedText, negative: localizedText }),
+    /** Specimens the student may drag into a bucket. */
+    pool: z.array(specimenSchema).min(4),
+    /** Held-out specimens the trained model must classify correctly. */
+    testSet: z.array(specimenSchema).min(2),
+    /**
+     * Ground truth, as a threshold on ONE feature. The other feature is a
+     * decoy: a student who only varies the decoy trains a model that cannot
+     * generalise, and that failure is the lesson rather than a bug.
+     * Server-held — see stripStudentPayload.
+     */
+    rule: z
+      .object({
+        feature: z.enum(["size", "color"]),
+        /** Positive when that feature is BELOW the threshold. */
+        threshold: z.number().min(0).max(1),
+      })
+      .strict(),
+    /** Refuse to grade until the student has taught both buckets. */
+    minPerLabel: z.number().int().min(1).default(2),
+    /** 3-star budget lives in threeStarMaxBlocks — here, examples used. */
+    starCriteria: starCriteriaSchema.default({}),
+  })
+  .strict();
+
 /** V1 activity types with a real engine behind them (plan §0.1-7). */
 export const V1_ACTIVITY_TYPES = [
+  "AI_CLASSIFICATION",
   "BLOCK_CODING",
   "CODE_PREDICTION",
   "CONCEPT_CARDS",
@@ -276,6 +334,7 @@ export const V1_ACTIVITY_TYPES = [
 export type V1ActivityType = (typeof V1_ACTIVITY_TYPES)[number];
 
 const PAYLOAD_SCHEMAS: Record<V1ActivityType, z.ZodTypeAny> = {
+  AI_CLASSIFICATION: aiClassificationPayload,
   BLOCK_CODING: blockCodingPayload,
   CODE_PREDICTION: codePredictionPayload,
   CONCEPT_CARDS: conceptCardsPayload,
