@@ -59,10 +59,170 @@ export const logicForest: WorldFixture = {
         ar: "يمكن للحلقة أن تحتوي أكثر من لبنة واحدة. والغابة فيها صخور — خطّط دربك جيدًا.",
       },
       levels: [
+        // Learn step for multi-block loop bodies, before Loop Trail. Meet
+        // Repeat taught a loop whose mouth held ONE block; Loop Trail asks
+        // for three at once and expects the student to have spotted the
+        // pattern themselves. This is the missing rung between them.
+        {
+          slug: "learn-loop-body",
+          order: 1,
+          activityType: "CONCEPT_CARDS",
+          track: "PROGRAMMING",
+          title: { en: "A Bigger Loop", ar: "حلقة أكبر" },
+          story: {
+            en: "Robo Bunny wants to hop a full square around a tree stump. That is not one move over and over — it is a little dance: hop, then turn. Over and over.",
+            ar: "يريد الأرنب الآلي أن يقفز في مربّع كامل حول جذع شجرة. وهذه ليست حركة واحدة تتكرّر، بل رقصة صغيرة: قفزة ثم استدارة. مرة بعد مرة.",
+          },
+          objective: {
+            en: "Watch a loop repeat a group of blocks, then complete it — understanding that a Repeat's mouth can hold more than one block and the whole group repeats together.",
+            ar: "شاهد حلقة تكرّر مجموعة من اللبنات ثم أكملها، مع فهم أن فم «كرّر» يتّسع لأكثر من لبنة وأن المجموعة كلها تتكرّر معًا.",
+          },
+          instructions: {
+            en: "First watch Robo Bunny hop a square using one Repeat with TWO blocks inside. Then put the missing block back and press Check.",
+            ar: "أولًا شاهد الأرنب الآلي يقفز مربّعًا مستخدمًا «كرّر» واحدة تضمّ لبنتين. ثم أعد اللبنة الناقصة واضغط «تحقّق».",
+          },
+          explanation: {
+            en: "Repeat 4 { Move Forward, Turn Right } means: do BOTH of those blocks, in that order, four times over. A loop does not only repeat one action — it repeats a pattern. The hard part is never the Repeat block; it is spotting the pattern, and 'hop then turn' is the smallest pattern there is. The next trail hides a longer one.",
+            ar: "«كرّر 4 { تقدّم للأمام، استدر يمينًا }» تعني: نفّذ اللبنتين كلتيهما، بهذا الترتيب، أربع مرات. الحلقة لا تكرّر حركة واحدة فحسب — بل تكرّر نمطًا. والجزء الصعب ليس لبنة «كرّر» أبدًا، بل اكتشاف النمط، و«قفزة ثم استدارة» هو أصغر نمط ممكن. أما الدرب التالي فيخبّئ نمطًا أطول.",
+          },
+          teacherNotes: {
+            en: "The rung between Meet Repeat (one block in the mouth) and Loop Trail (three). Ask the class to say the pattern out loud before anyone drags anything — 'hop, turn, hop, turn' — because naming the pattern is the transferable skill, not filling the gap. Students who want to unroll all eight blocks are not wrong; Loop Trail's star budget is where that conversation belongs.",
+          },
+          difficulty: "EASY",
+          recommendedGradeMin: 4,
+          recommendedGradeMax: 7,
+          estimatedMinutes: 2,
+          xpReward: 15,
+          tags: ["loops", "learn"],
+          requires: [],
+          hints: [
+            {
+              tier: 1,
+              text: {
+                en: "The Repeat's mouth already holds Move Forward, and there is still an empty space under it. Two blocks fit in there.",
+                ar: "يضمّ فم «كرّر» لبنة «تقدّم للأمام» بالفعل، وما زال تحتها فراغ. تتّسع المساحة للبنتين.",
+              },
+            },
+            {
+              tier: 2,
+              text: {
+                en: "Hopping four times in a row would run Robo Bunny straight off the trail. A square needs corners — what makes a corner?",
+                ar: "القفز أربع مرات متتالية يُخرج الأرنب الآلي عن الدرب تمامًا. المربّع يحتاج زوايا — فما الذي يصنع الزاوية؟",
+              },
+            },
+            {
+              tier: 3,
+              text: {
+                en: "Follow the square with your finger: hop, turn, hop, turn. Which direction does Robo Bunny turn each time — left or right?",
+                ar: "تتبّع المربّع بإصبعك: قفزة، استدارة، قفزة، استدارة. في أي اتجاه يستدير الأرنب الآلي في كل مرة — يسارًا أم يمينًا؟",
+              },
+            },
+            {
+              tier: 4,
+              text: {
+                en: "Drag Turn Right into the empty space under Move Forward, so both blocks sit inside the Repeat together, then press Check.",
+                ar: "اسحب «استدر يمينًا» إلى الفراغ تحت «تقدّم للأمام»، بحيث تجلس اللبنتان داخل «كرّر» معًا، ثم اضغط «تحقّق».",
+              },
+            },
+          ],
+          payload: {
+            conceptSlug: "loop-body",
+            // The smallest honest square: hop-turn four times walks a 2x2
+            // block and lands back on the burrow it started from. Small
+            // enough that a child can trace the whole path with a finger
+            // before pressing anything.
+            variants: [
+              {
+                rows: ["G.", ".."],
+                start: { x: 0, y: 0, dir: "E" },
+              },
+            ],
+            autoCollect: true,
+            nonFatalBumps: false,
+            workedExample: {
+              blocks: {
+                blocks: {
+                  languageVersion: 0,
+                  blocks: [
+                    {
+                      type: "bb_whenStart",
+                      id: "start",
+                      x: 24,
+                      y: 24,
+                      deletable: false,
+                      movable: false,
+                      next: {
+                        block: {
+                          type: "bb_repeat",
+                          id: "loop",
+                          fields: { TIMES: 4 },
+                          inputs: {
+                            DO: {
+                              block: {
+                                type: "bb_moveForward",
+                                id: "m1",
+                                next: { block: { type: "bb_turnRight", id: "t1" } },
+                              },
+                            },
+                          },
+                        },
+                      },
+                    },
+                  ],
+                },
+              },
+              caption: {
+                en: "Watch: hop, turn, hop, turn — the same two blocks, four times, all the way around.",
+                ar: "شاهد: قفزة، استدارة، قفزة، استدارة — اللبنتان نفسهما، أربع مرات، حتى تكتمل الدورة.",
+              },
+            },
+            faded: {
+              blocks: {
+                blocks: {
+                  languageVersion: 0,
+                  blocks: [
+                    {
+                      type: "bb_whenStart",
+                      id: "start",
+                      x: 24,
+                      y: 24,
+                      deletable: false,
+                      movable: false,
+                      next: {
+                        block: {
+                          type: "bb_repeat",
+                          id: "loop",
+                          fields: { TIMES: 4 },
+                          inputs: {
+                            DO: { block: { type: "bb_moveForward", id: "m1" } },
+                          },
+                        },
+                      },
+                    },
+                  ],
+                },
+              },
+              // Turn Left is the real distractor: it is a corner, just the
+              // wrong one, and it walks Robo Bunny off the trail on the very
+              // first iteration rather than failing somewhere vague later.
+              toolbox: [
+                { type: "bb_turnRight", limit: 1 },
+                { type: "bb_turnLeft", limit: 1 },
+                { type: "bb_moveForward", limit: 1 },
+              ],
+              missingBlockType: "bb_turnRight",
+              caption: {
+                en: "Your turn: Move Forward is inside the Repeat, but a square needs corners. What belongs underneath it?",
+                ar: "دورك الآن: «تقدّم للأمام» بداخل «كرّر»، لكن المربّع يحتاج زوايا. ما الذي يجب أن يوضع تحتها؟",
+              },
+            },
+          } satisfies ConceptCardsDraft,
+        },
+
         // ── Level 6 — LOOP TRAIL: multi-block loop bodies ─────────────────
         {
           slug: "loop-trail",
-          order: 1,
+          order: 2,
           activityType: "BLOCK_CODING",
           track: "PROGRAMMING",
           title: { en: "Loop Trail", ar: "درب الحلقات" },
@@ -189,7 +349,7 @@ export const logicForest: WorldFixture = {
         // ── Level 7 — AVOID THE ROCK: obstacles & located runtime failure ─
         {
           slug: "avoid-the-rock",
-          order: 2,
+          order: 3,
           activityType: "BLOCK_CODING",
           track: "PROGRAMMING",
           title: { en: "Avoid the Rock", ar: "تجنّب الصخرة" },
@@ -686,10 +846,157 @@ export const logicForest: WorldFixture = {
           } satisfies BlockCodingDraft,
         },
 
+        // Learn step for Repeat Until Goal, before Hidden Carrot. That level
+        // deliberately ships a decoy plain Repeat in its toolbox to catch
+        // students who pattern-match from Repeat After Me — a trap that only
+        // teaches if the student has met the real thing first. Otherwise it
+        // catches plain ignorance, which teaches nobody anything.
+        {
+          slug: "learn-repeat-until",
+          order: 3,
+          activityType: "CONCEPT_CARDS",
+          track: "PROGRAMMING",
+          title: { en: "Repeat Until", ar: "كرّر حتى" },
+          story: {
+            en: "This trail is long, and Robo Bunny cannot see the end of it from here. Counting the hops would mean guessing — so it is time for a loop that does not count at all.",
+            ar: "هذا الدرب طويل، ولا يستطيع الأرنب الآلي رؤية نهايته من هنا. وعدّ القفزات يعني التخمين — لذا حان وقت حلقة لا تعدّ إطلاقًا.",
+          },
+          objective: {
+            en: "Watch a loop run until the burrow is reached, then complete it — understanding that Repeat Until stops on a condition, not on a number.",
+            ar: "شاهد حلقة تعمل حتى الوصول إلى الجحر ثم أكملها، مع فهم أن «كرّر حتى» تتوقّف عند شرط لا عند رقم.",
+          },
+          instructions: {
+            en: "First watch Robo Bunny hop the whole trail without anyone counting it. Then put the missing block back inside the loop and press Check.",
+            ar: "أولًا شاهد الأرنب الآلي يقطع الدرب كله دون أن يعدّ أحد. ثم أعد اللبنة الناقصة إلى داخل الحلقة واضغط «تحقّق».",
+          },
+          explanation: {
+            en: "Repeat Until I Reach The Goal { Move Forward } means: keep doing this, and stop when I arrive. Nobody counted the hops — and that is the whole point. A plain Repeat needs a number, so it only works on a trail whose length you already know. Repeat Until works on ANY length, even one you cannot see the end of. Watch out on the next trail: the toolbox will offer you both.",
+            ar: "«كرّر حتى أصل إلى الهدف { تقدّم للأمام }» تعني: واصل هذا، وتوقّف عند الوصول. لم يعدّ أحد القفزات — وهذا هو بيت القصيد. «كرّر» العادية تحتاج رقمًا، فلا تصلح إلا لدرب تعرف طوله سلفًا. أما «كرّر حتى» فتصلح لأي طول، حتى ما لا ترى نهايته. وانتبه في الدرب التالي: سيعرض عليك صندوق الأدوات كلتيهما.",
+          },
+          teacherNotes: {
+            en: "Placed before Hidden Carrot, whose toolbox ships a decoy plain Repeat precisely to catch pattern-matching from Repeat After Me. That trap only teaches if the student has already met Repeat Until — otherwise it punishes not knowing rather than correcting a belief. Good question to ask here: how many hops was that? Nobody counted, and the program still worked.",
+          },
+          difficulty: "EASY",
+          recommendedGradeMin: 4,
+          recommendedGradeMax: 7,
+          estimatedMinutes: 2,
+          xpReward: 15,
+          tags: ["loops", "learn"],
+          requires: [],
+          hints: [
+            {
+              tier: 1,
+              text: {
+                en: "The loop already knows when to stop — it says so on its own label. It just does not know what to DO.",
+                ar: "تعرف الحلقة متى تتوقّف بالفعل — فهذا مكتوب على لبنتها. لكنها لا تعرف ماذا تفعل.",
+              },
+            },
+            {
+              tier: 2,
+              text: {
+                en: "Read the loop out loud: repeat until I reach the goal. The burrow is straight ahead, so how does Robo Bunny get closer to it?",
+                ar: "اقرأ الحلقة بصوت عالٍ: كرّر حتى أصل إلى الهدف. الجحر أمامك مباشرة، فكيف يقترب منه الأرنب الآلي؟",
+              },
+            },
+            {
+              tier: 3,
+              text: {
+                en: "The trail is a straight line — no corners at all. Turning would only waste a step and point Robo Bunny at a tree.",
+                ar: "الدرب خطّ مستقيم — بلا زوايا إطلاقًا. الاستدارة تُهدر خطوة وتوجّه الأرنب الآلي نحو شجرة.",
+              },
+            },
+            {
+              tier: 4,
+              text: {
+                en: "Drag Move Forward into the empty space inside the loop, so it clicks into the mouth, then press Check.",
+                ar: "اسحب «تقدّم للأمام» إلى الفراغ داخل الحلقة حتى تلتصق في الفم، ثم اضغط «تحقّق».",
+              },
+            },
+          ],
+          payload: {
+            conceptSlug: "repeat-until",
+            // Deliberately SEVEN tiles long. Long enough that counting is
+            // genuinely annoying, and not a number any earlier level used —
+            // a student who has been pattern-matching "put 3 in the box"
+            // gets no help from memory here.
+            variants: [
+              {
+                rows: ["########", ".......G", "########"],
+                start: { x: 0, y: 1, dir: "E" },
+              },
+            ],
+            autoCollect: true,
+            nonFatalBumps: false,
+            workedExample: {
+              blocks: {
+                blocks: {
+                  languageVersion: 0,
+                  blocks: [
+                    {
+                      type: "bb_whenStart",
+                      id: "start",
+                      x: 24,
+                      y: 24,
+                      deletable: false,
+                      movable: false,
+                      next: {
+                        block: {
+                          type: "bb_repeatUntilGoal",
+                          id: "loop",
+                          inputs: {
+                            DO: { block: { type: "bb_moveForward", id: "m1" } },
+                          },
+                        },
+                      },
+                    },
+                  ],
+                },
+              },
+              caption: {
+                en: "Watch: nobody counted the hops. The loop simply stops when Robo Bunny arrives.",
+                ar: "شاهد: لم يعدّ أحد القفزات. تتوقّف الحلقة ببساطة عندما يصل الأرنب الآلي.",
+              },
+            },
+            faded: {
+              blocks: {
+                blocks: {
+                  languageVersion: 0,
+                  blocks: [
+                    {
+                      type: "bb_whenStart",
+                      id: "start",
+                      x: 24,
+                      y: 24,
+                      deletable: false,
+                      movable: false,
+                      next: {
+                        block: {
+                          type: "bb_repeatUntilGoal",
+                          id: "loop",
+                        },
+                      },
+                    },
+                  ],
+                },
+              },
+              toolbox: [
+                { type: "bb_moveForward", limit: 1 },
+                { type: "bb_turnLeft", limit: 1 },
+                { type: "bb_turnRight", limit: 1 },
+              ],
+              missingBlockType: "bb_moveForward",
+              caption: {
+                en: "Your turn: the loop knows when to stop, but its mouth is empty. What should Robo Bunny do until it arrives?",
+                ar: "دورك الآن: تعرف الحلقة متى تتوقّف، لكن فمها فارغ. ماذا يفعل الأرنب الآلي حتى يصل؟",
+              },
+            },
+          } satisfies ConceptCardsDraft,
+        },
+
         // ── Level 9 — HIDDEN CARROT: Repeat Until Goal ────────────────────
         {
           slug: "hidden-carrot",
-          order: 3,
+          order: 4,
           activityType: "BLOCK_CODING",
           track: "PROGRAMMING",
           title: { en: "Hidden Carrot", ar: "الجزرة المخفية" },
@@ -810,7 +1117,7 @@ export const logicForest: WorldFixture = {
         // ── Level 10 — FOREST CHALLENGE: capstone, decision inside a loop ─
         {
           slug: "forest-challenge",
-          order: 4,
+          order: 5,
           activityType: "BLOCK_CODING",
           track: "PROGRAMMING",
           title: { en: "Forest Challenge", ar: "تحدي الغابة" },
@@ -952,7 +1259,7 @@ export const logicForest: WorldFixture = {
         // satisfied by NOT needing to renumber any sibling at all.
         {
           slug: "loop-detective",
-          order: 5,
+          order: 6,
           activityType: "CODE_PREDICTION",
           track: "PROGRAMMING",
           title: { en: "Loop Detective", ar: "محقق الحلقات" },

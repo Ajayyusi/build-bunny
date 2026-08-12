@@ -272,10 +272,16 @@ describe("shipped Learn steps are internally coherent", () => {
     },
     {
       world: "logic-forest",
+      module: "trails-and-obstacles",
+      expected: ["learn-loop-body", "loop-trail", "avoid-the-rock"],
+    },
+    {
+      world: "logic-forest",
       module: "forest-decisions",
       expected: [
         "learn-if",
         "choose-the-path",
+        "learn-repeat-until",
         "hidden-carrot",
         "forest-challenge",
         "loop-detective",
@@ -298,10 +304,12 @@ describe("shipped Learn steps are internally coherent", () => {
     );
   });
 
-  it("ships exactly one Learn step per playable world", () => {
-    expect(learnLevels).toHaveLength(3);
-    const worlds = learnLevels.map(({ world }) => world.slug).sort();
-    expect(worlds).toEqual(["bunny-meadow", "logic-forest", "robot-lab"]);
+  it("ships a Learn step in every playable world, one per concept", () => {
+    expect(learnLevels).toHaveLength(5);
+    // Every playable world must carry at least one; Logic Forest carries
+    // three because it is where the most new blocks debut.
+    const worlds = new Set(learnLevels.map(({ world }) => world.slug));
+    expect([...worlds].sort()).toEqual(["bunny-meadow", "logic-forest", "robot-lab"]);
     // Concepts are distinct: a duplicate slug would break spaced review,
     // which selects on conceptSlug.
     const concepts = learnLevels.map(
