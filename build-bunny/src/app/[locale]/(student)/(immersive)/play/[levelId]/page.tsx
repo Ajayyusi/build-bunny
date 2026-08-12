@@ -15,12 +15,14 @@ import type {
   GridActivityPayload,
   LearnActivityPayload,
   SequencingActivityPayload,
+  TeachActivityPayload,
 } from "@/modules/activities/types";
 import { requireRole } from "@/modules/auth/server/session";
 import {
   blockCodingPayload,
   debuggingPayload,
   resolveText,
+  type LocalizedText,
 } from "@/modules/curriculum/schemas";
 import {
   computeAdventureState,
@@ -128,7 +130,8 @@ export default async function PlayLevelPage({ params }: Props) {
     | GridActivityPayload
     | CodePredictionActivityPayload
     | SequencingActivityPayload
-    | LearnActivityPayload;
+    | LearnActivityPayload
+    | TeachActivityPayload;
   if (playable.activityType === "DEBUGGING") {
     const parsed = debuggingPayload.parse(playable.payload);
     const resetWorkspace =
@@ -160,6 +163,29 @@ export default async function PlayLevelPage({ params }: Props) {
       // across students.
       items: shuffleSequencingItems(parsed.items, `${playable.id}:${ctx.userId}`),
     } satisfies SequencingActivityPayload;
+  } else if (playable.activityType === "AI_CLASSIFICATION") {
+    // `rule` (the ground truth) was already removed by stripStudentPayload;
+    // parsing the stripped object against the authoring schema would fail
+    // closed, so read the answer-free fields directly.
+    const raw = playable.payload as {
+      conceptSlug: string;
+      labels: { positive: LocalizedText; negative: LocalizedText };
+      pool: { id: string; size: number; color: number }[];
+      testSet: { id: string; size: number; color: number }[];
+      minPerLabel?: number;
+      starCriteria?: { threeStarMaxBlocks?: number };
+    };
+    payload = {
+      conceptSlug: raw.conceptSlug,
+      labels: {
+        positive: resolveText(raw.labels.positive, locale),
+        negative: resolveText(raw.labels.negative, locale),
+      },
+      pool: raw.pool,
+      testSet: raw.testSet,
+      minPerLabel: raw.minPerLabel ?? 2,
+      starCriteria: raw.starCriteria ?? {},
+    } satisfies TeachActivityPayload;
   } else if (playable.activityType === "CONCEPT_CARDS") {
     const parsed = conceptCardsStudentPayload.parse(playable.payload);
     payload = {

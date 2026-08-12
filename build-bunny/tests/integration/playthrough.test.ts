@@ -76,6 +76,26 @@ function solutionFor(level: PlayableLevel): Record<string, unknown> {
       }
       return { answer: { blockType } };
     }
+    case "AI_CLASSIFICATION": {
+      // "Solved" by teaching a REPRESENTATIVE set: every pool specimen,
+      // labelled by the level's own hidden rule. Using the whole pool is
+      // what guarantees both sides of the decoy feature are covered — which
+      // is precisely what the activity asks a student to work out, and why
+      // a partial set can fail this level with every label still correct.
+      const rule = payload.rule as { feature: "size" | "color"; threshold: number } | undefined;
+      const pool = payload.pool as { id: string; size: number; color: number }[] | undefined;
+      if (!rule || !Array.isArray(pool)) {
+        throw new Error(`${level.slug}: no rule/pool in payload`);
+      }
+      return {
+        answer: {
+          examples: pool.map((specimen) => ({
+            ...specimen,
+            label: specimen[rule.feature] < rule.threshold ? "positive" : "negative",
+          })),
+        },
+      };
+    }
     default:
       throw new Error(`${level.slug}: no solution strategy for ${level.activityType}`);
   }
@@ -196,7 +216,7 @@ describe("playthrough — every shipped level is winnable by its own solution", 
   it("ships the expected curriculum", () => {
     expect(levels.length).toBeGreaterThanOrEqual(18);
     const worlds = [...new Set(levels.map((l) => l.worldSlug))];
-    expect(worlds).toEqual(["bunny-meadow", "logic-forest", "robot-lab"]);
+    expect(worlds).toEqual(["bunny-meadow", "logic-forest", "robot-lab", "ai-island"]);
   });
 
   it("plays all levels in order: each is unlocked, solvable, fully scored, and opens the next", async () => {
@@ -289,8 +309,9 @@ describe("playthrough — every shipped level is winnable by its own solution", 
     expect(profile.xpTotal).toBe(runningXp);
     expect(profile.starsTotal).toBe(runningStars);
 
-    // Finishing every world must produce a verifiable certificate per world.
-    expect(certificates.length).toBe(3);
+    // Finishing every world must produce a verifiable certificate per world
+    // — four of them now that AI Island is real content, not horizon art.
+    expect(certificates.length).toBe(4);
     for (const cert of certificates) {
       const publicView = await verifyCertificate(cert.verifySlug);
       expect(publicView, `certificate ${cert.serial} does not verify`).not.toBeNull();

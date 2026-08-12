@@ -52,6 +52,29 @@ const conceptCardsBodySchema = z
   })
   .strict();
 
+const aiClassificationBodySchema = z
+  .object({
+    attemptRunId: z.string().uuid(),
+    answer: z
+      .object({
+        examples: z
+          .array(
+            z
+              .object({
+                id: z.string().min(1),
+                size: z.number().min(0).max(1),
+                color: z.number().min(0).max(1),
+                label: z.enum(["positive", "negative"]),
+              })
+              .strict(),
+          )
+          .min(1)
+          .max(64),
+      })
+      .strict(),
+  })
+  .strict();
+
 const GRID_ACTIVITY_TYPES = new Set(["BLOCK_CODING", "DEBUGGING"]);
 
 /** 30 submissions per minute per student (anti-hammering, not a quota). */
@@ -122,6 +145,10 @@ export async function POST(
         input = parsed.data;
       } else if (activityType === "SEQUENCING") {
         const parsed = sequencingBodySchema.safeParse(raw);
+        if (!parsed.success) return validationError(parsed.error.flatten().fieldErrors);
+        input = parsed.data;
+      } else if (activityType === "AI_CLASSIFICATION") {
+        const parsed = aiClassificationBodySchema.safeParse(raw);
         if (!parsed.success) return validationError(parsed.error.flatten().fieldErrors);
         input = parsed.data;
       } else if (activityType === "CONCEPT_CARDS") {

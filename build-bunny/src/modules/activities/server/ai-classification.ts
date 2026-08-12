@@ -2,6 +2,7 @@ import "server-only";
 
 import { z } from "zod";
 
+import { classify, type LabelledSpecimen } from "@/modules/ai/knn";
 import { aiClassificationPayload } from "@/modules/curriculum/schemas";
 import type { LevelSnapshot } from "@/modules/curriculum/server/publish";
 
@@ -37,36 +38,11 @@ export const aiClassificationAnswerSchema = z.object({
 });
 export type AiClassificationAnswer = z.infer<typeof aiClassificationAnswerSchema>;
 
-type Example = z.infer<typeof labelledSpecimen>;
+type Example = LabelledSpecimen;
 
-/**
- * Squared distance in feature space. Squared rather than Euclidean because
- * only the ORDER matters for nearest-neighbour and skipping the square root
- * keeps the arithmetic exact for the values we ship.
- */
-function distanceSq(a: { size: number; color: number }, b: { size: number; color: number }) {
-  const ds = a.size - b.size;
-  const dc = a.color - b.color;
-  return ds * ds + dc * dc;
-}
-
-/**
- * 1-NN prediction. Ties break toward the FIRST example in the student's own
- * order, which keeps grading deterministic — a tie that flipped between
- * requests would show a child two different verdicts for identical work.
- */
-export function classify(examples: Example[], probe: { size: number; color: number }) {
-  let best: Example | null = null;
-  let bestDist = Infinity;
-  for (const example of examples) {
-    const d = distanceSq(example, probe);
-    if (d < bestDist) {
-      bestDist = d;
-      best = example;
-    }
-  }
-  return best?.label ?? null;
-}
+// classify()/distanceSq live in @/modules/ai/knn so the player and the
+// grader cannot drift apart — see that file's note.
+export { classify } from "@/modules/ai/knn";
 
 /** Ground truth: positive when the ruling feature is below the threshold. */
 function trueLabel(

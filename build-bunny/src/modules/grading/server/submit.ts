@@ -39,7 +39,19 @@ export interface GridAttemptInput {
 /** Non-grid types submit a small structured answer instead. */
 export interface AnswerAttemptInput {
   attemptRunId: string;
-  answer: { optionId: string } | { order: string[] } | { blockType: string };
+  answer:
+    | { optionId: string }
+    | { order: string[] }
+    | { blockType: string }
+    /** AI_CLASSIFICATION: every specimen the student taught the model with. */
+    | {
+        examples: {
+          id: string;
+          size: number;
+          color: number;
+          label: "positive" | "negative";
+        }[];
+      };
 }
 
 export type AttemptInput = GridAttemptInput | AnswerAttemptInput;

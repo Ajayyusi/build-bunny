@@ -65,15 +65,18 @@ function collectBlockTypes(node: unknown, out: Set<string>): void {
 }
 
 describe("content bundle shape", () => {
-  it("contains the three playable worlds and five horizon worlds", () => {
+  it("contains the four playable worlds and four horizon worlds", () => {
+    // AI Island graduated from horizon art to real content when
+    // AI_CLASSIFICATION got an engine — it is the first world where the
+    // student stops writing rules and starts teaching by example.
     expect(playableWorlds.map((w) => w.slug)).toEqual([
       "bunny-meadow",
       "logic-forest",
       "robot-lab",
+      "ai-island",
     ]);
     expect(horizonWorlds.map((w) => w.slug)).toEqual([
       "data-desert",
-      "ai-island",
       "ml-lab",
       "code-city",
       "inventor-island",
@@ -118,7 +121,7 @@ describe("content bundle shape", () => {
     }
   });
 
-  it("horizon worlds carry no modules; playable worlds carry the 22 levels", () => {
+  it("horizon worlds carry no modules; playable worlds carry the 23 levels", () => {
     for (const world of horizonWorlds) {
       expect(world.modules, `horizon ${world.slug}`).toHaveLength(0);
     }
@@ -127,9 +130,10 @@ describe("content bundle shape", () => {
     // robot-lab) + 5 Learn steps (CONCEPT_CARDS), one per concept that
     // debuts a new block: learn-repeat (bunny-meadow); learn-loop-body,
     // learn-if and learn-repeat-until (logic-forest); learn-if-else
-    // (robot-lab).
+    // (robot-lab) + 1 AI_CLASSIFICATION level: berry-sorter (ai-island),
+    // the first level in the product with no program in it at all.
     const levelCount = playableWorlds.reduce((n, w) => n + allLevels(w).length, 0);
-    expect(levelCount).toBe(22);
+    expect(levelCount).toBe(23);
     const robotLab = playableWorlds.find((w) => w.slug === "robot-lab");
     expect(allLevels(robotLab as WorldFixture)).toHaveLength(7);
   });

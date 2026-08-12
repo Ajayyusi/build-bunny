@@ -162,6 +162,16 @@ export type SaveDraftAction = (input: {
 }) => Promise<PlayerActionResult<unknown>>;
 
 /** Uniform props every registered player component receives. */
+/** Answer-free slice of an AI_CLASSIFICATION payload (ground-truth `rule` removed). */
+export interface TeachActivityPayload {
+  conceptSlug: string;
+  labels: { positive: string; negative: string };
+  pool: { id: string; size: number; color: number }[];
+  testSet: { id: string; size: number; color: number }[];
+  minPerLabel: number;
+  starCriteria: { threeStarMaxBlocks?: number };
+}
+
 export interface ActivityPlayerProps {
   intro: ActivityIntro;
   /**

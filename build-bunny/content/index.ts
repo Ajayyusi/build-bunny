@@ -1,5 +1,6 @@
 import type { ProgramFixture, WorldFixture } from "@/modules/curriculum/schemas";
 import { programs } from "./programs";
+import { aiIsland } from "./worlds/ai-island";
 import { bunnyMeadow } from "./worlds/bunny-meadow";
 import { horizonWorlds } from "./worlds/horizons";
 import { logicForest } from "./worlds/logic-forest";
@@ -15,8 +16,8 @@ export interface ContentBundle {
   worlds: WorldFixture[];
 }
 
-/** Everything the import service needs: Worlds 1–3 + the horizon roadmap. */
+/** Everything the import service needs: Worlds 1–4 + the horizon roadmap. */
 export const bundle: ContentBundle = {
   programs,
-  worlds: [bunnyMeadow, logicForest, robotLab, ...horizonWorlds],
+  worlds: [bunnyMeadow, logicForest, robotLab, aiIsland, ...horizonWorlds],
 };

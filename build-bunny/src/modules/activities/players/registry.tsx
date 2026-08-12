@@ -37,12 +37,18 @@ const LearnPlayer = dynamic(
   { ssr: false },
 );
 
+const TeachPlayer = dynamic(
+  () => import("./TeachPlayer").then((m) => m.TeachPlayer),
+  { ssr: false },
+);
+
 export const ACTIVITY_PLAYERS: Partial<Record<string, ComponentType<ActivityPlayerProps>>> = {
   BLOCK_CODING: GridPlayer,
   DEBUGGING: GridPlayer,
   CODE_PREDICTION: CodePredictionPlayer,
   SEQUENCING: SequencingPlayer,
   CONCEPT_CARDS: LearnPlayer,
+  AI_CLASSIFICATION: TeachPlayer,
 };
 
 export function getActivityPlayer(

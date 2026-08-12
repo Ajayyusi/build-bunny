@@ -18,17 +18,6 @@ export const horizonWorlds: WorldFixture[] = [
     modules: [],
   },
   {
-    slug: "ai-island",
-    name: { en: "AI Island", ar: "جزيرة الذكاء الاصطناعي" },
-    tagline: {
-      en: "What makes a machine smart? Come and find out.",
-      ar: "ما الذي يجعل الآلة ذكية؟ تعالَ واكتشف.",
-    },
-    theme: "island",
-    horizon: true,
-    modules: [],
-  },
-  {
     slug: "ml-lab",
     name: { en: "Machine Learning Lab", ar: "مختبر تعلّم الآلة" },
     tagline: {

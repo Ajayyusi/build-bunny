@@ -214,7 +214,9 @@
         "wrongOption": "That's not quite what this program does — read it again and try once more.",
         "wrongOrder": "That's not the right order yet — look at the routine again.",
         "tryAnotherBlock": "That block isn't the one. Watch the example again and try another.",
-        "generic": "Not quite! Study the map and try again."
+        "generic": "Not quite! Study the map and try again.",
+        "teachBothBuckets": "Teach the bunny at least {need} berries in each basket first.",
+        "modelGuessedWrong": "The bunny got {correct} of {total} right — teach it a berry near the ones it missed."
       },
       "learn": {
         "stepWatch": "Step 1 of 2 · Watch",
@@ -286,6 +288,17 @@
         "resetOrder": "Reset order",
         "submitFailed": "We couldn't save your order.",
         "retry": "Retry"
+      },
+      "teach": {
+        "trayHeading": "Berries to teach with",
+        "trayEmpty": "You have taught the bunny with every berry.",
+        "guessHeading": "What the bunny thinks now",
+        "needMore": "Teach at least {count} berries to each basket, then the bunny will start guessing.",
+        "removeExample": "Take this berry back",
+        "check": "Test the bunny",
+        "taughtCount": "{count} taught",
+        "passed": "The bunny got them all right! You taught it well.",
+        "missed": "The bunny got {correct} of {total} right. Teach it a berry that looks like the ones it missed."
       }
     },
     "profile": {
