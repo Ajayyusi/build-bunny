@@ -56,3 +56,17 @@ export function classify(
   }
   return best?.label ?? null;
 }
+
+/**
+ * The exact shape a submission may carry, and nothing else.
+ *
+ * Pool specimens also hold `truth` — what happened when the bunny ate that
+ * berry — which the student needs to SEE but the grader must never receive.
+ * The attempts route validates with .strict(), so spreading a whole specimen
+ * into a submission rejects it outright. Funnelling every submission through
+ * this function is what keeps that from happening again.
+ */
+export function toTrainingExample(specimen: LabelledSpecimen): LabelledSpecimen {
+  const { id, size, color, label } = specimen;
+  return { id, size, color, label };
+}

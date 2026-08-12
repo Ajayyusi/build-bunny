@@ -302,7 +302,8 @@
         "trayHelp": "The bunny ate these before, so we know what happened. Pick which ones to teach it with.",
         "teachThis": "Teach this one",
         "guessHelp": "These are the mystery berries. The bunny has to work them out from what you taught it.",
-        "tryAgain": "Not quite yet — teach the bunny a berry like the one it got wrong."
+        "tryAgain": "Not quite yet — teach the bunny a berry like the one it got wrong.",
+        "submitFailed": "Something went wrong sending that to the bunny. Try pressing Test again."
       }
     },
     "profile": {

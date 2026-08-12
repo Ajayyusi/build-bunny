@@ -1,9 +1,12 @@
 import { describe, expect, it } from "vitest";
 
+import { z } from "zod";
+
 import {
   classify,
   gradeAiClassification,
 } from "@/modules/activities/server/ai-classification";
+import { toTrainingExample } from "@/modules/ai/knn";
 import { aiClassificationPayload } from "@/modules/curriculum/schemas";
 import { stripStudentPayload } from "@/modules/curriculum/server/queries";
 
@@ -156,5 +159,47 @@ describe("payload stripping", () => {
     for (const specimen of shipped.testSet ?? []) {
       expect(Object.keys(specimen).sort()).toEqual(["color", "id", "size"]);
     }
+  });
+});
+
+describe("what the player submits", () => {
+  /**
+   * Mirror of the attempts route's per-example schema. The route validates
+   * with .strict(), and that is the whole point of this suite: pool
+   * specimens carry `truth` so the CHILD can see what happened when the
+   * bunny ate that berry, but sending it to the grader rejects the whole
+   * submission with a 400 the UI reported as "not quite yet" — telling a
+   * child to rethink work that never reached the server.
+   */
+  const routeExample = z
+    .object({
+      id: z.string().min(1),
+      size: z.number().min(0).max(1),
+      color: z.number().min(0).max(1),
+      label: z.enum(["positive", "negative"]),
+    })
+    .strict();
+
+  it("strips `truth` so a strict route schema accepts it", () => {
+    const taught = payload.pool.map((specimen) => ({
+      ...specimen, // as the player holds it: geometry + truth + chosen label
+      label: specimen.truth,
+    }));
+
+    // Spreading the specimen wholesale is what broke it.
+    expect(routeExample.safeParse(taught[0]).success).toBe(false);
+
+    // Funnelled through the shared mapper, every example is accepted.
+    for (const example of taught.map(toTrainingExample)) {
+      const parsed = routeExample.safeParse(example);
+      expect(parsed.success, JSON.stringify(example)).toBe(true);
+      expect(Object.keys(example).sort()).toEqual(["color", "id", "label", "size"]);
+    }
+  });
+
+  it("keeps the label the student chose, not the berry's own truth", () => {
+    // A student may mislabel on purpose; the mapper must not "correct" them.
+    const mislabelled = { ...payload.pool[0]!, label: "negative" as const };
+    expect(toTrainingExample(mislabelled).label).toBe("negative");
   });
 });

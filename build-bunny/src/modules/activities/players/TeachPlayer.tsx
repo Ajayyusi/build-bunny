@@ -3,7 +3,12 @@
 import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 
-import { classify, type ClassLabel, type LabelledSpecimen } from "@/modules/ai/knn";
+import {
+  classify,
+  toTrainingExample,
+  type ClassLabel,
+  type LabelledSpecimen,
+} from "@/modules/ai/knn";
 import { Button, cn } from "@/ui";
 
 import type { ActivityPlayerProps } from "../types";
@@ -116,19 +121,31 @@ export function TeachPlayer({ intro, payload }: ActivityPlayerProps) {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           attemptRunId: crypto.randomUUID(),
-          answer: { examples },
+          // Only the fields the route accepts. Pool specimens also carry
+          // `truth` (what happened when the bunny ate it), and the route
+          // schema is .strict(), so spreading the whole specimen made every
+          // submission 400 — silently, because the failure surfaced as the
+          // generic "not quite yet" line rather than an error.
+          answer: { examples: examples.map(toTrainingExample) },
         }),
       });
+      if (!res.ok) {
+        // A rejected submission is NOT a wrong answer. Saying "not quite
+        // yet" here told a child to rethink work that never reached the
+        // grader, which is how the .strict() 400 above stayed invisible.
+        setResult({ verdict: "ERROR" });
+        return;
+      }
       const body = await res.json();
       // The counts ride on the feedback payload, not a top-level summary —
       // reading the wrong one is why this said "0 of 0" for every attempt.
-      const data = body.feedback?.data as
+      const feedbackData = body.feedback?.data as
         | { correct?: number; total?: number }
         | undefined;
       setResult({
         verdict: body.verdict,
-        correct: data?.correct,
-        total: data?.total,
+        correct: feedbackData?.correct,
+        total: feedbackData?.total,
       });
     } catch {
       setResult({ verdict: "ERROR" });
@@ -272,9 +289,11 @@ export function TeachPlayer({ intro, payload }: ActivityPlayerProps) {
         >
           {result.verdict === "PASS"
             ? t("passed")
-            : typeof result.correct === "number" && typeof result.total === "number"
-              ? t("missed", { correct: result.correct, total: result.total })
-              : t("tryAgain")}
+            : result.verdict === "ERROR"
+              ? t("submitFailed")
+              : typeof result.correct === "number" && typeof result.total === "number"
+                ? t("missed", { correct: result.correct, total: result.total })
+                : t("tryAgain")}
         </p>
       ) : null}
 
