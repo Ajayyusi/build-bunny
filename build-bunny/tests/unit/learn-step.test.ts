@@ -5,7 +5,12 @@ import {
   findFadedGap,
   type GapPath,
 } from "@/modules/blockly/serialization";
+import {
+  conceptCardsStudentPayload,
+  gradeConceptCards,
+} from "@/modules/activities/server/concept-cards";
 import { conceptCardsPayload, type LevelFixture } from "@/modules/curriculum/schemas";
+import { stripStudentPayload } from "@/modules/curriculum/server/queries";
 import { bundle } from "../../content";
 
 /**
@@ -126,6 +131,54 @@ describe("blockTypeAt", () => {
   });
 });
 
+describe("gradeConceptCards", () => {
+  // A Learn step is instruction, not assessment: the right block passes, the
+  // wrong one invites another go rather than reporting a failure, and the
+  // block the student reached for is recorded either way — that choice is the
+  // misconception signal the step exists to surface.
+  const snapshotFor = (level: LevelFixture) =>
+    ({ payload: level.payload }) as unknown as Parameters<typeof gradeConceptCards>[0];
+
+  const learn = bundle.worlds
+    .flatMap((w) => w.modules.flatMap((m) => m.levels))
+    .find((l) => l.activityType === "CONCEPT_CARDS") as LevelFixture;
+
+  it("passes the authored missing block", () => {
+    const answer = conceptCardsPayload.parse(learn.payload).faded.missingBlockType;
+    const result = gradeConceptCards(snapshotFor(learn), { blockType: answer });
+    expect(result.verdict).toBe("PASS");
+    expect(result.qualityPassed).toBe(true);
+    expect(result.primaryFeedback).toBeNull();
+    expect(result.summary).toMatchObject({ correct: true, blockType: answer });
+  });
+
+  it("invites another go at a distractor instead of reporting a failure", () => {
+    const payload = conceptCardsPayload.parse(learn.payload);
+    const distractor = payload.faded.toolbox
+      .map((e) => e.type)
+      .find((t) => t !== payload.faded.missingBlockType);
+    expect(distractor).toBeTruthy();
+
+    const result = gradeConceptCards(snapshotFor(learn), { blockType: distractor! });
+    expect(result.verdict).toBe("FAIL");
+    expect(result.qualityPassed).toBe(false);
+    // Gentle re-prompt, not a wrong-answer scolding.
+    expect(result.primaryFeedback).toEqual({ code: "tryAnotherBlock" });
+    // Recorded even when wrong — this is the signal, not noise.
+    expect(result.summary).toMatchObject({ correct: false, blockType: distractor });
+  });
+
+  it("never awards stars or generated code from a lesson", () => {
+    const answer = conceptCardsPayload.parse(learn.payload).faded.missingBlockType;
+    const result = gradeConceptCards(snapshotFor(learn), { blockType: answer });
+    expect(result.generatedCode).toBe("");
+    expect(result.blockCount).toBeNull();
+    // maxStars 0 on the level is what zeroes the reward; assert the authored
+    // level really carries it, since grading alone would not stop a star.
+    expect(learn.maxStars ?? 0).toBe(0);
+  });
+});
+
 describe("shipped Learn steps are internally coherent", () => {
   const learnLevels = bundle.worlds
     .flatMap((world) => world.modules.flatMap((m) => m.levels.map((level) => ({ world, level }))))
@@ -141,6 +194,58 @@ describe("shipped Learn steps are internally coherent", () => {
       "repeat-after-me",
     ]);
     expect(learnLevels).toHaveLength(1);
+  });
+
+  // The whole design hinges on this: the answer to a Learn step is the block
+  // type removed from the faded copy, and it lives INSIDE `faded` rather than
+  // at the payload's top level. stripStudentPayload originally swept only
+  // top-level keys, so a regression here ships the answer in the page source
+  // and the lesson silently stops teaching anything.
+  it("strips the faded gap's answer before the payload reaches a student", () => {
+    for (const { world, level } of learnLevels) {
+      const authored = conceptCardsPayload.parse((level as LevelFixture).payload);
+      expect(authored.faded.missingBlockType).toBeTruthy();
+
+      const shipped = stripStudentPayload("CONCEPT_CARDS", (level as LevelFixture).payload);
+
+      // The answer must not be LABELLED. The block type itself necessarily
+      // still ships inside faded.toolbox — the student has to have it to
+      // drag — so the property under test is that nothing marks which of the
+      // options is correct, not that the string is absent.
+      const serialized = JSON.stringify(shipped);
+      expect(
+        serialized.includes("missingBlockType"),
+        `${world.slug}/${level.slug}: answer key survived stripping`,
+      ).toBe(false);
+
+      // …and it must not be derivable by elimination. A single-entry toolbox
+      // would strip the answer key and still hand it over, since the only
+      // draggable block is the right one.
+      const shippedToolbox = conceptCardsStudentPayload.parse(shipped).faded.toolbox;
+      expect(
+        shippedToolbox.length,
+        `${world.slug}/${level.slug}: toolbox needs distractors, else the answer is the only option`,
+      ).toBeGreaterThan(1);
+      expect(shippedToolbox.some((e) => e.type === authored.faded.missingBlockType)).toBe(true);
+
+      // …and the stripped payload must still satisfy the answer-free schema
+      // the player re-validates against, so stripping fails open (lesson
+      // renders) rather than closed (lesson 500s).
+      expect(() =>
+        conceptCardsStudentPayload.parse(shipped),
+      ).not.toThrow();
+    }
+  });
+
+  it("does not mutate the caller's payload while stripping", () => {
+    // The snapshot object is shared with the grader; stripping in place would
+    // erase the answer the grader needs to mark the attempt.
+    for (const { level } of learnLevels) {
+      const source = (level as LevelFixture).payload as { faded: { missingBlockType?: string } };
+      const before = source.faded.missingBlockType;
+      stripStudentPayload("CONCEPT_CARDS", source);
+      expect(source.faded.missingBlockType).toBe(before);
+    }
   });
 
   it("the faded copy is the worked example minus exactly the authored missing block", () => {
