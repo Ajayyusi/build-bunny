@@ -283,7 +283,14 @@ export function LearnPlayer({
         <span aria-hidden="true">▶</span>
         {tLearn(playing ? "playing" : watched ? "watchAgain" : "watch")}
       </Button>
-      <Button size="lg" onClick={goToFaded} disabled={playing}>
+      {/* Deliberately NOT disabled while playing. Watch playback ends by a
+          callback from the canvas, so anything that stops the frame loop —
+          a backgrounded tab, a stalled device, a draw error — leaves
+          `playing` true forever. If this button were disabled then too, both
+          controls would be dead and the only way out of the lesson would be
+          reloading the page. goToFaded already clears `playing` first, so
+          letting a student leave mid-playback is safe. */}
+      <Button size="lg" onClick={goToFaded}>
         {tLearn("myTurn")}
       </Button>
     </>
