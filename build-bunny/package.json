@@ -20,6 +20,7 @@
     "db:deploy": "prisma migrate deploy",
     "db:seed": "tsx prisma/seed.ts",
     "demo:reset": "tsx scripts/reset-demo.ts",
+    "dev:skip-to": "tsx scripts/skip-to.ts",
     "load-check": "tsx scripts/load-check.ts",
     "db:studio": "prisma studio"
   },
