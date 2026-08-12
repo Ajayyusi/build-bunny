@@ -1,10 +1,13 @@
 import { describe, expect, it } from "vitest";
 
+import { registerBunnyBlocks } from "@/modules/blockly/blocks";
+import { runProgram } from "@/modules/blockly/interpreter";
 import {
   blockTypeAt,
   findFadedGap,
   type GapPath,
 } from "@/modules/blockly/serialization";
+import { generateRunnableCode } from "@/modules/blockly/server/codegen";
 import {
   conceptCardsStudentPayload,
   gradeConceptCards,
@@ -129,6 +132,79 @@ describe("blockTypeAt", () => {
     };
     expect(blockTypeAt(afterLoop, gap)).toBeNull();
   });
+});
+
+// The gap that let two broken lessons ship: every other content gate checks
+// SHAPE (schema, hint tiers, Arabic, map reachability) and the one gate that
+// actually RUNS a program only covers levels with a `solution` field, which
+// CONCEPT_CARDS does not have. So a worked example could be semantically
+// wrong — the first two drafts of learn-if and learn-if-else read the
+// bb_pathAhead sensor as "path is clear" when it means "path is BLOCKED" —
+// and every test still passed while the lesson visibly failed on screen.
+describe("shipped Learn steps actually run", () => {
+  registerBunnyBlocks("en");
+
+  const learnLevels = bundle.worlds
+    .flatMap((world) => world.modules.flatMap((m) => m.levels.map((level) => ({ world, level }))))
+    .filter(({ level }) => level.activityType === "CONCEPT_CARDS");
+
+  /**
+   * codegen refuses any block outside the level toolbox, but a lesson's
+   * toolbox lists only what the student may drag INTO the gap — the scaffold
+   * around it (repeat, if, the sensor) is pre-placed and never draggable. So
+   * the run needs the union of both, gathered off the program itself.
+   */
+  function toolboxFor(program: unknown, gapOptions: { type: string }[]) {
+    const types = new Set(gapOptions.map((o) => o.type));
+    const walk = (node: unknown): void => {
+      if (node === null || typeof node !== "object") return;
+      if (Array.isArray(node)) return node.forEach(walk);
+      const rec = node as Record<string, unknown>;
+      if (typeof rec.type === "string") types.add(rec.type);
+      Object.values(rec).forEach(walk);
+    };
+    walk(program);
+    types.delete("bb_whenStart"); // the hat is implicit, never in a toolbox
+    return [...types].map((type) => ({ type }));
+  }
+
+  it.each(learnLevels.map(({ world, level }) => ({ slug: `${world.slug}/${level.slug}`, level })))(
+    "$slug: the worked example reaches the goal",
+    ({ slug, level }) => {
+      const payload = conceptCardsPayload.parse((level as LevelFixture).payload);
+      const { code } = generateRunnableCode(
+        payload.workedExample.blocks,
+        toolboxFor(payload.workedExample.blocks, payload.faded.toolbox),
+      );
+      const run = runProgram(code, payload.variants[0]!, {
+        autoCollect: payload.autoCollect,
+        nonFatalBumps: payload.nonFatalBumps,
+        maxCommands: payload.budgets.maxCommands,
+      });
+
+      expect(run.termination, `${slug}: ${run.termination}`).toBe("COMPLETED");
+      expect(run.reachedGoal, `${slug} never reached the burrow`).toBe(true);
+    },
+  );
+
+  it.each(learnLevels.map(({ world, level }) => ({ slug: `${world.slug}/${level.slug}`, level })))(
+    "$slug: the faded program does NOT solve it until the gap is filled",
+    ({ slug, level }) => {
+      // If the faded copy already reaches the goal, the missing block was
+      // decorative and the student learns nothing by placing it.
+      const payload = conceptCardsPayload.parse((level as LevelFixture).payload);
+      const { code } = generateRunnableCode(
+        payload.faded.blocks,
+        toolboxFor(payload.faded.blocks, payload.faded.toolbox),
+      );
+      const run = runProgram(code, payload.variants[0]!, {
+        autoCollect: payload.autoCollect,
+        nonFatalBumps: payload.nonFatalBumps,
+        maxCommands: payload.budgets.maxCommands,
+      });
+      expect(run.reachedGoal, `${slug}: faded program solves itself`).toBe(false);
+    },
+  );
 });
 
 describe("gradeConceptCards", () => {

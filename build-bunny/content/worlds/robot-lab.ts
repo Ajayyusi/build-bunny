@@ -359,8 +359,8 @@ export const robotLab: WorldFixture = {
             ar: "أولًا شاهد الأرنب الآلي يسير في الممرّ وينعطف عند الزاوية. ثم أعد اللبنة الناقصة إلى داخل «وإلّا» واضغط «تحقّق».",
           },
           explanation: {
-            en: "If/Else { path ahead } { Move Forward } else { Turn Left } means: ask the question, then do the FIRST branch when the answer is yes and the SECOND when it is no. Exactly one of them runs — never both, never neither. That is why Robo Bunny drove straight three times and turned only once: the corridor answered yes, yes, yes, then no.",
-            ar: "«إذا / وإلّا { المسار أمامي } { تقدّم للأمام } وإلّا { استدر يسارًا }» تعني: اطرح السؤال، ثم نفّذ الفرع الأول إذا كانت الإجابة نعم، والفرع الثاني إذا كانت لا. ينفَّذ فرع واحد فقط — لا كلاهما ولا أيّ منهما. لهذا سار الأرنب الآلي مستقيمًا ثلاث مرات وانعطف مرة واحدة: أجاب الممرّ نعم، نعم، نعم، ثم لا.",
+            en: "If/Else { path ahead is blocked } { Turn Left } else { Move Forward } means: ask the question, then run the FIRST branch when the answer is yes and the SECOND when it is no. Exactly one of them runs — never both, never neither. Read the sensor carefully: it asks whether the way is BLOCKED, so driving on is the Else. The corridor answered no, no, no, then yes — which is why Robo Bunny drove straight three times and turned exactly once, at the corner.",
+            ar: "«إذا / وإلّا { الطريق أمامي مسدود } { استدر يسارًا } وإلّا { تقدّم للأمام }» تعني: اطرح السؤال، ثم نفّذ الفرع الأول عندما تكون الإجابة نعم، والفرع الثاني عندما تكون لا. ينفَّذ فرع واحد فقط — لا كلاهما ولا أيّ منهما. واقرأ المستشعر بتمعّن: إنه يسأل إن كان الطريق مسدودًا، لذا فإن مواصلة السير هي «وإلّا». أجاب الممرّ لا، لا، لا، ثم نعم — ولهذا سار الأرنب الآلي مستقيمًا ثلاث مرات واستدار مرة واحدة عند الزاوية.",
           },
           teacherNotes: {
             en: "The worked-example step for If/Else, placed before Smart Turns. Deliberately the first lesson whose condition changes mid-run: Meet If ran on a clear trail to teach the shape, and this one needs a real 'no' or Else has nothing to demonstrate. If a student asks why not just use two Ifs, that is the right question — Smart Turns is where two Ifs stops being equivalent.",
@@ -441,15 +441,19 @@ export const robotLab: WorldFixture = {
                               block: {
                                 type: "bb_ifElse",
                                 id: "if1",
+                                // The sensor asks whether the path is
+                                // BLOCKED, so DO is the blocked branch and
+                                // ELSE is the clear one — not the other way
+                                // round, however the caption reads aloud.
                                 inputs: {
                                   CONDITION: {
                                     block: { type: "bb_pathAhead", id: "s1" },
                                   },
                                   DO: {
-                                    block: { type: "bb_moveForward", id: "m1" },
+                                    block: { type: "bb_turnLeft", id: "t1" },
                                   },
                                   ELSE: {
-                                    block: { type: "bb_turnLeft", id: "t1" },
+                                    block: { type: "bb_moveForward", id: "m1" },
                                   },
                                 },
                               },
@@ -462,8 +466,8 @@ export const robotLab: WorldFixture = {
                 },
               },
               caption: {
-                en: "Watch: clear path, so it drives. Blocked path, so it turns. One or the other, every time.",
-                ar: "شاهد: المسار خالٍ فيسير، والمسار مسدود فينعطف. أحدهما أو الآخر، في كل مرة.",
+                en: "Watch: blocked, so it turns. Clear, so it drives. One branch or the other, every single time.",
+                ar: "شاهد: مسدود فيستدير، وخالٍ فيسير. فرع أو الآخر، في كل مرة دون استثناء.",
               },
             },
             faded: {
@@ -488,11 +492,14 @@ export const robotLab: WorldFixture = {
                               block: {
                                 type: "bb_ifElse",
                                 id: "if1",
+                                // The gap is the BLOCKED branch; Else (the
+                                // clear case) is left filled in so the two
+                                // branches can be compared side by side.
                                 inputs: {
                                   CONDITION: {
                                     block: { type: "bb_pathAhead", id: "s1" },
                                   },
-                                  DO: {
+                                  ELSE: {
                                     block: { type: "bb_moveForward", id: "m1" },
                                   },
                                 },
@@ -515,8 +522,8 @@ export const robotLab: WorldFixture = {
               ],
               missingBlockType: "bb_turnLeft",
               caption: {
-                en: "Your turn: moving forward is covered. What should Robo Bunny do when the path ahead is blocked?",
-                ar: "دورك الآن: التقدّم للأمام مُعالَج. ماذا يجب أن يفعل الأرنب الآلي عندما يكون المسار أمامه مسدودًا؟",
+                en: "Your turn: the clear case is already handled below — Robo Bunny drives on. What should it do when the path ahead IS blocked?",
+                ar: "دورك الآن: الحالة الخالية معالَجة بالأسفل — يواصل الأرنب الآلي سيره. فماذا يفعل عندما يكون الطريق أمامه مسدودًا؟",
               },
             },
           } satisfies ConceptCardsDraft,

@@ -352,19 +352,19 @@ export const logicForest: WorldFixture = {
             ar: "أرض الغابة غير مستوية، وظلّ الأرنب الآلي يصطدم بالأشياء. حان وقت تعليمه أن ينظر قبل أن يقفز.",
           },
           objective: {
-            en: "Watch an If block ask a question before acting, then complete it — understanding that what sits inside If only runs when the answer is yes.",
-            ar: "شاهد لبنة «إذا» وهي تطرح سؤالًا قبل التنفيذ، ثم أكملها، مع فهم أن ما بداخل «إذا» لا يعمل إلا عندما تكون الإجابة نعم.",
+            en: "Watch an If block ask a question before acting, then complete it — understanding that what sits inside If runs only when the answer is yes, and is skipped when it is no.",
+            ar: "شاهد لبنة «إذا» وهي تطرح سؤالًا قبل التنفيذ، ثم أكملها، مع فهم أن ما بداخل «إذا» لا يعمل إلا عندما تكون الإجابة نعم، ويُتخطّى عندما تكون لا.",
           },
           instructions: {
-            en: "First watch Robo Bunny check the path before every hop. Then put the missing block back inside the If and press Check.",
-            ar: "أولًا شاهد الأرنب الآلي وهو يتحقّق من المسار قبل كل قفزة. ثم أعد اللبنة الناقصة إلى داخل «إذا» واضغط «تحقّق».",
+            en: "First watch Robo Bunny check for a blocked path before every hop. Then put the missing block back inside the If and press Check.",
+            ar: "أولًا شاهد الأرنب الآلي وهو يتحقّق مما إذا كان الطريق مسدودًا قبل كل قفزة. ثم أعد اللبنة الناقصة إلى داخل «إذا» واضغط «تحقّق».",
           },
           explanation: {
-            en: "If { path ahead } { Move Forward } means: ask the question first, and only do the block inside if the answer is yes. The question is called a sensor — it looks at the world and answers yes or no. On a clear trail the answer is always yes, so Robo Bunny hops every time. Next you will meet a trail where the answer changes.",
-            ar: "«إذا { المسار أمامي } { تقدّم للأمام }» تعني: اطرح السؤال أولًا، ولا تنفّذ اللبنة التي بالداخل إلا إذا كانت الإجابة نعم. يُسمّى هذا السؤال «مستشعرًا» — فهو ينظر إلى العالم ويجيب بنعم أو لا. على مسار خالٍ تكون الإجابة دائمًا نعم، فيقفز الأرنب الآلي في كل مرة. وستقابل بعد قليل مسارًا تتغيّر فيه الإجابة.",
+            en: "If { path ahead is blocked } { Turn Left } means: ask the question first, and run the block inside only when the answer is yes. That question is a sensor — it looks at the world and answers yes or no. Three times the trail was clear, the answer was no, and the If was skipped completely. At the bend the answer was yes, so Robo Bunny turned. Notice that Move Forward sits UNDER the If, not inside it — which is why it ran every single time either way.",
+            ar: "«إذا { الطريق أمامي مسدود } { استدر يسارًا }» تعني: اطرح السؤال أولًا، ولا تنفّذ اللبنة التي بالداخل إلا عندما تكون الإجابة نعم. وهذا السؤال «مستشعر» — ينظر إلى العالم ويجيب بنعم أو لا. ثلاث مرات كان الدرب خاليًا فكانت الإجابة لا، فتُخطّيت «إذا» تمامًا. وعند المنعطف كانت الإجابة نعم، فاستدار الأرنب الآلي. ولاحظ أن «تقدّم للأمام» تقع تحت «إذا» لا بداخلها — ولهذا عملت في كل مرة على أي حال.",
           },
           teacherNotes: {
-            en: "The worked-example step for conditionals, placed before Choose the Path where If and the sensor first appear together. The lesson runs on a clear trail on purpose: the condition is always true, so students see the SHAPE of If without also having to predict a changing answer. Choose the Path immediately after is where the answer starts varying between variants.",
+            en: "The worked-example step for conditionals, placed before Choose the Path where If and the sensor first appear together. Watch for the commonest misread: students assume the sensor asks whether the path is CLEAR. It asks whether it is BLOCKED, and the block says so on its face — this lesson is the cheapest place to correct that before Choose the Path depends on it. Move Forward deliberately sits outside the If so the class can see that a one-branch If either fires or is skipped, and the program carries on regardless.",
           },
           difficulty: "EASY",
           recommendedGradeMin: 3,
@@ -384,34 +384,35 @@ export const logicForest: WorldFixture = {
             {
               tier: 2,
               text: {
-                en: "The If is already asking 'is the path ahead clear?'. When the answer is yes, what should Robo Bunny do?",
-                ar: "تسأل «إذا» بالفعل: «هل المسار أمامي خالٍ؟». عندما تكون الإجابة نعم، ماذا يجب أن يفعل الأرنب الآلي؟",
+                en: "Read the question carefully: the If asks whether the path ahead is BLOCKED. When that is true, hopping forward is the one thing Robo Bunny must not do.",
+                ar: "اقرأ السؤال بتمعّن: تسأل «إذا» إن كان الطريق أمامي مسدودًا. وعندما تكون الإجابة نعم، فإن القفز للأمام هو آخر ما ينبغي للأرنب الآلي فعله.",
               },
             },
             {
               tier: 3,
               text: {
-                en: "Turning would only change which way Robo Bunny faces — the path is clear, so it should travel along it.",
-                ar: "الاستدارة تغيّر اتجاه الأرنب الآلي فقط — المسار خالٍ، لذا عليه أن يسير فيه.",
+                en: "The burrow sits above the bend, not below it. Which turn points Robo Bunny straight at it?",
+                ar: "يقع الجحر فوق المنعطف لا تحته. أي استدارة توجّه الأرنب الآلي نحوه مباشرة؟",
               },
             },
             {
               tier: 4,
               text: {
-                en: "Drag Move Forward from the toolbox into the empty space inside the If, so it clicks into the mouth, then press Check.",
-                ar: "اسحب «تقدّم للأمام» من صندوق الأدوات إلى الفراغ داخل «إذا» حتى تلتصق في الفم، ثم اضغط «تحقّق».",
+                en: "Drag Turn Left from the toolbox into the empty space inside the If, so it clicks into the mouth, then press Check.",
+                ar: "اسحب «استدر يسارًا» من صندوق الأدوات إلى الفراغ داخل «إذا» حتى تلتصق في الفم، ثم اضغط «تحقّق».",
               },
             },
           ],
           payload: {
             conceptSlug: "conditionals",
-            // A walled forest trail, clear the whole way: the condition is
-            // deliberately always true here so the lesson teaches the SHAPE
-            // of If. Choose the Path, immediately after, is where the answer
-            // starts changing between variants.
+            // A forest trail that bends: three clear tiles east, a trunk at
+            // the end, and the burrow one tile north of the bend. The sensor
+            // asks whether the path is BLOCKED, so the run answers no, no,
+            // no, yes — the If is skipped three times and fires once. A
+            // clear-all-the-way trail would never fire it at all.
             variants: [
               {
-                rows: ["#####", "...G.", "#####"],
+                rows: ["###G#", "....#", "#####"],
                 start: { x: 0, y: 1, dir: "E" },
               },
             ],
@@ -433,7 +434,7 @@ export const logicForest: WorldFixture = {
                         block: {
                           type: "bb_repeat",
                           id: "loop",
-                          fields: { TIMES: 3 },
+                          fields: { TIMES: 4 },
                           inputs: {
                             DO: {
                               block: {
@@ -444,9 +445,14 @@ export const logicForest: WorldFixture = {
                                     block: { type: "bb_pathAhead", id: "s1" },
                                   },
                                   DO: {
-                                    block: { type: "bb_moveForward", id: "m1" },
+                                    block: { type: "bb_turnLeft", id: "t1" },
                                   },
                                 },
+                                // OUTSIDE the If on purpose: the hop happens
+                                // every iteration, turn or no turn. That
+                                // contrast is what makes the If's one branch
+                                // legible.
+                                next: { block: { type: "bb_moveForward", id: "m1" } },
                               },
                             },
                           },
@@ -457,8 +463,8 @@ export const logicForest: WorldFixture = {
                 },
               },
               caption: {
-                en: "Watch: the If checks the path first, and only then does Robo Bunny hop.",
-                ar: "شاهد: تتحقّق «إذا» من المسار أولًا، وعندها فقط يقفز الأرنب الآلي.",
+                en: "Watch: three times the trail is clear, so the If is skipped. At the bend it is blocked — and only then does Robo Bunny turn.",
+                ar: "شاهد: ثلاث مرات يكون الدرب خاليًا فتُتخطّى «إذا». وعند المنعطف يكون مسدودًا — وعندها فقط يستدير الأرنب الآلي.",
               },
             },
             faded: {
@@ -477,7 +483,7 @@ export const logicForest: WorldFixture = {
                         block: {
                           type: "bb_repeat",
                           id: "loop",
-                          fields: { TIMES: 3 },
+                          fields: { TIMES: 4 },
                           inputs: {
                             DO: {
                               block: {
@@ -488,6 +494,7 @@ export const logicForest: WorldFixture = {
                                     block: { type: "bb_pathAhead", id: "s1" },
                                   },
                                 },
+                                next: { block: { type: "bb_moveForward", id: "m1" } },
                               },
                             },
                           },
@@ -497,18 +504,19 @@ export const logicForest: WorldFixture = {
                   ],
                 },
               },
-              // Turning is the live confusion again: a student who has not
-              // grasped that the sensor already answered the question reaches
-              // for a turn "just in case".
+              // Move Forward is the sharp distractor here: it is already
+              // sitting right below the If, so a student who reads the
+              // sensor as "path is clear" will reach for it — and hop
+              // straight into the trunk.
               toolbox: [
-                { type: "bb_moveForward", limit: 1 },
                 { type: "bb_turnLeft", limit: 1 },
                 { type: "bb_turnRight", limit: 1 },
+                { type: "bb_moveForward", limit: 1 },
               ],
-              missingBlockType: "bb_moveForward",
+              missingBlockType: "bb_turnLeft",
               caption: {
-                en: "Your turn: the If is asking whether the path is clear, but its mouth is empty. What should happen when the answer is yes?",
-                ar: "دورك الآن: تسأل «إذا» إن كان المسار خاليًا، لكن فمها فارغ. ماذا يجب أن يحدث عندما تكون الإجابة نعم؟",
+                en: "Your turn: the If is asking whether the path ahead is blocked, but its mouth is empty. What should Robo Bunny do when the answer is yes?",
+                ar: "دورك الآن: تسأل «إذا» إن كان الطريق أمامي مسدودًا، لكن فمها فارغ. ماذا يجب أن يفعل الأرنب الآلي عندما تكون الإجابة نعم؟",
               },
             },
           } satisfies ConceptCardsDraft,
