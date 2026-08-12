@@ -2,6 +2,7 @@ import type { z } from "zod";
 import type {
   WorldFixture,
   blockCodingPayload,
+  conceptCardsPayload,
   debuggingPayload,
   sequencingPayload,
 } from "@/modules/curriculum/schemas";
@@ -26,6 +27,7 @@ import type {
 type BlockCodingDraft = z.input<typeof blockCodingPayload>;
 type DebuggingDraft = z.input<typeof debuggingPayload>;
 type SequencingDraft = z.input<typeof sequencingPayload>;
+type ConceptCardsDraft = z.input<typeof conceptCardsPayload>;
 
 const startWorkspace = {
   blocks: {
@@ -332,10 +334,198 @@ export const robotLab: WorldFixture = {
           } satisfies BlockCodingDraft,
         },
 
+        // The If/Else Learn step (docs/build-bunny/LEARN-STEP-SPEC.md),
+        // immediately before Smart Turns where If/Else debuts. Unlike the
+        // first two lessons this one runs on a trail where the condition
+        // genuinely CHANGES mid-run — the robot moves while the way is clear
+        // and turns exactly once at the corner — because the whole point of
+        // Else is the branch you take when the answer is no.
+        {
+          slug: "learn-if-else",
+          order: 3,
+          activityType: "CONCEPT_CARDS",
+          track: "PROGRAMMING",
+          title: { en: "Meet If / Else", ar: "تعرّف على «إذا / وإلّا»" },
+          story: {
+            en: "The lab corridor bends, and a plain If leaves Robo Bunny with nothing to do when the way is blocked. It needs a plan B.",
+            ar: "ممرّ المختبر ينعطف، ولبنة «إذا» وحدها تترك الأرنب الآلي بلا تصرّف عندما يُسدّ الطريق. إنه يحتاج خطة بديلة.",
+          },
+          objective: {
+            en: "Watch If/Else take one of two paths, then complete it — understanding that exactly one branch runs every single time.",
+            ar: "شاهد «إذا / وإلّا» وهي تسلك أحد مسارين، ثم أكملها، مع فهم أن فرعًا واحدًا فقط ينفَّذ في كل مرة.",
+          },
+          instructions: {
+            en: "First watch Robo Bunny drive down the corridor and turn at the corner. Then put the missing block back inside the Else and press Check.",
+            ar: "أولًا شاهد الأرنب الآلي يسير في الممرّ وينعطف عند الزاوية. ثم أعد اللبنة الناقصة إلى داخل «وإلّا» واضغط «تحقّق».",
+          },
+          explanation: {
+            en: "If/Else { path ahead } { Move Forward } else { Turn Left } means: ask the question, then do the FIRST branch when the answer is yes and the SECOND when it is no. Exactly one of them runs — never both, never neither. That is why Robo Bunny drove straight three times and turned only once: the corridor answered yes, yes, yes, then no.",
+            ar: "«إذا / وإلّا { المسار أمامي } { تقدّم للأمام } وإلّا { استدر يسارًا }» تعني: اطرح السؤال، ثم نفّذ الفرع الأول إذا كانت الإجابة نعم، والفرع الثاني إذا كانت لا. ينفَّذ فرع واحد فقط — لا كلاهما ولا أيّ منهما. لهذا سار الأرنب الآلي مستقيمًا ثلاث مرات وانعطف مرة واحدة: أجاب الممرّ نعم، نعم، نعم، ثم لا.",
+          },
+          teacherNotes: {
+            en: "The worked-example step for If/Else, placed before Smart Turns. Deliberately the first lesson whose condition changes mid-run: Meet If ran on a clear trail to teach the shape, and this one needs a real 'no' or Else has nothing to demonstrate. If a student asks why not just use two Ifs, that is the right question — Smart Turns is where two Ifs stops being equivalent.",
+          },
+          difficulty: "EASY",
+          recommendedGradeMin: 4,
+          recommendedGradeMax: 7,
+          estimatedMinutes: 3,
+          xpReward: 20,
+          tags: ["conditionals", "learn"],
+          requires: [],
+          hints: [
+            {
+              tier: 1,
+              text: {
+                en: "Look at the second mouth of the block — the one after the word Else. It is empty.",
+                ar: "انظر إلى الفم الثاني في اللبنة — الذي يأتي بعد كلمة «وإلّا». إنه فارغ.",
+              },
+            },
+            {
+              tier: 2,
+              text: {
+                en: "The Else branch runs only when the path ahead is NOT clear. Robo Bunny cannot drive through a wall — so what else could it do?",
+                ar: "لا ينفَّذ فرع «وإلّا» إلا عندما يكون المسار أمامه غير خالٍ. لا يستطيع الأرنب الآلي اختراق الجدار — فماذا يمكنه أن يفعل بدلًا من ذلك؟",
+              },
+            },
+            {
+              tier: 3,
+              text: {
+                en: "The docking bay is above the corner, not below it. Which way should Robo Bunny turn to face it?",
+                ar: "مرفأ الالتحام فوق الزاوية وليس تحتها. في أي اتجاه ينبغي أن يستدير الأرنب الآلي ليواجهه؟",
+              },
+            },
+            {
+              tier: 4,
+              text: {
+                en: "Drag Turn Left from the toolbox into the empty space after Else, so it clicks into the mouth, then press Check.",
+                ar: "اسحب «استدر يسارًا» من صندوق الأدوات إلى الفراغ بعد «وإلّا» حتى تلتصق في الفم، ثم اضغط «تحقّق».",
+              },
+            },
+          ],
+          payload: {
+            conceptSlug: "if-else",
+            // An L-shaped corridor: three clear tiles east, then a wall, with
+            // the bay one tile north of the corner. The run answers yes,
+            // yes, yes, no — so the Else branch fires exactly once, visibly,
+            // which is the only way a lesson can show what Else is FOR.
+            variants: [
+              {
+                rows: ["##G#", "...#", "####"],
+                start: { x: 0, y: 1, dir: "E" },
+              },
+            ],
+            // Robot Lab runs explicit-collect world-wide; the lesson grid has
+            // no cells on it, but it follows the world's rule rather than
+            // quietly introducing a second convention.
+            autoCollect: false,
+            nonFatalBumps: false,
+            workedExample: {
+              blocks: {
+                blocks: {
+                  languageVersion: 0,
+                  blocks: [
+                    {
+                      type: "bb_whenStart",
+                      id: "start",
+                      x: 24,
+                      y: 24,
+                      deletable: false,
+                      movable: false,
+                      next: {
+                        block: {
+                          type: "bb_repeat",
+                          id: "loop",
+                          fields: { TIMES: 4 },
+                          inputs: {
+                            DO: {
+                              block: {
+                                type: "bb_ifElse",
+                                id: "if1",
+                                inputs: {
+                                  CONDITION: {
+                                    block: { type: "bb_pathAhead", id: "s1" },
+                                  },
+                                  DO: {
+                                    block: { type: "bb_moveForward", id: "m1" },
+                                  },
+                                  ELSE: {
+                                    block: { type: "bb_turnLeft", id: "t1" },
+                                  },
+                                },
+                              },
+                            },
+                          },
+                        },
+                      },
+                    },
+                  ],
+                },
+              },
+              caption: {
+                en: "Watch: clear path, so it drives. Blocked path, so it turns. One or the other, every time.",
+                ar: "شاهد: المسار خالٍ فيسير، والمسار مسدود فينعطف. أحدهما أو الآخر، في كل مرة.",
+              },
+            },
+            faded: {
+              blocks: {
+                blocks: {
+                  languageVersion: 0,
+                  blocks: [
+                    {
+                      type: "bb_whenStart",
+                      id: "start",
+                      x: 24,
+                      y: 24,
+                      deletable: false,
+                      movable: false,
+                      next: {
+                        block: {
+                          type: "bb_repeat",
+                          id: "loop",
+                          fields: { TIMES: 4 },
+                          inputs: {
+                            DO: {
+                              block: {
+                                type: "bb_ifElse",
+                                id: "if1",
+                                inputs: {
+                                  CONDITION: {
+                                    block: { type: "bb_pathAhead", id: "s1" },
+                                  },
+                                  DO: {
+                                    block: { type: "bb_moveForward", id: "m1" },
+                                  },
+                                },
+                              },
+                            },
+                          },
+                        },
+                      },
+                    },
+                  ],
+                },
+              },
+              // Turn Right is the sharp distractor here: it is a turn, so it
+              // feels right, but it faces the robot away from the bay and
+              // straight into the wall it was trying to avoid.
+              toolbox: [
+                { type: "bb_turnLeft", limit: 1 },
+                { type: "bb_turnRight", limit: 1 },
+                { type: "bb_moveForward", limit: 1 },
+              ],
+              missingBlockType: "bb_turnLeft",
+              caption: {
+                en: "Your turn: moving forward is covered. What should Robo Bunny do when the path ahead is blocked?",
+                ar: "دورك الآن: التقدّم للأمام مُعالَج. ماذا يجب أن يفعل الأرنب الآلي عندما يكون المسار أمامه مسدودًا؟",
+              },
+            },
+          } satisfies ConceptCardsDraft,
+        },
+
         // ── Level 3 — SMART TURNS: If/Else, 2 variants ────────────────────
         {
           slug: "smart-turns",
-          order: 3,
+          order: 4,
           activityType: "BLOCK_CODING",
           track: "PROGRAMMING",
           title: { en: "Smart Turns", ar: "انعطافات ذكية" },

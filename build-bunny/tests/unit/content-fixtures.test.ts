@@ -118,17 +118,19 @@ describe("content bundle shape", () => {
     }
   });
 
-  it("horizon worlds carry no modules; playable worlds carry the 18 levels", () => {
+  it("horizon worlds carry no modules; playable worlds carry the 20 levels", () => {
     for (const world of horizonWorlds) {
       expect(world.modules, `horizon ${world.slug}`).toHaveLength(0);
     }
     // 15 grid levels (m3) + 2 m4 activity-engine levels: loop-detective
     // (CODE_PREDICTION, logic-forest) and sensor-sequence (SEQUENCING,
-    // robot-lab) + 1 Learn step: learn-repeat (CONCEPT_CARDS, bunny-meadow).
+    // robot-lab) + 3 Learn steps (CONCEPT_CARDS), one per playable world:
+    // learn-repeat (bunny-meadow), learn-if (logic-forest), learn-if-else
+    // (robot-lab).
     const levelCount = playableWorlds.reduce((n, w) => n + allLevels(w).length, 0);
-    expect(levelCount).toBe(18);
+    expect(levelCount).toBe(20);
     const robotLab = playableWorlds.find((w) => w.slug === "robot-lab");
-    expect(allLevels(robotLab as WorldFixture)).toHaveLength(6);
+    expect(allLevels(robotLab as WorldFixture)).toHaveLength(7);
   });
 });
 

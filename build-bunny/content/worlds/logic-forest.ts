@@ -3,6 +3,7 @@ import type {
   WorldFixture,
   blockCodingPayload,
   codePredictionPayload,
+  conceptCardsPayload,
 } from "@/modules/curriculum/schemas";
 
 /**
@@ -21,6 +22,7 @@ import type {
 
 type BlockCodingDraft = z.input<typeof blockCodingPayload>;
 type CodePredictionDraft = z.input<typeof codePredictionPayload>;
+type ConceptCardsDraft = z.input<typeof conceptCardsPayload>;
 
 const startWorkspace = {
   blocks: {
@@ -333,10 +335,189 @@ export const logicForest: WorldFixture = {
         ar: "أفضل البرامج تستطيع التعامل مع المفاجآت. حان وقت تعليم الأرنب الآلي أن يتحقق قبل أن يقفز.",
       },
       levels: [
+        // The conditionals Learn step (docs/build-bunny/LEARN-STEP-SPEC.md),
+        // sitting immediately before Choose the Path — the level where If and
+        // the path sensor debut together. Same shape as Bunny Meadow's Meet
+        // Repeat: watch a solved program, complete a faded copy, then use it.
+        // No stars (CONCEPT_CARDS is maxStars 0); the xpReward keeps progress
+        // moving.
+        {
+          slug: "learn-if",
+          order: 1,
+          activityType: "CONCEPT_CARDS",
+          track: "PROGRAMMING",
+          title: { en: "Meet If", ar: "تعرّف على «إذا»" },
+          story: {
+            en: "The forest floor is uneven, and Robo Bunny keeps bumping into things. Time to teach it to look before it hops.",
+            ar: "أرض الغابة غير مستوية، وظلّ الأرنب الآلي يصطدم بالأشياء. حان وقت تعليمه أن ينظر قبل أن يقفز.",
+          },
+          objective: {
+            en: "Watch an If block ask a question before acting, then complete it — understanding that what sits inside If only runs when the answer is yes.",
+            ar: "شاهد لبنة «إذا» وهي تطرح سؤالًا قبل التنفيذ، ثم أكملها، مع فهم أن ما بداخل «إذا» لا يعمل إلا عندما تكون الإجابة نعم.",
+          },
+          instructions: {
+            en: "First watch Robo Bunny check the path before every hop. Then put the missing block back inside the If and press Check.",
+            ar: "أولًا شاهد الأرنب الآلي وهو يتحقّق من المسار قبل كل قفزة. ثم أعد اللبنة الناقصة إلى داخل «إذا» واضغط «تحقّق».",
+          },
+          explanation: {
+            en: "If { path ahead } { Move Forward } means: ask the question first, and only do the block inside if the answer is yes. The question is called a sensor — it looks at the world and answers yes or no. On a clear trail the answer is always yes, so Robo Bunny hops every time. Next you will meet a trail where the answer changes.",
+            ar: "«إذا { المسار أمامي } { تقدّم للأمام }» تعني: اطرح السؤال أولًا، ولا تنفّذ اللبنة التي بالداخل إلا إذا كانت الإجابة نعم. يُسمّى هذا السؤال «مستشعرًا» — فهو ينظر إلى العالم ويجيب بنعم أو لا. على مسار خالٍ تكون الإجابة دائمًا نعم، فيقفز الأرنب الآلي في كل مرة. وستقابل بعد قليل مسارًا تتغيّر فيه الإجابة.",
+          },
+          teacherNotes: {
+            en: "The worked-example step for conditionals, placed before Choose the Path where If and the sensor first appear together. The lesson runs on a clear trail on purpose: the condition is always true, so students see the SHAPE of If without also having to predict a changing answer. Choose the Path immediately after is where the answer starts varying between variants.",
+          },
+          difficulty: "EASY",
+          recommendedGradeMin: 3,
+          recommendedGradeMax: 7,
+          estimatedMinutes: 2,
+          xpReward: 15,
+          tags: ["conditionals", "learn"],
+          requires: [],
+          hints: [
+            {
+              tier: 1,
+              text: {
+                en: "Look inside the If block — the space under the question is empty. Something has to go there.",
+                ar: "انظر داخل لبنة «إذا» — المساحة تحت السؤال فارغة. لا بدّ أن يوضع شيء هناك.",
+              },
+            },
+            {
+              tier: 2,
+              text: {
+                en: "The If is already asking 'is the path ahead clear?'. When the answer is yes, what should Robo Bunny do?",
+                ar: "تسأل «إذا» بالفعل: «هل المسار أمامي خالٍ؟». عندما تكون الإجابة نعم، ماذا يجب أن يفعل الأرنب الآلي؟",
+              },
+            },
+            {
+              tier: 3,
+              text: {
+                en: "Turning would only change which way Robo Bunny faces — the path is clear, so it should travel along it.",
+                ar: "الاستدارة تغيّر اتجاه الأرنب الآلي فقط — المسار خالٍ، لذا عليه أن يسير فيه.",
+              },
+            },
+            {
+              tier: 4,
+              text: {
+                en: "Drag Move Forward from the toolbox into the empty space inside the If, so it clicks into the mouth, then press Check.",
+                ar: "اسحب «تقدّم للأمام» من صندوق الأدوات إلى الفراغ داخل «إذا» حتى تلتصق في الفم، ثم اضغط «تحقّق».",
+              },
+            },
+          ],
+          payload: {
+            conceptSlug: "conditionals",
+            // A walled forest trail, clear the whole way: the condition is
+            // deliberately always true here so the lesson teaches the SHAPE
+            // of If. Choose the Path, immediately after, is where the answer
+            // starts changing between variants.
+            variants: [
+              {
+                rows: ["#####", "...G.", "#####"],
+                start: { x: 0, y: 1, dir: "E" },
+              },
+            ],
+            autoCollect: true,
+            nonFatalBumps: false,
+            workedExample: {
+              blocks: {
+                blocks: {
+                  languageVersion: 0,
+                  blocks: [
+                    {
+                      type: "bb_whenStart",
+                      id: "start",
+                      x: 24,
+                      y: 24,
+                      deletable: false,
+                      movable: false,
+                      next: {
+                        block: {
+                          type: "bb_repeat",
+                          id: "loop",
+                          fields: { TIMES: 3 },
+                          inputs: {
+                            DO: {
+                              block: {
+                                type: "bb_if",
+                                id: "if1",
+                                inputs: {
+                                  CONDITION: {
+                                    block: { type: "bb_pathAhead", id: "s1" },
+                                  },
+                                  DO: {
+                                    block: { type: "bb_moveForward", id: "m1" },
+                                  },
+                                },
+                              },
+                            },
+                          },
+                        },
+                      },
+                    },
+                  ],
+                },
+              },
+              caption: {
+                en: "Watch: the If checks the path first, and only then does Robo Bunny hop.",
+                ar: "شاهد: تتحقّق «إذا» من المسار أولًا، وعندها فقط يقفز الأرنب الآلي.",
+              },
+            },
+            faded: {
+              blocks: {
+                blocks: {
+                  languageVersion: 0,
+                  blocks: [
+                    {
+                      type: "bb_whenStart",
+                      id: "start",
+                      x: 24,
+                      y: 24,
+                      deletable: false,
+                      movable: false,
+                      next: {
+                        block: {
+                          type: "bb_repeat",
+                          id: "loop",
+                          fields: { TIMES: 3 },
+                          inputs: {
+                            DO: {
+                              block: {
+                                type: "bb_if",
+                                id: "if1",
+                                inputs: {
+                                  CONDITION: {
+                                    block: { type: "bb_pathAhead", id: "s1" },
+                                  },
+                                },
+                              },
+                            },
+                          },
+                        },
+                      },
+                    },
+                  ],
+                },
+              },
+              // Turning is the live confusion again: a student who has not
+              // grasped that the sensor already answered the question reaches
+              // for a turn "just in case".
+              toolbox: [
+                { type: "bb_moveForward", limit: 1 },
+                { type: "bb_turnLeft", limit: 1 },
+                { type: "bb_turnRight", limit: 1 },
+              ],
+              missingBlockType: "bb_moveForward",
+              caption: {
+                en: "Your turn: the If is asking whether the path is clear, but its mouth is empty. What should happen when the answer is yes?",
+                ar: "دورك الآن: تسأل «إذا» إن كان المسار خاليًا، لكن فمها فارغ. ماذا يجب أن يحدث عندما تكون الإجابة نعم؟",
+              },
+            },
+          } satisfies ConceptCardsDraft,
+        },
+
         // ── Level 8 — CHOOSE THE PATH: If + sensor, first multi-variant ───
         {
           slug: "choose-the-path",
-          order: 1,
+          order: 2,
           activityType: "BLOCK_CODING",
           track: "PROGRAMMING",
           title: { en: "Choose the Path", ar: "اختر الطريق" },
@@ -500,7 +681,7 @@ export const logicForest: WorldFixture = {
         // ── Level 9 — HIDDEN CARROT: Repeat Until Goal ────────────────────
         {
           slug: "hidden-carrot",
-          order: 2,
+          order: 3,
           activityType: "BLOCK_CODING",
           track: "PROGRAMMING",
           title: { en: "Hidden Carrot", ar: "الجزرة المخفية" },
@@ -621,7 +802,7 @@ export const logicForest: WorldFixture = {
         // ── Level 10 — FOREST CHALLENGE: capstone, decision inside a loop ─
         {
           slug: "forest-challenge",
-          order: 3,
+          order: 4,
           activityType: "BLOCK_CODING",
           track: "PROGRAMMING",
           title: { en: "Forest Challenge", ar: "تحدي الغابة" },
@@ -763,7 +944,7 @@ export const logicForest: WorldFixture = {
         // satisfied by NOT needing to renumber any sibling at all.
         {
           slug: "loop-detective",
-          order: 4,
+          order: 5,
           activityType: "CODE_PREDICTION",
           track: "PROGRAMMING",
           title: { en: "Loop Detective", ar: "محقق الحلقات" },

@@ -184,16 +184,54 @@ describe("shipped Learn steps are internally coherent", () => {
     .flatMap((world) => world.modules.flatMap((m) => m.levels.map((level) => ({ world, level }))))
     .filter(({ level }) => level.activityType === "CONCEPT_CARDS");
 
-  it("bunny-meadow ships the repeat Learn step immediately before Repeat After Me", () => {
-    const meadow = bundle.worlds.find((w) => w.slug === "bunny-meadow");
-    const loopsModule = meadow?.modules.find((m) => m.slug === "carrots-and-loops");
-    const ordered = [...(loopsModule?.levels ?? [])].sort((a, b) => a.order - b.order);
-    expect(ordered.map((l) => l.slug)).toEqual([
-      "carrot-collector",
-      "learn-repeat",
-      "repeat-after-me",
-    ]);
-    expect(learnLevels).toHaveLength(1);
+  // Each Learn step must sit immediately BEFORE the puzzle that first needs
+  // its concept — that placement is the entire pedagogical claim. A lesson
+  // that drifts after its puzzle still passes every schema check while
+  // teaching a concept the student already had to work out alone.
+  it.each([
+    {
+      world: "bunny-meadow",
+      module: "carrots-and-loops",
+      expected: ["carrot-collector", "learn-repeat", "repeat-after-me"],
+    },
+    {
+      world: "logic-forest",
+      module: "forest-decisions",
+      expected: [
+        "learn-if",
+        "choose-the-path",
+        "hidden-carrot",
+        "forest-challenge",
+        "loop-detective",
+      ],
+    },
+    {
+      world: "robot-lab",
+      module: "power-and-sensors",
+      expected: ["power-up", "sensor-check", "learn-if-else", "smart-turns"],
+    },
+  ])("$world orders its Learn step before the puzzle that needs it", ({ world, module, expected }) => {
+    const w = bundle.worlds.find((x) => x.slug === world);
+    const mod = w?.modules.find((m) => m.slug === module);
+    const ordered = [...(mod?.levels ?? [])].sort((a, b) => a.order - b.order);
+    expect(ordered.map((l) => l.slug)).toEqual(expected);
+    // Orders must be a clean 1..n run — inserting a lesson without
+    // renumbering its siblings would silently duplicate an order.
+    expect(ordered.map((l) => l.order)).toEqual(
+      Array.from({ length: expected.length }, (_, i) => i + 1),
+    );
+  });
+
+  it("ships exactly one Learn step per playable world", () => {
+    expect(learnLevels).toHaveLength(3);
+    const worlds = learnLevels.map(({ world }) => world.slug).sort();
+    expect(worlds).toEqual(["bunny-meadow", "logic-forest", "robot-lab"]);
+    // Concepts are distinct: a duplicate slug would break spaced review,
+    // which selects on conceptSlug.
+    const concepts = learnLevels.map(
+      ({ level }) => conceptCardsPayload.parse((level as LevelFixture).payload).conceptSlug,
+    );
+    expect(new Set(concepts).size).toBe(concepts.length);
   });
 
   // The whole design hinges on this: the answer to a Learn step is the block
