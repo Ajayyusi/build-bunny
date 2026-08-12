@@ -32,10 +32,15 @@ interface Specimen {
   color: number;
 }
 
+/** A pool berry: the bunny already tried it, so we know what happened. */
+interface KnownSpecimen extends Specimen {
+  truth: "positive" | "negative";
+}
+
 interface TeachPayload {
   conceptSlug: string;
   labels: { positive: string; negative: string };
-  pool: Specimen[];
+  pool: KnownSpecimen[];
   testSet: Specimen[];
   minPerLabel: number;
   starCriteria: { threeStarMaxBlocks?: number };
@@ -134,26 +139,34 @@ export function TeachPlayer({ intro, payload }: ActivityPlayerProps) {
       {/* Tray of berries still to teach with */}
       <section className="flex flex-col gap-2">
         <h2 className="font-display text-sm font-bold text-ink">{t("trayHeading")}</h2>
+        <p className="text-xs text-ink-muted">{t("trayHelp")}</p>
         <ul className="flex flex-wrap gap-3">
           {unassigned.map((s) => (
-            <li key={s.id} className="flex flex-col items-center gap-1">
+            <li
+              key={s.id}
+              className="flex w-24 flex-col items-center gap-1 rounded-xl border border-border-token bg-surface-raised p-2"
+            >
               <Berry specimen={s} />
-              <span className="flex gap-1">
-                <button
-                  type="button"
-                  onClick={() => assign(s.id, "positive")}
-                  className="rounded-md bg-brand px-2 py-0.5 text-[11px] font-bold text-on-brand"
-                >
-                  {data.labels.positive}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => assign(s.id, "negative")}
-                  className="rounded-md bg-danger px-2 py-0.5 text-[11px] font-bold text-on-brand"
-                >
-                  {data.labels.negative}
-                </button>
+              {/* What ALREADY happened when the bunny ate it. Without this a
+                  child has no way to know which berries are safe and the
+                  whole activity collapses into guessing. */}
+              <span
+                className={cn(
+                  "rounded-full px-2 py-0.5 text-[10px] font-bold",
+                  s.truth === "positive"
+                    ? "bg-brand/15 text-brand"
+                    : "bg-danger/15 text-danger",
+                )}
+              >
+                {s.truth === "positive" ? "😋" : "🤢"} {data.labels[s.truth]}
               </span>
+              <button
+                type="button"
+                onClick={() => assign(s.id, s.truth)}
+                className="w-full rounded-md bg-ink px-2 py-1 text-[11px] font-bold text-surface-raised"
+              >
+                {t("teachThis")}
+              </button>
             </li>
           ))}
           {unassigned.length === 0 ? (
@@ -206,6 +219,7 @@ export function TeachPlayer({ intro, payload }: ActivityPlayerProps) {
           </span>
           {t("guessHeading")}
         </h2>
+        <p className="text-xs text-ink-muted">{t("guessHelp")}</p>
         {!ready ? (
           <p className="text-sm text-ink-muted">
             {t("needMore", { count: data.minPerLabel })}
@@ -214,7 +228,15 @@ export function TeachPlayer({ intro, payload }: ActivityPlayerProps) {
           <ul className="flex flex-wrap gap-4">
             {guesses.map(({ probe, guess }) => (
               <li key={probe.id} className="flex flex-col items-center gap-1">
-                <Berry specimen={probe} />
+                <span className="relative">
+                  <Berry specimen={probe} />
+                  <span
+                    aria-hidden="true"
+                    className="absolute -end-1 -top-1 grid size-5 place-items-center rounded-full bg-ink text-[11px] font-bold text-surface-raised"
+                  >
+                    ?
+                  </span>
+                </span>
                 <span
                   className={cn(
                     "rounded-md px-2 py-0.5 text-[11px] font-bold",

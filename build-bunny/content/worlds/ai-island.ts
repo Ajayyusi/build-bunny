@@ -54,8 +54,8 @@ export const aiIsland: WorldFixture = {
             ar: "درّب مصنّفًا بالأمثلة، واكتشف أن اختيارك للأمثلة هو ما يحدّد نجاحه مع توت لم يره من قبل.",
           },
           instructions: {
-            en: "Put berries into the two baskets to teach Robo Bunny. Watch its guesses change as you teach. When it can name every test berry correctly, press Test the bunny.",
-            ar: "ضع حبات التوت في السلّتين لتعليم الأرنب الآلي. راقب تغيّر تخميناته وأنت تعلّمه. وعندما يصبح قادرًا على تسمية كل حبة اختبار بشكل صحيح، اضغط «اختبر الأرنب».",
+            en: "Robo Bunny has eaten these berries before, so it knows which ones made it sick. Teach it with some of them — then it must work out the NEW berries marked ?. Get all of them right and you win.",
+            ar: "أكل الأرنب الآلي هذا التوت من قبل، فهو يعرف ما الذي أصابه بالمرض. علّمه ببعضها — ثم عليه أن يستنتج التوت الجديد المعلَّم بعلامة ؟. أصِبها كلها لتفوز.",
           },
           explanation: {
             en: "You never wrote a rule. You gave examples, and the bunny found the rule itself — that is machine learning, and it is a completely different job from programming. Notice what actually mattered: colour decided everything and size decided nothing. If you only ever taught it small berries, it had no idea what to do with a big one. That is why the examples you choose matter more than how many you give.",
@@ -107,17 +107,20 @@ export const aiIsland: WorldFixture = {
               positive: { en: "Safe to eat", ar: "آمنة للأكل" },
               negative: { en: "Not safe", ar: "غير آمنة" },
             },
-            // Colour decides; size is the decoy. The pool spans BOTH sizes on
-            // BOTH colours on purpose, so a representative training set is
-            // available — and an unrepresentative one is equally available,
-            // which is what makes the choice meaningful.
+            // Colour decides; size is the decoy. Each berry carries what
+            // ALREADY happened when the bunny tried it — the child cannot
+            // invent which berries are safe, and asking them to would make
+            // this a guessing game instead of a lesson. The pool spans BOTH
+            // sizes on BOTH colours, so a representative training set is
+            // available and an unrepresentative one is equally available.
+            // Choosing between them is the entire activity.
             pool: [
-              { id: "b1", size: 0.15, color: 0.1 },
-              { id: "b2", size: 0.85, color: 0.18 },
-              { id: "b3", size: 0.2, color: 0.32 },
-              { id: "b4", size: 0.9, color: 0.85 },
-              { id: "b5", size: 0.18, color: 0.92 },
-              { id: "b6", size: 0.8, color: 0.7 },
+              { id: "b1", size: 0.15, color: 0.1, truth: "positive" },
+              { id: "b2", size: 0.85, color: 0.18, truth: "positive" },
+              { id: "b3", size: 0.2, color: 0.32, truth: "positive" },
+              { id: "b4", size: 0.9, color: 0.85, truth: "negative" },
+              { id: "b5", size: 0.18, color: 0.92, truth: "negative" },
+              { id: "b6", size: 0.8, color: 0.7, truth: "negative" },
             ],
             // Held-out. Both are "large", which is exactly the case a student
             // who only taught small berries will get wrong.

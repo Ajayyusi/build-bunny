@@ -20,10 +20,10 @@ const payload = {
   conceptSlug: "training-by-example",
   labels: { positive: { en: "Safe" }, negative: { en: "Not safe" } },
   pool: [
-    { id: "a", size: 0.1, color: 0.1 }, // small blue  → positive
-    { id: "b", size: 0.9, color: 0.2 }, // big   blue  → positive
-    { id: "c", size: 0.1, color: 0.9 }, // small red   → negative
-    { id: "d", size: 0.9, color: 0.8 }, // big   red   → negative
+    { id: "a", size: 0.1, color: 0.1, truth: "positive" as const }, // small blue
+    { id: "b", size: 0.9, color: 0.2, truth: "positive" as const }, // big blue
+    { id: "c", size: 0.1, color: 0.9, truth: "negative" as const }, // small red
+    { id: "d", size: 0.9, color: 0.8, truth: "negative" as const }, // big red
   ],
   testSet: [
     { id: "t1", size: 0.8, color: 0.15 }, // big blue  → positive
@@ -146,7 +146,14 @@ describe("payload stripping", () => {
     expect(shipped.pool).toHaveLength(4);
     expect(shipped.testSet).toHaveLength(2);
     expect(shipped.labels).toBeTruthy();
-    for (const specimen of [...(shipped.pool ?? []), ...(shipped.testSet ?? [])]) {
+    // Pool specimens carry `truth` on purpose: that is the bunny's past
+    // experience, i.e. the training data, and a child cannot choose good
+    // examples without seeing it. The TEST specimens must stay bare — those
+    // are the ones the model has to work out.
+    for (const specimen of shipped.pool ?? []) {
+      expect(Object.keys(specimen).sort()).toEqual(["color", "id", "size", "truth"]);
+    }
+    for (const specimen of shipped.testSet ?? []) {
       expect(Object.keys(specimen).sort()).toEqual(["color", "id", "size"]);
     }
   });

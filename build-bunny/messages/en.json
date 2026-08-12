@@ -290,15 +290,18 @@
         "retry": "Retry"
       },
       "teach": {
-        "trayHeading": "Berries to teach with",
+        "trayHeading": "Berries the bunny already tried",
         "trayEmpty": "You have taught the bunny with every berry.",
-        "guessHeading": "What the bunny thinks now",
-        "needMore": "Teach at least {count} berries to each basket, then the bunny will start guessing.",
+        "guessHeading": "New berries — the bunny has never seen these",
+        "needMore": "Teach it at least {count} safe and {count} unsafe berries, then it will start guessing.",
         "removeExample": "Take this berry back",
         "check": "Test the bunny",
         "taughtCount": "{count} taught",
         "passed": "The bunny got them all right! You taught it well.",
-        "missed": "The bunny got {correct} of {total} right. Teach it a berry that looks like the ones it missed."
+        "missed": "The bunny got {correct} of {total} right. Teach it a berry that looks like the one it got wrong.",
+        "trayHelp": "The bunny ate these before, so we know what happened. Pick which ones to teach it with.",
+        "teachThis": "Teach this one",
+        "guessHelp": "These are the mystery berries. The bunny has to work them out from what you taught it."
       }
     },
     "profile": {

@@ -298,8 +298,14 @@ export const aiClassificationPayload = z
     conceptSlug: z.string().regex(/^[a-z0-9-]+$/),
     /** Localized bucket names, e.g. Safe to eat / Not safe. */
     labels: z.object({ positive: localizedText, negative: localizedText }),
-    /** Specimens the student may drag into a bucket. */
-    pool: z.array(specimenSchema).min(4),
+    /**
+     * The bunny's past experience: specimens it has ALREADY tried, each
+     * showing what happened. This is the training data, and it ships to the
+     * student on purpose — a child cannot invent which berries are safe, and
+     * being asked to would make the activity a guessing game. The real task
+     * is choosing WHICH of these to teach with.
+     */
+    pool: z.array(specimenSchema.extend({ truth: z.enum(["positive", "negative"]) })).min(4),
     /** Held-out specimens the trained model must classify correctly. */
     testSet: z.array(specimenSchema).min(2),
     /**

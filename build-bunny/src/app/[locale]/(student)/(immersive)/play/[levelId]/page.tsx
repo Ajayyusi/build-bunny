@@ -170,7 +170,7 @@ export default async function PlayLevelPage({ params }: Props) {
     const raw = playable.payload as {
       conceptSlug: string;
       labels: { positive: LocalizedText; negative: LocalizedText };
-      pool: { id: string; size: number; color: number }[];
+      pool: { id: string; size: number; color: number; truth: "positive" | "negative" }[];
       testSet: { id: string; size: number; color: number }[];
       minPerLabel?: number;
       starCriteria?: { threeStarMaxBlocks?: number };

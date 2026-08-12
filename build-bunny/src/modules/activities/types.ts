@@ -166,7 +166,8 @@ export type SaveDraftAction = (input: {
 export interface TeachActivityPayload {
   conceptSlug: string;
   labels: { positive: string; negative: string };
-  pool: { id: string; size: number; color: number }[];
+  /** Training data: what happened when the bunny already tried each one. */
+  pool: { id: string; size: number; color: number; truth: "positive" | "negative" }[];
   testSet: { id: string; size: number; color: number }[];
   minPerLabel: number;
   starCriteria: { threeStarMaxBlocks?: number };
