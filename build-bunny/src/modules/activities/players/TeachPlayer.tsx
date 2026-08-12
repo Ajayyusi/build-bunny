@@ -55,9 +55,11 @@ function Berry({
   className?: string;
 }) {
   const px = 26 + Math.round(specimen.size * 26);
-  // 220° (blue) → 10° (red). Kept off pure red/blue so both stay legible on
-  // the cream surface.
-  const hue = Math.round(220 - specimen.color * 210);
+  // 250° (blue-violet) → 360° (red), deliberately NOT the short way round.
+  // A plain 220→10 ramp passes through green and yellow, so mid-range
+  // berries came out leaf-green — which reads as "safe" to a child no
+  // matter which side of the rule they are on. Violet has no such baggage.
+  const hue = Math.round(250 + specimen.color * 110);
   return (
     <span
       aria-hidden="true"
@@ -118,10 +120,15 @@ export function TeachPlayer({ intro, payload }: ActivityPlayerProps) {
         }),
       });
       const body = await res.json();
+      // The counts ride on the feedback payload, not a top-level summary —
+      // reading the wrong one is why this said "0 of 0" for every attempt.
+      const data = body.feedback?.data as
+        | { correct?: number; total?: number }
+        | undefined;
       setResult({
         verdict: body.verdict,
-        correct: body.summary?.correct,
-        total: body.summary?.total,
+        correct: data?.correct,
+        total: data?.total,
       });
     } catch {
       setResult({ verdict: "ERROR" });
@@ -265,7 +272,9 @@ export function TeachPlayer({ intro, payload }: ActivityPlayerProps) {
         >
           {result.verdict === "PASS"
             ? t("passed")
-            : t("missed", { correct: result.correct ?? 0, total: result.total ?? 0 })}
+            : typeof result.correct === "number" && typeof result.total === "number"
+              ? t("missed", { correct: result.correct, total: result.total })
+              : t("tryAgain")}
         </p>
       ) : null}
 
