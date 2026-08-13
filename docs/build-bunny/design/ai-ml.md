@@ -1,5 +1,15 @@
 # Build Bunny — AI & ML Architecture (Phases G / H + Bunny Guide)
 
+> **Status update (2026-08-14): partially superseded.** Phase G shipped, but
+> with a different shape than designed here: deterministic activity engines
+> (AI_CLASSIFICATION 1-NN, PATTERN_RECOGNITION k-means, AI_SIM widgets,
+> AI_ETHICS branching) dispatched through the standard activity registry and
+> graded by the ordinary attempts pipeline — no Phase G/H tables, no provider
+> abstraction, no external AI calls. The as-built record is
+> `build-bunny/docs/ai-data-flow.md`; the supersession is logged in
+> BUILD-BUNNY-PLAN §0.2. This document remains the reference design for the
+> unbuilt Phase H (Real ML Lab) and the Bunny Guide assistant.
+
 Design owner: AI/ML product architecture. Scope: AI Lab (Phase G), Real ML Lab (Phase H),
 the Programming / AI Concepts / Machine Learning distinction, the Bunny Guide assistant,
 AI-flavoured Blockly blocks, rollout and cost control. Everything here is **design now, build

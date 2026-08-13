@@ -126,6 +126,36 @@ The owner approved the architecture and the V1 scope cut with the following amen
 30. Plan updated (this section), then **Milestone 1 begins**; Milestone 2 does not
     start until M1 is genuinely complete and tested.
 
+## 0.2 Status addendum (2026-08-14) — superseded scope decisions
+
+The amendments in §0.1 remain the historical decision record; nothing above is
+rewritten. The following decisions have since been **superseded by shipped
+work** and no longer describe the product:
+
+- **§0.1-4 (AI Island as horizon art only) — superseded.** AI Island, Data
+  Desert, and ML Lab shipped as playable worlds (~15 AI/ML levels using the
+  AI_CLASSIFICATION, PATTERN_RECOGNITION, AI_SIM, and AI_ETHICS activity
+  types). They run through the **ordinary server-authoritative grading
+  pipeline** — none of the deferred Phase G/H tables (MLExperiment,
+  AIConversation, etc., §0.1-12) were added, and no external AI API is called
+  anywhere; every engine is deterministic and local. The as-built data-flow
+  record is `build-bunny/docs/ai-data-flow.md` ("Phase G — shipped"), which
+  also carries the standing rule that it must be revised before Phase H or
+  Bunny Guide ship (§0.1-21 remains in force).
+- **`design/ai-ml.md` "design now, build later" — partially superseded.**
+  Phase G shipped with a different shape than that design (activity-engine
+  registry + widget system rather than the Lab tables). The design doc
+  remains the reference for the unbuilt Phase H and Bunny Guide.
+- **`LEARN-STEP-SPEC.md` "designed, not built" — superseded.** CONCEPT_CARDS
+  Learn steps are implemented (`src/modules/activities/players/LearnPlayer.tsx`)
+  and shipped for the five coding concepts.
+- **V1 scope "3 worlds / 15 levels" — outgrown.** The curriculum now defines
+  6 playable worlds / 37 levels across 11 modules (plus 2 art-only horizon
+  worlds). Documents citing 17 or 18 levels predate the AI worlds.
+- Ongoing sequencing is tracked in `IMPLEMENTATION-PLAN-2026-08.md` (polish
+  and productionization phases); this plan stays authoritative for the
+  original architecture decisions and their adjudication.
+
 ---
 
 ## 0. Executive summary & advisor's verdict

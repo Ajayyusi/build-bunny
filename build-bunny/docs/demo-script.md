@@ -13,8 +13,8 @@ It uses TWO account pools:
   provisioning and shows a genuinely fresh student earning their first stars
   in front of the prospect.
 - The pre-loaded **NITAQ Demo School** (Part 4) — a class with real weeks of
-  progress and an already-earned certificate, because nobody can play 18
-  levels in a sales meeting. Credentials for every account below live in
+  progress and an already-earned certificate, because nobody can play the
+  full curriculum (37 levels across 6 worlds) in a sales meeting. Credentials for every account below live in
   `prisma/seed-output/credentials.md` (gitignored — never paste passwords
   from that file into this doc or into chat/email; read it on the machine
   you're demoing from).

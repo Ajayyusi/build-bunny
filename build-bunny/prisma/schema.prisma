@@ -291,7 +291,10 @@ enum ActivityType {
   CODE_PREDICTION
   DEBUGGING
   SEQUENCING
-  // Registered for later phases (plan §0.1-7) — no V1 engine behind these:
+  // Of the values below, QUIZ / REAL_ML / CREATIVE_PROJECT are registered for
+  // later phases (plan §0.1-7) with no engine behind them yet; the rest have
+  // shipped engines (see modules/activities server + player registries).
+  // Order is load-bearing (Postgres enum) — append only, never reorder.
   QUIZ
   PATTERN_RECOGNITION
   AI_CLASSIFICATION

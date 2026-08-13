@@ -48,6 +48,31 @@ PORT=3000 NODE_ENV=production DATABASE_URL="postgresql://..." \
   node .next/standalone/server.js
 ```
 
+### Deploying on Vercel (alternative to the container path)
+
+The app is compatible with Vercel; configure the project as follows.
+**Not yet verified against a live Vercel project** — verify once before
+relying on it for production:
+
+- **Root Directory:** `build-bunny` (the app is nested inside the repo).
+- **Framework preset:** Next.js; default build command (`next build`) and
+  install command (`npm ci`, which runs `prisma generate` via postinstall).
+- **Node.js version:** 22.x (project setting — must satisfy
+  `engines >=22.12`).
+- **Environment variables:** `DATABASE_URL`, `BETTER_AUTH_SECRET`,
+  `NEXT_PUBLIC_APP_URL` (must exactly match the public origin — it is also
+  Better Auth's trusted origin; a scheme/domain mismatch breaks all
+  sign-ins). `src/lib/env.ts` fails the build loudly if any are missing.
+- **Migrations:** run `npx prisma migrate deploy` as a separate release
+  step against the production database *before* promoting a deployment —
+  never inside the Vercel build (builds must not touch production data).
+- **Database:** a Vercel deployment still needs an external PostgreSQL 16
+  (UAE-region notes in §4 apply). Connection pooling (e.g. pgbouncer or a
+  pooled provider URL) is recommended because serverless functions
+  multiply connections.
+- `output: "standalone"` in `next.config.ts` is harmless on Vercel (it
+  affects self-hosted packaging only).
+
 Health check for the load balancer / orchestrator: `GET /api/health`,
 unauthenticated, cheap (one `SELECT 1`, one `COUNT(*)` on the tiny
 `_prisma_migrations` table, one indexed `Level` count — see §5 for why this
@@ -60,9 +85,14 @@ applied migration count matches what's on disk; `503` otherwise. Shape:
   "db": true,
   "version": "0.1.0",
   "migrations": { "applied": 4, "expected": 4, "upToDate": true },
-  "content": { "publishedLevels": 18 }
+  "content": { "publishedLevels": 37 }
 }
 ```
+
+(`publishedLevels` reflects whatever the database actually has published —
+the example above matches a freshly seeded database with the full current
+curriculum of 37 levels. A customer database mid-rollout may legitimately
+show fewer.)
 
 `migrations.expected` is `null` (never fails health on its own) when the
 `prisma/migrations` directory isn't reachable from the process's working

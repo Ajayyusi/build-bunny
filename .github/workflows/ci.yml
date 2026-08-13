@@ -5,6 +5,12 @@ on:
     branches: [main]
   pull_request:
 
+# The application lives in build-bunny/ (repo root is the Nitaq workspace);
+# every run step executes from there.
+defaults:
+  run:
+    working-directory: build-bunny
+
 env:
   DATABASE_URL: postgresql://bunny:bunny@localhost:5432/bunny_dev
   TEST_DATABASE_URL: postgresql://bunny:bunny@localhost:5432/bunny_test
@@ -35,11 +41,17 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: "22.12"
           cache: npm
+          cache-dependency-path: build-bunny/package-lock.json
 
       - name: Install dependencies
         run: npm ci
+
+      # npm ci already runs `prisma generate` via postinstall; this makes a
+      # broken generate fail loudly on its own step instead of inside build.
+      - name: Prisma generate
+        run: npx prisma generate
 
       # Tests run against a separate database so migrate/seed state in
       # bunny_dev never leaks into assertions.

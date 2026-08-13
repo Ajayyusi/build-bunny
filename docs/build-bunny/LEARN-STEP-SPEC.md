@@ -1,7 +1,10 @@
 # Learn steps (CONCEPT_CARDS) — implementation spec
 
-Status: designed, not built. Written with the codebase loaded so the next
-session can execute without re-deriving the architecture.
+Status: **implemented** (2026-08 — `LearnPlayer.tsx`, the CONCEPT_CARDS
+server engine, and five coding-concept Learn levels shipped; see
+`build-bunny/docs/ai-data-flow.md` and BUILD-BUNNY-PLAN §0.2). Kept as the
+design rationale record. Level counts below predate the AI worlds (the
+curriculum now defines 37 levels).
 
 ## Why
 
@@ -116,10 +119,11 @@ data), then decide whether to author the remaining concepts.
 
 ## Check before building
 
-The schema has 4 hint tiers, but it is **unverified whether all 17 levels
-have all four authored**. If some are thin, filling them is cheaper than
-any new feature and helps every stuck student today. Check the `hints`
-JSON on each published `LevelVersion`.
+The schema has 4 hint tiers, but it is **unverified whether all levels
+(now 37, not the 17 this spec was written against) have all four
+authored**. If some are thin, filling them is cheaper than any new feature
+and helps every stuck student today. Check the `hints` JSON on each
+published `LevelVersion`.
 
 ## Commercial note
 

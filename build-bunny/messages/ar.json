@@ -493,7 +493,7 @@
     "teach": {
       "title": "صفوفي",
       "subtitle": "الصفوف التي تدرّسها هذا العام الدراسي.",
-      "studentCount": "{count, plural, =0 {لا يوجد طلاب بعد} one {طالب واحد} two {طالبان} few {{displayCount} طلاب} many {{displayCount} طالبًا} other {{displayCount} طالب}}",
+      "studentCount": "{count, plural, =0 {لا يوجد طلاب بعد} one {طالب واحد} two {طالبان} few {{count} طلاب} many {{count} طالبًا} other {{count} طالب}}",
       "emptyTitle": "لا توجد صفوف مسندة إليك بعد",
       "emptyBody": "سيضيفك مدير مدرستك إلى صفوفك.",
       "classCard": {
