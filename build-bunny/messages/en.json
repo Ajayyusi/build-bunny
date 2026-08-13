@@ -94,6 +94,10 @@
       "sectionMain": "Learn",
       "sectionAccount": "Account"
     },
+    "sound": {
+      "on": "Sound on",
+      "off": "Sound off"
+    },
     "header": {
       "xpChip": "{value} XP",
       "xpLabel": "Experience points",

@@ -1,5 +1,14 @@
 export { cn } from "./cn";
 export { fontVariables } from "./fonts";
+export { useReducedMotion } from "./useReducedMotion";
+export { StarBurst, type StarBurstProps } from "./StarBurst";
+export {
+  SoundProvider,
+  SoundToggle,
+  useSound,
+  type SoundName,
+  type SoundToggleProps,
+} from "./sound";
 
 export { Avatar, type AvatarProps, type AvatarSize } from "./Avatar";
 export { Badge, type BadgeProps, type BadgeVariant } from "./Badge";
@@ -7,8 +16,8 @@ export { BarList, type BarListItem, type BarListProps } from "./BarList";
 export {
   BunnyMascot,
   type BunnyMascotProps,
-  type BunnyMood,
   type BunnySize,
+  type BunnyState,
 } from "./BunnyMascot";
 export {
   Button,

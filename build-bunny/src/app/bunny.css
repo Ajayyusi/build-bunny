@@ -1,0 +1,205 @@
+/* ════════════════════════════════════════════════════════════════════════
+   Build Bunny character system — styling for src/ui/BunnyMascot.tsx.
+
+   Contract:
+   - The component renders .bb-bunny[data-state="…"] around one SVG whose
+     movable parts are <g> elements with .bb-b-* classes.
+   - POSE is a static `transform` on the part; LIFE is a keyframe layered on
+     top. Under prefers-reduced-motion the global clamp (globals.css) kills
+     the keyframes but the static pose survives, so every state still reads
+     — a frozen "celebrating" bunny still has its arms up.
+   - All animation is transform/opacity only; cheap enough to loop forever.
+   - Directional states (data-flip present) mirror under [dir="rtl"] so the
+     bunny points/runs toward the reading direction.
+   - Colors come from the token primitives in globals.css. The one literal
+     is the white fur fill inside the SVG markup itself.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.bb-bunny {
+  display: inline-block;
+  user-select: none;
+}
+.bb-bunny svg {
+  display: block;
+  inline-size: 100%;
+  block-size: auto;
+  overflow: visible;
+}
+.bb-bunny g {
+  transform-box: fill-box;
+}
+
+/* Pivots. Arms pivot at the shoulder (top of the capsule), ears at their
+   base, the root at the ground line so bobs read as hops, not floats. */
+.bb-b-root { transform-origin: 50% 95%; }
+.bb-b-head { transform-origin: 50% 85%; }
+.bb-b-earL, .bb-b-earR { transform-origin: 50% 92%; }
+.bb-b-armL, .bb-b-armR { transform-origin: 50% 12%; }
+.bb-b-eyes { transform-origin: 50% 50%; }
+.bb-b-footL, .bb-b-footR { transform-origin: 50% 30%; }
+
+/* Mouth variants: exactly one visible per state; teeth hide when the mouth
+   shape makes them read wrong (o / flat). */
+.bb-m-open, .bb-m-o, .bb-m-flat { opacity: 0; }
+.bb-b-eyes-closed { opacity: 0; }
+[data-state="confused"] .bb-b-teeth,
+[data-state="surprised"] .bb-b-teeth,
+[data-state="sleeping"] .bb-b-teeth { opacity: 0; }
+
+/* ── idle: breathing bob, periodic blink, ear micro-sway ── */
+@keyframes bbk-breathe {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50%      { transform: translateY(-2.5px) scale(1.015); }
+}
+@keyframes bbk-blink {
+  0%, 91%, 97%, 100% { transform: scaleY(1); }
+  94%                { transform: scaleY(0.08); }
+}
+@keyframes bbk-ear-sway {
+  0%, 100% { transform: rotate(0deg); }
+  50%      { transform: rotate(-3deg); }
+}
+[data-state="idle"] .bb-b-root { animation: bbk-breathe 3.2s var(--bb-ease-settle) infinite; }
+[data-state="idle"] .bb-b-eyes { animation: bbk-blink 4.4s linear infinite; }
+[data-state="idle"] .bb-b-earL { animation: bbk-ear-sway 3.2s var(--bb-ease-settle) infinite; }
+[data-state="idle"] .bb-b-earR { animation: bbk-ear-sway 3.2s var(--bb-ease-settle) infinite reverse; }
+
+/* ── thinking: head tilt, folded ear, paw to chin ── */
+@keyframes bbk-ponder {
+  0%, 100% { transform: rotate(-7deg); }
+  50%      { transform: rotate(-4deg); }
+}
+[data-state="thinking"] .bb-b-head { transform: rotate(-7deg); animation: bbk-ponder 2.6s var(--bb-ease-settle) infinite; }
+[data-state="thinking"] .bb-b-earR { transform: rotate(14deg); }
+[data-state="thinking"] .bb-b-armR { transform: rotate(-118deg) translate(2px, -1px); }
+[data-state="thinking"] .bb-b-eyes { transform: translateY(-1.5px); animation: bbk-blink 3.6s linear infinite; }
+
+/* ── excited: quick bounces, perked ears, open smile ── */
+@keyframes bbk-bounce {
+  0%, 100% { transform: translateY(0); }
+  30%      { transform: translateY(-7px); }
+  55%      { transform: translateY(0); }
+}
+@keyframes bbk-perk {
+  0%, 100% { transform: rotate(-4deg); }
+  30%      { transform: rotate(4deg); }
+}
+[data-state="excited"] .bb-b-root { animation: bbk-bounce 640ms var(--bb-ease-spring) infinite; }
+[data-state="excited"] .bb-b-earL { animation: bbk-perk 640ms var(--bb-ease-settle) infinite; }
+[data-state="excited"] .bb-b-earR { animation: bbk-perk 640ms var(--bb-ease-settle) infinite reverse; }
+[data-state="excited"] .bb-m-smile { opacity: 0; }
+[data-state="excited"] .bb-m-open { opacity: 1; }
+
+/* ── celebrating: jump with both arms up ── */
+@keyframes bbk-cheer-jump {
+  0%, 100% { transform: translateY(0) rotate(0); }
+  35%      { transform: translateY(-12px) rotate(-3deg); }
+  65%      { transform: translateY(-12px) rotate(3deg); }
+}
+@keyframes bbk-arm-up-L {
+  0%, 100% { transform: rotate(150deg); }
+  50%      { transform: rotate(125deg); }
+}
+@keyframes bbk-arm-up-R {
+  0%, 100% { transform: rotate(-150deg); }
+  50%      { transform: rotate(-125deg); }
+}
+[data-state="celebrating"] .bb-b-root { animation: bbk-cheer-jump var(--bb-dur-story) var(--bb-ease-spring) infinite; }
+[data-state="celebrating"] .bb-b-armL { transform: rotate(150deg); animation: bbk-arm-up-L var(--bb-dur-story) var(--bb-ease-settle) infinite; }
+[data-state="celebrating"] .bb-b-armR { transform: rotate(-150deg); animation: bbk-arm-up-R var(--bb-dur-story) var(--bb-ease-settle) infinite; }
+[data-state="celebrating"] .bb-b-earL { transform: rotate(-8deg); }
+[data-state="celebrating"] .bb-b-earR { transform: rotate(8deg); }
+[data-state="celebrating"] .bb-m-smile { opacity: 0; }
+[data-state="celebrating"] .bb-m-open { opacity: 1; }
+
+/* ── confused: opposite tilt, bent ear, small o mouth ── */
+@keyframes bbk-hmm {
+  0%, 100% { transform: rotate(6deg); }
+  50%      { transform: rotate(9deg); }
+}
+[data-state="confused"] .bb-b-head { transform: rotate(6deg); animation: bbk-hmm 3s var(--bb-ease-settle) infinite; }
+[data-state="confused"] .bb-b-earL { transform: rotate(-18deg) translateY(2px); }
+[data-state="confused"] .bb-m-smile { opacity: 0; }
+[data-state="confused"] .bb-m-o { opacity: 1; }
+
+/* ── pointing: arm extended toward inline-end (mirrors in RTL) ── */
+@keyframes bbk-point-pulse {
+  0%, 100% { transform: rotate(-82deg); }
+  50%      { transform: rotate(-74deg); }
+}
+[data-state="pointing"] .bb-b-root { transform: rotate(3deg); }
+[data-state="pointing"] .bb-b-armR { transform: rotate(-82deg); animation: bbk-point-pulse 1.6s var(--bb-ease-settle) infinite; }
+[data-state="pointing"] .bb-b-eyes { animation: bbk-blink 4.4s linear infinite; }
+
+/* ── jumping: one-shot entrance hop, settles to rest ── */
+@keyframes bbk-hop-in {
+  0%   { transform: translateY(26px) scale(0.7); opacity: 0; }
+  55%  { transform: translateY(-9px) scale(1.05); opacity: 1; }
+  78%  { transform: translateY(0) scale(0.96); }
+  100% { transform: translateY(0) scale(1); }
+}
+@keyframes bbk-ear-trail {
+  0%   { transform: rotate(16deg); }
+  60%  { transform: rotate(-8deg); }
+  100% { transform: rotate(0); }
+}
+[data-state="jumping"] .bb-b-root { animation: bbk-hop-in var(--bb-dur-story) var(--bb-ease-spring) both; }
+[data-state="jumping"] .bb-b-earL { animation: bbk-ear-trail var(--bb-dur-story) var(--bb-ease-spring) both; }
+[data-state="jumping"] .bb-b-earR { animation: bbk-ear-trail var(--bb-dur-story) var(--bb-ease-spring) both; }
+
+/* ── running: forward lean, swept ears, alternating feet (mirrors in RTL) ── */
+@keyframes bbk-run-bob {
+  0%, 100% { transform: rotate(8deg) translateY(0); }
+  50%      { transform: rotate(8deg) translateY(-4px); }
+}
+@keyframes bbk-foot-a {
+  0%, 100% { transform: rotate(24deg); }
+  50%      { transform: rotate(-24deg); }
+}
+@keyframes bbk-foot-b {
+  0%, 100% { transform: rotate(-24deg); }
+  50%      { transform: rotate(24deg); }
+}
+[data-state="running"] .bb-b-root { transform: rotate(8deg); animation: bbk-run-bob 340ms var(--bb-ease-settle) infinite; }
+[data-state="running"] .bb-b-earL { transform: rotate(-26deg); }
+[data-state="running"] .bb-b-earR { transform: rotate(-18deg); }
+[data-state="running"] .bb-b-footL { animation: bbk-foot-a 340ms linear infinite; }
+[data-state="running"] .bb-b-footR { animation: bbk-foot-b 340ms linear infinite; }
+
+/* ── waving: one big friendly arm wave ── */
+@keyframes bbk-wave {
+  0%, 100% { transform: rotate(-140deg); }
+  50%      { transform: rotate(-175deg); }
+}
+[data-state="waving"] .bb-b-armR { transform: rotate(-140deg); animation: bbk-wave 800ms var(--bb-ease-settle) infinite; }
+[data-state="waving"] .bb-b-root { animation: bbk-breathe 3.2s var(--bb-ease-settle) infinite; }
+[data-state="waving"] .bb-b-eyes { animation: bbk-blink 4.4s linear infinite; }
+
+/* ── sleeping: closed eyes, drooped ears, slow deep breathing ── */
+@keyframes bbk-deep-breathe {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50%      { transform: translateY(-1.5px) scale(1.03); }
+}
+[data-state="sleeping"] .bb-b-root { animation: bbk-deep-breathe 4.8s var(--bb-ease-settle) infinite; }
+[data-state="sleeping"] .bb-b-earL { transform: rotate(-24deg) translateY(3px); }
+[data-state="sleeping"] .bb-b-earR { transform: rotate(24deg) translateY(3px); }
+[data-state="sleeping"] .bb-b-eyes-open { opacity: 0; }
+[data-state="sleeping"] .bb-b-eyes-closed { opacity: 1; }
+[data-state="sleeping"] .bb-m-smile { opacity: 0; }
+[data-state="sleeping"] .bb-m-flat { opacity: 1; }
+
+/* ── surprised: ears straight up, wide eyes, o mouth, startle hop ── */
+@keyframes bbk-startle {
+  0%   { transform: translate(0, 0); }
+  30%  { transform: translate(0, -6px); }
+  100% { transform: translate(0, 0); }
+}
+[data-state="surprised"] .bb-b-root { animation: bbk-startle 480ms var(--bb-ease-spring) both; }
+[data-state="surprised"] .bb-b-earL { transform: rotate(6deg) translateY(-2px); }
+[data-state="surprised"] .bb-b-earR { transform: rotate(-6deg) translateY(-2px); }
+[data-state="surprised"] .bb-b-eyes { transform: scale(1.25); }
+[data-state="surprised"] .bb-m-smile { opacity: 0; }
+[data-state="surprised"] .bb-m-o { opacity: 1; }
+
+/* Directional states follow the reading direction. */
+[dir="rtl"] .bb-bunny[data-flip] svg { transform: scaleX(-1); }

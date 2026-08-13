@@ -8,6 +8,7 @@ import {
   glyphTheme,
   MYSTERY_FILL,
 } from "@/modules/ai/glyph";
+import { BunnyMascot } from "@/ui";
 
 /**
  * The animated explanation that plays behind each walkthrough step.
@@ -40,13 +41,11 @@ import {
 const SCENE_CSS = `
 .bbw-scene{--bbw-x:58px}
 html[dir="rtl"] .bbw-scene{--bbw-x:-58px}
-@keyframes bbw-wobble{0%,100%{transform:rotate(-7deg)}50%{transform:rotate(7deg)}}
 @keyframes bbw-blink{0%,100%{opacity:.2}50%{opacity:1}}
 @keyframes bbw-fly-a{0%{transform:translate(0,0);opacity:0}12%{opacity:1}55%,88%{transform:translate(calc(-1 * var(--bbw-x)),62px);opacity:1}100%{transform:translate(calc(-1 * var(--bbw-x)),62px);opacity:0}}
 @keyframes bbw-fly-b{0%{transform:translate(0,0);opacity:0}12%{opacity:1}55%,88%{transform:translate(var(--bbw-x),62px);opacity:1}100%{transform:translate(var(--bbw-x),62px);opacity:0}}
 @keyframes bbw-reach{0%,8%{transform:scaleX(0)}48%,100%{transform:scaleX(1)}}
 @keyframes bbw-pop{0%,48%{opacity:0;transform:scale(.5)}64%,100%{opacity:1;transform:scale(1)}}
-.bbw-wobble{animation:bbw-wobble 1.6s ease-in-out infinite}
 .bbw-blink{animation:bbw-blink 1.4s ease-in-out infinite}
 .bbw-fly-a{transform:translate(calc(-1 * var(--bbw-x)),62px);animation:bbw-fly-a 3s ease-in-out infinite}
 .bbw-fly-b{transform:translate(var(--bbw-x),62px);animation:bbw-fly-b 3s ease-in-out infinite .5s}
@@ -54,7 +53,7 @@ html[dir="rtl"] .bbw-scene{--bbw-x:-58px}
 html[dir="rtl"] .bbw-reach{transform-origin:right}
 .bbw-pop{animation:bbw-pop 3.4s ease-out infinite}
 @media (prefers-reduced-motion: reduce){
-  .bbw-wobble,.bbw-blink,.bbw-fly-a,.bbw-fly-b,.bbw-reach,.bbw-pop{animation:none !important}
+  .bbw-blink,.bbw-fly-a,.bbw-fly-b,.bbw-reach,.bbw-pop{animation:none !important}
 }
 `;
 
@@ -199,12 +198,7 @@ export function TeachScene({
       {/* 1 — the bunny has no rule and cannot read one. */}
       {step === 1 ? (
         <div className="flex items-center gap-4">
-          <span
-            aria-hidden="true"
-            className="bbw-wobble text-5xl"
-          >
-            🐰
-          </span>
+          <BunnyMascot state="confused" size="sm" />
           <span
             aria-hidden="true"
             className="bbw-blink text-3xl"

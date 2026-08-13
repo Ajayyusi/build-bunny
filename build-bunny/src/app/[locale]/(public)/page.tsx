@@ -5,6 +5,7 @@ import type { Locale } from "@/i18n/routing";
 import { homePathForRole } from "@/modules/auth/roles";
 import { getSessionContext } from "@/modules/auth/server/session";
 import { BrandLockup, NitaqLogo } from "@/ui/BrandLogo";
+import { BunnyMascot } from "@/ui/BunnyMascot";
 import { schoolFontVariable } from "@/ui/fonts";
 
 interface Props {
@@ -45,11 +46,8 @@ export default async function LandingPage({ params }: Props) {
       </header>
 
       <main className="bb-container flex flex-1 flex-col items-center justify-center gap-8 py-16 text-center">
-        <div
-          aria-hidden
-          className="grid size-24 place-items-center rounded-full bg-brand/10 text-6xl"
-        >
-          🐰
+        <div aria-hidden className="grid size-28 place-items-center rounded-full bg-brand/10">
+          <BunnyMascot state="waving" size="sm" className="translate-y-1" />
         </div>
         <div className="flex flex-col gap-3">
           <h1 className="font-display text-4xl font-bold sm:text-5xl">

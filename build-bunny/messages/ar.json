@@ -94,6 +94,10 @@
       "sectionMain": "التعلّم",
       "sectionAccount": "الحساب"
     },
+    "sound": {
+      "on": "الصوت مُفعَّل",
+      "off": "الصوت متوقف"
+    },
     "header": {
       "xpChip": "{value} XP",
       "xpLabel": "نقاط الخبرة",

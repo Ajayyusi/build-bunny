@@ -3,7 +3,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { verifyCertificate } from "@/modules/certificates/server/verify";
 import { resolveText } from "@/modules/curriculum/schemas";
-import { Badge, Card, CardBody } from "@/ui";
+import { Badge, BunnyMascot, Card, CardBody } from "@/ui";
 
 interface Props {
   params: Promise<{ locale: string; verifySlug: string }>;
@@ -31,7 +31,7 @@ export default async function VerifyCertificatePage({ params }: Props) {
           href="/"
           className="inline-flex items-center gap-2 font-display text-lg font-bold"
         >
-          <span aria-hidden>🐰</span>
+          <BunnyMascot size="xs" />
           {tCommon("appName")}
         </Link>
       </header>

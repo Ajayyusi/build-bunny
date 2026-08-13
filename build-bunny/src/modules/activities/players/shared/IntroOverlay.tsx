@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 
-import { Badge, Button, useFocusTrap, type BadgeVariant } from "@/ui";
+import { Badge, BunnyMascot, Button, useFocusTrap, type BadgeVariant } from "@/ui";
 
 import styles from "./player.module.css";
 
@@ -68,9 +68,7 @@ export function IntroOverlay({
         className={`${styles.card} flex w-full max-w-md flex-col gap-4 rounded-xl border border-border-token bg-surface-raised p-6 shadow-raised`}
       >
         <div className="flex flex-col items-center gap-2 text-center">
-          <span aria-hidden="true" className="text-4xl">
-            🐰
-          </span>
+          <BunnyMascot state="jumping" size="sm" />
           <h1 className="font-display text-xl font-bold text-ink">{title}</h1>
           <div className="flex flex-wrap items-center justify-center gap-2">
             <Badge variant={DIFFICULTY_VARIANT[difficulty] ?? "neutral"}>

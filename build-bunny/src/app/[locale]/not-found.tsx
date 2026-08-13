@@ -1,6 +1,7 @@
 import { getTranslations } from "next-intl/server";
 
 import { Link } from "@/i18n/navigation";
+import { BunnyMascot } from "@/ui";
 
 // Theme-neutral on purpose (the :root Play defaults apply) — a 404 can be hit
 // from any surface.
@@ -9,9 +10,7 @@ export default async function NotFoundPage() {
 
   return (
     <div className="flex min-h-dvh flex-col items-center justify-center gap-4 bg-surface px-6 text-center text-ink">
-      <span aria-hidden className="text-6xl">
-        🐰
-      </span>
+      <BunnyMascot state="confused" size="lg" />
       <h1 className="font-display text-3xl font-bold">{t("notFoundTitle")}</h1>
       <p className="max-w-sm text-ink-muted">{t("notFoundBody")}</p>
       <Link

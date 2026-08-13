@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 
 import { Link } from "@/i18n/navigation";
@@ -17,7 +17,7 @@ import {
   type ClassLabel,
   type LabelledSpecimen,
 } from "@/modules/ai/knn";
-import { Button, cn } from "@/ui";
+import { BunnyMascot, Button, cn, useReducedMotion } from "@/ui";
 
 import { FeatureBoard } from "./FeatureBoard";
 import { TeachRecap } from "./TeachRecap";
@@ -130,7 +130,7 @@ export function TeachPlayer({ intro, payload }: ActivityPlayerProps) {
   // The full server response is kept so the celebration can report stars,
   // XP, achievements and the way on to the next level.
   const [server, setServer] = useState<AttemptResponse | null>(null);
-  const [reducedMotion, setReducedMotion] = useState(false);
+  const reducedMotion = useReducedMotion();
   // Bumped every time the bunny is taught something — remounting the bunny
   // span on this key is what retriggers the hop animation.
   const [hopKey, setHopKey] = useState(0);
@@ -150,13 +150,6 @@ export function TeachPlayer({ intro, payload }: ActivityPlayerProps) {
   const beats = data.walkthrough ?? null;
   const stepCount = beats?.length ?? 4;
 
-  useEffect(() => {
-    const query = window.matchMedia("(prefers-reduced-motion: reduce)");
-    setReducedMotion(query.matches);
-    const onChange = (event: MediaQueryListEvent) => setReducedMotion(event.matches);
-    query.addEventListener("change", onChange);
-    return () => query.removeEventListener("change", onChange);
-  }, []);
 
   const examples: LabelledSpecimen[] = useMemo(
     () =>
@@ -390,12 +383,11 @@ export function TeachPlayer({ intro, payload }: ActivityPlayerProps) {
               and its body answers the child's actions — a hop for every
               example taught, a shake for a wrong verdict. */}
           <div className="flex items-start gap-3">
-            <span
-              key={bunnyKey}
-              aria-hidden="true"
-              className={cn(bunnyClass, "mt-1 text-4xl sm:text-5xl")}
-            >
-              🐰
+            {/* Outer span carries the one-shot hop/shake (remounted via
+                bunnyKey); the inner character supplies face/pose only — an
+                animated inner state would stack two infinite loops. */}
+            <span key={bunnyKey} aria-hidden="true" className={cn(bunnyClass, "mt-1")}>
+              <BunnyMascot state={failed ? "confused" : "idle"} size="sm" />
             </span>
             <p
               className={cn(

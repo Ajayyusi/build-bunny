@@ -3,7 +3,7 @@ import { getLocale, getTranslations } from "next-intl/server";
 
 import { Link } from "@/i18n/navigation";
 import type { Locale } from "@/i18n/routing";
-import { Card, CardBody, SkipLink } from "@/ui";
+import { BunnyMascot, Card, CardBody, SkipLink } from "@/ui";
 import { NitaqLogo } from "@/ui/BrandLogo";
 import { schoolFontVariable } from "@/ui/fonts";
 
@@ -46,7 +46,7 @@ export async function AuthShell({
           href="/"
           className="inline-flex h-11 items-center gap-2 rounded-md font-display text-lg font-bold text-ink"
         >
-          <span aria-hidden>🐰</span>
+          <BunnyMascot size="xs" />
           {t("appName")}
         </Link>
         {/* Reachable BEFORE signing in: the sign-in pages are exactly where

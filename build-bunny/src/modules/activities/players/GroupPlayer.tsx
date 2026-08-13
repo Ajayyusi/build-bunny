@@ -12,7 +12,7 @@ import {
   glyphTheme,
 } from "@/modules/ai/glyph";
 import { assign, lloydStep, tightness } from "@/modules/ai/grouping";
-import { Button, cn } from "@/ui";
+import { BunnyMascot, Button, cn, useReducedMotion } from "@/ui";
 
 import { GroupScene } from "./GroupScene";
 import { SuccessOverlay } from "./shared/SuccessOverlay";
@@ -72,21 +72,13 @@ export function GroupPlayer({ intro, payload }: ActivityPlayerProps) {
   const [hasRun, setHasRun] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [server, setServer] = useState<AttemptResponse | null>(null);
-  const [reducedMotion, setReducedMotion] = useState(false);
+  const reducedMotion = useReducedMotion();
   const [result, setResult] = useState<{
     verdict: string;
     code?: string;
     data?: Record<string, unknown>;
   } | null>(null);
   const runTimer = useRef<number | null>(null);
-
-  useEffect(() => {
-    const query = window.matchMedia("(prefers-reduced-motion: reduce)");
-    setReducedMotion(query.matches);
-    const onChange = (event: MediaQueryListEvent) => setReducedMotion(event.matches);
-    query.addEventListener("change", onChange);
-    return () => query.removeEventListener("change", onChange);
-  }, []);
 
   useEffect(() => () => {
     if (runTimer.current !== null) window.clearInterval(runTimer.current);
@@ -320,8 +312,8 @@ export function GroupPlayer({ intro, payload }: ActivityPlayerProps) {
       <div className="min-h-0 flex-1 overflow-y-auto">
         <div className="mx-auto flex w-full max-w-5xl flex-col gap-5 p-4 sm:p-6">
           <div className="flex items-start gap-3">
-            <span aria-hidden="true" className={cn(styles.bob, "mt-1 text-4xl sm:text-5xl")}>
-              🐰
+            <span aria-hidden="true" className="mt-1">
+              <BunnyMascot state="idle" size="sm" />
             </span>
             <p
               className={cn(
@@ -654,7 +646,7 @@ export function GroupPlayer({ intro, payload }: ActivityPlayerProps) {
             <div className="flex flex-col gap-2 rounded-lg bg-surface-sunken p-4">
               <div aria-hidden="true" className="flex items-end justify-center gap-2 text-2xl">
                 <span>✨</span>
-                <span className={cn(styles.cheer, "text-4xl")}>🐰</span>
+                <BunnyMascot state="celebrating" size="sm" />
                 <span>✨</span>
               </div>
               <h2 className="font-display text-sm font-bold text-ink">{t("recapHeading")}</h2>

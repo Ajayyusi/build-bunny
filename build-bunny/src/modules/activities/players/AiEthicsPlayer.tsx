@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 
 import { Link } from "@/i18n/navigation";
-import { Button, cn } from "@/ui";
+import { Button, cn, useReducedMotion } from "@/ui";
 
 import { HintDrawer, type HintTierState } from "./shared/HintDrawer";
 import { IntroOverlay } from "./shared/IntroOverlay";
@@ -61,7 +61,7 @@ export function AiEthicsPlayer({
   const [hintOpen, setHintOpen] = useState(false);
   const [revealingTier, setRevealingTier] = useState<number | null>(null);
   const [lastSubmitAt, setLastSubmitAt] = useState<number | null>(null);
-  const [reducedMotion, setReducedMotion] = useState(false);
+  const reducedMotion = useReducedMotion();
   const [hints, setHints] = useState<HintTierState[]>(() =>
     [1, 2, 3, 4].map((tier) => ({
       tier,
@@ -73,14 +73,6 @@ export function AiEthicsPlayer({
   );
   const editStartRef = useRef<number>(Date.now());
   const headingRef = useRef<HTMLHeadingElement>(null);
-
-  useEffect(() => {
-    const query = window.matchMedia("(prefers-reduced-motion: reduce)");
-    setReducedMotion(query.matches);
-    const onChange = (event: MediaQueryListEvent) => setReducedMotion(event.matches);
-    query.addEventListener("change", onChange);
-    return () => query.removeEventListener("change", onChange);
-  }, []);
 
   // Move focus to the new beat's heading on every scene/checklist change —
   // this is inline content, not a modal, so a plain imperative focus (not a

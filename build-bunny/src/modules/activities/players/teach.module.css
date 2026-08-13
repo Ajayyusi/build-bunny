@@ -43,12 +43,6 @@
   animation: teach-shake 0.5s ease-in-out;
 }
 
-/* Success-card celebration: the bunny the child taught, jumping. */
-.cheer {
-  display: inline-block;
-  animation: teach-cheer 0.9s ease-in-out infinite;
-}
-
 @keyframes teach-bob {
   0%,
   100% {
@@ -87,19 +81,6 @@
   }
   75% {
     transform: translateX(5px) rotate(5deg);
-  }
-}
-
-@keyframes teach-cheer {
-  0%,
-  100% {
-    transform: translateY(0) rotate(0deg);
-  }
-  35% {
-    transform: translateY(-12px) rotate(-7deg);
-  }
-  70% {
-    transform: translateY(0) rotate(0deg);
   }
 }
 
@@ -260,7 +241,6 @@
   .bob,
   .hop,
   .shake,
-  .cheer,
   .popIn,
   .flowLine,
   .pulseReady {

@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 
 import { usePathname } from "@/i18n/navigation";
-import { cn } from "@/ui";
+import { BunnyMascot, cn } from "@/ui";
 
 interface SidebarShellProps {
   sidebar: ReactNode;
@@ -127,10 +127,8 @@ export function SidebarShell({
               <path d="M4 7h16M4 12h16M4 17h16" />
             </svg>
           </button>
-          <span className="font-display text-base font-bold text-ink">
-            <span aria-hidden className="me-1.5">
-              🐰
-            </span>
+          <span className="flex items-center font-display text-base font-bold text-ink">
+            <BunnyMascot size="xs" className="me-1.5" />
             {t("appName")}
           </span>
         </div>

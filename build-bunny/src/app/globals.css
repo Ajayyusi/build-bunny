@@ -1,4 +1,7 @@
 @import "tailwindcss";
+/* layer(components): bunny part styling must lose to Tailwind utilities —
+   unlayered it would beat them (e.g. the home hero's `hidden sm:block`). */
+@import "./bunny.css" layer(components);
 
 /* ════════════════════════════════════════════════════════════════════════
    Build Bunny design tokens — three layers:
@@ -123,6 +126,21 @@
     0 2px 4px rgb(27 26 23 / 0.06), 0 8px 24px rgb(27 26 23 / 0.09);
   --bb-shadow-overlay:
     0 4px 12px rgb(27 26 23 / 0.1), 0 16px 48px rgb(27 26 23 / 0.16);
+
+  /* Motion — one easing/duration vocabulary for the whole product.
+     `spring` is the signature confident-arrival curve (was copy-pasted as a
+     literal before it was tokenized); `settle` for gentle ambient loops.
+     Durations: tap = pressed feedback, snap = small UI state, move = things
+     that travel, arrive = entrances, story = one-shot narrative beats
+     (bunny hops, celebrations). JS animations read these via
+     getComputedStyle where needed so the vocabulary stays single-source. */
+  --bb-ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
+  --bb-ease-settle: ease-in-out;
+  --bb-dur-tap: 80ms;
+  --bb-dur-snap: 160ms;
+  --bb-dur-move: 220ms;
+  --bb-dur-arrive: 520ms;
+  --bb-dur-story: 900ms;
 
   /* Spacing rides Tailwind's default 0.25rem scale; breakpoints are the
      defaults (sm 40rem · md 48rem · lg 64rem · xl 80rem). Student layouts
@@ -310,38 +328,12 @@
   padding-inline: clamp(1rem, 3vw, 2rem);
 }
 
-/* ── Playful mascot & entrance choreography ──────────────────────────────
+/* ── Entrance choreography & micro-loops ─────────────────────────────────
    Kid-focused motion primitives used across student surfaces. Every
    animation transforms only (never layout properties), respects the
    reduce-motion clamp below via CSS-wide zero-out, and stays cheap enough
-   to loop forever without hurting frame rate. */
-
-@keyframes bb-bunny-idle {
-  0%, 100% { transform: translateY(0) scale(1); }
-  50%      { transform: translateY(-4%) scale(1.02); }
-}
-.bunny-idle    { animation: bb-bunny-idle 3.2s ease-in-out infinite; }
-
-@keyframes bb-bunny-hop {
-  0%   { transform: translateY(160%) scale(0.6);   opacity: 0; }
-  55%  { transform: translateY(-14%) scale(1.05);  opacity: 1; }
-  75%  { transform: translateY(0%)   scale(0.95); }
-  100% { transform: translateY(0%)   scale(1); }
-}
-.bunny-hop     { animation: bb-bunny-hop 900ms cubic-bezier(0.16, 1, 0.3, 1) both; }
-
-@keyframes bb-bunny-wave {
-  0%, 100% { transform: rotate(0deg); }
-  25%      { transform: rotate(-6deg); }
-  75%      { transform: rotate(6deg); }
-}
-.bunny-wave    { animation: bb-bunny-wave 1.8s ease-in-out infinite; }
-
-@keyframes bb-bunny-walk {
-  0%, 100% { transform: translateY(0) rotate(-2deg); }
-  50%      { transform: translateY(-8%) rotate(2deg); }
-}
-.bunny-walk    { animation: bb-bunny-walk 520ms ease-in-out infinite; }
+   to loop forever without hurting frame rate. (The mascot's own animation
+   lives in bunny.css with the character it belongs to.) */
 
 /* One-shot cascade entrance for children in a list or grid. Parent stamps
    .bb-cascade with staggered inline --i values (0, 1, 2 …). Cheap: only
@@ -352,7 +344,7 @@
   to   { opacity: 1; transform: none; }
 }
 .bb-cascade {
-  animation: bb-cascade-in 520ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: bb-cascade-in var(--bb-dur-arrive) var(--bb-ease-spring) both;
   animation-delay: calc(var(--i, 0) * 80ms);
 }
 
@@ -378,9 +370,30 @@
 
 /* Playful hover on tappable elements. transform-only, cheap, snaps back
    fast enough to feel responsive to a repeated tap. */
-.bb-pop { transition: transform 220ms cubic-bezier(0.16, 1, 0.3, 1); }
+.bb-pop { transition: transform var(--bb-dur-move) var(--bb-ease-spring); }
 .bb-pop:hover, .bb-pop:focus-visible { transform: translateY(-2px) scale(1.02); }
-.bb-pop:active { transform: translateY(0) scale(0.98); transition-duration: 80ms; }
+.bb-pop:active { transform: translateY(0) scale(0.98); transition-duration: var(--bb-dur-tap); }
+
+/* One-shot radial celebration particle (src/ui/StarBurst.tsx). Each
+   particle flies out along its inline --a angle to --d distance after a
+   --pd stagger, fading as it goes. Decorative only — the reduce-motion
+   clamp collapses it to nothing, which is the intended fallback. */
+@keyframes bb-burst-fly {
+  0%   { transform: rotate(var(--a)) translateY(0) scale(0.4); opacity: 0; }
+  12%  { opacity: 1; }
+  100% { transform: rotate(var(--a)) translateY(calc(-1 * var(--d))) scale(1); opacity: 0; }
+}
+.bb-burst-particle {
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-start: 50%;
+  margin: -0.5em;
+  font-size: 1.25rem;
+  line-height: 1;
+  color: var(--color-accent);
+  opacity: 0;
+  animation: bb-burst-fly 1100ms var(--bb-ease-spring) var(--pd, 0ms) both;
+}
 
 /* Vestibular safety: honor the user's motion preference globally. */
 @media (prefers-reduced-motion: reduce) {

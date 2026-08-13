@@ -4,7 +4,15 @@ import { useEffect, useState, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 
 import { Link } from "@/i18n/navigation";
-import { Button, Spinner, cn, useFocusTrap } from "@/ui";
+import {
+  BunnyMascot,
+  Button,
+  Spinner,
+  StarBurst,
+  cn,
+  useFocusTrap,
+  useSound,
+} from "@/ui";
 
 import styles from "./player.module.css";
 
@@ -66,6 +74,7 @@ export function SuccessOverlay({
   extra,
 }: SuccessOverlayProps) {
   const t = useTranslations("student.play.success");
+  const { play } = useSound();
   const [stage, setStage] = useState<"burst" | "card">(
     reducedMotion ? "card" : "burst",
   );
@@ -75,6 +84,13 @@ export function SuccessOverlay({
     const timer = window.setTimeout(() => setStage("card"), BURST_MS);
     return () => window.clearTimeout(timer);
   }, [stage]);
+
+  // One quiet chime as the celebration appears (no-op unless the student
+  // turned sound on). Deliberately once per overlay, not per star.
+  useEffect(() => {
+    play("success");
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- mount-only beat
+  }, []);
 
   // Same manual trap as IntroOverlay (this overlay can't use the native
   // <dialog>-based Dialog component — see its comment). resetKey=stage
@@ -117,8 +133,12 @@ export function SuccessOverlay({
         tabIndex={-1}
         className={`${styles.overlay} absolute inset-0 z-30 flex flex-col items-center justify-center gap-8 bg-surface p-6 focus:outline-none`}
       >
-        <p className="font-display text-2xl font-bold text-ink">{t("title")}</p>
-        {starsRow("text-6xl")}
+        <div className="relative flex flex-col items-center gap-6">
+          <StarBurst />
+          <BunnyMascot state="celebrating" size="lg" />
+          <p className="font-display text-2xl font-bold text-ink">{t("title")}</p>
+          {starsRow("text-6xl")}
+        </div>
         <Button variant="ghost" size="lg" onClick={() => setStage("card")}>
           {t("skip")}
         </Button>

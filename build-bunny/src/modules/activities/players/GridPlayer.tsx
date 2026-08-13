@@ -9,7 +9,7 @@ import type { BlockLocale } from "@/modules/blockly/blocks";
 import type { BlocklyWorkspaceHandle } from "@/modules/blockly/BlocklyWorkspace";
 import { CodeView } from "@/modules/blockly/CodeView";
 import SimulationCanvas from "@/modules/simulation/SimulationCanvas";
-import { Button, cn } from "@/ui";
+import { Button, cn, useReducedMotion } from "@/ui";
 
 import { generateDisplayCode, runLocally, type LocalRunOutcome } from "./client-run";
 import { HintDrawer, type HintTierState } from "./shared/HintDrawer";
@@ -74,7 +74,7 @@ export function GridPlayer({
   const [hintOpen, setHintOpen] = useState(false);
   const [revealingTier, setRevealingTier] = useState<number | null>(null);
   const [lastRunAt, setLastRunAt] = useState<number | null>(null);
-  const [reducedMotion, setReducedMotion] = useState(false);
+  const reducedMotion = useReducedMotion();
   const [hints, setHints] = useState<HintTierState[]>(() =>
     [1, 2, 3, 4].map((tier) => ({
       tier,
@@ -89,15 +89,6 @@ export function GridPlayer({
   const jsonRef = useRef<unknown>(payload.initialWorkspace);
   const saveTimerRef = useRef<number | null>(null);
   const editStartRef = useRef<number>(Date.now());
-
-  useEffect(() => {
-    const query = window.matchMedia("(prefers-reduced-motion: reduce)");
-    setReducedMotion(query.matches);
-    const onChange = (event: MediaQueryListEvent) =>
-      setReducedMotion(event.matches);
-    query.addEventListener("change", onChange);
-    return () => query.removeEventListener("change", onChange);
-  }, []);
 
   useEffect(
     () => () => {

@@ -5,7 +5,7 @@ import { useLocale, useTranslations } from "next-intl";
 
 import { Link } from "@/i18n/navigation";
 import { CodeView } from "@/modules/blockly/CodeView";
-import { Button, cn } from "@/ui";
+import { Button, cn, useReducedMotion } from "@/ui";
 
 import { HintDrawer, type HintTierState } from "./shared/HintDrawer";
 import { IntroOverlay } from "./shared/IntroOverlay";
@@ -56,7 +56,7 @@ export function CodePredictionPlayer({
   const [hintOpen, setHintOpen] = useState(false);
   const [revealingTier, setRevealingTier] = useState<number | null>(null);
   const [lastSubmitAt, setLastSubmitAt] = useState<number | null>(null);
-  const [reducedMotion, setReducedMotion] = useState(false);
+  const reducedMotion = useReducedMotion();
   const [hints, setHints] = useState<HintTierState[]>(() =>
     [1, 2, 3, 4].map((tier) => ({
       tier,
@@ -67,14 +67,6 @@ export function CodePredictionPlayer({
     })),
   );
   const editStartRef = useRef<number>(Date.now());
-
-  useEffect(() => {
-    const query = window.matchMedia("(prefers-reduced-motion: reduce)");
-    setReducedMotion(query.matches);
-    const onChange = (event: MediaQueryListEvent) => setReducedMotion(event.matches);
-    query.addEventListener("change", onChange);
-    return () => query.removeEventListener("change", onChange);
-  }, []);
 
   const submit = async (id: string, optionId: string) => {
     setSubmitting(true);

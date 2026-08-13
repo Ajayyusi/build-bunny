@@ -149,7 +149,7 @@ html[dir="rtl"] .spineDot {
    in under 100ms so it never fights repeated taps. The current-node
    pulse ring keeps working on top because it's a separate ::after. */
 .nodePop {
-  transition: transform 220ms cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform var(--bb-dur-move) var(--bb-ease-spring);
 }
 .nodePop:hover, .nodePop:focus-visible {
   transform: translateY(-4px) scale(1.06);
@@ -181,7 +181,7 @@ html[dir="rtl"] .spineDot {
   to   { opacity: 1; transform: none; }
 }
 .nodeEntrance {
-  animation: bb-node-drop 480ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: bb-node-drop 480ms var(--bb-ease-spring) both;
   animation-delay: calc(var(--i, 0) * 65ms);
 }
 

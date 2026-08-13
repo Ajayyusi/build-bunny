@@ -4,9 +4,7 @@ import { useTranslations } from "next-intl";
 
 import { glyphFill, glyphPx, glyphShapeStyle, glyphTheme, MYSTERY_FILL } from "@/modules/ai/glyph";
 import { nearest, type LabelledSpecimen } from "@/modules/ai/knn";
-import { cn } from "@/ui";
-
-import styles from "./teach.module.css";
+import { BunnyMascot } from "@/ui";
 
 /**
  * The receipt for the training run the student just finished.
@@ -76,7 +74,7 @@ export function TeachRecap({
           see is not a cheer. */}
       <div aria-hidden="true" className="flex items-end justify-center gap-2 text-2xl">
         <span>✨</span>
-        <span className={cn(styles.cheer, "text-4xl")}>🐰</span>
+        <BunnyMascot state="celebrating" size="sm" />
         <span>✨</span>
       </div>
       <h2 className="font-display text-sm font-bold text-ink">

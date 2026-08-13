@@ -1,5 +1,7 @@
 import Image from "next/image";
 
+import { BunnyMascot } from "@/ui/BunnyMascot";
+
 import { cn } from "@/ui/cn";
 
 /**
@@ -53,9 +55,7 @@ interface BuildBunnyWordmarkProps {
 export function BuildBunnyWordmark({ tone = "student", className }: BuildBunnyWordmarkProps) {
   return (
     <span className={cn("flex items-center gap-2", className)}>
-      <span aria-hidden className={tone === "student" ? "text-xl" : "text-base"}>
-        🐰
-      </span>
+      <BunnyMascot size="xs" />
       <span
         className={cn(
           "font-display font-bold tracking-tight text-ink",

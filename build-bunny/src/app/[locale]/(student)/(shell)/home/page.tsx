@@ -9,7 +9,7 @@ import {
 } from "@/modules/learning/server/adventure";
 import { isFeatureEnabled } from "@/modules/shared/features";
 import { getMyStudentSnapshot } from "@/modules/students/server/queries";
-import { CountUp, EmptyState } from "@/ui";
+import { BunnyMascot, CountUp, EmptyState } from "@/ui";
 
 import { themeEmoji } from "../adventure/_components/theme";
 import { WorldCard, type WorldCardVM } from "./_components/WorldCard";
@@ -74,12 +74,11 @@ export default async function StudentHomePage({ params }: Props) {
         <section className="bb-cascade relative overflow-hidden rounded-2xl border border-border-token bg-gradient-to-br from-brand/15 via-accent/10 to-surface-raised p-6 sm:p-8">
           {/* Decorative mascot, hidden from AT and from narrow screens where
               it would crowd the copy. */}
-          <span
-            aria-hidden="true"
-            className="bunny-idle pointer-events-none absolute -bottom-2 end-4 hidden text-[110px] leading-none opacity-90 sm:block"
-          >
-            🐰
-          </span>
+          <BunnyMascot
+            state="waving"
+            size="lg"
+            className="pointer-events-none absolute -bottom-2 end-4 hidden opacity-95 sm:block"
+          />
 
           <div className="relative flex max-w-md flex-col items-start gap-3">
             <span className="rounded-full bg-brand px-3 py-1 text-[11px] font-bold tracking-wide text-on-brand">
@@ -202,11 +201,7 @@ export default async function StudentHomePage({ params }: Props) {
         </section>
       ) : (
         <EmptyState
-          icon={
-            <span className="bunny-wave inline-block text-3xl" aria-hidden>
-              🐰
-            </span>
-          }
+          icon={<BunnyMascot state="sleeping" size="sm" />}
           title={t("emptyTitle")}
           description={t("emptyBody")}
         />

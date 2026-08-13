@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState, type DragEvent } from "react";
 import { useLocale, useTranslations } from "next-intl";
 
 import { Link } from "@/i18n/navigation";
-import { Button, cn } from "@/ui";
+import { Button, cn, useReducedMotion } from "@/ui";
 
 import { HintDrawer, type HintTierState } from "./shared/HintDrawer";
 import { IntroOverlay } from "./shared/IntroOverlay";
@@ -57,7 +57,7 @@ export function SequencingPlayer({
   const [hintOpen, setHintOpen] = useState(false);
   const [revealingTier, setRevealingTier] = useState<number | null>(null);
   const [lastSubmitAt, setLastSubmitAt] = useState<number | null>(null);
-  const [reducedMotion, setReducedMotion] = useState(false);
+  const reducedMotion = useReducedMotion();
   const [hints, setHints] = useState<HintTierState[]>(() =>
     [1, 2, 3, 4].map((tier) => ({
       tier,
@@ -74,14 +74,6 @@ export function SequencingPlayer({
     () => new Map(payload.items.map((item) => [item.id, resolveLocalized(item.text, locale)])),
     [payload.items, locale],
   );
-
-  useEffect(() => {
-    const query = window.matchMedia("(prefers-reduced-motion: reduce)");
-    setReducedMotion(query.matches);
-    const onChange = (event: MediaQueryListEvent) => setReducedMotion(event.matches);
-    query.addEventListener("change", onChange);
-    return () => query.removeEventListener("change", onChange);
-  }, []);
 
   const locked = phase === "result" || submitting;
 

@@ -5,7 +5,7 @@ import { Link } from "@/i18n/navigation";
 import { requireRole } from "@/modules/auth/server/session";
 import { isFeatureEnabled } from "@/modules/shared/features";
 import { getMyStudentSnapshot } from "@/modules/students/server/queries";
-import { Avatar, SkipLink } from "@/ui";
+import { Avatar, BunnyMascot, SkipLink, SoundToggle } from "@/ui";
 
 import {
   HomeIcon,
@@ -58,9 +58,7 @@ export default async function StudentShellLayout({ children, params }: Props) {
           href="/home"
           className="flex items-center gap-2 font-display text-lg font-bold text-ink"
         >
-          <span aria-hidden className="text-xl">
-            🐰
-          </span>
+          <BunnyMascot size="xs" />
           {tCommon("appName")}
         </Link>
         <div className="flex items-center gap-3 rounded-xl bg-surface-sunken p-3">
@@ -98,6 +96,11 @@ export default async function StudentShellLayout({ children, params }: Props) {
           page, so the one control that fixes it must never be behind text. */}
       <div className="mt-auto flex flex-col gap-1 border-t border-border-token pt-3">
         <LocaleSwitcher size="lg" className="w-full justify-start" />
+        <SoundToggle
+          labelOn={t("sound.on")}
+          labelOff={t("sound.off")}
+          className="w-full justify-start"
+        />
         <SidebarNavItem href="/profile" icon={<ProfileIcon />}>
           {t("nav.profile")}
         </SidebarNavItem>
