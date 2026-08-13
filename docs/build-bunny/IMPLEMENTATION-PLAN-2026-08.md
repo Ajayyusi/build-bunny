@@ -76,6 +76,30 @@ surface in the codebase.
 
 ## 3. Phases
 
+**Status at 2026-08-14.** Phases 1–4 are done and pushed; Phase 5 has had its
+security fix landed but its new games are not built; Phases 6–10 are not
+started. Per-phase status markers below are kept honest on purpose — a plan
+that claims more than the code does is worse than no plan.
+
+| Phase | Status | Landed in |
+|---|---|---|
+| 1 · Infrastructure & critical fixes | **Done** | `4c36fd3`, `d8094d4` |
+| 2 · Design system, animation, Bunny | **Done** | `c858ec3` |
+| 3 · Home, map, game-entry, onboarding | **Done** | `0601580` |
+| 4 · Player polish & success/failure | **Mostly done** | `7ba69ec`, `0c6850a` |
+| 5 · AI games & engines | **Started** (security fix only) | `7ba69ec` |
+| 6 · Teacher experience | Not started | — |
+| 7 · School & NITAQ admin + security hardening | Not started | — |
+| 8 · Assignments, notifications, missions, cosmetics | Not started | — |
+| 9 · Performance, accessibility, tablets, offline | Not started | — |
+| 10 · Production QA & demo | Not started | — |
+
+Phase 4 remainder: AI_CLASSIFICATION / PATTERN_RECOGNITION still never emit
+PARTIAL (a near miss reads the same as a wild one); GroupPlayer, AiSimPlayer
+and AiEthicsPlayer still have no draft autosave (TeachPlayer now does); the
+AST-budget infinite loop still surfaces as a generic `runtimeError` rather
+than a kid-readable failure.
+
 ### Phase 1 — Infrastructure & critical fixes (this change)
 1. Move `ci.yml` to repo root with `defaults.run.working-directory:
    build-bunny` and `cache-dependency-path: build-bunny/package-lock.json`;
