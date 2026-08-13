@@ -108,7 +108,15 @@ export function TeachPlayer({ intro, payload }: ActivityPlayerProps) {
   );
 
   const assign = (id: string, label: ClassLabel) => {
-    if (result) return;
+    // Frozen only once the bunny has actually got them all right. Freezing
+    // on ANY result killed the entire feedback loop: a failed attempt tells
+    // the child to "teach it a berry like the one it got wrong", and then
+    // the board refused every click until they reloaded the page.
+    if (result?.verdict === "PASS") return;
+    // Teaching something new invalidates the last verdict — leaving it on
+    // screen would have the bunny reporting a score for a set of examples
+    // it is no longer being shown.
+    if (result) setResult(null);
     setAssigned((prev) => (prev[id] === label ? omit(prev, id) : { ...prev, [id]: label }));
   };
 
