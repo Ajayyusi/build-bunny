@@ -41,6 +41,22 @@ export function distanceSq(a: Features, b: Features): number {
  * between calls would show a child two different answers for identical work.
  * Returns null when nothing has been taught yet.
  */
+export function nearest(
+  examples: readonly LabelledSpecimen[],
+  probe: Features,
+): LabelledSpecimen | null {
+  let best: LabelledSpecimen | null = null;
+  let bestDist = Infinity;
+  for (const example of examples) {
+    const d = distanceSq(example, probe);
+    if (d < bestDist) {
+      bestDist = d;
+      best = example;
+    }
+  }
+  return best;
+}
+
 export function classify(
   examples: readonly LabelledSpecimen[],
   probe: Features,

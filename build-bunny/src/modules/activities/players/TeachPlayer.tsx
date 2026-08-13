@@ -3,13 +3,16 @@
 import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 
+import { Link } from "@/i18n/navigation";
 import {
-  classify,
+  nearest,
   toTrainingExample,
   type ClassLabel,
   type LabelledSpecimen,
 } from "@/modules/ai/knn";
 import { Button, cn } from "@/ui";
+
+import { TeachScene } from "./TeachScene";
 
 import type { ActivityPlayerProps } from "../types";
 
@@ -84,6 +87,10 @@ export function TeachPlayer({ intro, payload }: ActivityPlayerProps) {
   const t = useTranslations("student.play.teach");
 
   const [assigned, setAssigned] = useState<Record<string, ClassLabel>>({});
+  // Opens on arrival. A child (or an adult) landing on an abstract board of
+  // circles has no way to infer the rules, so the walkthrough is the default
+  // state rather than a help button nobody presses.
+  const [step, setStep] = useState(1);
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState<{ verdict: string; correct?: number; total?: number } | null>(
     null,
@@ -101,9 +108,16 @@ export function TeachPlayer({ intro, payload }: ActivityPlayerProps) {
   const negatives = examples.length - positives;
   const ready = positives >= data.minPerLabel && negatives >= data.minPerLabel;
 
-  // Live guesses — the same function the server grades with.
+  // Live guesses. We keep the MATCHED example, not just the label, because
+  // "it looks most like this one you taught me" is the only form in which a
+  // nearest-neighbour decision is explainable — and without it a wrong guess
+  // is just an unexplained verdict a child cannot learn anything from.
   const guesses = useMemo(
-    () => data.testSet.map((probe) => ({ probe, guess: classify(examples, probe) })),
+    () =>
+      data.testSet.map((probe) => {
+        const match = nearest(examples, probe);
+        return { probe, match, guess: match?.label ?? null };
+      }),
     [data.testSet, examples],
   );
 
@@ -165,26 +179,91 @@ export function TeachPlayer({ intro, payload }: ActivityPlayerProps) {
   const unassigned = data.pool.filter((s) => !assigned[s.id]);
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col gap-4 p-4 sm:p-6">
+    <div className="relative flex min-h-0 flex-1 flex-col gap-4 p-4 sm:p-6">
+      {/* Always-visible way out. Asked for directly, and a child who feels
+          stuck in an activity they do not understand needs an exit more than
+          they need another hint. */}
+      <div className="flex items-center justify-between gap-3">
+        <Link
+          href="/adventure"
+          className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-border-token bg-surface-raised px-3 text-sm font-bold text-ink"
+        >
+          <span aria-hidden="true">←</span>
+          {t("exit")}
+        </Link>
+        <button
+          type="button"
+          onClick={() => setStep(1)}
+          className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-border-token bg-surface-raised px-3 text-sm font-bold text-ink-muted"
+        >
+          <span aria-hidden="true">💡</span>
+          {t("howItWorks")}
+        </button>
+      </div>
+
+      {/* Walkthrough. Four beats, each naming ONE idea, because the activity
+          is unguessable from a board of coloured circles — the first version
+          shipped without this and neither children nor adults could tell what
+          the game was asking of them. */}
+      {step > 0 ? (
+        <div className="fixed inset-0 z-50 grid place-items-center bg-ink/50 p-4">
+          <div className="flex w-full max-w-lg flex-col gap-4 rounded-2xl bg-surface-raised p-6 shadow-overlay">
+            {/* The animation carries the explanation; the text only names
+                what is already visible on screen above it. */}
+            <TeachScene step={step} labels={data.labels} />
+            <h2 className="font-display text-xl font-bold text-ink">
+              {t(`walk${step}Title`)}
+            </h2>
+            <p className="text-sm leading-relaxed text-ink-muted">{t(`walk${step}Body`)}</p>
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-1.5" aria-label={`${step} / 4`}>
+                {[1, 2, 3, 4].map((n) => (
+                  <span
+                    key={n}
+                    aria-hidden="true"
+                    className={cn(
+                      "size-2 rounded-full transition-colors",
+                      n === step ? "bg-brand" : "bg-ink/15",
+                    )}
+                  />
+                ))}
+              </div>
+              <div className="flex gap-2">
+                <Button variant="secondary" onClick={() => setStep(0)}>
+                  {t("walkSkip")}
+                </Button>
+                <Button onClick={() => setStep(step >= 4 ? 0 : step + 1)}>
+                  {step >= 4 ? t("walkStart") : t("walkNext")}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
       <p className="text-sm text-ink-muted">{intro.instructions}</p>
 
       {/* Tray of berries still to teach with */}
       <section className="flex flex-col gap-2">
-        <h2 className="font-display text-sm font-bold text-ink">{t("trayHeading")}</h2>
-        <p className="text-xs text-ink-muted">{t("trayHelp")}</p>
+        <StepHeading n={1} title={t("trayHeading")} help={t("trayHelp")} />
         <ul className="flex flex-wrap gap-3">
           {unassigned.map((s) => (
             <li
               key={s.id}
-              className="flex w-24 flex-col items-center gap-1 rounded-xl border border-border-token bg-surface-raised p-2"
+              className="flex w-32 flex-col items-center gap-2 rounded-xl border border-border-token bg-surface-raised p-3"
             >
-              <Berry specimen={s} />
+              {/* Fixed-height berry row: berries differ in diameter by design,
+                  and without this the cards ended up ragged and the labels
+                  collided with the glyphs. */}
+              <span className="grid h-14 place-items-center">
+                <Berry specimen={s} />
+              </span>
               {/* What ALREADY happened when the bunny ate it. Without this a
                   child has no way to know which berries are safe and the
                   whole activity collapses into guessing. */}
               <span
                 className={cn(
-                  "rounded-full px-2 py-0.5 text-[10px] font-bold",
+                  "whitespace-nowrap rounded-full px-2 py-0.5 text-[11px] font-bold",
                   s.truth === "positive"
                     ? "bg-brand/15 text-brand"
                     : "bg-danger/15 text-danger",
@@ -195,7 +274,7 @@ export function TeachPlayer({ intro, payload }: ActivityPlayerProps) {
               <button
                 type="button"
                 onClick={() => assign(s.id, s.truth)}
-                className="w-full rounded-md bg-ink px-2 py-1 text-[11px] font-bold text-surface-raised"
+                className="w-full rounded-md bg-ink px-2 py-1.5 text-[11px] font-bold text-surface-raised"
               >
                 {t("teachThis")}
               </button>
@@ -208,6 +287,7 @@ export function TeachPlayer({ intro, payload }: ActivityPlayerProps) {
       </section>
 
       {/* The two taught buckets */}
+      <StepHeading n={2} title={t("bucketsHeading")} help={t("bucketsHelp")} />
       <div className="grid gap-3 sm:grid-cols-2">
         {(["positive", "negative"] as const).map((label) => (
           <section
@@ -245,22 +325,19 @@ export function TeachPlayer({ intro, payload }: ActivityPlayerProps) {
 
       {/* What the bunny currently thinks — the heart of the activity */}
       <section className="flex flex-col gap-2 rounded-xl border border-border-token bg-surface-raised p-3">
-        <h2 className="font-display text-sm font-bold text-ink">
-          <span aria-hidden className="me-1.5">
-            🐰
-          </span>
-          {t("guessHeading")}
-        </h2>
-        <p className="text-xs text-ink-muted">{t("guessHelp")}</p>
+        <StepHeading n={3} title={t("guessHeading")} help={t("guessHelp")} />
         {!ready ? (
           <p className="text-sm text-ink-muted">
             {t("needMore", { count: data.minPerLabel })}
           </p>
         ) : (
           <ul className="flex flex-wrap gap-4">
-            {guesses.map(({ probe, guess }) => (
-              <li key={probe.id} className="flex flex-col items-center gap-1">
-                <span className="relative">
+            {guesses.map(({ probe, match, guess }) => (
+              <li
+                key={probe.id}
+                className="flex items-center gap-3 rounded-xl border border-border-token bg-surface p-3"
+              >
+                <span className="relative shrink-0">
                   <Berry specimen={probe} />
                   <span
                     aria-hidden="true"
@@ -269,6 +346,17 @@ export function TeachPlayer({ intro, payload }: ActivityPlayerProps) {
                     ?
                   </span>
                 </span>
+                {/* The reason, not just the verdict. This is the difference
+                    between "the bunny says no" and a child being able to see
+                    WHY, and therefore what to teach next. */}
+                {match ? (
+                  <span className="flex items-center gap-2 text-xs text-ink-muted">
+                    <span aria-hidden="true">→</span>
+                    <span>{t("looksLike")}</span>
+                    <Berry specimen={match} className="scale-75" />
+                    <span aria-hidden="true">→</span>
+                  </span>
+                ) : null}
                 <span
                   className={cn(
                     "rounded-md px-2 py-0.5 text-[11px] font-bold",
@@ -312,6 +400,28 @@ export function TeachPlayer({ intro, payload }: ActivityPlayerProps) {
         <span className="text-xs text-ink-muted">
           {t("taughtCount", { count: examples.length })}
         </span>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Numbered section heading. The three parts of the board (pick berries →
+ * they land in baskets → the bunny guesses) happen in a fixed order, and
+ * without the numbers the page reads as three unrelated panels of circles.
+ */
+function StepHeading({ n, title, help }: { n: number; title: string; help: string }) {
+  return (
+    <div className="flex items-start gap-2">
+      <span
+        aria-hidden="true"
+        className="mt-0.5 grid size-6 shrink-0 place-items-center rounded-full bg-ink text-xs font-bold text-surface-raised"
+      >
+        {n}
+      </span>
+      <div className="flex flex-col">
+        <h2 className="font-display text-sm font-bold text-ink">{title}</h2>
+        <p className="text-xs text-ink-muted">{help}</p>
       </div>
     </div>
   );

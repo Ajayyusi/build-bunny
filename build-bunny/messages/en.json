@@ -303,7 +303,23 @@
         "teachThis": "Teach this one",
         "guessHelp": "These are the mystery berries. The bunny has to work them out from what you taught it.",
         "tryAgain": "Not quite yet — teach the bunny a berry like the one it got wrong.",
-        "submitFailed": "Something went wrong sending that to the bunny. Try pressing Test again."
+        "submitFailed": "Something went wrong sending that to the bunny. Try pressing Test again.",
+        "exit": "Back to map",
+        "howItWorks": "How it works",
+        "looksLike": "looks most like",
+        "walk1Title": "Robo Bunny cannot read",
+        "walk1Body": "It has no rule for which berries are safe. You are not going to write one either — there is no code in this level at all.",
+        "walk2Title": "You show it examples",
+        "walk2Body": "Each berry here has already been eaten once, so we know what happened. Put some into the baskets. That is all 'teaching' means.",
+        "walk3Title": "Then it meets new berries",
+        "walk3Body": "The ? berries are ones it has never seen. To guess, it finds the berry YOU taught it that looks most like the new one, and copies that answer.",
+        "walk4Title": "So your choice decides",
+        "walk4Body": "If you only ever show it small berries, a big one will look most like the wrong thing — and it will be confidently wrong. Pick examples that cover every kind.",
+        "walkNext": "Next",
+        "walkSkip": "Skip",
+        "walkStart": "Let's teach it",
+        "bucketsHeading": "The bunny's two baskets",
+        "bucketsHelp": "Everything you teach it lands here. Click a berry to take it back out."
       }
     },
     "profile": {
