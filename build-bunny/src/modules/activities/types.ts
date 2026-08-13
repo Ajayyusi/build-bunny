@@ -260,6 +260,18 @@ export interface ActivityPlayerProps {
    * comment instead of threading a generic through the whole registry.
    */
   payload: unknown;
+  /**
+   * The student's saved in-progress work for this level, or null.
+   *
+   * Grid levels receive their draft pre-merged into the payload's
+   * initialWorkspace; every other engine gets it here, because a child on a
+   * school tablet that reloads mid-level should not lose twenty minutes of
+   * bucket sorting. Shape is per-engine and untrusted: it is whatever that
+   * player last saved, so each one validates it before use and falls back to
+   * a blank start. Drafts never carry answers — the server clears them on a
+   * full pass and they only ever hold the child's own choices.
+   */
+  draft: unknown;
   revealHintAction: RevealHintAction;
   saveDraftAction: SaveDraftAction;
 }

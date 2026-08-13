@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 
 import { Link } from "@/i18n/navigation";
@@ -112,7 +112,45 @@ function Berry({
   );
 }
 
-export function TeachPlayer({ intro, payload, revealHintAction }: ActivityPlayerProps) {
+/**
+ * Rebuild a saved draft, keeping only ids this level still has and labels it
+ * recognises. A stale or hand-edited draft degrades to a blank board rather
+ * than putting a specimen in a bucket that no longer exists.
+ */
+function restoreDraft(draft: unknown, data: TeachPayload) {
+  const empty = { assigned: {} as Record<string, ClassLabel>, heldBack: new Set<string>() };
+  if (draft === null || typeof draft !== "object") return empty;
+  const source = draft as { assigned?: unknown; heldBack?: unknown };
+  const poolIds = new Set(data.pool.map((specimen) => specimen.id));
+
+  const assigned: Record<string, ClassLabel> = {};
+  if (source.assigned !== null && typeof source.assigned === "object") {
+    for (const [id, label] of Object.entries(source.assigned as Record<string, unknown>)) {
+      if (poolIds.has(id) && (label === "positive" || label === "negative")) {
+        assigned[id] = label;
+      }
+    }
+  }
+
+  const heldBack = new Set<string>();
+  if (Array.isArray(source.heldBack)) {
+    for (const id of source.heldBack) {
+      // A specimen cannot be taught and held back at once.
+      if (typeof id === "string" && poolIds.has(id) && assigned[id] === undefined) {
+        heldBack.add(id);
+      }
+    }
+  }
+  return { assigned, heldBack };
+}
+
+export function TeachPlayer({
+  intro,
+  payload,
+  draft,
+  revealHintAction,
+  saveDraftAction,
+}: ActivityPlayerProps) {
   // Cast back at the registry boundary — see ActivityPlayerProps.payload.
   const data = payload as TeachPayload;
   // Hints authored on AI_CLASSIFICATION levels used to be unreachable: this
@@ -122,17 +160,25 @@ export function TeachPlayer({ intro, payload, revealHintAction }: ActivityPlayer
   const tPlay = useTranslations("student.play");
   const locale = useLocale();
 
-  const [assigned, setAssigned] = useState<Record<string, ClassLabel>>({});
+  // Restore whatever the student had sorted when they last left, ignoring
+  // anything that no longer matches this level's specimens — a draft is the
+  // child's own work, but it is still untrusted input from a past session.
+  const restored = useMemo(() => restoreDraft(draft, data), [draft, data]);
+
+  const [assigned, setAssigned] = useState<Record<string, ClassLabel>>(
+    restored.assigned,
+  );
   // The student's OWN test pile (holdout levels): ids set aside, never
   // taught. Kept separate from `assigned` so a specimen physically cannot
   // be in both — moving it to one side removes it from the other.
-  const [heldBack, setHeldBack] = useState<Set<string>>(new Set());
+  const [heldBack, setHeldBack] = useState<Set<string>>(restored.heldBack);
   // Opens on arrival. A child (or an adult) landing on an abstract board of
   // circles has no way to infer the rules, so the walkthrough is the default
   // state rather than a help button nobody presses.
   const [step, setStep] = useState(1);
   const [submitting, setSubmitting] = useState(false);
   const [lastSubmitAt, setLastSubmitAt] = useState<number | null>(null);
+  const draftTimerRef = useRef<number | null>(null);
   // The full server response is kept so the celebration can report stars,
   // XP, achievements and the way on to the next level.
   const [server, setServer] = useState<AttemptResponse | null>(null);
@@ -202,6 +248,22 @@ export function TeachPlayer({ intro, payload, revealHintAction }: ActivityPlayer
       }),
     [data.testSet, examples],
   );
+
+  // Autosave the sorting, debounced like the Blockly players' 2s save. A
+  // classroom tablet that sleeps, reloads, or drops wifi mid-level should
+  // not cost the child their work.
+  useEffect(() => {
+    if (draftTimerRef.current !== null) window.clearTimeout(draftTimerRef.current);
+    draftTimerRef.current = window.setTimeout(() => {
+      void saveDraftAction({
+        levelId: intro.levelId,
+        workspaceJson: { assigned, heldBack: [...heldBack] },
+      });
+    }, 2000);
+    return () => {
+      if (draftTimerRef.current !== null) window.clearTimeout(draftTimerRef.current);
+    };
+  }, [assigned, heldBack, intro.levelId, saveDraftAction]);
 
   const assign = (id: string, label: ClassLabel) => {
     // Frozen only once the bunny has actually got them all right. Freezing

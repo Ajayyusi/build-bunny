@@ -309,6 +309,7 @@ export default async function PlayLevelPage({ params }: Props) {
       activityType={playable.activityType}
       intro={intro}
       payload={payload}
+      draft={playable.draftWorkspace ?? null}
       revealHintAction={revealHint}
       saveDraftAction={saveWorkspaceDraft}
     />
