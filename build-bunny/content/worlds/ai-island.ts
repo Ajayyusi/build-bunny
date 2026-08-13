@@ -2,6 +2,8 @@ import type { z } from "zod";
 import type {
   WorldFixture,
   aiClassificationPayload,
+  aiEthicsPayload,
+  aiSimPayload,
 } from "@/modules/curriculum/schemas";
 
 /**
@@ -19,6 +21,8 @@ import type {
  */
 
 type AiClassificationDraft = z.input<typeof aiClassificationPayload>;
+type AiEthicsDraft = z.input<typeof aiEthicsPayload>;
+type AiSimDraft = z.input<typeof aiSimPayload>;
 
 export const aiIsland: WorldFixture = {
   slug: "ai-island",
@@ -639,6 +643,349 @@ export const aiIsland: WorldFixture = {
             maxExamples: 6,
             starCriteria: { threeStarMaxBlocks: 5 },
           } satisfies AiClassificationDraft,
+        },
+      ],
+    },
+
+    {
+      slug: "seeing-and-secrets",
+      order: 2,
+      name: { en: "Seeing and Secrets", ar: "الرؤية والأسرار" },
+      description: {
+        en: "Machines don't just learn from you — they look at the world, and sometimes they ask about yours. See through a computer's eyes, then decide what an app deserves to know.",
+        ar: "الآلات لا تتعلّم منك فحسب — بل تنظر إلى العالم، وأحيانًا تسأل عن عالمك أنت. انظر بعينَي الحاسوب، ثم قرّر ما الذي يستحق تطبيقٌ أن يعرفه.",
+      },
+      // Phase G graft: concept explorations with no coding prerequisite —
+      // unlockRule OPEN opens every level here the instant the world is
+      // published and in the student's program (see adventure.ts).
+      unlockRule: { type: "OPEN" },
+      levels: [
+        // ── 1. see-like-a-computer: AI_SIM pixel-playground ───────────
+        {
+          slug: "see-like-a-computer",
+          order: 1,
+          activityType: "AI_SIM",
+          track: "AI_CONCEPTS",
+          title: { en: "See Like a Computer", ar: "انظر كما ينظر الحاسوب" },
+          story: {
+            en: "The island's old signal tower still uses low-resolution pictures to send messages across the water. Zoom in close enough, and a photo stops looking like a photo at all — just a grid of coloured squares.",
+            ar: "لا يزال برج الإشارة القديم في الجزيرة يستخدم صورًا منخفضة الدقة لإرسال الرسائل عبر الماء. اقترب بما يكفي من أي صورة، وستتوقف عن أن تبدو صورة على الإطلاق — بل مجرد شبكة من المربعات الملوّنة.",
+          },
+          objective: {
+            en: "Zoom a picture down to its pixel grid, drag the resolution slider, and identify three mystery images at low resolution — the way a computer's camera actually 'sees'.",
+            ar: "قرّب صورة حتى تصل إلى شبكة بكسلاتها، اسحب شريط الدقة، وحدّد ثلاث صور غامضة عند دقة منخفضة — بالطريقة التي «يرى» بها حاسوب الكاميرا فعلًا.",
+          },
+          instructions: {
+            en: "Drag the resolution slider from 64 down to 8 and watch the picture break into fewer, bigger squares. For each mystery round, guess the picture at the LOWEST resolution you can before checking — then see how low a computer could really go.",
+            ar: "اسحب شريط الدقة من 64 إلى 8، وشاهد الصورة تتحول إلى مربعات أقل وأكبر. في كل جولة غموض، خمّن الصورة عند أدنى دقة تستطيعها قبل التحقق — ثم اكتشف إلى أي درجة يستطيع الحاسوب النزول فعلًا.",
+          },
+          explanation: {
+            en: "A photo isn't really a 'picture' to a computer at all — it's a grid of numbers, one small set per square, and that's ALL a computer ever starts with. At 64×64 you could still guess easily; at 8×8 you needed real work, because most of the detail was simply gone. This is honestly why computer vision is hard: a computer never sees a rabbit or a rocket, it only ever sees a grid of numbers and has to work out what they probably mean — the exact same guessing game you just played, just done with maths instead of eyes.",
+            ar: "الصورة ليست «صورة» بالنسبة للحاسوب على الإطلاق — إنها شبكة من الأرقام، مجموعة صغيرة لكل مربع، وهذا كل ما يبدأ به الحاسوب دائمًا. عند دقة 64×64 كان بإمكانك التخمين بسهولة؛ وعند 8×8 احتجت لجهد حقيقي، لأن معظم التفاصيل اختفت ببساطة. هذا بصدق سبب صعوبة رؤية الحاسوب: فالحاسوب لا يرى أرنبًا أو صاروخًا أبدًا، بل يرى فقط شبكة من الأرقام وعليه أن يستنتج معناها المحتمل — وهي بالضبط نفس لعبة التخمين التي لعبتها للتو، لكن بالرياضيات بدلًا من العينين.",
+          },
+          teacherNotes: {
+            en: "No model/inference station here by design — this level is honestly limited to pixels, resolution and the child's own guessing, which IS the whole lesson at this stage. Encourage students to try guessing BEFORE dragging the slider up, not after — the productive struggle at 8px is the point, not a bug.",
+          },
+          difficulty: "MEDIUM",
+          recommendedGradeMin: 3,
+          recommendedGradeMax: 7,
+          estimatedMinutes: 14,
+          xpReward: 70,
+          tags: ["ai", "computer-vision", "pixels"],
+          requires: [],
+          hints: [
+            {
+              tier: 1,
+              text: {
+                en: "Start with the slider all the way up (64) so you know what the real picture looks like, then slide down slowly.",
+                ar: "ابدأ بالشريط في أقصى اليمين (64) لتعرف شكل الصورة الحقيقية، ثم اسحبه ببطء نحو الأسفل.",
+              },
+            },
+            {
+              tier: 2,
+              text: {
+                en: "At low resolution, ignore fine detail and look at big blocks of colour and rough shape instead.",
+                ar: "عند الدقة المنخفضة، تجاهل التفاصيل الدقيقة وانظر بدلًا من ذلك إلى كتل اللون الكبيرة والشكل العام.",
+              },
+            },
+            {
+              tier: 3,
+              text: {
+                en: "Every mystery image is one of the same five pictures you already zoomed into earlier — think about which outline matches best.",
+                ar: "كل صورة غامضة هي واحدة من نفس الصور الخمس التي كبّرتها سابقًا — فكّر في أي مخطط عام يطابقها أكثر.",
+              },
+            },
+            {
+              tier: 4,
+              text: {
+                en: "It's fine to be unsure at 8×8 — that's honest, not a failure. Make your best guess from shape and colour blocks, then compare it to the real picture.",
+                ar: "من الطبيعي أن تكون غير متأكد عند دقة 8×8 — هذا صادق وليس فشلًا. خمّن أفضل تخمين من الشكل وكتل اللون، ثم قارنه بالصورة الحقيقية.",
+              },
+            },
+          ],
+          payload: {
+            widget: {
+              widgetId: "pixel-playground",
+              images: [
+                { id: "rabbit", src: "/ai-lab/rabbit.svg", name: { en: "Rabbit", ar: "أرنب" } },
+                { id: "carrot", src: "/ai-lab/carrot.svg", name: { en: "Carrot", ar: "جزرة" } },
+                { id: "tree", src: "/ai-lab/tree.svg", name: { en: "Tree", ar: "شجرة" } },
+                { id: "rocket", src: "/ai-lab/rocket.svg", name: { en: "Rocket", ar: "صاروخ" } },
+                { id: "house", src: "/ai-lab/house.svg", name: { en: "House", ar: "منزل" } },
+              ],
+              resolutions: [64, 32, 16, 8],
+              rounds: [
+                { id: "round-1", imageId: "carrot", resolution: 16 },
+                { id: "round-2", imageId: "rocket", resolution: 8 },
+                { id: "round-3", imageId: "house", resolution: 16 },
+              ],
+            },
+            intro: {
+              en: "Zoom in until a photo becomes a grid of squares — then try to recognise it anyway, the way a computer has to.",
+              ar: "قرّب حتى تتحول الصورة إلى شبكة من المربعات — ثم حاول التعرّف عليها رغم ذلك، بالطريقة التي يضطر بها الحاسوب.",
+            },
+            honesty: {
+              kind: "REAL",
+              note: {
+                en: "Real: the pixel grid and every resolution step are genuinely computed from the picture — there is no hidden model guessing for you here.",
+                ar: "حقيقي: شبكة البكسلات وكل خطوة دقة تُحسب فعليًا من الصورة — لا يوجد نموذج مخفي يخمّن نيابة عنك هنا.",
+              },
+            },
+          } satisfies AiSimDraft,
+        },
+
+        // ── 2. secret-keepers: AI_ETHICS ──────────────────────────────
+        {
+          slug: "secret-keepers",
+          order: 2,
+          activityType: "AI_ETHICS",
+          track: "AI_CONCEPTS",
+          title: { en: "Secret Keepers", ar: "حرّاس الأسرار" },
+          story: {
+            en: "A shiny new app washes up on AI Island, very friendly and very curious. It has a lot of questions for you before you can even start playing.",
+            ar: "تطبيق جديد لامع وصل إلى جزيرة الذكاء الاصطناعي، ودود جدًا وفضولي جدًا. لديه الكثير من الأسئلة قبل أن تتمكن حتى من البدء باللعب.",
+          },
+          objective: {
+            en: "Walk through four moments where an app asks for something personal, choose how to respond, and assemble a Privacy Shield checklist from what you learn.",
+            ar: "مرّ بأربع لحظات يطلب فيها التطبيق شيئًا شخصيًا، اختر كيف تستجيب، واجمع قائمة «درع الخصوصية» مما تتعلمه.",
+          },
+          instructions: {
+            en: "Read what the app asks for, then pick how you'd respond. There's no score for feeling — just read what happens next after every choice, even the ones you wouldn't really make.",
+            ar: "اقرأ ما يطلبه التطبيق، ثم اختر كيف تستجيب. لا توجد درجة لِما تشعر به — فقط اقرأ ما يحدث بعد كل اختيار، حتى تلك التي لن تختارها فعليًا.",
+          },
+          explanation: {
+            en: "Every 'ask' in this story was for something that feels small on its own — a name, a photo, a location, a friend's number — but adds up to a lot about you once it's all together. The safe habits you saw work every time: you can always say no, a nickname is enough, and asking a grown-up first is never the wrong move. And here's the honest bit — this whole adventure, on every level, we never once asked for your real name either. That's not an accident. It's the same rule.",
+            ar: "كل «طلب» في هذه القصة كان لشيء يبدو صغيرًا بمفرده — اسم، صورة، موقع، رقم صديق — لكنه يتجمّع ليكشف الكثير عنك حين يجتمع معًا. العادات الآمنة التي رأيتها تنجح في كل مرة: يمكنك دائمًا أن تقول لا، والاسم المستعار كافٍ، وسؤال شخص بالغ أولًا ليس خطأً أبدًا. وهذا هو الجزء الصادق — طوال هذه المغامرة، في كل مستوى، لم نطلب منك اسمك الحقيقي ولو مرة واحدة. هذا ليس صدفة. إنها نفس القاعدة.",
+          },
+          teacherNotes: {
+            en: "Completion-based grading (there are no wrong feelings) — every finished path earns a PASS; 3 stars only reflects that the 'safe' option was picked at every visited scene, which is a bonus signal for discussion, not a judgement to relay to the child. The closing beat referencing 'we never asked your real name' is literally true across the whole product (students sign in by school-issued username, never by name) — do not let this level's copy drift from that fact if the app's data practices ever change.",
+          },
+          difficulty: "MEDIUM",
+          recommendedGradeMin: 3,
+          recommendedGradeMax: 7,
+          estimatedMinutes: 12,
+          xpReward: 60,
+          tags: ["ai", "ethics", "privacy"],
+          requires: [],
+          hints: [
+            {
+              tier: 1,
+              text: {
+                en: "There's no wrong feeling here — pick whichever answer feels most like something you'd really do.",
+                ar: "لا توجد إجابة خاطئة هنا من ناحية الشعور — اختر ما يبدو لك الأقرب لما قد تفعله فعلًا.",
+              },
+            },
+            {
+              tier: 2,
+              text: {
+                en: "A safe habit that works almost every time: you are always allowed to say no, or to ask a grown-up first.",
+                ar: "عادة آمنة تنجح تقريبًا في كل مرة: يُسمح لك دائمًا أن تقول لا، أو أن تسأل شخصًا بالغًا أولًا.",
+              },
+            },
+            {
+              tier: 3,
+              text: {
+                en: "A nickname, a general area instead of an exact address, and keeping a friend's details to yourself unless they say it's OK — all of these are safe swaps, not refusals.",
+                ar: "اسم مستعار، ومنطقة عامة بدلًا من عنوان دقيق، والاحتفاظ بمعلومات صديقك لنفسك ما لم يوافق — كل هذه بدائل آمنة، لا رفض.",
+              },
+            },
+            {
+              tier: 4,
+              text: {
+                en: "Finish the story, then read every takeaway on the Privacy Shield checklist before tapping finish — that checklist IS the point of this level.",
+                ar: "أنهِ القصة، ثم اقرأ كل بند في قائمة «درع الخصوصية» قبل الضغط على «إنهاء» — هذه القائمة هي جوهر هذا المستوى.",
+              },
+            },
+          ],
+          payload: {
+            prompt: {
+              en: "A new app has some questions for you. What do you do?",
+              ar: "لدى تطبيق جديد بعض الأسئلة لك. ماذا تفعل؟",
+            },
+            scenes: [
+              {
+                id: "asks-name",
+                text: {
+                  en: "The app pops up with a big smile: 'What's your REAL name? I want to be your friend!'",
+                  ar: "يظهر التطبيق بابتسامة عريضة: «ما اسمك الحقيقي؟ أريد أن أكون صديقك!»",
+                },
+                art: "📛",
+                choices: [
+                  {
+                    id: "give-real-name",
+                    text: { en: "Type in my real name", ar: "أكتب اسمي الحقيقي" },
+                    outcome: {
+                      en: "The app says thanks and moves on — but it never actually NEEDED your real name to be fun. Even Bunny never asks for it.",
+                      ar: "شكرك التطبيق وتابع — لكنه لم يكن يحتاج اسمك الحقيقي فعلًا ليكون ممتعًا. حتى الأرنب لا يطلبه أبدًا.",
+                    },
+                    safe: false,
+                  },
+                  {
+                    id: "use-nickname",
+                    text: { en: "Type in a nickname instead", ar: "أكتب اسمًا مستعارًا بدلًا منه" },
+                    outcome: {
+                      en: "Good move! A nickname lets you play and have fun without sharing something personal.",
+                      ar: "خيار جيد! الاسم المستعار يتيح لك اللعب والاستمتاع دون مشاركة شيء شخصي.",
+                    },
+                    safe: true,
+                  },
+                  {
+                    id: "ask-grownup-name",
+                    text: { en: "Ask a grown-up first", ar: "أسأل شخصًا بالغًا أولًا" },
+                    outcome: {
+                      en: "Smart! A trusted grown-up can help you decide what's okay to share, every time you're unsure.",
+                      ar: "ذكي! يمكن لشخص بالغ تثق به أن يساعدك في تحديد ما هو مناسب للمشاركة، في كل مرة تشعر فيها بعدم اليقين.",
+                    },
+                    safe: true,
+                  },
+                ],
+              },
+              {
+                id: "asks-photo",
+                text: {
+                  en: "'Send me a selfie so I know what you look like!' the app says next.",
+                  ar: "يقول التطبيق بعد ذلك: «أرسل لي صورة سيلفي لأعرف شكلك!»",
+                },
+                art: "📷",
+                choices: [
+                  {
+                    id: "send-selfie",
+                    text: { en: "Send a selfie", ar: "أرسل صورة سيلفي" },
+                    outcome: {
+                      en: "A photo can quietly show a lot more than a face — your room, your school uniform, even where you are. Worth a second thought next time.",
+                      ar: "قد تكشف الصورة أشياء أكثر بكثير من الوجه — غرفتك، زيّك المدرسي، وحتى مكانك. تستحق تفكيرًا إضافيًا في المرة القادمة.",
+                    },
+                    safe: false,
+                  },
+                  {
+                    id: "say-no-photo",
+                    text: { en: "Say 'no thanks'", ar: "أقول «لا شكرًا»" },
+                    outcome: {
+                      en: "You can always say no — a fun app should still be fun without a photo of you.",
+                      ar: "يمكنك دائمًا أن تقول لا — التطبيق الممتع يبقى ممتعًا حتى بدون صورة لك.",
+                    },
+                    safe: true,
+                  },
+                  {
+                    id: "ask-grownup-photo",
+                    text: { en: "Ask a grown-up first", ar: "أسأل شخصًا بالغًا أولًا" },
+                    outcome: {
+                      en: "Great instinct — photos are worth checking with a trusted grown-up before sending, every single time.",
+                      ar: "حدس ممتاز — تستحق الصور مراجعتها مع شخص بالغ تثق به قبل إرسالها، في كل مرة.",
+                    },
+                    safe: true,
+                  },
+                ],
+              },
+              {
+                id: "asks-location",
+                text: {
+                  en: "'Turn on location so I can find you exactly!' the app asks, with a little pulsing pin.",
+                  ar: "يطلب التطبيق مع دبوس نابض صغير: «فعّل الموقع لأتمكن من إيجادك بدقة!»",
+                },
+                art: "📍",
+                choices: [
+                  {
+                    id: "share-exact-location",
+                    text: { en: "Turn on exact location", ar: "أفعّل الموقع الدقيق" },
+                    outcome: {
+                      en: "Now the app knows exactly where you are, right now — that's a lot of trust for a game to ask for.",
+                      ar: "الآن يعرف التطبيق مكانك بدقة، في هذه اللحظة — هذا قدر كبير من الثقة يطلبه تطبيق أو لعبة.",
+                    },
+                    safe: false,
+                  },
+                  {
+                    id: "decline-location",
+                    text: { en: "Say no to location", ar: "أرفض مشاركة الموقع" },
+                    outcome: {
+                      en: "Solid choice — most games and apps work perfectly well without knowing exactly where you are.",
+                      ar: "خيار موثوق — معظم الألعاب والتطبيقات تعمل بشكل ممتاز دون معرفة مكانك بدقة.",
+                    },
+                    safe: true,
+                  },
+                  {
+                    id: "ask-grownup-location",
+                    text: { en: "Ask a grown-up first", ar: "أسأل شخصًا بالغًا أولًا" },
+                    outcome: {
+                      en: "Exactly right — location is one of the things always worth checking with a trusted grown-up first.",
+                      ar: "بالضبط — الموقع من الأمور التي تستحق دائمًا مراجعتها مع شخص بالغ تثق به أولًا.",
+                    },
+                    safe: true,
+                  },
+                ],
+              },
+              {
+                id: "asks-friend-details",
+                text: {
+                  en: "'Invite a friend! Just type in their name and phone number and I'll message them for you.'",
+                  ar: "«ادعُ صديقًا! فقط اكتب اسمه ورقم هاتفه وسأرسل له رسالة نيابة عنك.»",
+                },
+                art: "👫",
+                choices: [
+                  {
+                    id: "give-friend-details",
+                    text: { en: "Type in my friend's details", ar: "أكتب بيانات صديقي" },
+                    outcome: {
+                      en: "That information belongs to your friend, not just to you — it's always kinder to check with them first.",
+                      ar: "تلك المعلومات ملك لصديقك، لا لك وحدك — من الألطف دائمًا أن تسأله أولًا.",
+                    },
+                    safe: false,
+                  },
+                  {
+                    id: "ask-friend-first",
+                    text: { en: "Ask my friend first, or skip it", ar: "أسأل صديقي أولًا، أو أتجاوز الأمر" },
+                    outcome: {
+                      en: "Perfect — your friend's name and number are theirs to share, not yours to give away.",
+                      ar: "ممتاز — اسم صديقك ورقمه ملك له ليشاركه، لا لك لتعطيه.",
+                    },
+                    safe: true,
+                  },
+                ],
+              },
+            ],
+            takeaways: [
+              {
+                en: "I don't have to share my real name.",
+                ar: "لا يتوجب عليّ مشاركة اسمي الحقيقي.",
+              },
+              {
+                en: "I can always say no.",
+                ar: "يمكنني دائمًا أن أقول لا.",
+              },
+              {
+                en: "I ask a grown-up before sharing photos or my location.",
+                ar: "أسأل شخصًا بالغًا قبل مشاركة الصور أو موقعي.",
+              },
+              {
+                en: "My friends' information belongs to them — I ask first.",
+                ar: "معلومات أصدقائي ملك لهم — أسألهم أولًا.",
+              },
+              {
+                en: "Apps and games can be fun without knowing exactly who I am.",
+                ar: "يمكن للتطبيقات والألعاب أن تكون ممتعة دون أن تعرف من أنا بالضبط.",
+              },
+            ],
+          } satisfies AiEthicsDraft,
         },
       ],
     },

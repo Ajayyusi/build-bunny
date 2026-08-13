@@ -325,3 +325,121 @@ describe("unlock engine", () => {
     expect(world(state, w1Id).state).toBe("COMPLETED");
   });
 });
+
+/**
+ * Module.unlockRule OPEN (phase G graft): {type:"OPEN"} unlocks every level
+ * in the module the instant it's reachable at all — no prior-module/
+ * prior-world completion required. Kept as its own isolated
+ * school/program/student so it can't perturb the carefully sequential
+ * fixture graph above.
+ *
+ * Content graph under test:
+ *   world 1 (Gate World): module 1 → gate level (ordinary — must be
+ *     completed the normal way; never touched here, on purpose)
+ *   world 2 (Open World): module 1 (unlockRule OPEN) → open level 1, open
+ *     level 2 · module 2 (ordinary) → gated level
+ */
+describe("Module.unlockRule OPEN", () => {
+  let openSchoolId: string;
+  let openStudentId: string;
+  let openCtx: SessionContext;
+  let openW2Id: string;
+  let gateLevelId: string;
+  let openL1Id: string;
+  let openL2Id: string;
+  let gatedLevelId: string;
+
+  beforeAll(async () => {
+    const school = await createTestSchool("OpenRule");
+    openSchoolId = school.id;
+    const student = await createStudent(SYSTEM_ACTOR, {
+      schoolId: openSchoolId,
+      schoolCode: school.code,
+      username: "openhop",
+      displayName: "Open Rule Tester",
+      studentIdentifier: "OPEN-001",
+      grade: 4,
+    });
+    openStudentId = student.userId;
+    openCtx = createCtx({ userId: openStudentId, role: "STUDENT", schoolId: openSchoolId });
+
+    const program = await createTestProgram({ name: "Open Rule Program" });
+    const w1 = await addWorldToProgram(program.id, 1, { name: "Gate World" });
+    const w2 = await addWorldToProgram(program.id, 2, { name: "Open World" });
+    openW2Id = w2.id;
+
+    const m1 = await createTestModule(w1.id, 1);
+    const gateLevel = await createTestLevel(m1.id, 1, { title: "Gate Level" });
+    gateLevelId = gateLevel.id;
+
+    const mOpen = await createTestModule(w2.id, 1, "Open Module", {
+      unlockRule: { type: "OPEN" },
+    });
+    const openL1 = await createTestLevel(mOpen.id, 1, { title: "Open Level One" });
+    const openL2 = await createTestLevel(mOpen.id, 2, { title: "Open Level Two" });
+    openL1Id = openL1.id;
+    openL2Id = openL2.id;
+
+    // A perfectly ordinary sibling module in the SAME world — proves the
+    // OPEN bypass is scoped to its own module, not contagious to the world.
+    const mGated = await createTestModule(w2.id, 2, "Gated Module");
+    const gatedLevel = await createTestLevel(mGated.id, 1, { title: "Gated Level" });
+    gatedLevelId = gatedLevel.id;
+
+    await enableProgramForSchool(openSchoolId, program.id);
+  });
+
+  it("unlocks every level of the OPEN module immediately, before world 1 has been started", async () => {
+    await recomputeUnlocks(openStudentId);
+    const rows = await db.studentProgress.findMany({
+      where: { studentUserId: openStudentId },
+      select: { levelId: true, status: true, unlockSource: true },
+    });
+    const byLevel = new Map(rows.map((r) => [r.levelId, r]));
+
+    // World 1's own first level opens the ordinary way.
+    expect(byLevel.get(gateLevelId)?.status).toBe("UNLOCKED");
+    expect(byLevel.get(gateLevelId)?.unlockSource).toBe("ORDER");
+
+    // Both OPEN-module levels are unlocked too, unlockSource "OPEN" —
+    // world 1 was never touched, so this is only possible because the
+    // OPEN rule skips the previous-world gate entirely.
+    expect(byLevel.get(openL1Id)?.status).toBe("UNLOCKED");
+    expect(byLevel.get(openL1Id)?.unlockSource).toBe("OPEN");
+    expect(byLevel.get(openL2Id)?.status).toBe("UNLOCKED");
+    expect(byLevel.get(openL2Id)?.unlockSource).toBe("OPEN");
+
+    // The ordinary sibling module is UNAFFECTED: it still obeys the
+    // default previous-world gate and stays fully locked (no row at all).
+    expect(byLevel.has(gatedLevelId)).toBe(false);
+  });
+
+  it("computeAdventureState surfaces the OPEN levels as UNLOCKED while the world card itself still reads LOCKED", async () => {
+    const state = await computeAdventureState(openCtx);
+    const w2 = state.worlds.find((w) => w.id === openW2Id);
+    expect(w2).toBeDefined();
+    // World-level map gating (m3 tightened rule) is a separate mechanism
+    // Module.unlockRule does not touch — world 2 is still LOCKED on the
+    // map even though two of its levels are individually reachable.
+    expect(w2?.state).toBe("LOCKED");
+
+    const levels = w2!.modules.flatMap((m) => m.levels);
+    expect(levels.find((l) => l.id === openL1Id)?.state).toBe("UNLOCKED");
+    expect(levels.find((l) => l.id === openL2Id)?.state).toBe("UNLOCKED");
+    expect(levels.find((l) => l.id === gatedLevelId)?.state).toBe("LOCKED");
+  });
+
+  it("recompute is idempotent for OPEN rows: no duplicates, no downgrades", async () => {
+    await recomputeUnlocks(openStudentId);
+    await recomputeUnlocks(openStudentId);
+    const rows = await db.studentProgress.findMany({
+      where: { studentUserId: openStudentId, levelId: { in: [openL1Id, openL2Id] } },
+      select: { levelId: true, status: true, unlockSource: true },
+    });
+    expect(rows).toHaveLength(2);
+    for (const row of rows) {
+      expect(row.status).toBe("UNLOCKED");
+      expect(row.unlockSource).toBe("OPEN");
+    }
+  });
+});

@@ -127,9 +127,14 @@ export interface StudentSeed {
 /**
  * 16 students, 8 per class — a deliberate spread of curriculum states so every
  * surface has something honest to show. World layout: Bunny Meadow = 6 levels,
- * Logic Forest = 9, Robot Lab = 7, AI Island = 1 — 23 in all, five of them
- * CONCEPT_CARDS Learn steps that score no stars, plus the M4 CODE_PREDICTION
- * and SEQUENCING levels:
+ * Logic Forest = 9, Robot Lab = 7, AI Island = 6, Data Desert = 6,
+ * ML Lab = 3 — 37 in all, five of them CONCEPT_CARDS Learn steps that score
+ * no stars, plus the M4 CODE_PREDICTION and SEQUENCING levels. The four
+ * phase-G graft levels (ai-island/seeing-and-secrets and
+ * data-desert/lines-in-the-sand) sit in unlockRule OPEN modules, so every
+ * student — even the fresh ones — has them UNLOCKED without any coding
+ * progress; none of the arrays below records a completion there, keeping
+ * them appended strictly past every student's frontier:
  *  - 3 fresh accounts that never played (only the first level gets unlocked);
  *  - 6 mid-World-1 (1–4 levels done, next one unlocked);
  *  - 4 finished World 1 and into World 2 (7–8 levels done);

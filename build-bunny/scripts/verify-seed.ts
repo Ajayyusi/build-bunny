@@ -5,13 +5,14 @@ import path from "node:path";
 
 /**
  * Seed verification CLI: `npx tsx scripts/verify-seed.ts` proves the demo
- * database is in the coherent M4 state the seed promises — 18 published
- * levels (Worlds 1–3, including the m4 CODE_PREDICTION/SEQUENCING levels and
- * the CONCEPT_CARDS Learn step)
- * with version snapshots, per-level progress behind every profile cache, the
- * 12 achievement definitions, and the tightened world gate materialized:
- * whoever finished Worlds 1–2 has Robot Lab's first level UNLOCKED.
- * Read-only; exits 1 on any failed check.
+ * database is in the coherent state the seed promises — 37 published levels
+ * (Worlds 1–6, including the m4 CODE_PREDICTION/SEQUENCING levels, the
+ * CONCEPT_CARDS Learn steps, and the phase-G graft's 4 AI-concept levels in
+ * the two OPEN modules) with version snapshots, per-level progress behind
+ * every profile cache, the 12 achievement definitions, the tightened world
+ * gate materialized (whoever finished Worlds 1–2 has Robot Lab's first level
+ * UNLOCKED), and every OPEN-module level UNLOCKED for every student
+ * regardless of coding progress. Read-only; exits 1 on any failed check.
  */
 
 // ── Runtime shim (same technique as prisma/seed.ts) ───────────────────────
@@ -52,14 +53,54 @@ async function main(): Promise<void> {
       module: { select: { world: { select: { slug: true } } } },
     },
   });
-  check("published levels (with snapshot id)", "33", String(publishedLevels.length),
-    publishedLevels.length === 33);
+  check("published levels (with snapshot id)", "37", String(publishedLevels.length),
+    publishedLevels.length === 37);
 
   const robotLabLevels = publishedLevels.filter(
     (l) => l.module.world.slug === "robot-lab",
   );
   check("published Robot Lab levels", "7", String(robotLabLevels.length),
     robotLabLevels.length === 7);
+
+  // Phase G graft: the two OPEN concept modules ship 4 levels between them —
+  // seeing-and-secrets (ai-island) and lines-in-the-sand (data-desert).
+  const GRAFT_SLUGS = [
+    "see-like-a-computer",
+    "secret-keepers",
+    "you-be-the-classifier",
+    "fortune-teller",
+  ];
+  const graftLevels = publishedLevels.filter((l) => GRAFT_SLUGS.includes(l.slug));
+  check("published OPEN-module (AI concept) levels", "4", String(graftLevels.length),
+    graftLevels.length === 4);
+
+  // Since both graft modules are unlockRule OPEN, every demo student must
+  // have all 4 levels open already, regardless of coding-world progress —
+  // the entire point of "no coding prerequisite". (UNLOCKED with source
+  // OPEN; a student who somehow completed one still counts as open.)
+  const demoSchool = await db.school.findUnique({
+    where: { code: "DEMO" },
+    select: { id: true },
+  });
+  if (demoSchool && graftLevels.length === 4) {
+    const graftIds = graftLevels.map((l) => l.id);
+    const students = await db.studentProfile.findMany({
+      where: { schoolId: demoSchool.id },
+      select: { userId: true, user: { select: { username: true } } },
+    });
+    let openForAll = true;
+    for (const student of students) {
+      const openRows = await db.studentProgress.count({
+        where: { studentUserId: student.userId, levelId: { in: graftIds } },
+      });
+      if (openRows !== graftIds.length) {
+        openForAll = false;
+        check(`OPEN levels open for ${student.user.username}`, "4", String(openRows), false);
+      }
+    }
+    check("OPEN-module levels open for every demo student", "yes",
+      openForAll ? "yes" : "no", openForAll);
+  }
 
   const versionCount = await db.levelVersion.count();
   check("LevelVersion snapshots", "≥ 18", String(versionCount), versionCount >= 18);

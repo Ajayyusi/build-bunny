@@ -10,8 +10,10 @@ import { recomputeUnlocks } from "@/modules/learning/server/adventure";
 import { submitAttempt, type AttemptResponse } from "@/modules/grading/server/submit";
 import { verifyCertificate } from "@/modules/certificates/server/verify";
 import { trueLabel } from "@/modules/activities/server/ai-classification";
+import { resolveNextSceneIndex } from "@/modules/activities/types";
 import { toTrainingExample } from "@/modules/ai/knn";
 import { runLloyd, tightness } from "@/modules/ai/grouping";
+import { leastSquares } from "@/modules/ai/lab/math/leastSquares";
 import { solveAiClassification } from "@/modules/ai/solve";
 import {
   aiClassificationPayload,
@@ -146,6 +148,66 @@ function solutionFor(level: PlayableLevel): Record<string, unknown> {
         }
       }
       throw new Error(`${level.slug}: reference placement cannot clear its own bar`);
+    }
+    case "AI_ETHICS": {
+      const scenes = payload.scenes as Array<{
+        id: string;
+        choices: { id: string; safe?: boolean; next?: string }[];
+      }>;
+      if (!Array.isArray(scenes)) throw new Error(`${level.slug}: no scenes`);
+      // Walk the branching story picking the `safe` choice every time (there
+      // may be more than one safe option per scene — any is a genuine full-
+      // marks path) using the SAME resolution rule the player/grader share.
+      const path: { sceneId: string; choiceId: string }[] = [];
+      let index = 0;
+      while (index < scenes.length) {
+        const scene = scenes[index]!;
+        const safeChoice = scene.choices.find((c) => c.safe) ?? scene.choices[0];
+        if (!safeChoice) throw new Error(`${level.slug}: scene ${scene.id} has no choices`);
+        path.push({ sceneId: scene.id, choiceId: safeChoice.id });
+        index = resolveNextSceneIndex(scenes, index, safeChoice.next);
+      }
+      return { answer: { path } };
+    }
+    case "AI_SIM": {
+      const widget = payload.widget as Record<string, unknown>;
+      switch (widget.widgetId) {
+        case "pixel-playground": {
+          const rounds = widget.rounds as Array<{ id: string; imageId: string }>;
+          const answerRounds: Record<string, string> = {};
+          for (const round of rounds) answerRounds[round.id] = round.imageId;
+          return { answer: { rounds: answerRounds } };
+        }
+        case "trend-line": {
+          const points = widget.points as Array<{ x: number; y: number }>;
+          const predictAt = widget.predictAt as number;
+          // The TRUE least-squares fit — the exact function the live
+          // "computer's turn" animation and the server grader both call
+          // (src/modules/ai/lab/math/leastSquares.ts) — is by definition the
+          // best possible submission, so childSSE === optimumSSE.
+          const line = leastSquares(points);
+          const prediction = line.slope * predictAt + line.intercept;
+          return { answer: { line, prediction } };
+        }
+        case "boundary-builder": {
+          // Hand-verified against the shipped content
+          // (content/worlds/data-desert.ts "you-be-the-classifier"): this
+          // steep line classifies every authored point correctly (0 errors,
+          // 3 stars). It is content-specific by nature — a boundary-builder
+          // level's separating line depends on its own point set — so a new
+          // level of this widget needs its own verified line added here.
+          if (level.slug === "you-be-the-classifier") {
+            return { answer: { line: { slope: -50, intercept: 225 } } };
+          }
+          throw new Error(
+            `${level.slug}: no verified boundary-builder solution recorded for this level`,
+          );
+        }
+        default:
+          throw new Error(
+            `${level.slug}: no solution strategy for AI_SIM widget "${String(widget.widgetId)}"`,
+          );
+      }
     }
     default:
       throw new Error(`${level.slug}: no solution strategy for ${level.activityType}`);

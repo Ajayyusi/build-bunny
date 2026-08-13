@@ -2,6 +2,7 @@ import type { z } from "zod";
 import type {
   WorldFixture,
   aiClassificationPayload,
+  aiSimPayload,
   patternRecognitionPayload,
 } from "@/modules/curriculum/schemas";
 
@@ -24,6 +25,7 @@ import type {
 
 type PrDraft = z.input<typeof patternRecognitionPayload>;
 type AiDraft = z.input<typeof aiClassificationPayload>;
+type AiSimDraft = z.input<typeof aiSimPayload>;
 
 const NIGHT_CAMERA_THEME = {
   glyph: "blip" as const,
@@ -596,6 +598,225 @@ export const dataDesert: WorldFixture = {
             maxExamples: 5,
             starCriteria: { threeStarMaxBlocks: 4 },
           } satisfies AiDraft,
+        },
+      ],
+    },
+
+    {
+      slug: "lines-in-the-sand",
+      order: 2,
+      name: { en: "Lines in the Sand", ar: "خطوط في الرمل" },
+      description: {
+        en: "You found the groups by planting flags. Now draw the machine's other two tools with your own hand — a boundary that separates, and a trend line that predicts.",
+        ar: "وجدتَ المجموعات بغرس الأعلام. الآن ارسم أداتَي الآلة الأخريين بيدك — حدًّا يفصل، وخطَّ اتجاه يتنبأ.",
+      },
+      // Phase G graft: concept explorations with no coding prerequisite —
+      // unlockRule OPEN opens every level here the instant the world is
+      // published and in the student's program (see adventure.ts).
+      unlockRule: { type: "OPEN" },
+      levels: [
+        // ── 1. you-be-the-classifier: AI_SIM boundary-builder ─────────
+        {
+          slug: "you-be-the-classifier",
+          order: 1,
+          activityType: "AI_SIM",
+          track: "AI_CONCEPTS",
+          title: { en: "You Be the Classifier", ar: "كن أنت المصنِّف" },
+          story: {
+            en: "A desert market stall has a basket of mixed fruit: some tart, some sweet, and no labels. The stallholder wants a quick way to sort future baskets without tasting every single piece.",
+            ar: "على كشك في سوق الصحراء سلة فواكه مختلطة: بعضها حامض وبعضها حلو، بلا بطاقات. يريد صاحب الكشك طريقة سريعة لفرز السلال القادمة دون تذوّق كل قطعة.",
+          },
+          objective: {
+            en: "Draw a dividing line on a size-vs-sweetness scatter to separate tart fruit from sweet fruit, then compare it to a computer's own simple rule.",
+            ar: "ارسم خطًا فاصلًا على رسم يوضّح الحجم مقابل الحلاوة لتفصل الفاكهة الحامضة عن الحلوة، ثم قارنه بقاعدة بسيطة يضعها الحاسوب بنفسه.",
+          },
+          instructions: {
+            en: "Each dot is one piece of fruit, placed by its size and its sweetness. Drag the line so tart fruit ends up on one side and sweet fruit on the other. A wobbling dot is on the wrong side of your line — try to leave at most one wobbling.",
+            ar: "كل نقطة تمثل قطعة فاكهة واحدة، موضوعة حسب حجمها وحلاوتها. اسحب الخط بحيث تقع الفاكهة الحامضة في جهة والحلوة في الجهة الأخرى. النقطة المهتزّة تقع في الجهة الخطأ من خطك — حاول ألا تترك أكثر من نقطة واحدة مهتزّة.",
+          },
+          explanation: {
+            en: "You just did something a computer can also do: draw a boundary between two groups using only two measurements. When you pressed 'computer's turn', it placed its own line using a simple method — find the middle of each group and draw the line between them. That's honestly how simple as this gets: no thousands of examples, no training, just averages and geometry. Real classifiers (like the ones sorting recycling by camera) use the SAME idea with many more measurements at once — but the core trick, finding a boundary between groups, is exactly what you just did by hand.",
+            ar: "لقد فعلت للتو ما يستطيع الحاسوب فعله أيضًا: رسم حدّ فاصل بين مجموعتين باستخدام قياسين فقط. عندما ضغطت «دور الحاسوب»، وضع خطّه الخاص باستخدام طريقة بسيطة — إيجاد مركز كل مجموعة ورسم الخط بينهما. هذا صادقٌ تمامًا وبهذه البساطة: لا آلاف الأمثلة، لا تدريب، فقط متوسطات وهندسة. المصنِّفات الحقيقية (مثل تلك التي تفرز إعادة التدوير بالكاميرا) تستخدم نفس الفكرة بعدد أكبر من القياسات دفعة واحدة — لكن الحيلة الأساسية، إيجاد حدّ فاصل بين مجموعتين، هي بالضبط ما فعلته للتو بيدك.",
+          },
+          teacherNotes: {
+            en: "The 'computer's turn' centroid-rule line is a genuinely computed result, not an animation — it will differ from a student's line whenever their line isn't optimal, which is the honest teaching moment (invite them to compare). One tart fruit (4,4) and the nearest sweet fruit (6,6) sit closer together than the rest of each group — that gap is where a careless line usually goes wrong, and maxErrors:1 gives a genuine attempt near that gap a pass even before a student finds the fully clean line. A careful, well-angled line CAN classify every point correctly (0 wobbles) — worth celebrating as a distinct, harder goal from just passing.",
+          },
+          difficulty: "MEDIUM",
+          recommendedGradeMin: 4,
+          recommendedGradeMax: 7,
+          estimatedMinutes: 12,
+          xpReward: 70,
+          tags: ["ai", "classification", "boundaries"],
+          requires: [],
+          hints: [
+            {
+              tier: 1,
+              text: {
+                en: "Look at the two colours of dots before you touch the line. Where does each colour mostly sit — left/right, or high/low?",
+                ar: "انظر إلى لوني النقاط قبل أن تلمس الخط. أين يقع كل لون غالبًا — يسارًا/يمينًا، أم عاليًا/منخفضًا؟",
+              },
+            },
+            {
+              tier: 2,
+              text: {
+                en: "Drag the line into the empty gap between the two colour groups, not through the middle of either one.",
+                ar: "اسحب الخط إلى الفراغ بين مجموعتَي اللون، لا عبر منتصف إحداهما.",
+              },
+            },
+            {
+              tier: 3,
+              text: {
+                en: "Tilt the line, not just slide it — a diagonal line often separates two groups better than a flat or straight-up-and-down one.",
+                ar: "أمِل الخط، لا تكتفِ بتحريكه — الخط المائل غالبًا يفصل بين مجموعتين أفضل من الخط الأفقي أو العمودي.",
+              },
+            },
+            {
+              tier: 4,
+              text: {
+                en: "Two fruits — one tart, one sweet — sit closer to each other than the rest of their groups. Angle your line to pass between exactly those two, and every dot can stop wobbling.",
+                ar: "ثمة فاكهتان — واحدة حامضة وواحدة حلوة — تقعان أقرب لبعضهما من بقية مجموعتيهما. أمِل خطك ليمرّ بينهما بالضبط، وستتوقف كل نقطة عن الاهتزاز.",
+              },
+            },
+          ],
+          payload: {
+            widget: {
+              widgetId: "boundary-builder",
+              xAxis: { en: "Size", ar: "الحجم" },
+              yAxis: { en: "Sweetness", ar: "الحلاوة" },
+              labels: [
+                { id: "tart", text: { en: "Tart", ar: "حامض" } },
+                { id: "sweet", text: { en: "Sweet", ar: "حلو" } },
+              ],
+              points: [
+                { id: "p1", x: 1, y: 1, label: "tart" },
+                { id: "p2", x: 1, y: 3, label: "tart" },
+                { id: "p3", x: 2, y: 2, label: "tart" },
+                { id: "p4", x: 2, y: 4, label: "tart" },
+                { id: "p5", x: 3, y: 1, label: "tart" },
+                { id: "p6", x: 3, y: 3, label: "tart" },
+                // Nearest tart↔sweet pair (below): closer to each other than
+                // to the rest of their own group — the genuinely tricky part
+                // of the exercise, without making a perfect line impossible.
+                { id: "p14", x: 4, y: 4, label: "tart" },
+                { id: "p7", x: 6, y: 6, label: "sweet" },
+                { id: "p8", x: 6, y: 8, label: "sweet" },
+                { id: "p9", x: 7, y: 7, label: "sweet" },
+                { id: "p10", x: 7, y: 5, label: "sweet" },
+                { id: "p11", x: 8, y: 6, label: "sweet" },
+                { id: "p12", x: 8, y: 9, label: "sweet" },
+                { id: "p13", x: 9, y: 8, label: "sweet" },
+              ],
+              maxErrors: 1,
+            },
+            intro: {
+              en: "Sort tart fruit from sweet fruit by drawing a line — then see the computer's simple method for the same job.",
+              ar: "افصل الفاكهة الحامضة عن الحلوة برسم خط — ثم شاهد طريقة الحاسوب البسيطة لنفس المهمة.",
+            },
+            honesty: {
+              kind: "REAL",
+              note: {
+                en: "Real: the line-fitting maths genuinely runs. It's honestly a SIMPLE method (averages, not learning) — the machine learning in the rest of this desert goes deeper.",
+                ar: "حقيقي: حسابات الخط الفاصل تُنفَّذ فعليًا. لكنها بصدق طريقة بسيطة (متوسطات، وليست تعلّمًا) — تعلّم الآلة في بقية هذه الصحراء أعمق من ذلك.",
+              },
+            },
+          } satisfies AiSimDraft,
+        },
+
+        // ── 2. fortune-teller: AI_SIM trend-line ──────────────────────
+        {
+          slug: "fortune-teller",
+          order: 2,
+          activityType: "AI_SIM",
+          track: "AI_CONCEPTS",
+          title: { en: "Fortune Teller", ar: "قارئة الطالع" },
+          story: {
+            en: "Ten desert sunflower seedlings each got a different amount of daily sunlight. Three weeks later, an oasis gardener measured how tall every single one grew.",
+            ar: "حصلت عشر شتلات دوّار شمس صحراوية على كمية مختلفة من ضوء الشمس يوميًا. وبعد ثلاثة أسابيع، قاس أحد بستانيي الواحة طول كل واحدة منها.",
+          },
+          objective: {
+            en: "Fit a trend line to real, honestly noisy data by eye, compare it to the computer's least-squares line, then predict a value beyond the measured data with an honest error range.",
+            ar: "اضبط خط اتجاه على بيانات حقيقية بها تشويش صادق بالعين، قارنه بخط الحاسوب الأدق حسابيًا، ثم توقّع قيمة خارج البيانات المُقاسة مع مدى خطأ صادق.",
+          },
+          instructions: {
+            en: "Drag your line to make the 'total miss' score as small as you can — that number is how far every dot sits from your line, added up. Then let the computer take its turn, and predict how tall a seedling would grow with even MORE sunlight than any in the data.",
+            ar: "اسحب خطك لتجعل درجة «الخطأ الكلي» أصغر ما يمكن — هذا الرقم هو مجموع بُعد كل نقطة عن خطك. ثم دع الحاسوب يأخذ دوره، وتوقّع طول شتلة حصلت على ضوء شمس أكثر من أي شتلة في البيانات.",
+          },
+          explanation: {
+            en: "The computer's line is called a least-squares fit — it's the ONE line that makes the 'total miss' score as small as it can possibly be, checked by real arithmetic, not a guess. But look at your prediction: it came with a band around it, not one exact number. That band is the honest part — more sunlight almost always means a taller plant here, but 'almost always' is not 'always', and the further you predict beyond the real data, the less certain any line can be. Predictions are educated guesses built from real evidence — not facts, and not magic.",
+            ar: "يُسمّى خط الحاسوب بخط أقل المربعات — إنه الخط الوحيد الذي يجعل درجة «الخطأ الكلي» أصغر ما يمكن، محسوبًا بعملية حسابية حقيقية، لا تخمينًا. لكن انظر إلى توقّعك: جاء مصحوبًا بمدى حوله، لا برقم واحد دقيق. هذا المدى هو الجزء الصادق — ضوء الشمس الأكثر يعني غالبًا نبتة أطول هنا، لكن «غالبًا» ليست «دائمًا»، وكلما توقّعت أبعد عن البيانات الحقيقية، قلّ يقين أي خط. التوقّعات تخمينات مبنية على أدلّة حقيقية — وليست حقائق، وليست سحرًا.",
+          },
+          teacherNotes: {
+            en: "The dataset has small deliberate noise (real measurements never sit on a perfect line) — do not let a student 'fix' this by insisting their line should touch every point. predictAt (12 hours) sits beyond the dataset's max (10 hours) on purpose, so the error band widens honestly. Good discussion prompt: 'why can't the computer be 100% sure about 12 hours, when it was so close for the points it already measured?'",
+          },
+          difficulty: "MEDIUM",
+          recommendedGradeMin: 4,
+          recommendedGradeMax: 7,
+          estimatedMinutes: 12,
+          xpReward: 70,
+          tags: ["ai", "prediction", "regression"],
+          requires: [],
+          hints: [
+            {
+              tier: 1,
+              text: {
+                en: "Look at the overall slope of the dots first — do taller plants tend to sit on the left or the right?",
+                ar: "انظر أولًا إلى الاتجاه العام للنقاط — هل تميل النباتات الأطول إلى اليسار أم إلى اليمين؟",
+              },
+            },
+            {
+              tier: 2,
+              text: {
+                en: "Aim your line through the MIDDLE of the scatter, not through any one dot — some dots should sit above your line and some below.",
+                ar: "وجّه خطك عبر منتصف التشتّت، لا عبر نقطة واحدة بعينها — يجب أن تقع بعض النقاط فوق خطك وبعضها تحته.",
+              },
+            },
+            {
+              tier: 3,
+              text: {
+                en: "The total-miss score drops as your line gets closer to more dots at once — small nudges, then watch the number.",
+                ar: "تنخفض درجة الخطأ الكلي كلما اقترب خطك من عدد أكبر من النقاط دفعة واحدة — حرّكه قليلًا قليلًا وراقب الرقم.",
+              },
+            },
+            {
+              tier: 4,
+              text: {
+                en: "For the prediction: follow your line's direction PAST the last real dot to where 12 hours would land — then trust the error band the computer draws around it, not one exact number.",
+                ar: "بالنسبة للتوقّع: تابع اتجاه خطك بعد آخر نقطة حقيقية حتى تصل إلى موضع 12 ساعة — ثم ثق بمدى الخطأ الذي يرسمه الحاسوب حوله، لا برقم دقيق واحد.",
+              },
+            },
+          ],
+          payload: {
+            widget: {
+              widgetId: "trend-line",
+              xAxis: { en: "Hours of sunlight per day", ar: "ساعات الشمس يوميًا" },
+              yAxis: { en: "Plant height after 3 weeks (cm)", ar: "ارتفاع النبتة بعد 3 أسابيع (سم)" },
+              points: [
+                { x: 1, y: 3 },
+                { x: 2, y: 5 },
+                { x: 3, y: 6 },
+                { x: 4, y: 9 },
+                { x: 5, y: 10 },
+                { x: 6, y: 13 },
+                { x: 7, y: 14 },
+                { x: 8, y: 17 },
+                { x: 9, y: 18 },
+                { x: 10, y: 21 },
+              ],
+              toleranceFactor: 1.6,
+              predictAt: 12,
+            },
+            intro: {
+              en: "Fit a line to real (slightly messy) plant-growth data, then predict beyond it — with an honest error band.",
+              ar: "اضبط خطًا على بيانات نمو نباتات حقيقية (بها تشويش بسيط)، ثم توقّع خارجها — مع مدى خطأ صادق.",
+            },
+            honesty: {
+              kind: "REAL",
+              note: {
+                en: "Real: your total-miss score and the computer's least-squares line are both genuinely computed from the data — nothing here is scripted.",
+                ar: "حقيقي: درجة خطئك الكلي وخط الحاسوب الأدق كلاهما محسوبان فعليًا من البيانات — لا شيء هنا مُعدّ مسبقًا.",
+              },
+            },
+          } satisfies AiSimDraft,
         },
       ],
     },

@@ -4,7 +4,11 @@ import { z } from "zod";
 
 import { db } from "@/lib/db";
 import type { SessionContext } from "@/modules/auth/server/session";
-import { localizedText, type LocalizedText } from "@/modules/curriculum/schemas";
+import {
+  localizedText,
+  moduleUnlockRuleSchema,
+  type LocalizedText,
+} from "@/modules/curriculum/schemas";
 
 /**
  * Unlock/progress engine + adventure state (plan §M2, pinned cross-agent
@@ -14,7 +18,12 @@ import { localizedText, type LocalizedText } from "@/modules/curriculum/schemas"
  *    UNLOCKED rows and NEVER downgrades or removes existing ones.
  *  - Linear-by-order unlocking inside a module; explicit LevelPrerequisite
  *    edges (ALL must be COMPLETED) override the linear rule for that level.
- *  - Module gate: previous module has all its published levels completed.
+ *  - Module gate: previous module has all its published levels completed —
+ *    UNLESS the module's unlockRule is {type:"OPEN"} (phase G graft), in
+ *    which case every level in it unlocks immediately once the module is
+ *    reachable at all (world published + in the student's program), skipping
+ *    both the previous-module and previous-world gates. unlockSource "OPEN"
+ *    records this on the resulting progress rows.
  *  - World gate (TIGHTENED, owner-approved M3 change): first program world,
  *    or ALL published levels of the previous non-horizon world COMPLETED.
  *  - Only PUBLISHED content is ever visible; student-facing text comes from
@@ -116,6 +125,17 @@ function asText(value: unknown, fallback: string): LocalizedText {
 function asTextOrNull(value: unknown): LocalizedText | null {
   const parsed = localizedText.safeParse(value);
   return parsed.success ? parsed.data : null;
+}
+
+/**
+ * Module.unlockRule OPEN (phase G graft): true when the module should unlock
+ * in full — every level, immediately — as soon as it is reachable at all
+ * (its world is published and in the student's program). Any other JSON
+ * shape (including null/absent) keeps the default linear +
+ * explicit-prerequisite behaviour below, so nothing already deployed moves.
+ */
+function isOpenUnlockRule(unlockRule: unknown): boolean {
+  return moduleUnlockRuleSchema.safeParse(unlockRule).success;
 }
 
 interface ResolvedProgram {
@@ -501,7 +521,10 @@ export async function recomputeUnlocks(studentUserId: string): Promise<void> {
   const isCompleted = (levelId: string): boolean =>
     progress.get(levelId)?.status === "COMPLETED";
 
-  const toCreate: Array<{ levelId: string; unlockSource: "ORDER" | "PREREQUISITE" }> = [];
+  const toCreate: Array<{
+    levelId: string;
+    unlockSource: "ORDER" | "PREREQUISITE" | "OPEN";
+  }> = [];
 
   let isFirstRealWorld = true;
   let previousRealWorldCompleted = false;
@@ -514,20 +537,27 @@ export async function recomputeUnlocks(studentUserId: string): Promise<void> {
 
     let previousModuleAllComplete = false;
     for (const [moduleIndex, mod] of world.modules.entries()) {
-      // TODO(M3): Module.unlockRule DSL — a non-null rule currently falls
-      // back to the default previous-module gate.
+      // OPEN modules (phase G graft: AI-concept modules with no coding
+      // prerequisite) unlock the instant they're reachable at all — they
+      // skip both the previous-world and previous-module gates entirely.
+      // Every other module keeps the default previous-module-complete gate.
+      const openModule = isOpenUnlockRule(mod.unlockRule);
       const moduleUnlocked =
-        worldAvailable && (moduleIndex === 0 || previousModuleAllComplete);
+        openModule || (worldAvailable && (moduleIndex === 0 || previousModuleAllComplete));
 
       if (moduleUnlocked) {
         for (const [levelIndex, level] of mod.levels.entries()) {
           // Existing rows are never touched — no downgrade, no removal.
           if (progress.has(level.id)) continue;
           if (level.prereqIds.length > 0) {
-            // Explicit AND-edges override linear order for this level.
+            // Explicit AND-edges override linear order (and OPEN) for this level.
             if (level.prereqIds.every(isCompleted)) {
               toCreate.push({ levelId: level.id, unlockSource: "PREREQUISITE" });
             }
+          } else if (openModule) {
+            // Every level in an OPEN module unlocks at once — there is no
+            // linear order to respect inside it.
+            toCreate.push({ levelId: level.id, unlockSource: "OPEN" });
           } else if (
             levelIndex === 0 ||
             isCompleted(mod.levels[levelIndex - 1]!.id)

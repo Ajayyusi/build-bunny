@@ -209,8 +209,10 @@ async function runImport(
         diff.creates.push(moduleLabel);
         modulePlans.push({ fixture: moduleFx, existing: null, outcome: "create" });
       } else {
-        // unlockRule is not part of the fixture format — import neither
-        // writes nor compares it, so a rule authored later survives imports.
+        // unlockRule is written on CREATE only (below), from the fixture.
+        // On UPDATE it is intentionally left untouched and out of this
+        // comparison, so a rule set at creation (by this fixture or, later,
+        // by an admin surface) survives every re-import.
         const current = {
           name: existingModule.name,
           description: existingModule.description,
@@ -257,6 +259,7 @@ async function runImport(
               name: plan.fixture.name as Prisma.InputJsonValue,
               description: toJson(plan.fixture.description),
               order: plan.fixture.order,
+              unlockRule: toJson(plan.fixture.unlockRule),
             },
           });
           moduleIdBySlug.set(plan.fixture.slug, created.id);

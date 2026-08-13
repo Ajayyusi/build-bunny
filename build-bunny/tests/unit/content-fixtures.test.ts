@@ -135,13 +135,20 @@ describe("content bundle shape", () => {
     // world with no program in it at all: berry-sorter (which examples),
     // draw-the-line (where the machine's rule comes from),
     // the-berry-that-lied (a wrong label poisons its own neighbourhood)
-    // and nothing-rules-alone (neither measurement decides on its own).
+    // and nothing-rules-alone (neither measurement decides on its own)
+    // + the 4 phase-G graft levels in the two OPEN concept modules:
+    // see-like-a-computer (AI_SIM pixel-playground) and secret-keepers
+    // (AI_ETHICS) in ai-island's seeing-and-secrets;
+    // you-be-the-classifier (AI_SIM boundary-builder) and fortune-teller
+    // (AI_SIM trend-line) in data-desert's lines-in-the-sand.
     const levelCount = playableWorlds.reduce((n, w) => n + allLevels(w).length, 0);
-    expect(levelCount).toBe(33);
+    expect(levelCount).toBe(37);
     const robotLab = playableWorlds.find((w) => w.slug === "robot-lab");
     expect(allLevels(robotLab as WorldFixture)).toHaveLength(7);
     const aiIsland = playableWorlds.find((w) => w.slug === "ai-island");
-    expect(allLevels(aiIsland as WorldFixture)).toHaveLength(4);
+    expect(allLevels(aiIsland as WorldFixture)).toHaveLength(6);
+    const dataDesert = playableWorlds.find((w) => w.slug === "data-desert");
+    expect(allLevels(dataDesert as WorldFixture)).toHaveLength(6);
   });
 });
 

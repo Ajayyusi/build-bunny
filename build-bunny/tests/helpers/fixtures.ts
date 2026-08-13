@@ -118,9 +118,19 @@ export async function createTestModule(
   worldId: string,
   order: number,
   name = `Test Module ${order}`,
+  /** e.g. `{ unlockRule: { type: "OPEN" } }` — the phase G graft rule. */
+  opts: { unlockRule?: unknown } = {},
 ) {
   return db.module.create({
-    data: { worldId, slug: uniqueSlug("module"), name: { en: name }, order },
+    data: {
+      worldId,
+      slug: uniqueSlug("module"),
+      name: { en: name },
+      order,
+      ...(opts.unlockRule !== undefined
+        ? { unlockRule: opts.unlockRule as Prisma.InputJsonValue }
+        : {}),
+    },
   });
 }
 
