@@ -400,6 +400,21 @@ export const aiClassificationPayload = z
     testSet: z.array(specimenSchema).min(2),
     /** Ground truth. Server-held — see stripStudentPayload. */
     rule: classificationRule,
+    /**
+     * Pool specimens whose recorded `truth` is DELIBERATELY wrong.
+     *
+     * One level is about exactly this: another rabbit kept the notes and got
+     * an entry wrong, the machine believes whatever label you hand it, and
+     * the winning move is to leave that record out. Declaring the lie makes
+     * it auditable — the content suite checks that each declared specimen
+     * really does contradict the rule, and that every UNdeclared one agrees
+     * with it, so a genuine authoring typo can never hide behind "it must
+     * have been intentional".
+     *
+     * Answer-bearing: this names the berry. Swept by ANSWER_KEYS, and absent
+     * from the .strict() student schema so a strip regression throws.
+     */
+    mislabelled: z.array(z.string()).default([]),
     /** Refuse to grade until the student has taught both buckets. */
     minPerLabel: z.number().int().min(1).default(2),
     /**

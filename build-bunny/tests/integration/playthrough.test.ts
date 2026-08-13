@@ -11,6 +11,7 @@ import { submitAttempt, type AttemptResponse } from "@/modules/grading/server/su
 import { verifyCertificate } from "@/modules/certificates/server/verify";
 import { trueLabel } from "@/modules/activities/server/ai-classification";
 import { toTrainingExample } from "@/modules/ai/knn";
+import { solveAiClassification } from "@/modules/ai/solve";
 import { aiClassificationPayload, XP_BY_DIFFICULTY } from "@/modules/curriculum/schemas";
 import { bundle } from "../../content";
 import { ACHIEVEMENTS } from "../../prisma/seed-data/achievements";
@@ -79,25 +80,22 @@ function solutionFor(level: PlayableLevel): Record<string, unknown> {
       return { answer: { blockType } };
     }
     case "AI_CLASSIFICATION": {
-      // "Solved" by teaching a REPRESENTATIVE set: every pool specimen,
-      // labelled by the level's own hidden rule. Using the whole pool is
-      // what guarantees both sides of the decoy feature are covered — which
-      // is precisely what the activity asks a student to work out, and why
-      // a partial set can fail this level with every label still correct.
+      // Solved by SEARCH, not by a recorded answer. There is no single
+      // "solution" to record here — the answer is a choice of examples, and
+      // whether a given choice wins is a property of nearest-neighbour
+      // geometry the author cannot see by reading.
       //
-      // Both helpers are the PRODUCTION ones on purpose. This block used to
-      // recompute the rule by hand and spread the whole specimen, so it
-      // submitted a shape the real attempts route rejects — the test passed
-      // while the thing it claimed to prove was untrue of the live path.
+      // This block used to teach the entire pool, which stopped being a
+      // solution the moment a level set an example cap — and a level whose
+      // whole lesson is "choose well" is precisely the one where teaching
+      // everything must fail.
       const parsed = aiClassificationPayload.safeParse(payload);
       if (!parsed.success) throw new Error(`${level.slug}: payload is not a valid AI level`);
-      return {
-        answer: {
-          examples: parsed.data.pool.map((specimen) =>
-            toTrainingExample({ ...specimen, label: trueLabel(parsed.data.rule, specimen) }),
-          ),
-        },
-      };
+      const solution = solveAiClassification(parsed.data, (probe) =>
+        trueLabel(parsed.data.rule, probe),
+      );
+      if (!solution) throw new Error(`${level.slug}: no legal training set wins this level`);
+      return { answer: { examples: solution.map(toTrainingExample) } };
     }
     default:
       throw new Error(`${level.slug}: no solution strategy for ${level.activityType}`);

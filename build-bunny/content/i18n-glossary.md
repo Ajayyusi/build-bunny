@@ -58,7 +58,7 @@ other block labels were reviewed and judged natural, concrete classroom
 Arabic; no other change was needed.
 
 ## 4. Supplementary content vocabulary (not mandated by the brief, kept here
-for translator consistency across the 18 levels)
+for translator consistency across the shipped levels)
 
 | English                          | Arabic                  |
 |-----------------------------------|--------------------------|
@@ -89,3 +89,54 @@ that decision — `computeArComplete` in
 `teacherNotes` from AR-coverage (student-facing fields only: title, story,
 objective, instructions, explanation, all 4 hint tiers). See the comment
 left at that function for the rationale.
+
+## 6. AI & machine-learning vocabulary (Worlds 4–6)
+
+Added when AI Island graduated from roadmap art to real content. These worlds
+are the first place a child meets a machine that is TAUGHT rather than
+programmed, and that distinction only survives translation if the words stay
+fixed. Two rules govern this table:
+
+1. **One rendering per idea, everywhere.** Levels authored separately produce
+   three different renderings of "example" without this; that is the defect
+   this section exists to prevent.
+2. **Student-facing copy never uses the technical term.** A child reads "the
+   bunny guesses" and "the ones you showed it". The technical column records
+   what a teacher would recognise, and belongs only in `teacherNotes`, which
+   is English-only by §5 — so the two columns can never get swapped by
+   accident.
+
+| English (student-facing)  | Arabic                    | Technical (teacherNotes, EN only) |
+|----------------------------|----------------------------|------------------------------------|
+| teach (a machine)          | علّم                       | train |
+| example (one you show it)  | مثال (ج. أمثلة)            | training example |
+| the ones you showed it     | ما علّمته إياه              | training set |
+| guess (verb)               | يخمّن                       | predict |
+| guess (noun)               | تخمين                      | prediction |
+| new / never seen before    | جديد / لم يره من قبل        | held-out, unseen |
+| it looks most like         | تشبه أكثر                   | nearest neighbour |
+| measurement                | قياس (ج. قياسات)           | feature |
+| basket                     | سلّة (ج. سلال)              | class / label |
+| safe to eat / not safe     | آمنة للأكل / غير آمنة       | positive / negative class |
+| a wrong note               | ملاحظة خاطئة                | mislabelled record |
+| group (of things alike)    | مجموعة                      | cluster |
+| pattern                    | نمط (ج. أنماط)             | structure, signal |
+| machine learning           | تعلّم الآلة                 | machine learning |
+| artificial intelligence    | الذكاء الاصطناعي            | artificial intelligence |
+
+Names introduced by these worlds:
+
+| English              | Arabic                  |
+|-----------------------|--------------------------|
+| AI Island (world)     | جزيرة الذكاء الاصطناعي   |
+| Data Desert (world)   | صحراء البيانات           |
+| Machine Learning Lab  | مختبر تعلّم الآلة        |
+| berry                 | حبة توت (ج. حبات توت)    |
+| crab                  | سلطعون (ج. سلاطعين)      |
+
+### Why "علّم" and not "درّب"
+
+"علّم" (to teach) is used throughout rather than "درّب" (to train). The whole
+pedagogical point of these worlds is that showing examples is a kind of
+TEACHING rather than a kind of programming, and "علّم" carries that to a child
+in a way "درّب" — which a Grade 5 reader associates with sport — does not.

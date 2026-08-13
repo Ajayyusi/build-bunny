@@ -4,7 +4,12 @@ import {
   gradeAiClassification,
   trueLabel,
 } from "@/modules/activities/server/ai-classification";
-import { aiClassificationPayload, type LevelFixture } from "@/modules/curriculum/schemas";
+import {
+  aiClassificationPayload,
+  aiClassificationStudentPayload,
+  type LevelFixture,
+} from "@/modules/curriculum/schemas";
+import { stripStudentPayload } from "@/modules/curriculum/server/queries";
 import type { LevelSnapshot } from "@/modules/curriculum/server/publish";
 
 import { bundle } from "../../content";
@@ -91,13 +96,42 @@ describe.each(aiLevels)("AI level $level.slug ($world)", ({ level }) => {
   const passing = submittable.filter((s) => grade(level, s).verdict === "PASS");
   const failing = submittable.filter((s) => grade(level, s).verdict === "FAIL");
 
-  it("pool specimens agree with the level's own hidden rule", () => {
+  it("pool specimens agree with the level's own hidden rule, except declared lies", () => {
     // An author writing `truth: "positive"` for a specimen the rule calls
     // negative hands the child two contradictory sources of evidence. They
     // would be right to trust the label they can see, and still lose.
+    //
+    // One level does this ON PURPOSE — a wrong note is the whole lesson — so
+    // the exception must be declared in `mislabelled`. Requiring the
+    // declaration is what keeps a genuine typo from hiding behind "it must
+    // have been intentional".
+    const declared = new Set(payload.mislabelled);
     for (const specimen of pool) {
+      if (declared.has(specimen.id)) continue;
       expect(trueLabel(payload.rule, specimen), `${specimen.id}`).toBe(specimen.truth);
     }
+  });
+
+  it("every declared lie actually contradicts the rule", () => {
+    // A stale declaration is worse than none: it silently switches off the
+    // check above for a specimen that no longer needs the exemption.
+    for (const id of payload.mislabelled) {
+      const specimen = pool.find((p) => p.id === id);
+      expect(specimen, `${id} is declared mislabelled but is not in the pool`).toBeDefined();
+      expect(trueLabel(payload.rule, specimen!), `${id} is declared a lie but agrees with the rule`)
+        .not.toBe(specimen!.truth);
+    }
+  });
+
+  it("never ships the answer to a level built on a wrong note", () => {
+    if (payload.mislabelled.length === 0) return;
+    const shipped = JSON.stringify(stripStudentPayload("AI_CLASSIFICATION", level.payload));
+    expect(shipped.includes("mislabelled")).toBe(false);
+    // Structural, not just the key name: the id itself must not survive in a
+    // position that reveals it. It legitimately appears as a pool specimen id.
+    expect(aiClassificationStudentPayload.safeParse(
+      stripStudentPayload("AI_CLASSIFICATION", level.payload),
+    ).success).toBe(true);
   });
 
   it("holds its test specimens out of the pool", () => {

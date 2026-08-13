@@ -340,7 +340,14 @@ export async function getPublishedLevelSnapshot(
  * answer, since the whole activity is the student inferring that rule from
  * specimens they can see.
  */
-const ANSWER_KEYS = ["solution", "correctOptionId", "correctOrder", "rule"] as const;
+const ANSWER_KEYS = [
+  "solution",
+  "correctOptionId",
+  "correctOrder",
+  "rule",
+  // Names the deliberately-wrong record — i.e. the answer to that level.
+  "mislabelled",
+] as const;
 
 /**
  * Answer-bearing keys nested one level down, as [container, key] pairs.

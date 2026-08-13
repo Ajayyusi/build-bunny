@@ -131,12 +131,17 @@ describe("content bundle shape", () => {
     // robot-lab) + 5 Learn steps (CONCEPT_CARDS), one per concept that
     // debuts a new block: learn-repeat (bunny-meadow); learn-loop-body,
     // learn-if and learn-repeat-until (logic-forest); learn-if-else
-    // (robot-lab) + 1 AI_CLASSIFICATION level: berry-sorter (ai-island),
-    // the first level in the product with no program in it at all.
+    // (robot-lab) + 4 AI_CLASSIFICATION levels in ai-island, the first
+    // world with no program in it at all: berry-sorter (which examples),
+    // draw-the-line (where the machine's rule comes from),
+    // the-berry-that-lied (a wrong label poisons its own neighbourhood)
+    // and nothing-rules-alone (neither measurement decides on its own).
     const levelCount = playableWorlds.reduce((n, w) => n + allLevels(w).length, 0);
-    expect(levelCount).toBe(23);
+    expect(levelCount).toBe(26);
     const robotLab = playableWorlds.find((w) => w.slug === "robot-lab");
     expect(allLevels(robotLab as WorldFixture)).toHaveLength(7);
+    const aiIsland = playableWorlds.find((w) => w.slug === "ai-island");
+    expect(allLevels(aiIsland as WorldFixture)).toHaveLength(4);
   });
 });
 

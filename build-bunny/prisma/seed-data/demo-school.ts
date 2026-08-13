@@ -147,19 +147,26 @@ export const STUDENTS: StudentSeed[] = [
   {
     firstName: "Aisha", lastInitial: "K", username: "aisha", studentIdentifier: "DEMO-1001",
     className: "Grade 3A", grade: 3, password: "star-bunny-31",
-    // Everything up to AI Island: 6 Bunny Meadow + 9 Logic Forest + 7 Robot
-    // Lab = 22, leaving berry-sorter as her next unlocked node. She has to
-    // reach that far or the AI level is invisible in a demo — worlds unlock
-    // in order, so one student must clear three worlds before anyone can see
-    // the fourth. Every scored level is ≥2 stars (a genuine PASS, never just
-    // PARTIAL) because the certificate issuance path gates on that. The 0s
-    // are Learn steps, which have no stars to earn: index 4 learn-repeat,
-    // 6 learn-loop-body, 9 learn-if, 11 learn-repeat-until, 17 learn-if-else.
+    // Three worlds plus most of AI Island: 6 Bunny Meadow + 9 Logic Forest +
+    // 7 Robot Lab + 3 AI Island = 25. She has to reach this far or the AI
+    // world is invisible in a demo — worlds unlock in order, so one student
+    // must clear three worlds before anyone can even see the fourth. Every
+    // scored level is ≥2 stars (a genuine PASS, never just PARTIAL) because
+    // the certificate issuance path gates on that. The 0s are Learn steps,
+    // which have no stars to earn: index 4 learn-repeat, 6 learn-loop-body,
+    // 9 learn-if, 11 learn-repeat-until, 17 learn-if-else.
+    //
+    // This array is POSITIONAL along the flattened trail (world → module →
+    // level order), so inserting a level anywhere before the end silently
+    // rewrites her history. New levels are appended, never spliced in.
     progress: {
       completedStars: [
         3, 3, 3, 3, 0, 3, // Bunny Meadow
         0, 3, 3, 0, 2, 0, 3, 3, 3, // Logic Forest
         3, 3, 0, 3, 3, 3, 3, // Robot Lab
+        // AI Island, deliberately one short: nothing-rules-alone stays her
+        // live frontier so a demo always has an unplayed level to open.
+        3, 3, 2,
       ],
       streakCurrent: 9, streakBest: 9, lastActiveDaysAgo: 0,
     },

@@ -52,8 +52,8 @@ async function main(): Promise<void> {
       module: { select: { world: { select: { slug: true } } } },
     },
   });
-  check("published levels (with snapshot id)", "23", String(publishedLevels.length),
-    publishedLevels.length === 23);
+  check("published levels (with snapshot id)", "26", String(publishedLevels.length),
+    publishedLevels.length === 26);
 
   const robotLabLevels = publishedLevels.filter(
     (l) => l.module.world.slug === "robot-lab",

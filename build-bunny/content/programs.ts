@@ -17,12 +17,21 @@ export const foundations: ProgramFixture = {
   },
   gradeMin: 3,
   gradeMax: 7,
+  // AI Island sits ahead of Data Desert. Every Data Desert level assumes the
+  // child already knows what teaching by example means — the desert is about
+  // structure that exists in data BEFORE anyone labels it, and that only lands
+  // as a contrast once labelling is familiar.
+  //
+  // Safe to reorder now rather than later: both worlds sit past every demo
+  // student's frontier, so no recorded progress moves. (completedStars indexes
+  // the flattened trail in world → module → level order, so reordering worlds
+  // a student HAS reached would silently rewrite their history.)
   worlds: [
     "bunny-meadow",
     "logic-forest",
     "robot-lab",
-    "data-desert",
     "ai-island",
+    "data-desert",
     "ml-lab",
     "code-city",
     "inventor-island",
