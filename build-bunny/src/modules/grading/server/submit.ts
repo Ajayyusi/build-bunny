@@ -1,5 +1,7 @@
 import "server-only";
 
+import type { AiClassificationAnswer } from "@/modules/activities/server/ai-classification";
+
 import { Prisma } from "@prisma/client";
 
 import { db } from "@/lib/db";
@@ -43,15 +45,11 @@ export interface AnswerAttemptInput {
     | { optionId: string }
     | { order: string[] }
     | { blockType: string }
-    /** AI_CLASSIFICATION: every specimen the student taught the model with. */
-    | {
-        examples: {
-          id: string;
-          size: number;
-          color: number;
-          label: "positive" | "negative";
-        }[];
-      };
+    /**
+     * AI_CLASSIFICATION: every specimen the student taught the model with.
+     * Derived from the engine's schema, never re-typed — see the note there.
+     */
+    | AiClassificationAnswer;
 }
 
 export type AttemptInput = GridAttemptInput | AnswerAttemptInput;

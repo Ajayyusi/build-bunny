@@ -19,10 +19,10 @@ import type {
 } from "@/modules/activities/types";
 import { requireRole } from "@/modules/auth/server/session";
 import {
+  aiClassificationStudentPayload,
   blockCodingPayload,
   debuggingPayload,
   resolveText,
-  type LocalizedText,
 } from "@/modules/curriculum/schemas";
 import {
   computeAdventureState,
@@ -164,17 +164,12 @@ export default async function PlayLevelPage({ params }: Props) {
       items: shuffleSequencingItems(parsed.items, `${playable.id}:${ctx.userId}`),
     } satisfies SequencingActivityPayload;
   } else if (playable.activityType === "AI_CLASSIFICATION") {
-    // `rule` (the ground truth) was already removed by stripStudentPayload;
-    // parsing the stripped object against the authoring schema would fail
-    // closed, so read the answer-free fields directly.
-    const raw = playable.payload as {
-      conceptSlug: string;
-      labels: { positive: LocalizedText; negative: LocalizedText };
-      pool: { id: string; size: number; color: number; truth: "positive" | "negative" }[];
-      testSet: { id: string; size: number; color: number }[];
-      minPerLabel?: number;
-      starCriteria?: { threeStarMaxBlocks?: number };
-    };
+    // Parsed, not cast. `rule` (the ground truth) was already removed by
+    // stripStudentPayload, and this schema is .strict() WITHOUT it — so a
+    // strip regression fails loudly here instead of serialising the answer
+    // into the page source. Every other activity type already had a mirror
+    // schema; this one was the last `as` cast in the file.
+    const raw = aiClassificationStudentPayload.parse(playable.payload);
     payload = {
       conceptSlug: raw.conceptSlug,
       labels: {
@@ -183,8 +178,8 @@ export default async function PlayLevelPage({ params }: Props) {
       },
       pool: raw.pool,
       testSet: raw.testSet,
-      minPerLabel: raw.minPerLabel ?? 2,
-      starCriteria: raw.starCriteria ?? {},
+      minPerLabel: raw.minPerLabel,
+      starCriteria: raw.starCriteria,
     } satisfies TeachActivityPayload;
   } else if (playable.activityType === "CONCEPT_CARDS") {
     const parsed = conceptCardsStudentPayload.parse(playable.payload);

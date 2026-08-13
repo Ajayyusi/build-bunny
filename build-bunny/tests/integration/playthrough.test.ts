@@ -9,7 +9,9 @@ import { publishLevel, transitionStatus } from "@/modules/curriculum/server/publ
 import { recomputeUnlocks } from "@/modules/learning/server/adventure";
 import { submitAttempt, type AttemptResponse } from "@/modules/grading/server/submit";
 import { verifyCertificate } from "@/modules/certificates/server/verify";
-import { XP_BY_DIFFICULTY } from "@/modules/curriculum/schemas";
+import { trueLabel } from "@/modules/activities/server/ai-classification";
+import { toTrainingExample } from "@/modules/ai/knn";
+import { aiClassificationPayload, XP_BY_DIFFICULTY } from "@/modules/curriculum/schemas";
 import { bundle } from "../../content";
 import { ACHIEVEMENTS } from "../../prisma/seed-data/achievements";
 
@@ -82,17 +84,18 @@ function solutionFor(level: PlayableLevel): Record<string, unknown> {
       // what guarantees both sides of the decoy feature are covered — which
       // is precisely what the activity asks a student to work out, and why
       // a partial set can fail this level with every label still correct.
-      const rule = payload.rule as { feature: "size" | "color"; threshold: number } | undefined;
-      const pool = payload.pool as { id: string; size: number; color: number }[] | undefined;
-      if (!rule || !Array.isArray(pool)) {
-        throw new Error(`${level.slug}: no rule/pool in payload`);
-      }
+      //
+      // Both helpers are the PRODUCTION ones on purpose. This block used to
+      // recompute the rule by hand and spread the whole specimen, so it
+      // submitted a shape the real attempts route rejects — the test passed
+      // while the thing it claimed to prove was untrue of the live path.
+      const parsed = aiClassificationPayload.safeParse(payload);
+      if (!parsed.success) throw new Error(`${level.slug}: payload is not a valid AI level`);
       return {
         answer: {
-          examples: pool.map((specimen) => ({
-            ...specimen,
-            label: specimen[rule.feature] < rule.threshold ? "positive" : "negative",
-          })),
+          examples: parsed.data.pool.map((specimen) =>
+            toTrainingExample({ ...specimen, label: trueLabel(parsed.data.rule, specimen) }),
+          ),
         },
       };
     }

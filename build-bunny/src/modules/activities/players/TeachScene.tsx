@@ -1,5 +1,14 @@
 "use client";
 
+import {
+  DEFAULT_GLYPH_THEME,
+  glyphFill,
+  glyphPx,
+  glyphShapeStyle,
+  glyphTheme,
+  MYSTERY_FILL,
+} from "@/modules/ai/glyph";
+
 /**
  * The animated explanation that plays behind each walkthrough step.
  *
@@ -49,37 +58,36 @@ html[dir="rtl"] .bbw-reach{transform-origin:right}
 }
 `;
 
-/** Same hue ramp as the board, so a berry means the same thing in both. */
-function hueFor(color: number) {
-  return Math.round(250 + color * 110);
-}
-
 function SceneBerry({
   size,
   color,
   className,
   style,
   mystery,
+  theme = DEFAULT_GLYPH_THEME,
 }: {
   size: number;
   color: number;
   className?: string;
   style?: React.CSSProperties;
   mystery?: boolean;
+  theme?: string;
 }) {
-  const px = 26 + Math.round(size * 26);
-  const hue = hueFor(color);
+  // Geometry comes from the shared module, never re-typed here: the scene
+  // teaches the child how to read the board, so a glyph that meant something
+  // different in the two places would be actively misleading.
+  const glyph = glyphTheme(theme);
+  const px = glyphPx(glyph, size);
   return (
     <span className={`relative inline-block shrink-0 ${className ?? ""}`} style={style}>
       <span
         aria-hidden="true"
-        className="block rounded-full border-2 border-ink/15"
+        className="block border-2 border-ink/15"
         style={{
           width: px,
           height: px,
-          background: mystery
-            ? "repeating-linear-gradient(45deg, hsl(230 12% 82%), hsl(230 12% 82%) 5px, hsl(230 12% 88%) 5px, hsl(230 12% 88%) 10px)"
-            : `radial-gradient(circle at 32% 30%, hsl(${hue} 85% 72%), hsl(${hue} 70% 48%))`,
+          background: mystery ? MYSTERY_FILL : glyphFill(glyph, color),
+          ...glyphShapeStyle(glyph),
         }}
       />
       {mystery ? (

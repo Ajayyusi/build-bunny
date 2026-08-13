@@ -1,13 +1,18 @@
 import { describe, expect, it } from "vitest";
 
-import { z } from "zod";
 
 import {
+  aiClassificationAnswerSchema,
   classify,
   gradeAiClassification,
+  trueLabel,
 } from "@/modules/activities/server/ai-classification";
 import { toTrainingExample } from "@/modules/ai/knn";
-import { aiClassificationPayload } from "@/modules/curriculum/schemas";
+import {
+  aiClassificationPayload,
+  aiClassificationStudentPayload,
+  type ClassificationRule,
+} from "@/modules/curriculum/schemas";
 import { stripStudentPayload } from "@/modules/curriculum/server/queries";
 
 /**
@@ -171,14 +176,11 @@ describe("what the player submits", () => {
    * submission with a 400 the UI reported as "not quite yet" — telling a
    * child to rethink work that never reached the server.
    */
-  const routeExample = z
-    .object({
-      id: z.string().min(1),
-      size: z.number().min(0).max(1),
-      color: z.number().min(0).max(1),
-      label: z.enum(["positive", "negative"]),
-    })
-    .strict();
+  // NOT a mirror any more. The point of importing the real schema is that a
+  // field added to the wire shape cannot be added to three copies and missed
+  // in the fourth — which is exactly how `truth` shipped and 400'd every
+  // submission behind a "not quite yet" message.
+  const routeExample = aiClassificationAnswerSchema.shape.examples.element;
 
   it("strips `truth` so a strict route schema accepts it", () => {
     const taught = payload.pool.map((specimen) => ({
@@ -201,5 +203,69 @@ describe("what the player submits", () => {
     // A student may mislabel on purpose; the mapper must not "correct" them.
     const mislabelled = { ...payload.pool[0]!, label: "negative" as const };
     expect(toTrainingExample(mislabelled).label).toBe("negative");
+  });
+});
+
+
+describe("rule kinds", () => {
+  it("defaults a rule with no `kind` to a threshold, so authored levels are unchanged", () => {
+    const parsed = aiClassificationPayload.parse(payload);
+    expect(parsed.rule).toEqual({ kind: "threshold", feature: "color", threshold: 0.5 });
+  });
+
+  it("threshold: positive strictly BELOW the cut", () => {
+    const rule: ClassificationRule = { kind: "threshold", feature: "color", threshold: 0.5 };
+    expect(trueLabel(rule, { size: 0.9, color: 0.49 })).toBe("positive");
+    expect(trueLabel(rule, { size: 0.1, color: 0.5 })).toBe("negative");
+    expect(trueLabel(rule, { size: 0.1, color: 0.51 })).toBe("negative");
+  });
+
+  it("box: positive only where BOTH measurements are inside, edges included", () => {
+    // The whole point of this rule kind: neither feature alone explains it,
+    // so there is no "one that matters" for a student to find.
+    const rule: ClassificationRule = { kind: "box", size: [0.0, 0.4], color: [0.0, 0.4] };
+    expect(trueLabel(rule, { size: 0.2, color: 0.2 })).toBe("positive"); // inside
+    expect(trueLabel(rule, { size: 0.4, color: 0.4 })).toBe("positive"); // on both edges
+    expect(trueLabel(rule, { size: 0.2, color: 0.9 })).toBe("negative"); // size ok only
+    expect(trueLabel(rule, { size: 0.9, color: 0.2 })).toBe("negative"); // colour ok only
+    expect(trueLabel(rule, { size: 0.9, color: 0.9 })).toBe("negative"); // neither
+    expect(trueLabel(rule, { size: 0.41, color: 0.2 })).toBe("negative"); // just outside
+  });
+
+  it("rejects a box rule with a stray field", () => {
+    const bad = { ...payload, rule: { kind: "box", size: [0, 0.4], color: [0, 0.4], feature: "size" } };
+    expect(aiClassificationPayload.safeParse(bad).success).toBe(false);
+  });
+});
+
+describe("the student payload schema", () => {
+  it("accepts a correctly stripped payload", () => {
+    const shipped = stripStudentPayload("AI_CLASSIFICATION", payload);
+    expect(aiClassificationStudentPayload.safeParse(shipped).success).toBe(true);
+  });
+
+  it("REFUSES a payload that still carries the rule", () => {
+    // This is the whole reason it exists: the play page used to cast rather
+    // than parse, so a strip regression would have serialised the ground
+    // truth into the page source with nothing failing.
+    const leaked = { ...(stripStudentPayload("AI_CLASSIFICATION", payload) as object), rule: payload.rule };
+    expect(aiClassificationStudentPayload.safeParse(leaked).success).toBe(false);
+  });
+});
+
+describe("the missed specimens reach the player", () => {
+  it("names them on the feedback, not only in the summary", () => {
+    // The player reads feedback.data. "1 of 2 right" with no name is a
+    // verdict a child cannot act on.
+    const result = gradeAiClassification(
+      snapshot,
+      teach(["a", "positive"], ["c", "negative"], ["d", "negative"], ["b", "positive"]),
+    );
+    if (result.verdict === "FAIL") {
+      expect(result.primaryFeedback?.code).toBe("modelGuessedWrong");
+      const data = result.primaryFeedback?.data as { missed?: string[] };
+      expect(Array.isArray(data.missed)).toBe(true);
+      expect(data.missed).toEqual(result.summary.missed);
+    }
   });
 });

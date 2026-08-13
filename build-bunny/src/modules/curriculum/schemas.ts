@@ -281,6 +281,41 @@ export const specimenSchema = z
   .strict();
 
 /**
+ * The hidden rule a level is graded against.
+ *
+ * `threshold` — one feature decides, the other is a decoy. A student who only
+ * varies the decoy trains a model that cannot generalise, and that failure is
+ * the lesson rather than a bug.
+ *
+ * `box` — positive only INSIDE both ranges. There is no ruling feature and no
+ * decoy: neither measurement alone explains the category, so a child cannot
+ * win by finding "the one that matters" because there isn't one. This is the
+ * only rule kind that can express "both things have to be true at once".
+ *
+ * A plain z.union, not z.discriminatedUnion: the threshold arm defaults its
+ * own `kind`, so already-authored fixtures with no `kind` at all still parse.
+ */
+const classificationRule = z.union([
+  z
+    .object({
+      kind: z.literal("threshold").default("threshold"),
+      feature: z.enum(["size", "color"]),
+      /** Positive when that feature is BELOW the threshold. */
+      threshold: z.number().min(0).max(1),
+    })
+    .strict(),
+  z
+    .object({
+      kind: z.literal("box"),
+      /** Inclusive [lo, hi] on each axis; positive inside BOTH. */
+      size: z.tuple([z.number().min(0).max(1), z.number().min(0).max(1)]),
+      color: z.tuple([z.number().min(0).max(1), z.number().min(0).max(1)]),
+    })
+    .strict(),
+]);
+export type ClassificationRule = z.infer<typeof classificationRule>;
+
+/**
  * AI_CLASSIFICATION — teach by example. The first activity in the product
  * where the student does something a programmer would not: they never write
  * a rule. They label specimens, the engine fits a 1-nearest-neighbour
@@ -308,23 +343,35 @@ export const aiClassificationPayload = z
     pool: z.array(specimenSchema.extend({ truth: z.enum(["positive", "negative"]) })).min(4),
     /** Held-out specimens the trained model must classify correctly. */
     testSet: z.array(specimenSchema).min(2),
-    /**
-     * Ground truth, as a threshold on ONE feature. The other feature is a
-     * decoy: a student who only varies the decoy trains a model that cannot
-     * generalise, and that failure is the lesson rather than a bug.
-     * Server-held — see stripStudentPayload.
-     */
-    rule: z
-      .object({
-        feature: z.enum(["size", "color"]),
-        /** Positive when that feature is BELOW the threshold. */
-        threshold: z.number().min(0).max(1),
-      })
-      .strict(),
+    /** Ground truth. Server-held — see stripStudentPayload. */
+    rule: classificationRule,
     /** Refuse to grade until the student has taught both buckets. */
     minPerLabel: z.number().int().min(1).default(2),
     /** 3-star budget lives in threeStarMaxBlocks — here, examples used. */
     starCriteria: starCriteriaSchema.default({}),
+  })
+  .strict();
+
+/**
+ * The same payload MINUS every answer-bearing field, which is exactly what a
+ * student's browser is allowed to receive.
+ *
+ * It exists because the play page rebuilt this one payload with a TypeScript
+ * `as` cast while every other activity type re-parsed against a mirror
+ * schema. A cast cannot fail closed: if stripStudentPayload ever stopped
+ * removing `rule`, the ground truth would be serialised into the page source
+ * and no test would notice. Being `.strict()`, this turns that regression
+ * into a loud 500 instead of a silent leak.
+ */
+export const aiClassificationStudentPayload = z
+  .object({
+    conceptSlug: z.string().regex(/^[a-z0-9-]+$/),
+    labels: z.object({ positive: localizedText, negative: localizedText }),
+    pool: z.array(specimenSchema.extend({ truth: z.enum(["positive", "negative"]) })).min(4),
+    testSet: z.array(specimenSchema).min(2),
+    minPerLabel: z.number().int().min(1).default(2),
+    starCriteria: starCriteriaSchema.default({}),
+    // `rule` is deliberately absent, and .strict() is what enforces that.
   })
   .strict();
 

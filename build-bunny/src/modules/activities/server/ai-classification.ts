@@ -3,7 +3,10 @@ import "server-only";
 import { z } from "zod";
 
 import { classify, type LabelledSpecimen } from "@/modules/ai/knn";
-import { aiClassificationPayload } from "@/modules/curriculum/schemas";
+import {
+  aiClassificationPayload,
+  type ClassificationRule,
+} from "@/modules/curriculum/schemas";
 import type { LevelSnapshot } from "@/modules/curriculum/server/publish";
 
 import type { ActivityGradeResult } from "../types";
@@ -25,17 +28,32 @@ import type { ActivityGradeResult } from "../types";
  * everything correctly but unrepresentatively.
  */
 
-const labelledSpecimen = z.object({
-  id: z.string().min(1),
-  size: z.number().min(0).max(1),
-  color: z.number().min(0).max(1),
-  label: z.enum(["positive", "negative"]),
-});
+const labelledSpecimen = z
+  .object({
+    id: z.string().min(1),
+    size: z.number().min(0).max(1),
+    color: z.number().min(0).max(1),
+    label: z.enum(["positive", "negative"]),
+  })
+  .strict();
 
-export const aiClassificationAnswerSchema = z.object({
-  /** Every specimen the student dragged into a bucket. */
-  examples: z.array(labelledSpecimen).min(1).max(64),
-});
+/**
+ * THE wire shape for an AI_CLASSIFICATION submission — one schema, imported
+ * by the attempts route, the grader and the tests.
+ *
+ * It used to exist as four hand-maintained copies (route, grader, the TS
+ * union in submit.ts, and a mirror in the test file). That is not a
+ * hypothetical hazard: the player once spread a whole pool specimen into a
+ * submission, the `truth` field tripped the route's .strict(), and every
+ * attempt 400'd — which the UI rendered as "not quite yet", telling children
+ * to rethink work that never reached the grader.
+ */
+export const aiClassificationAnswerSchema = z
+  .object({
+    /** Every specimen the student put in a bucket. */
+    examples: z.array(labelledSpecimen).min(1).max(64),
+  })
+  .strict();
 export type AiClassificationAnswer = z.infer<typeof aiClassificationAnswerSchema>;
 
 type Example = LabelledSpecimen;
@@ -44,12 +62,31 @@ type Example = LabelledSpecimen;
 // grader cannot drift apart — see that file's note.
 export { classify } from "@/modules/ai/knn";
 
-/** Ground truth: positive when the ruling feature is below the threshold. */
-function trueLabel(
-  rule: { feature: "size" | "color"; threshold: number },
+/**
+ * Ground truth: positive when the ruling feature is below the threshold.
+ *
+ * Exported so the content suite can evaluate authored levels with the SAME
+ * function the server grades with. A level whose pool `truth` values disagree
+ * with its own `rule` shows a child contradictory evidence and cannot be won
+ * by reasoning — and only executing the real rule catches that.
+ */
+export function trueLabel(
+  rule: ClassificationRule,
   probe: { size: number; color: number },
 ): "positive" | "negative" {
-  return probe[rule.feature] < rule.threshold ? "positive" : "negative";
+  switch (rule.kind) {
+    case "box":
+      // Positive only inside BOTH ranges — the one rule kind where neither
+      // measurement on its own explains the category.
+      return probe.size >= rule.size[0] &&
+        probe.size <= rule.size[1] &&
+        probe.color >= rule.color[0] &&
+        probe.color <= rule.color[1]
+        ? "positive"
+        : "negative";
+    default:
+      return probe[rule.feature] < rule.threshold ? "positive" : "negative";
+  }
 }
 
 function invalid(reason: string): ActivityGradeResult {
@@ -114,7 +151,13 @@ export function gradeAiClassification(
     // loop: the student goes back and teaches an example near those.
     primaryFeedback: passed
       ? null
-      : { code: "modelGuessedWrong", data: { correct, total: payload.testSet.length } },
+      : {
+          code: "modelGuessedWrong",
+          // `missed` rides on the FEEDBACK, not just the summary: the player
+          // reads feedback.data, and "3 of 4 right" without naming which one
+          // is an arbitrary verdict a child cannot act on.
+          data: { correct, total: payload.testSet.length, missed },
+        },
     generatedCode: "",
     // Reusing blockCount as "examples taught" is what lets the shared
     // maxBlocks/threeStarMaxBlocks star machinery reward teaching it with

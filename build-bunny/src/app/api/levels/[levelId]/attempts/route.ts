@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import { generateRequestId, logger, setRequestContext, withRequestContext } from "@/lib/logger";
 import { createRateLimiter } from "@/lib/rate-limit";
+import { aiClassificationAnswerSchema } from "@/modules/activities/server/ai-classification";
 import { hasPermission } from "@/modules/auth/permissions";
 import { getSessionContext } from "@/modules/auth/server/session";
 import { getPublishedLevelSnapshot } from "@/modules/curriculum/server/queries";
@@ -52,26 +53,15 @@ const conceptCardsBodySchema = z
   })
   .strict();
 
+/**
+ * The answer half is imported, never re-typed: this shape existed as four
+ * hand-maintained copies and adding a field to three of them is exactly the
+ * bug that made every submission a silent 400.
+ */
 const aiClassificationBodySchema = z
   .object({
     attemptRunId: z.string().uuid(),
-    answer: z
-      .object({
-        examples: z
-          .array(
-            z
-              .object({
-                id: z.string().min(1),
-                size: z.number().min(0).max(1),
-                color: z.number().min(0).max(1),
-                label: z.enum(["positive", "negative"]),
-              })
-              .strict(),
-          )
-          .min(1)
-          .max(64),
-      })
-      .strict(),
+    answer: aiClassificationAnswerSchema,
   })
   .strict();
 

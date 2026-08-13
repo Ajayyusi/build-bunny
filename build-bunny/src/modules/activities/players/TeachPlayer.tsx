@@ -5,6 +5,13 @@ import { useTranslations } from "next-intl";
 
 import { Link } from "@/i18n/navigation";
 import {
+  DEFAULT_GLYPH_THEME,
+  glyphFill,
+  glyphPx,
+  glyphShapeStyle,
+  glyphTheme,
+} from "@/modules/ai/glyph";
+import {
   nearest,
   toTrainingExample,
   type ClassLabel,
@@ -54,28 +61,27 @@ interface TeachPayload {
   starCriteria: { threeStarMaxBlocks?: number };
 }
 
-/** Berry glyph: size drives diameter, colour drives hue (blue → red). */
+/** Specimen glyph: diameter is one feature, hue is the other. */
 function Berry({
   specimen,
   className,
+  theme = DEFAULT_GLYPH_THEME,
 }: {
   specimen: Specimen;
   className?: string;
+  theme?: string;
 }) {
-  const px = 26 + Math.round(specimen.size * 26);
-  // 250° (blue-violet) → 360° (red), deliberately NOT the short way round.
-  // A plain 220→10 ramp passes through green and yellow, so mid-range
-  // berries came out leaf-green — which reads as "safe" to a child no
-  // matter which side of the rule they are on. Violet has no such baggage.
-  const hue = Math.round(250 + specimen.color * 110);
+  const glyph = glyphTheme(theme);
+  const px = glyphPx(glyph, specimen.size);
   return (
     <span
       aria-hidden="true"
-      className={cn("inline-block shrink-0 rounded-full border-2 border-ink/15", className)}
+      className={cn("inline-block shrink-0 border-2 border-ink/15", className)}
       style={{
         width: px,
         height: px,
-        background: `radial-gradient(circle at 32% 30%, hsl(${hue} 85% 72%), hsl(${hue} 70% 48%))`,
+        background: glyphFill(glyph, specimen.color),
+        ...glyphShapeStyle(glyph),
       }}
     />
   );
