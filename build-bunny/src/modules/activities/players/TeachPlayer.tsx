@@ -1,7 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { useTranslations } from "next-intl";
+import { useEffect, useMemo, useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
 
 import { Link } from "@/i18n/navigation";
 import {
@@ -20,9 +20,12 @@ import {
 import { Button, cn } from "@/ui";
 
 import { FeatureBoard } from "./FeatureBoard";
+import { TeachRecap } from "./TeachRecap";
 import { TeachScene } from "./TeachScene";
+import { SuccessOverlay } from "./shared/SuccessOverlay";
 
-import type { ActivityPlayerProps } from "../types";
+import type { ActivityPlayerProps, AttemptResponse } from "../types";
+import { resolveLocalized } from "../types";
 
 /**
  * AI_CLASSIFICATION player — "Teach the Bunny".
@@ -100,6 +103,7 @@ export function TeachPlayer({ intro, payload }: ActivityPlayerProps) {
   // Cast back at the registry boundary — see ActivityPlayerProps.payload.
   const data = payload as TeachPayload;
   const t = useTranslations("student.play.teach");
+  const locale = useLocale();
 
   const [assigned, setAssigned] = useState<Record<string, ClassLabel>>({});
   // Opens on arrival. A child (or an adult) landing on an abstract board of
@@ -107,6 +111,11 @@ export function TeachPlayer({ intro, payload }: ActivityPlayerProps) {
   // state rather than a help button nobody presses.
   const [step, setStep] = useState(1);
   const [submitting, setSubmitting] = useState(false);
+  // The full server response is kept so the celebration can report stars,
+  // XP, achievements and — the thing this player was missing entirely — the
+  // way on to the next level.
+  const [server, setServer] = useState<AttemptResponse | null>(null);
+  const [reducedMotion, setReducedMotion] = useState(false);
   const [result, setResult] = useState<{
     verdict: string;
     code?: string;
@@ -121,6 +130,14 @@ export function TeachPlayer({ intro, payload }: ActivityPlayerProps) {
   const truthEmoji = data.theme?.truthEmoji ?? { positive: "😋", negative: "🤢" };
   const beats = data.walkthrough ?? null;
   const stepCount = beats?.length ?? 4;
+
+  useEffect(() => {
+    const query = window.matchMedia("(prefers-reduced-motion: reduce)");
+    setReducedMotion(query.matches);
+    const onChange = (event: MediaQueryListEvent) => setReducedMotion(event.matches);
+    query.addEventListener("change", onChange);
+    return () => query.removeEventListener("change", onChange);
+  }, []);
 
   const examples: LabelledSpecimen[] = useMemo(
     () =>
@@ -161,6 +178,7 @@ export function TeachPlayer({ intro, payload }: ActivityPlayerProps) {
     // screen would have the bunny reporting a score for a set of examples
     // it is no longer being shown.
     if (result) setResult(null);
+    if (server) setServer(null);
     setAssigned((prev) => {
       if (prev[id] === label) return omit(prev, id);
       // Refuse at the cap rather than accepting the click and failing on
@@ -197,7 +215,8 @@ export function TeachPlayer({ intro, payload }: ActivityPlayerProps) {
         setResult({ verdict: "ERROR" });
         return;
       }
-      const body = await res.json();
+      const body = (await res.json()) as AttemptResponse;
+      setServer(body);
       // The counts ride on the feedback payload, not a top-level summary —
       // reading the wrong one is why this said "0 of 0" for every attempt.
       const feedbackData = body.feedback?.data as
@@ -218,6 +237,14 @@ export function TeachPlayer({ intro, payload }: ActivityPlayerProps) {
   };
 
   const unassigned = data.pool.filter((s) => !assigned[s.id]);
+
+  // Same rule as every other player: offer the next level only once it is
+  // actually open — either it already was, or this very run unlocked it.
+  const unlockedNow = server?.unlockedLevelIds ?? [];
+  const nextHref =
+    intro.nextLevel && (!intro.nextLevel.locked || unlockedNow.includes(intro.nextLevel.id))
+      ? `/play/${intro.nextLevel.id}`
+      : null;
 
   return (
     <div className="relative flex min-h-0 flex-1 flex-col gap-4 p-4 sm:p-6">
@@ -462,6 +489,45 @@ export function TeachPlayer({ intro, payload }: ActivityPlayerProps) {
                   ? t("missed", { correct: result.correct, total: result.total })
                   : t("tryAgain")}
         </p>
+      ) : null}
+
+      {/* The celebration, the receipt, and the way onward. This player had
+          none of it: it announced a verdict in a status line and left the
+          child on a finished board with no route to the next level. */}
+      {result?.verdict === "PASS" && server ? (
+        <SuccessOverlay
+          stars={server.stars}
+          maxStars={intro.maxStars}
+          xpAwarded={server.xpAwarded}
+          explanation={intro.explanation}
+          achievements={server.newAchievements.map((a) => ({
+            slug: a.slug,
+            icon: a.icon,
+            name: resolveLocalized(a.name, locale) || a.slug,
+          }))}
+          worldCompletedName={
+            server.worldCompleted ? resolveLocalized(server.worldCompleted.name, locale) : null
+          }
+          gradeMismatch={server.gradeMismatch}
+          saving={false}
+          saveFailed={false}
+          onRetrySave={() => void submit()}
+          improveNote={
+            server.stars < intro.maxStars && data.starCriteria.threeStarMaxBlocks !== undefined
+              ? t("improveFewer", { max: data.starCriteria.threeStarMaxBlocks })
+              : null
+          }
+          nextHref={nextHref}
+          reducedMotion={reducedMotion}
+          extra={
+            <TeachRecap
+              examples={examples}
+              testSet={data.testSet}
+              labels={data.labels}
+              glyph={glyph}
+            />
+          }
+        />
       ) : null}
 
       <div className="flex items-center gap-3">

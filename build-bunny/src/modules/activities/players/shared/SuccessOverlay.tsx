@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 
 import { Link } from "@/i18n/navigation";
@@ -38,6 +38,13 @@ interface SuccessOverlayProps {
   improveNote: string | null;
   nextHref: string | null;
   reducedMotion: boolean;
+  /**
+   * Optional engine-specific block rendered above the authored explanation.
+   * The AI players use it to show the student a receipt of the training run
+   * they just did — which examples they chose, and how each answer followed
+   * from them — because "you passed" tells a child nothing about WHY.
+   */
+  extra?: ReactNode;
 }
 
 const BURST_MS = 2200;
@@ -56,6 +63,7 @@ export function SuccessOverlay({
   improveNote,
   nextHref,
   reducedMotion,
+  extra,
 }: SuccessOverlayProps) {
   const t = useTranslations("student.play.success");
   const [stage, setStage] = useState<"burst" | "card">(
@@ -156,6 +164,12 @@ export function SuccessOverlay({
             <p className="text-xs text-ink-muted">{t("gradeMismatchNote")}</p>
           ) : null}
         </div>
+
+        {/* Engine-specific receipt, above the authored copy on purpose: it
+            shows the student what THEY did, and the explanation then tells
+            them what it meant. Reversing that order asks a child to read a
+            moral before they can see the thing it is about. */}
+        {extra}
 
         {explanation ? (
           <div className="flex flex-col gap-1 rounded-lg bg-surface-sunken p-4">

@@ -321,7 +321,11 @@
         "bucketsHeading": "The bunny's two baskets",
         "bucketsHelp": "Everything you teach it lands here. Click a berry to take it back out.",
         "tooManyExamples": "That is {used} examples, and you may only use {max}. Take some back out and pick the ones that teach it the most.",
-        "capUsed": "{used} of {max} used"
+        "capUsed": "{used} of {max} used",
+        "recapHeading": "How you taught it",
+        "recapTaught": "You showed it {count} berries, and nothing else:",
+        "recapDecided": "Then it worked out the new ones by copying whichever of yours each one looked most like:",
+        "improveFewer": "The bunny can be taught with as few as {max} examples. Fewer, better-chosen ones earn the last star."
       }
     },
     "profile": {
