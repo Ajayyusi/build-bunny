@@ -52,14 +52,14 @@ async function main(): Promise<void> {
       module: { select: { world: { select: { slug: true } } } },
     },
   });
-  check("published levels (with snapshot id)", "18", String(publishedLevels.length),
-    publishedLevels.length === 18);
+  check("published levels (with snapshot id)", "23", String(publishedLevels.length),
+    publishedLevels.length === 23);
 
   const robotLabLevels = publishedLevels.filter(
     (l) => l.module.world.slug === "robot-lab",
   );
-  check("published Robot Lab levels", "6", String(robotLabLevels.length),
-    robotLabLevels.length === 6);
+  check("published Robot Lab levels", "7", String(robotLabLevels.length),
+    robotLabLevels.length === 7);
 
   const versionCount = await db.levelVersion.count();
   check("LevelVersion snapshots", "≥ 18", String(versionCount), versionCount >= 18);
@@ -76,10 +76,11 @@ async function main(): Promise<void> {
   const worldOneTwoIds = publishedLevels
     .filter((l) => ["bunny-meadow", "logic-forest"].includes(l.module.world.slug))
     .map((l) => l.id);
-  // 10 original + 1 (m4 loop-detective, appended at the end of logic-forest)
-  // + 1 (learn-repeat, the CONCEPT_CARDS Learn step in bunny-meadow).
-  check("published Worlds 1–2 levels", "12", String(worldOneTwoIds.length),
-    worldOneTwoIds.length === 12);
+  // Bunny Meadow 6 + Logic Forest 9 = 15: the original 10, plus m4's
+  // loop-detective, plus four CONCEPT_CARDS Learn steps (learn-repeat,
+  // learn-loop-body, learn-if, learn-repeat-until).
+  check("published Worlds 1–2 levels", "15", String(worldOneTwoIds.length),
+    worldOneTwoIds.length === 15);
 
   const grouped = await db.studentProgress.groupBy({
     by: ["studentUserId"],
@@ -93,7 +94,11 @@ async function main(): Promise<void> {
     finishers.length >= 1);
 
   // Tightened world gate, materialized: every Worlds 1–2 finisher must have
-  // Robot Lab's first level UNLOCKED (recomputeUnlocks ran in the seed).
+  // Robot Lab's first level OPEN — meaning the gate actually lifted. It may
+  // be UNLOCKED (just opened by recomputeUnlocks) or already COMPLETED,
+  // since the demo's finisher now plays on through Robot Lab so that AI
+  // Island is reachable at all. Insisting on UNLOCKED specifically would
+  // fail purely because she got further, which is not a gate problem.
   const robotLabFirst = robotLabLevels.find((l) => l.slug === "power-up");
   check("robot-lab/power-up published", "yes", robotLabFirst ? "yes" : "no",
     Boolean(robotLabFirst));
@@ -109,9 +114,9 @@ async function main(): Promise<void> {
           select: { status: true, unlockSource: true },
         })
       : null;
-    check(`robot-lab power-up open for finisher ${who}`, "UNLOCKED (ORDER)",
+    check(`robot-lab power-up open for finisher ${who}`, "UNLOCKED or COMPLETED",
       row ? `${row.status} (${row.unlockSource})` : "LOCKED (no row)",
-      row?.status === "UNLOCKED" && row.unlockSource === "ORDER");
+      row?.status === "UNLOCKED" || row?.status === "COMPLETED");
   }
 
   const xpByLevel = new Map(

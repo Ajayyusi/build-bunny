@@ -126,16 +126,19 @@ export interface StudentSeed {
 
 /**
  * 16 students, 8 per class — a deliberate spread of curriculum states so every
- * surface has something honest to show (world layout: Bunny Meadow = 6 levels
- * incl. the learn-repeat Learn step, Logic Forest = 6 levels incl. the
- * CODE_PREDICTION level added in M4's activity-engines wave, 12 total for
- * both worlds):
+ * surface has something honest to show. World layout: Bunny Meadow = 6 levels,
+ * Logic Forest = 9, Robot Lab = 7, AI Island = 1 — 23 in all, five of them
+ * CONCEPT_CARDS Learn steps that score no stars, plus the M4 CODE_PREDICTION
+ * and SEQUENCING levels:
  *  - 3 fresh accounts that never played (only the first level gets unlocked);
  *  - 6 mid-World-1 (1–4 levels done, next one unlocked);
  *  - 4 finished World 1 and into World 2 (7–8 levels done);
- *  - 3 advanced (9–12 done) — Aisha K. has all 12, the certificate candidate
- *    (genuinely passes — not just completes — every level of both worlds,
- *    so the real issuance path awards her both certificates; m4-contracts).
+ *  - 3 advanced — Aisha K. has all 22 up to AI Island, the certificate
+ *    candidate (genuinely passes — not just completes — every level, so the
+ *    real issuance path awards her the world certificates; m4-contracts).
+ *    She has to be that far along for the AI level to be reachable at all:
+ *    worlds unlock in order, so without one student through Robot Lab,
+ *    AI Island cannot be opened by anyone in a demo.
  * Adam B. (4 levels, silent for 3 weeks) stays the needs-attention demo case —
  * and now sits with the Learn step as his next unlocked node.
  */
@@ -144,10 +147,22 @@ export const STUDENTS: StudentSeed[] = [
   {
     firstName: "Aisha", lastInitial: "K", username: "aisha", studentIdentifier: "DEMO-1001",
     className: "Grade 3A", grade: 3, password: "star-bunny-31",
-    // All 6 Bunny Meadow + all 6 Logic Forest levels, every scored one at ≥2
-    // stars (a genuine PASS, never just PARTIAL) — the certificate task's
-    // gate. The 0 is the Learn step, which has no stars to earn.
-    progress: { completedStars: [3, 3, 3, 3, 0, 3, 3, 2, 3, 3, 3, 3], streakCurrent: 9, streakBest: 9, lastActiveDaysAgo: 0 },
+    // Everything up to AI Island: 6 Bunny Meadow + 9 Logic Forest + 7 Robot
+    // Lab = 22, leaving berry-sorter as her next unlocked node. She has to
+    // reach that far or the AI level is invisible in a demo — worlds unlock
+    // in order, so one student must clear three worlds before anyone can see
+    // the fourth. Every scored level is ≥2 stars (a genuine PASS, never just
+    // PARTIAL) because the certificate issuance path gates on that. The 0s
+    // are Learn steps, which have no stars to earn: index 4 learn-repeat,
+    // 6 learn-loop-body, 9 learn-if, 11 learn-repeat-until, 17 learn-if-else.
+    progress: {
+      completedStars: [
+        3, 3, 3, 3, 0, 3, // Bunny Meadow
+        0, 3, 3, 0, 2, 0, 3, 3, 3, // Logic Forest
+        3, 3, 0, 3, 3, 3, 3, // Robot Lab
+      ],
+      streakCurrent: 9, streakBest: 9, lastActiveDaysAgo: 0,
+    },
     loginTrailDays: 5,
   },
   {
