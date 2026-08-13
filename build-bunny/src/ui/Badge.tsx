@@ -3,11 +3,14 @@ import type { ComponentPropsWithRef } from "react";
 import { cn } from "./cn";
 
 // Tinted fills with the matching AA-safe text step; accent's amber is too
-// light for text, so it pairs with ink instead.
+// light for text, so it pairs with ink instead. brand/positive sit at /8
+// (not /12 like danger) because the NITAQ green is more saturated than the
+// old brand green — at /12 its own tint fell to 4.36:1 against itself,
+// under the 4.5:1 gate (recomputed in docs/accessibility.md).
 const variantClasses = {
   neutral: "bg-ink/8 text-ink-muted",
-  brand: "bg-brand/12 text-brand",
-  positive: "bg-positive/12 text-positive",
+  brand: "bg-brand/8 text-brand",
+  positive: "bg-positive/8 text-positive",
   warning: "bg-warning/14 text-warning",
   danger: "bg-danger/12 text-danger",
   accent: "bg-accent/25 text-ink",

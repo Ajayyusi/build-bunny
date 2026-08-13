@@ -25,7 +25,13 @@ export async function generateMetadata({
   const { locale } = await params;
   if (!hasLocale(routing.locales, locale)) return {};
   const t = await getTranslations({ locale, namespace: "common" });
-  return { title: t("appName"), description: t("metaDescription") };
+  // Brand names stay literal (not translated) in both locales — a NITAQ
+  // Academy naming decision, see brand brief §Naming. Icons/metadataBase/
+  // theme-color are inherited from the root layout's static metadata.
+  return {
+    title: `${t("appName")} — NITAQ Academy`,
+    description: t("metaDescription"),
+  };
 }
 
 export default async function LocaleLayout({ children, params }: Props) {
@@ -35,8 +41,18 @@ export default async function LocaleLayout({ children, params }: Props) {
   const t = await getTranslations("common");
 
   return (
-    <html lang={locale} dir={locale === "ar" ? "rtl" : "ltr"}>
-      <body className={fontVariables(locale)}>
+    // fontVariables' class belongs on <html>, not <body>: globals.css's
+    // Layer 2 declares --font-body/--font-display via `:root { var(--bb-
+    // font-body, ...fallback) }`, and :root matches <html> only — a custom
+    // property set on <body> (html's own child) isn't visible to a rule
+    // evaluated at html, since inheritance flows downward, not up. Setting
+    // it here means :root's own resolution sees the real value instead of
+    // silently falling through to the hardcoded fallback chain (invisible
+    // in English, where "Inter" is first in both; wrong in Arabic, where
+    // it put a Latin face ahead of IBM Plex Sans Arabic for any text not
+    // inside a [data-theme] subtree).
+    <html lang={locale} dir={locale === "ar" ? "rtl" : "ltr"} className={fontVariables(locale)}>
+      <body>
         <NextIntlClientProvider>
           <ToastProvider dismissLabel={t("dismiss")}>{children}</ToastProvider>
         </NextIntlClientProvider>

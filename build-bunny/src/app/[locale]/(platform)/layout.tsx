@@ -2,8 +2,11 @@ import type { ReactNode } from "react";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { Link } from "@/i18n/navigation";
+import type { Locale } from "@/i18n/routing";
 import { requireRole } from "@/modules/auth/server/session";
 import { Avatar, SkipLink } from "@/ui";
+import { BrandLockup } from "@/ui/BrandLogo";
+import { schoolFontVariable } from "@/ui/fonts";
 
 import { ImpersonationBanner } from "../_components/ImpersonationBanner";
 import { LocaleSwitcher } from "../_components/LocaleSwitcher";
@@ -25,7 +28,10 @@ export default async function PlatformLayout({ children, params }: Props) {
   ]);
 
   return (
-    <div data-theme="pro" className="flex min-h-dvh flex-col bg-surface text-ink">
+    <div
+      data-theme="pro"
+      className={`flex min-h-dvh flex-col bg-surface text-ink ${schoolFontVariable(locale as Locale)}`}
+    >
       <SkipLink label={tCommon("skipToContent")} />
       {ctx.impersonatedBy ? <ImpersonationBanner /> : null}
       {/* Brand-colored bottom rule distinguishes the platform bar from the
@@ -35,10 +41,9 @@ export default async function PlatformLayout({ children, params }: Props) {
           <div className="flex min-w-0 items-center gap-4 sm:gap-6">
             <Link
               href="/nitaq"
-              className="inline-flex h-11 shrink-0 items-center gap-2 rounded-md font-display text-lg font-bold text-ink"
+              className="inline-flex h-11 shrink-0 items-center rounded-md"
             >
-              <span aria-hidden>🐰</span>
-              {t("title")}
+              <BrandLockup byLabel={tCommon("byNitaq")} />
             </Link>
             <nav aria-label={t("nav.label")} className="flex items-center gap-1">
               <NavLink href="/nitaq/schools">{t("nav.schools")}</NavLink>

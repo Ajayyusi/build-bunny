@@ -9,6 +9,7 @@ import {
   getMyClassLeaderboard,
 } from "@/modules/students/server/queries";
 import { EmptyState, PageHeader } from "@/ui";
+import { NitaqLogo } from "@/ui/BrandLogo";
 
 import { CertificatesPanel, type CertificateVM } from "./_components/CertificatesPanel";
 import { Leaderboard } from "./_components/Leaderboard";
@@ -28,12 +29,13 @@ export default async function AchievementsPage({ params }: Props) {
   setRequestLocale(locale);
   const ctx = await requireRole("STUDENT");
 
-  const [badges, certificates, leaderboard, t, tCert] = await Promise.all([
+  const [badges, certificates, leaderboard, t, tCert, tCommon] = await Promise.all([
     getMyAchievements(ctx),
     listMyCertificates(ctx),
     getMyClassLeaderboard(ctx),
     getTranslations("student.achievements"),
     getTranslations("certificates"),
+    getTranslations("common"),
   ]);
 
   const earnedCount = badges.filter((b) => b.earnedAt !== null).length;
@@ -200,6 +202,13 @@ export default async function AchievementsPage({ params }: Props) {
           <CertificatesPanel certificates={certificateVMs} locale={locale} labels={sheetLabels} />
         )}
       </section>
+
+      {/* Quiet institutional credit — visible to the school, not marketed at
+          the child. */}
+      <footer className="flex items-center justify-center gap-2 border-t border-border-token pt-6 text-xs text-ink-muted">
+        <NitaqLogo size="sm" decorative className="max-h-4 w-auto" />
+        <span>{tCommon("byNitaq")}</span>
+      </footer>
     </div>
   );
 }

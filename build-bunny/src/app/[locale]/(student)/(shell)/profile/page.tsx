@@ -3,6 +3,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { requireRole } from "@/modules/auth/server/session";
 import { getMyStudentSnapshot } from "@/modules/students/server/queries";
 import { Avatar, Card, CardBody, CardFooter, PageHeader } from "@/ui";
+import { NitaqLogo } from "@/ui/BrandLogo";
 
 import { LocaleSwitcher } from "../../../_components/LocaleSwitcher";
 import { SignOutButton } from "../../../_components/SignOutButton";
@@ -15,9 +16,10 @@ export default async function StudentProfilePage({ params }: Props) {
   const { locale } = await params;
   setRequestLocale(locale);
   const ctx = await requireRole("STUDENT");
-  const [snapshot, t] = await Promise.all([
+  const [snapshot, t, tCommon] = await Promise.all([
     getMyStudentSnapshot(ctx),
     getTranslations("student.profile"),
+    getTranslations("common"),
   ]);
   const displayName = snapshot?.user.displayName ?? ctx.displayName;
 
@@ -72,6 +74,13 @@ export default async function StudentProfilePage({ params }: Props) {
           <SignOutButton variant="secondary" size="lg" />
         </CardFooter>
       </Card>
+      {/* Quiet institutional credit — visible to the school, not marketed at
+          the child (small, muted, below the fold of the actual profile
+          card). */}
+      <p className="flex items-center justify-center gap-2 text-xs text-ink-muted">
+        <NitaqLogo size="sm" decorative className="max-h-4 w-auto" />
+        <span>{tCommon("byNitaq")}</span>
+      </p>
     </div>
   );
 }

@@ -29,29 +29,34 @@
   --bb-cream-300: #e4dac4;
   --bb-cream-400: #cbbe9f;
 
-  /* Meadow green — the Build Bunny brand family. */
-  --bb-meadow-50: #eff8f1;
-  --bb-meadow-100: #d8eedd;
-  --bb-meadow-200: #b0ddbc;
-  --bb-meadow-300: #7fc593;
-  --bb-meadow-400: #4ea96c;
-  --bb-meadow-500: #2f934f;
-  --bb-meadow-600: #1e7a3c; /* ≥4.5:1 with white — safe as a text/fill pair */
-  --bb-meadow-700: #176030;
-  --bb-meadow-800: #124b26;
-  --bb-meadow-900: #0e3a1e;
+  /* Meadow green — the Build Bunny brand family, converged on NITAQ
+     Academy's own palette (nitaqacademy.com --primary-color/--primary-light)
+     rather than a near-miss: 400 and 600 are their literal brand hexes. */
+  --bb-meadow-50: #e8f5e9;
+  --bb-meadow-100: #c8e6c9;
+  --bb-meadow-200: #a5d6a7;
+  --bb-meadow-300: #81c784;
+  --bb-meadow-400: #66bb6a; /* NITAQ --primary-light, exact */
+  --bb-meadow-500: #4caf50;
+  --bb-meadow-600: #2e7d32; /* NITAQ --primary-color, exact — ≥4.5:1 with white, safe as a text/fill pair */
+  --bb-meadow-700: #1b5e20; /* NITAQ-derived strong/hover step */
+  --bb-meadow-800: #164a1a;
+  --bb-meadow-900: #0f3712;
 
-  /* Sky teal — info, focus, and the Pro brand's deep end. */
-  --bb-sky-50: #eff7f8;
-  --bb-sky-100: #d7ecef;
-  --bb-sky-200: #afd9df;
-  --bb-sky-300: #7fbfc9;
-  --bb-sky-400: #4ea0ae;
-  --bb-sky-500: #2e8b99;
-  --bb-sky-600: #217482; /* ≥4.5:1 with white */
-  --bb-sky-700: #1b5d68;
-  --bb-sky-800: #16464f;
-  --bb-sky-900: #113740;
+  /* Sky teal — info, focus, and secondary interactive accents. Converged on
+     NITAQ's --accent-color/--accent-hover (the rising arrow in the logo);
+     600 is deepened slightly past --accent-hover (#00897b, 4.32:1) so it
+     clears WCAG AA as running text, not just as a large-scale fill. */
+  --bb-sky-50: #eafaf8;
+  --bb-sky-100: #cdf1ea;
+  --bb-sky-200: #9be3d6;
+  --bb-sky-300: #5fcebd;
+  --bb-sky-400: #2bbbad; /* NITAQ --accent-color, exact */
+  --bb-sky-500: #00897b; /* NITAQ --accent-hover, exact — focus rings (3:1 non-text) */
+  --bb-sky-600: #00786a; /* deepened from --accent-hover — ≥4.5:1 with white, safe as a text/fill pair */
+  --bb-sky-700: #045c51;
+  --bb-sky-800: #0a453d;
+  --bb-sky-900: #0a332d;
 
   /* Amber/star — rewards and accents. Light steps take dark text only. */
   --bb-star-50: #fff8e5;
@@ -101,7 +106,7 @@
   --bb-slate-700: #46525c;
   --bb-slate-800: #303b44;
   --bb-slate-900: #1e2830;
-  --bb-slate-950: #131b21;
+  --bb-slate-950: #0f172a; /* NITAQ --bg-dark, exact — Pro dark surfaces (projector mode, inverted bars) */
 
   /* Radius scale — restrained on purpose (max 16px). Playful comes from
      color and type, not balloon corners. */
@@ -162,15 +167,19 @@
   );
   --font-body: var(
     --bb-font-body,
-    "Nunito Sans",
+    "Inter",
     "IBM Plex Sans Arabic",
     system-ui,
     sans-serif
   );
 }
 
-/* Pro: cool near-white, deep teal-navy, one radius step tighter — a denser,
-   quieter feel for staff. Fonts are shared with Play: one brand voice. */
+/* Pro: cool near-white, one radius step tighter — a denser, quieter feel for
+   staff. Brand is the same NITAQ green as Play (one shade deeper, matching
+   the tighter radius scale) rather than a separate teal-navy identity — the
+   product now reads as one brand across student and staff surfaces. Fonts
+   are shared with Play at the token level; school-facing surfaces layer a
+   Poppins heading override on top (src/ui/fonts.ts's schoolFontVariable). */
 [data-theme="pro"] {
   --color-surface: var(--bb-slate-50);
   --color-surface-raised: #ffffff;
@@ -179,8 +188,8 @@
   --color-ink: var(--bb-slate-900);
   --color-ink-muted: var(--bb-slate-600);
   --color-ink-faint: var(--bb-slate-400);
-  --color-brand: var(--bb-sky-800);
-  --color-brand-strong: var(--bb-sky-900);
+  --color-brand: var(--bb-meadow-700);
+  --color-brand-strong: var(--bb-meadow-800);
   --color-on-brand: #ffffff;
   --color-accent: var(--bb-sky-600);
   --color-on-accent: #ffffff;

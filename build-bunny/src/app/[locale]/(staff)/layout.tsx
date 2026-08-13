@@ -2,10 +2,13 @@ import type { ReactNode } from "react";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { Link } from "@/i18n/navigation";
+import type { Locale } from "@/i18n/routing";
 import { homePathForRole } from "@/modules/auth/roles";
 import { requireRole } from "@/modules/auth/server/session";
 import { getSchoolSummary } from "@/modules/schools/server/queries";
 import { Avatar, SkipLink } from "@/ui";
+import { BrandLockup } from "@/ui/BrandLogo";
+import { schoolFontVariable } from "@/ui/fonts";
 
 import { ImpersonationBanner } from "../_components/ImpersonationBanner";
 import { LocaleSwitcher } from "../_components/LocaleSwitcher";
@@ -28,7 +31,10 @@ export default async function StaffLayout({ children, params }: Props) {
   ]);
 
   return (
-    <div data-theme="pro" className="flex min-h-dvh flex-col bg-surface text-ink">
+    <div
+      data-theme="pro"
+      className={`flex min-h-dvh flex-col bg-surface text-ink ${schoolFontVariable(locale as Locale)}`}
+    >
       <SkipLink label={tCommon("skipToContent")} />
       {ctx.impersonatedBy ? <ImpersonationBanner /> : null}
       <header className="border-b border-border-token bg-surface-raised print:hidden">
@@ -36,10 +42,9 @@ export default async function StaffLayout({ children, params }: Props) {
           <div className="flex min-w-0 items-center gap-4 sm:gap-6">
             <Link
               href={homePathForRole(ctx.role)}
-              className="inline-flex h-11 shrink-0 items-center gap-2 rounded-md font-display text-lg font-bold text-ink"
+              className="inline-flex h-11 shrink-0 items-center rounded-md"
             >
-              <span aria-hidden>🐰</span>
-              {tCommon("appName")}
+              <BrandLockup byLabel={tCommon("byNitaq")} />
             </Link>
             <span className="hidden max-w-56 truncate text-sm font-medium text-ink-muted md:inline">
               {school?.name ?? t("header.noSchool")}

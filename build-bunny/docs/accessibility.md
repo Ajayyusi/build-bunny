@@ -87,6 +87,26 @@ students, "Pro" for staff/platform — this app ships one light mode per
 theme, not a light/dark pair; see the file's own header comment). Method
 below under "re-running the audit" so this is reproducible.
 
+**Recomputed for the NITAQ brand pass** (`--bb-meadow-*` and `--bb-sky-*`
+converged on NITAQ Academy's own `--primary-color`/`--primary-light`/
+`--accent-color`/`--accent-hover`; see `globals.css`'s primitive comments for
+which steps are the institution's literal hex and which are derived). Every
+row below was re-measured against the new hexes, not carried over from the
+previous table — two adjustments were needed to keep the gate green:
+
+- **Pro's `--color-brand`/`--color-brand-strong`** moved from the old
+  teal-navy (`sky-800`/`sky-900`) to `meadow-700`/`meadow-800` — one shade
+  deeper than Play's `meadow-600`/`meadow-700` — so the product reads as one
+  green brand across student and staff surfaces instead of two.
+- **`Badge`'s `brand`/`positive` tint opacity dropped from `/12` to `/8`**
+  (`src/ui/Badge.tsx`). The new NITAQ green is more saturated than the old
+  brand green; blended at 12% into `surface-raised` its own text color came
+  in at 4.36:1 against itself — under the 4.5:1 gate. At `/8` the same pair
+  measures 4.63:1 (Play) / 4.63–6.94:1 (Pro, `brand` uses the darker
+  `meadow-700`) — both comfortably clear. `warning`/`danger`/`neutral`/
+  `accent` variants use unrelated colors (star/coral/ink/amber, all
+  unchanged this pass) and were unaffected.
+
 | Pair | Play | Pro | AA needed | Result |
 |---|---|---|---|---|
 | `ink` / `surface` | 14.41:1 | 14.19:1 | 4.5:1 | pass |
@@ -95,21 +115,33 @@ below under "re-running the audit" so this is reproducible.
 | `ink-muted` / `surface` | 6.44:1 | 5.40:1 | 4.5:1 | pass |
 | `ink-muted` / `surface-raised` | 6.66:1 | 5.70:1 | 4.5:1 | pass |
 | `ink-muted` / `surface-sunken` | 6.06:1 | 5.07:1 | 4.5:1 | pass |
-| `on-brand` / `brand` | 5.38:1 | 10.38:1 | 4.5:1 | pass |
-| `on-brand` / `brand-strong` | 7.63:1 | 12.77:1 | 4.5:1 | pass |
-| brand text / `surface` | 5.20:1 | 9.83:1 | 4.5:1 | pass |
-| `positive` text / `surface` | 5.20:1 | 5.09:1 | 4.5:1 | pass |
+| `on-brand` / `brand` | 5.13:1 | 7.87:1 | 4.5:1 | pass |
+| `on-brand` / `brand-strong` | 7.87:1 | 10.35:1 | 4.5:1 | pass |
+| brand text / `surface` | 4.96:1 | 7.45:1 | 4.5:1 | pass |
+| `positive` text / `surface` | 4.96:1 | 4.86:1 | 4.5:1 | pass |
 | `warning` text / `surface` | 5.34:1 | 5.23:1 | 4.5:1 | pass |
 | `warning` text / `surface-raised` | 5.52:1 | 5.52:1 | 4.5:1 | pass |
 | `danger` text / `surface` | 5.84:1 | 5.72:1 | 4.5:1 | pass |
 | `danger` text / white button (`Button` danger variant) | 6.04:1 | 6.04:1 | 4.5:1 | pass |
-| `info` text / `surface` | 5.23:1 | 5.12:1 | 4.5:1 | pass |
-| `ink-900`/`ink` on solid `accent` (star-400/sky-600) | 8.22:1 | 5.41:1 | 4.5:1 | pass |
-| Badge `accent` variant (`bg-accent/25 text-ink`) blended over `surface-raised` | 12.85:1 | 10.54:1 | 4.5:1 | pass |
-| Badge `brand`/`positive`/`warning`/`danger`/`neutral` variants, blended tint over `surface-raised` | 4.56–5.74:1 | 4.56–8.46:1 | 4.5:1 | pass |
-| `focus` ring / `surface` (non-text UI) | 3.86:1 | 3.77:1 | 3:1 | pass |
-| `focus` ring / `surface-raised` (non-text UI) | 3.99:1 | 3.99:1 | 3:1 | pass |
+| `info` text / `surface` | 5.22:1 | 5.11:1 | 4.5:1 | pass |
+| `ink-900`/white on solid `accent` (`star-400`/`sky-600`) | 8.22:1 | 5.39:1 | 4.5:1 | pass |
+| Badge `accent` variant (`bg-accent/25 text-ink`) blended over `surface-raised` | 12.85:1 | 10.40:1 | 4.5:1 | pass |
+| Badge `brand`/`positive`/`warning`/`danger`/`neutral` variants, blended tint over `surface-raised` | 4.56–5.74:1 | 4.56–6.94:1 | 4.5:1 | pass |
+| `focus` ring / `surface` (non-text UI) | 4.18:1 | 4.09:1 | 3:1 | pass |
+| `focus` ring / `surface-raised` (non-text UI) | 4.32:1 | 4.32:1 | 3:1 | pass |
 | `ink-faint` / `surface` | 2.85:1 | 2.14:1 | 4.5:1 | **below AA — see below** |
+
+Also re-verified: the Blockly block-category fills that mirror token steps as
+literal hex (`src/modules/blockly/theme.ts`, SVG can't read `var()`).
+`MOTION` moved from the token's 500 step to 600 (`#2e7d32`, 5.13:1 with its
+white label) — the new palette's 500 step (`#4caf50`) only reached 2.78:1,
+under AA even for large bold text; `LOOPS` carries the new `sky-600`
+(`#00786a`, 5.39:1) forward at the same step it always used. `EVENT`
+(`star-600`, unchanged, 3.59:1) and `LOGIC` (`coral-500`, unchanged, 4.44:1)
+were already below the strict 4.5:1 text bar before this pass — outside this
+pass's scope (their source colors didn't change) and consistent with
+Blockly's own bold ~600-weight block labels, which read as WCAG "large text"
+(3:1 minimum); both clear that bar.
 
 **`ink-faint` is intentionally sub-AA and stays that way.** Its own comment
 in `globals.css` says so explicitly ("`ink-faint` is below AA by design —

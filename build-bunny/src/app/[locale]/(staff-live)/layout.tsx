@@ -1,8 +1,10 @@
 import type { ReactNode } from "react";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 
+import type { Locale } from "@/i18n/routing";
 import { requireRole } from "@/modules/auth/server/session";
 import { SkipLink } from "@/ui";
+import { schoolFontVariable } from "@/ui/fonts";
 
 interface Props {
   children: ReactNode;
@@ -24,7 +26,10 @@ export default async function StaffLiveLayout({ children, params }: Props) {
   const tCommon = await getTranslations("common");
 
   return (
-    <div data-theme="pro" className="min-h-dvh bg-surface text-ink">
+    <div
+      data-theme="pro"
+      className={`min-h-dvh bg-surface text-ink ${schoolFontVariable(locale as Locale)}`}
+    >
       <SkipLink label={tCommon("skipToContent")} />
       <div id="main-content" tabIndex={-1} className="focus:outline-none">
         {children}

@@ -301,7 +301,7 @@ function readPalette(el: HTMLElement, theme: string): SimPalette {
     groundB: read(vars.b, "#f3efe3"),
     edge: read(vars.edge, "#cbbe9f"),
     deep: read(vars.deep, "#333"),
-    water: read("--bb-sky-200", "#afd9df"),
+    water: read("--bb-sky-200", "#9be3d6"),
     bubbleBg: read("--color-surface-raised", "#ffffff"),
     bodyFont: cs.fontFamily || "sans-serif",
   };

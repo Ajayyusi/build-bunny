@@ -4,6 +4,8 @@ import { Link, redirect } from "@/i18n/navigation";
 import type { Locale } from "@/i18n/routing";
 import { homePathForRole } from "@/modules/auth/roles";
 import { getSessionContext } from "@/modules/auth/server/session";
+import { BrandLockup, NitaqLogo } from "@/ui/BrandLogo";
+import { schoolFontVariable } from "@/ui/fonts";
 
 interface Props {
   params: Promise<{ locale: string }>;
@@ -25,12 +27,12 @@ export default async function LandingPage({ params }: Props) {
   const other: Locale = locale === "ar" ? "en" : "ar";
 
   return (
-    <div data-theme="play" className="flex min-h-dvh flex-col bg-surface text-ink">
+    <div
+      data-theme="play"
+      className={`flex min-h-dvh flex-col bg-surface text-ink ${schoolFontVariable(locale as Locale)}`}
+    >
       <header className="bb-container flex h-16 items-center justify-between">
-        <span className="flex items-center gap-2 font-display text-lg font-bold">
-          <span aria-hidden>🐰</span>
-          {tCommon("appName")}
-        </span>
+        <BrandLockup byLabel={tCommon("byNitaq")} />
         <Link
           href="/"
           locale={other}
@@ -73,8 +75,9 @@ export default async function LandingPage({ params }: Props) {
         </div>
       </main>
 
-      <footer className="bb-container flex h-14 items-center justify-center text-sm text-ink-muted">
-        {t("footer")}
+      <footer className="bb-container flex flex-wrap items-center justify-center gap-3 py-5 text-sm text-ink-muted">
+        <NitaqLogo size="sm" className="max-h-6" />
+        <span>{t("footer")}</span>
       </footer>
     </div>
   );

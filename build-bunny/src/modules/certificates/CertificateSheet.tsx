@@ -1,3 +1,7 @@
+import type { Locale } from "@/i18n/routing";
+import { NitaqLogo } from "@/ui/BrandLogo";
+import { schoolFontVariable } from "@/ui/fonts";
+
 import { encodeQr, QR_QUIET_ZONE_MODULES } from "./qr";
 
 /**
@@ -81,7 +85,7 @@ export function CertificateSheet({
     <div
       dir={locale === "ar" ? "rtl" : "ltr"}
       data-theme="play"
-      className={`certificate-sheet relative isolate mx-auto flex aspect-[297/210] w-full max-w-[1050px] flex-col overflow-hidden border-2 border-brand-strong bg-surface-raised p-[3.5%] text-ink print:aspect-auto print:h-[210mm] print:w-[297mm] print:max-w-none print:border print:p-[12mm] ${className ?? ""}`}
+      className={`certificate-sheet relative isolate mx-auto flex aspect-[297/210] w-full max-w-[1050px] flex-col overflow-hidden border-2 border-brand-strong bg-surface-raised p-[3.5%] text-ink print:aspect-auto print:h-[210mm] print:w-[297mm] print:max-w-none print:border print:p-[12mm] ${schoolFontVariable(locale as Locale)} ${className ?? ""}`}
     >
       {/* Restrained frame: a single hairline set inside the border — no
           gradients, no ornamental clutter, reads fine in pure greyscale. */}
@@ -91,16 +95,18 @@ export function CertificateSheet({
       />
 
       <header className="flex items-start justify-between gap-4">
-        <div className="flex items-center gap-2">
-          <span aria-hidden="true" className="text-2xl">
-            🐰
-          </span>
+        {/* NITAQ is the primary institutional mark here — brand decision —
+            with Build Bunny as the secondary product credit beside it. The
+            logo is decorative (aria-hidden) because "NITAQ Academy" is
+            already present as visible text right next to it. */}
+        <div className="flex items-center gap-3">
+          <NitaqLogo size="sm" decorative className="max-h-9 w-auto print:max-h-11" />
           <div className="flex flex-col leading-tight">
-            <span className="font-display text-sm font-bold tracking-wide text-ink">
-              Build Bunny
-            </span>
             <span className="text-[11px] font-semibold uppercase tracking-widest text-ink-muted">
               NITAQ Academy
+            </span>
+            <span className="font-display text-sm font-bold tracking-wide text-ink">
+              Build Bunny
             </span>
           </div>
         </div>

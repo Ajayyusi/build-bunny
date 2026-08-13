@@ -10,8 +10,9 @@ import { Blockly } from "./blockly-core";
 // Block category colours — each is the token step whose white-label
 // contrast is strongest in its ramp while staying friendly, not muddy.
 const EVENT = "#b57c04"; // --bb-star-600
-const MOTION = "#2f934f"; // --bb-meadow-500
-const LOOPS = "#217482"; // --bb-sky-600
+const MOTION = "#2e7d32"; // --bb-meadow-600 (was meadow-500; the new NITAQ
+// green's 500 step reads too light with white labels — 2.78:1, under AA)
+const LOOPS = "#00786a"; // --bb-sky-600
 const LOGIC = "#d14a2e"; // --bb-coral-500
 const SENSING = "#5c6873"; // --bb-slate-600
 
@@ -43,14 +44,14 @@ export const BunnyTheme = Blockly.Theme.defineTheme("bunny", {
     scrollbarOpacity: 0.55,
     insertionMarkerColour: "#292724", // --bb-ink-900
     insertionMarkerOpacity: 0.25,
-    selectedGlowColour: "#2e8b99", // --bb-sky-500 (matches --color-focus)
+    selectedGlowColour: "#00897b", // --bb-sky-500 (matches --color-focus)
     selectedGlowOpacity: 0.6,
-    cursorColour: "#2e8b99", // --bb-sky-500
+    cursorColour: "#00897b", // --bb-sky-500
   },
   fontStyle: {
     // Same pair the app's --font-body resolves to; SVG text cannot read
     // CSS variables reliably across Blockly's style injection.
-    family: '"Nunito Sans", "IBM Plex Sans Arabic", system-ui, sans-serif',
+    family: '"Inter", "IBM Plex Sans Arabic", system-ui, sans-serif',
     weight: "600",
   },
 });

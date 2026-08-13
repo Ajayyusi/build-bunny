@@ -14,5 +14,5 @@ Conventions:
 - `Button` defaults to `type="button"`; pass `type="submit"` in forms. `size="lg"` (44px) is the minimum on student surfaces (also on `Input`/`Select`).
 - `text-ink-faint` is below AA contrast by design — decorative/disabled text only.
 - Focus rings are global (`:focus-visible` in base styles); don't suppress outlines.
-- Wrap the app once in `<ToastProvider>`; apply `fontVariables(locale)` (from `src/ui/fonts.ts`) on `<html>` next to `data-theme`.
+- Wrap the app once in `<ToastProvider>`; apply `fontVariables(locale)` (from `src/ui/fonts.ts`) on `<html>` next to `lang`/`dir` — the student/default font pair (must be `<html>`, not `<body>`: `:root` in `globals.css` can only see custom properties set on `<html>` itself or above). School-facing surfaces (landing, auth, staff, platform, certificate) additionally add `schoolFontVariable(locale)` on their own `[data-theme]` wrapper to swap just the heading face to Poppins.
 - Honest states: pair every list with `EmptyState`/`ErrorState`/`Skeleton` — no dead ends.
