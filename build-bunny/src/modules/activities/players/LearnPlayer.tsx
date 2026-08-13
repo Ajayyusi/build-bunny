@@ -456,6 +456,7 @@ export function LearnPlayer({
           instructions={intro.instructions}
           difficulty={intro.difficulty}
           estimatedMinutes={intro.estimatedMinutes}
+          worldTheme={intro.worldTheme}
           onStart={() => {
             setPhase("show");
             setPlaying(true);

@@ -133,7 +133,31 @@
       "worldProgressSr": "{done} of {total} levels complete",
       "activityTitle": "This week",
       "activityLevels": "Levels played",
-      "activityStars": "Stars earned"
+      "activityStars": "Stars earned",
+      "onboarding": {
+        "title": "Welcome to Build Bunny",
+        "skip": "Skip",
+        "next": "Next",
+        "done": "Let's go!",
+        "steps": {
+          "0": {
+            "title": "Hi! I'm Bunny.",
+            "body": "We're going to learn coding and AI together. I'll be with you the whole way."
+          },
+          "1": {
+            "title": "Worlds to explore",
+            "body": "Your adventure map has six worlds. Finish the levels in one and the next one opens up."
+          },
+          "2": {
+            "title": "Stars and XP",
+            "body": "Every mission you finish earns XP. Solve it neatly and you earn up to three stars."
+          },
+          "3": {
+            "title": "Stuck? Ask me.",
+            "body": "Every mission has hints. Using one is not cheating — it's how you get unstuck."
+          }
+        }
+      }
     },
     "adventure": {
       "title": "Adventure map",

@@ -382,6 +382,7 @@ export function SequencingPlayer({
           instructions={intro.instructions}
           difficulty={intro.difficulty}
           estimatedMinutes={intro.estimatedMinutes}
+          worldTheme={intro.worldTheme}
           onStart={() => {
             editStartRef.current = Date.now();
             setPhase("edit");

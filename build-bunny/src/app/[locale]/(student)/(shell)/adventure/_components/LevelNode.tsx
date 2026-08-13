@@ -3,7 +3,7 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 
-import { cn } from "@/ui";
+import { BunnyMascot, cn } from "@/ui";
 
 import styles from "./adventure.module.css";
 import type { TrailLevelVM } from "./types";
@@ -119,6 +119,14 @@ export function LevelNode({ level, onOpen, index = 0 }: LevelNodeProps) {
           </span>
         )}
       </button>
+
+      {/* "You are here": the bunny physically stands on the level the
+          student is up to, so the map answers "where am I?" before any text
+          does. Decorative — aria-current="step" on the node above already
+          carries this for assistive tech. */}
+      {level.current ? (
+        <BunnyMascot state="idle" size="xs" className={styles.hereMarker} />
+      ) : null}
 
       {level.state === "COMPLETED" ? (
         // `relative z-10` is load-bearing, not decoration: the badge tucks

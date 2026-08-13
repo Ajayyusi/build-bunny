@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 
 import { Badge, BunnyMascot, Button, useFocusTrap, type BadgeVariant } from "@/ui";
 
+import { MissionIntro } from "./MissionIntro";
 import styles from "./player.module.css";
 
 interface IntroOverlayProps {
@@ -14,6 +15,11 @@ interface IntroOverlayProps {
   instructions: string;
   difficulty: string;
   estimatedMinutes: number;
+  /**
+   * World theme for the game-entry transition's environment. Optional so a
+   * player that has no world context still renders the briefing.
+   */
+  worldTheme?: string;
   onStart: () => void;
 }
 
@@ -36,6 +42,7 @@ export function IntroOverlay({
   instructions,
   difficulty,
   estimatedMinutes,
+  worldTheme,
   onStart,
 }: IntroOverlayProps) {
   const t = useTranslations("student.play.intro");
@@ -44,6 +51,10 @@ export function IntroOverlay({
   const [step, setStep] = useState<"story" | "mission">(
     hasStory ? "story" : "mission",
   );
+  // The run-in plays first, then the briefing. MissionIntro calls onDone
+  // immediately under reduced motion, so that preference lands the student
+  // straight on the briefing with no dead frame.
+  const [arriving, setArriving] = useState(worldTheme !== undefined);
   // Keyboard/screen-reader parity with the native <dialog>-based Dialog
   // component: this overlay can't use <dialog> (it's absolutely positioned
   // inside the immersive player, not top-layer), so the trap is manual.
@@ -54,6 +65,16 @@ export function IntroOverlay({
     difficulty in DIFFICULTY_VARIANT
       ? tAdventure(`difficulty.${difficulty}`)
       : difficulty;
+
+  if (arriving && worldTheme !== undefined) {
+    return (
+      <MissionIntro
+        worldTheme={worldTheme}
+        title={title}
+        onDone={() => setArriving(false)}
+      />
+    );
+  }
 
   return (
     <div

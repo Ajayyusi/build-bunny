@@ -1,0 +1,70 @@
+/* Game-entry transition (MissionIntro). Everything here is transform/opacity
+   only and runs once — this plays before every level, so it must be cheap and
+   short. The component does not render at all under prefers-reduced-motion,
+   so these keyframes never need a reduce-motion variant of their own; the
+   global clamp in globals.css is a backstop. */
+
+.stage {
+  cursor: pointer;
+  animation: mi-stage-in 200ms ease-out both;
+}
+
+@keyframes mi-stage-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* The environment sweeps in from the inline-end, so the world arrives around
+   the bunny rather than the bunny arriving in a static frame. */
+.backdrop {
+  position: absolute;
+  inset: 0;
+  animation: mi-backdrop-in 700ms var(--bb-ease-spring) both;
+}
+
+@keyframes mi-backdrop-in {
+  from { opacity: 0; transform: scale(1.08); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* The bunny's run: from just off the inline-start edge to just past the
+   inline-end one. Logical direction handled by the RTL override below —
+   translate percentages are physical, so RTL needs the mirrored pair. */
+.track {
+  position: absolute;
+  inset-block-end: 18%;
+  inset-inline-start: 0;
+  animation: mi-run 1500ms cubic-bezier(0.4, 0, 0.5, 1) both;
+}
+
+@keyframes mi-run {
+  from { transform: translateX(-120%); }
+  to   { transform: translateX(calc(100vw + 20%)); }
+}
+
+html[dir="rtl"] .track {
+  animation-name: mi-run-rtl;
+}
+
+@keyframes mi-run-rtl {
+  from { transform: translateX(120%); }
+  to   { transform: translateX(calc(-100vw - 20%)); }
+}
+
+/* The level's name lands mid-run and holds. */
+.title {
+  position: absolute;
+  inset-inline: 1.5rem;
+  inset-block-start: 22%;
+  text-align: center;
+  opacity: 0;
+  transform: translateY(14px) scale(0.96);
+  transition:
+    opacity 320ms ease-out,
+    transform 320ms var(--bb-ease-spring);
+}
+
+.titleIn {
+  opacity: 1;
+  transform: none;
+}

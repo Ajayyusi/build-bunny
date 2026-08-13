@@ -12,6 +12,7 @@ import { getMyStudentSnapshot } from "@/modules/students/server/queries";
 import { BunnyMascot, CountUp, EmptyState } from "@/ui";
 
 import { themeEmoji } from "../adventure/_components/theme";
+import { Onboarding } from "./_components/Onboarding";
 import { WorldCard, type WorldCardVM } from "./_components/WorldCard";
 
 interface Props {
@@ -68,6 +69,10 @@ export default async function StudentHomePage({ params }: Props) {
 
   return (
     <div className="flex flex-col gap-6">
+      {/* A student who has never earned XP has never finished a level, so
+          this is their first visit — Bunny introduces the place. */}
+      <Onboarding show={(snapshot?.xpTotal ?? 0) === 0} />
+
       {/* ── Row 1: hero + progress panels ─────────────────────────────── */}
       <div className="grid gap-4 lg:grid-cols-[1fr_20rem]">
         {/* Hero — "pick up where you left off" */}

@@ -63,6 +63,13 @@
   border-block-start: 1px solid var(--world-edge);
 }
 
+/* The world's scenery fades out downward so the card's own text always sits
+   on flat band colour — art behind headings, never under them. */
+.scenery {
+  opacity: 0.85;
+  mask-image: linear-gradient(to bottom, black 45%, transparent 100%);
+}
+
 .worldTitle {
   color: var(--world-deep);
 }
@@ -213,8 +220,6 @@ html[dir="rtl"] .spineDot {
   inset-inline-start: 50%;
   translate: -50% 0;
   z-index: 5;
-  font-size: 1.5rem;
-  line-height: 1;
   pointer-events: none;
   filter: drop-shadow(0 2px 4px color-mix(in oklab, var(--color-ink) 30%, transparent));
 }

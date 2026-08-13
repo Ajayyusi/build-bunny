@@ -1,0 +1,21 @@
+/* First-run welcome. Entrance only — no loops; the bunny inside carries the
+   life. The global reduce-motion clamp collapses both animations, leaving the
+   dialog simply present, which is the correct fallback. */
+
+.scrim {
+  animation: ob-fade 200ms ease-out both;
+}
+
+@keyframes ob-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.card {
+  animation: ob-rise 380ms var(--bb-ease-spring) both;
+}
+
+@keyframes ob-rise {
+  from { opacity: 0; transform: translateY(18px) scale(0.96); }
+  to   { opacity: 1; transform: none; }
+}

@@ -8,6 +8,7 @@ import { Badge, cn } from "@/ui";
 import styles from "./adventure.module.css";
 import { LevelNode } from "./LevelNode";
 import { themeEmoji } from "./theme";
+import { WorldScenery } from "./WorldScenery";
 import type { TrailLevelVM, TrailWorldVM } from "./types";
 
 interface WorldSegmentProps {
@@ -114,7 +115,7 @@ export function WorldSegment({ world, index, onOpenLevel }: WorldSegmentProps) {
         data-world-theme={world.theme}
         className={cn(
           styles.world,
-          "bb-cascade rounded-2xl border border-border-token p-5 shadow-soft",
+          "bb-cascade relative overflow-hidden rounded-2xl border border-border-token p-5 shadow-soft",
           locked && "opacity-70",
           // Alternate sides on lg. Column 2 needs an explicit start so the
           // card doesn't stretch across the spine.
@@ -122,7 +123,19 @@ export function WorldSegment({ world, index, onOpenLevel }: WorldSegmentProps) {
         )}
         style={{ "--i": index } as React.CSSProperties}
       >
-        <header className="flex flex-col gap-2">
+        {/* The world's own landscape, behind its header — this is what makes
+            a world feel like a place. Locked worlds keep it, dimmed, so a
+            student can see where they are heading. */}
+        <WorldScenery
+          theme={world.theme}
+          className={cn(
+            styles.scenery,
+            "pointer-events-none absolute inset-x-0 top-0 h-24",
+            locked && "opacity-40 grayscale",
+          )}
+        />
+
+        <header className="relative flex flex-col gap-2">
           <div className="flex items-start justify-between gap-3">
             <span
               aria-hidden="true"
@@ -194,7 +207,7 @@ export function WorldSegment({ world, index, onOpenLevel }: WorldSegmentProps) {
 
         {/* Levels stay individually openable — the timeline restyles the
             world, it doesn't change how a student reaches a level. */}
-        <ol className="mt-4 flex flex-wrap items-start gap-x-3 gap-y-4">
+        <ol className="relative mt-4 flex flex-wrap items-start gap-x-3 gap-y-4">
           {world.levels.map((level, i) => (
             <li key={level.id} className="flex flex-col items-center">
               <LevelNode level={level} onOpen={onOpenLevel} index={i} />
