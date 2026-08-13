@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-label="Carrot">
+  <rect width="256" height="256" fill="#feeec0"/>
+  <polygon points="128,220 76,96 180,96" fill="#d14a2e"/>
+  <polygon points="128,96 92,44 118,100" fill="#2f934f"/>
+  <polygon points="128,96 128,36 146,100" fill="#2f934f"/>
+  <polygon points="128,96 164,44 140,100" fill="#2f934f"/>
+</svg>

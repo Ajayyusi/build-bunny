@@ -25,7 +25,8 @@
       "TEACHER": "Teacher",
       "STUDENT": "Student",
       "SYSTEM": "System"
-    }
+    },
+    "byNitaq": "by NITAQ Academy"
   },
   "landing": {
     "tagline": "Real coding for young builders — one playful mission at a time.",
@@ -216,7 +217,10 @@
         "tryAnotherBlock": "That block isn't the one. Watch the example again and try another.",
         "generic": "Not quite! Study the map and try again.",
         "teachBothBuckets": "Teach the bunny at least {need} berries in each basket first.",
-        "modelGuessedWrong": "The bunny got {correct} of {total} right — teach it a berry near the ones it missed."
+        "modelGuessedWrong": "The bunny got {correct} of {total} right — teach it a berry near the ones it missed.",
+        "classifierErrors": "{errors, plural, one {One point is} other {# points are}} on the wrong side of your line — this level allows {maxErrors}. Try adjusting it.",
+        "trendMissTooHigh": "Your total miss score is {childScore} — aim for {targetScore} or lower. Try adjusting your line.",
+        "mysteryRoundsWrong": "You matched {correct} of {total} mystery pictures. Take another look at the blocky ones!"
       },
       "learn": {
         "stepWatch": "Step 1 of 2 · Watch",
@@ -374,6 +378,68 @@
         "walkSkip": "Skip",
         "walkNext": "Next",
         "walkStart": "Let's go"
+      },
+      "aiEthics": {
+        "continueStory": "Continue",
+        "shieldTitle": "Your Privacy Shield",
+        "finish": "Finish",
+        "submitFailed": "Couldn't save your story.",
+        "retry": "Try saving again"
+      },
+      "aiSim": {
+        "submit": "Check my work",
+        "submitFailed": "We couldn't save your work.",
+        "retry": "Retry",
+        "honestyReal": "Real — it actually computes",
+        "honestySimulated": "Simulated — a story, not a computation",
+        "unknownWidget": "This activity couldn't load. Please go back and try again.",
+        "boundaryBuilder": {
+          "instructions": "Drag the line so it sorts the two groups. Watch the count of out-of-place points.",
+          "misclassifiedCount": "{count} out of place",
+          "misclassifiedZero": "All sorted!",
+          "chartLabel": "A scatter plot with a dividing line you can drag",
+          "dragHandleLabel": "Dividing line",
+          "dragHandleHelp": "Drag anywhere on the line, or one of its ends to tilt it. With the line focused, use the up and down arrow keys to move it, or hold Shift with the arrow keys to tilt it.",
+          "letComputerTry": "Let the computer try",
+          "hideComputer": "Hide the computer's line",
+          "comparison": "You: {childErrors} out of place · Computer: {computerErrors} out of place"
+        },
+        "trendLine": {
+          "instructionsFit": "Drag the line to cut the total miss score. Then let the computer show you its best line.",
+          "instructionsPredict": "Set your prediction for the marked point, then see how it compares to a likely range.",
+          "totalMiss": "Total miss: {score}",
+          "computerMiss": "Computer's miss: {score}",
+          "chartLabel": "A scatter plot with a trend line you can drag",
+          "dragHandleLabel": "Trend line",
+          "dragHandleHelp": "Drag anywhere on the line, or one of its ends to tilt it. With the line focused, use the up and down arrow keys to move it, or hold Shift with the arrow keys to tilt it.",
+          "computerTurn": "Computer's turn",
+          "continueToPredict": "Continue to prediction",
+          "predictionLabel": "Your prediction at x = {x}",
+          "predictionDecrease": "Decrease prediction",
+          "predictionIncrease": "Increase prediction",
+          "predictionValue": "Your guess: {value}",
+          "bandInsideNote": "that's inside the range scientists would expect",
+          "bandOutsideNote": "that's outside the range scientists would expect"
+        },
+        "pixelPlayground": {
+          "exploreIntro": "Pick a picture and see how a computer stores it — as a grid of numbers.",
+          "realPicture": "Real picture",
+          "whatComputerSees": "What the computer sees",
+          "pixelGridLabel": "The picture as a {resolution} by {resolution} pixel grid",
+          "resolutionLabel": "Resolution: {resolution} by {resolution} pixels",
+          "resolutionDetailed": "More detail",
+          "resolutionBlocky": "More blocky",
+          "greyscaleToggle": "Greyscale",
+          "edgesToggle": "Find edges",
+          "kernelHeading": "Edge-detection kernel",
+          "kernelReset": "Reset to edge detection",
+          "kernelCell": "Kernel row {row}, column {col}",
+          "roundsHeading": "Mystery pictures",
+          "roundLabel": "Round {number}",
+          "loadingImage": "Loading picture…",
+          "loadError": "This picture couldn't load.",
+          "mysteryImageLabel": "A mystery picture shown at {resolution} by {resolution} pixels"
+        }
       }
     },
     "profile": {

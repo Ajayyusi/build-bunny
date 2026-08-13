@@ -581,9 +581,131 @@ export const patternRecognitionStudentPayload = z
   })
   .strict();
 
+// ── AI_ETHICS: branching scenario cards (phase G graft) ──────────────────
+
+/**
+ * Branching scenario cards (privacy, bias, responsible use). Each scene's
+ * choice carries a `safe` flag — the only answer-bearing field, swept by
+ * stripStudentPayload's AI_ETHICS case so a child can't game the checklist
+ * instead of engaging with the story. The `outcome` copy ships on purpose:
+ * the consequence text IS the teaching moment.
+ */
+export const aiEthicsPayload = z.object({
+  prompt: localizedText,
+  scenes: z
+    .array(
+      z.object({
+        id: z.string().min(1),
+        text: localizedText,
+        art: z.string().optional(),
+        choices: z
+          .array(
+            z.object({
+              id: z.string().min(1),
+              text: localizedText,
+              /** Consequence shown after choosing — the teaching happens here. */
+              outcome: localizedText,
+              /** Choices that demonstrate the safe habit this scene teaches. */
+              safe: z.boolean().default(false),
+              next: z.string().optional(),
+            }),
+          )
+          .min(2)
+          .max(4),
+      }),
+    )
+    .min(2)
+    .max(8),
+  /** The checklist the child assembles; shown on completion. */
+  takeaways: z.array(localizedText).min(2).max(6),
+});
+
+// ── AI_SIM: interactive concept widgets with real maths (phase G graft) ──
+
+/** AI_SIM widgets — free-form interactive concept toys with real maths. */
+export const AI_SIM_WIDGETS = ["boundary-builder", "trend-line", "pixel-playground"] as const;
+export type AiSimWidget = (typeof AI_SIM_WIDGETS)[number];
+
+const point2d = z.object({
+  id: z.string().min(1),
+  x: z.number(),
+  y: z.number(),
+  label: z.string().min(1),
+});
+
+/** Draw a dividing line between two labelled groups, then watch a centroid rule do it. */
+export const boundaryBuilderConfig = z.object({
+  widgetId: z.literal("boundary-builder"),
+  xAxis: localizedText,
+  yAxis: localizedText,
+  labels: z.array(z.object({ id: z.string().min(1), text: localizedText })).length(2),
+  points: z.array(point2d).min(6).max(40),
+  /** Misclassifications allowed by the child's own line to count as a pass. */
+  maxErrors: z.number().int().min(0).default(1),
+});
+
+/** Fit a trend line by eye, then least squares shows how close you got. */
+export const trendLineConfig = z.object({
+  widgetId: z.literal("trend-line"),
+  xAxis: localizedText,
+  yAxis: localizedText,
+  points: z.array(z.object({ x: z.number(), y: z.number() })).min(5).max(30),
+  /** The child passes when their total squared error is within this multiple
+   *  of the least-squares optimum — computed server-side, never claimed. */
+  toleranceFactor: z.number().min(1).default(1.6),
+  predictAt: z.number(),
+});
+
+/** Pixels, resolution and convolution — see an image the way a computer does. */
+export const pixelPlaygroundConfig = z.object({
+  widgetId: z.literal("pixel-playground"),
+  images: z
+    .array(
+      z.object({
+        id: z.string().min(1),
+        src: z.string().min(1),
+        name: localizedText,
+      }),
+    )
+    .min(2)
+    .max(8),
+  /** Resolutions the slider offers, largest first. */
+  resolutions: z.array(z.number().int().min(4).max(128)).min(2),
+  /** Identify-the-mystery-image rounds the child must answer. Each round's
+   * `imageId` is the answer key — the widget's stripConfig replaces it with
+   * the bare `src` before the payload reaches a student. */
+  rounds: z
+    .array(
+      z.object({
+        id: z.string().min(1),
+        imageId: z.string().min(1),
+        resolution: z.number().int(),
+      }),
+    )
+    .min(1)
+    .max(6),
+});
+
+export const aiSimPayload = z.object({
+  widget: z.discriminatedUnion("widgetId", [
+    boundaryBuilderConfig,
+    trendLineConfig,
+    pixelPlaygroundConfig,
+  ]),
+  /** Shown above the widget: what the child is exploring and why it is honest. */
+  intro: localizedText,
+  /** The REAL/SIMULATED honesty ribbon (plan §M, "no fake AI"). */
+  honesty: z.object({
+    kind: z.enum(["REAL", "SIMULATED"]),
+    note: localizedText,
+  }),
+});
+
 /** V1 activity types with a real engine behind them (plan §0.1-7). */
 export const V1_ACTIVITY_TYPES = [
   "AI_CLASSIFICATION",
+  "AI_ETHICS",
+  "AI_SIM",
   "PATTERN_RECOGNITION",
   "BLOCK_CODING",
   "CODE_PREDICTION",
@@ -595,6 +717,8 @@ export type V1ActivityType = (typeof V1_ACTIVITY_TYPES)[number];
 
 const PAYLOAD_SCHEMAS: Record<V1ActivityType, z.ZodTypeAny> = {
   AI_CLASSIFICATION: aiClassificationPayload,
+  AI_ETHICS: aiEthicsPayload,
+  AI_SIM: aiSimPayload,
   PATTERN_RECOGNITION: patternRecognitionPayload,
   BLOCK_CODING: blockCodingPayload,
   CODE_PREDICTION: codePredictionPayload,
@@ -663,11 +787,24 @@ export const levelFixtureSchema = z.object({
   requires: z.array(z.string()).default([]),
 });
 
+/**
+ * Module.unlockRule (phase G graft): the only rule variant in V1.
+ * `{ type: "OPEN" }` unlocks every level in the module as soon as its world
+ * is published and the student's program includes it — no prior-module/
+ * prior-world completion required, because AI-concept modules carry no
+ * coding prerequisite. Absence of a rule (the default) keeps the linear +
+ * explicit-prerequisite behaviour every other module already has.
+ */
+export const moduleUnlockRuleSchema = z.object({ type: z.literal("OPEN") });
+export type ModuleUnlockRule = z.infer<typeof moduleUnlockRuleSchema>;
+
 export const moduleFixtureSchema = z.object({
   slug: z.string().regex(/^[a-z0-9-]+$/),
   order: z.number().int().min(1),
   name: localizedText,
   description: localizedTextOptional,
+  /** Set only when authoring an OPEN module; see moduleUnlockRuleSchema. */
+  unlockRule: moduleUnlockRuleSchema.optional(),
   levels: z.array(levelFixtureSchema).min(1),
 });
 

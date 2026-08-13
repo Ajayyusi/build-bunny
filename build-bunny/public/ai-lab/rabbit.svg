@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-label="Rabbit">
+  <!-- Pixel-Playground source art (Phase G): a handful of bold, high-contrast
+       flat shapes on a filled background. No gradients, no fine linework —
+       the whole point is that the silhouette still reads at 8x8px. -->
+  <rect width="256" height="256" fill="#2f934f"/>
+  <ellipse cx="100" cy="72" rx="24" ry="72" fill="#fdfbf7" transform="rotate(-14 100 72)"/>
+  <ellipse cx="156" cy="72" rx="24" ry="72" fill="#fdfbf7" transform="rotate(14 156 72)"/>
+  <ellipse cx="128" cy="172" rx="72" ry="64" fill="#fdfbf7"/>
+</svg>

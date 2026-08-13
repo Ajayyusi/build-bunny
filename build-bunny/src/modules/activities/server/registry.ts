@@ -9,6 +9,8 @@ import {
   aiClassificationAnswerSchema,
   gradeAiClassification,
 } from "./ai-classification";
+import { aiEthicsAnswerSchema, gradeAiEthics } from "./ai-ethics";
+import { gradeAiSim } from "./ai-sim";
 import {
   codePredictionAnswerSchema,
   gradeCodePrediction,
@@ -105,6 +107,25 @@ const aiClassification: ActivityEngine = {
   stripPayload: (payload) => stripStudentPayload("AI_CLASSIFICATION", payload),
 };
 
+/** Branching privacy scenario (AI Island). Completion-based; stars reward safe habits. */
+const aiEthics: ActivityEngine = {
+  grade: (snapshot, input) => {
+    const parsed = aiEthicsAnswerSchema.safeParse(input);
+    return parsed.success ? gradeAiEthics(snapshot, parsed.data) : invalidAnswer();
+  },
+  stripPayload: (payload) => stripStudentPayload("AI_ETHICS", payload),
+};
+
+/**
+ * AI_SIM (phase G graft): a thin adapter over the widget registry at
+ * src/modules/ai/lab/registry.ts — gradeAiSim re-validates the answer against
+ * the level's own widget schema, so no answer schema is pinned here.
+ */
+const aiSim: ActivityEngine = {
+  grade: (snapshot, input) => gradeAiSim(snapshot, input),
+  stripPayload: (payload) => stripStudentPayload("AI_SIM", payload),
+};
+
 export const ACTIVITY_ENGINES: Partial<Record<V1ActivityType, ActivityEngine>> = {
   BLOCK_CODING: grid,
   DEBUGGING: grid,
@@ -113,6 +134,8 @@ export const ACTIVITY_ENGINES: Partial<Record<V1ActivityType, ActivityEngine>> =
   CONCEPT_CARDS: conceptCards,
   AI_CLASSIFICATION: aiClassification,
   PATTERN_RECOGNITION: patternRecognition,
+  AI_ETHICS: aiEthics,
+  AI_SIM: aiSim,
 };
 
 export function getActivityEngine(activityType: string): ActivityEngine | undefined {

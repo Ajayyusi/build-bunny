@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-label="Rocket">
+  <rect width="256" height="256" fill="#292724"/>
+  <polygon points="94,214 128,244 162,214" fill="#b03a24"/>
+  <path d="M 128 24 C 168 64 168 140 168 190 L 88 190 C 88 140 88 64 128 24 Z" fill="#fdfbf7"/>
+  <circle cx="128" cy="120" r="22" fill="#f2b72e"/>
+</svg>

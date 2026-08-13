@@ -1,0 +1,110 @@
+/* Shared motion for the three AI_SIM widgets (BoundaryBuilder, TrendLine,
+   PixelPlayground). Everything here is short and entrance/attention-only;
+   the global prefers-reduced-motion backstop (globals.css) zeroes durations,
+   but the wobble in particular is also swapped for a static highlight class
+   IN CODE (not just CSS) — a shake that "completes instantly" still reads as
+   a flash, which is exactly the kind of motion reduced-motion users opt out
+   of. Colors come from design tokens only. */
+
+/* Misclassified/mismatched point — a small worried shake. Reduced motion:
+   component code swaps this class out entirely for .flagged (below). */
+.wobble {
+  animation: wobble 420ms ease-in-out infinite;
+  /* Without fill-box, an SVG element's transform-origin is relative to the
+     nearest viewport, not its own shape — "center" would otherwise pivot
+     around the chart's origin instead of the point itself. */
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+/* Static reduced-motion substitute: a steady ring, no motion at all. */
+.flagged {
+  filter: drop-shadow(0 0 0 var(--color-danger));
+}
+
+/* The centroid-rule / least-squares comparison line drawing itself in. */
+.lineReveal {
+  animation: line-reveal 640ms ease-out both;
+}
+
+/* Score chips and small badges popping in once a comparison is available. */
+.popIn {
+  animation: pop-in 260ms ease-out both;
+}
+
+/* The draggable line handle group — a gentle hover/focus lift only, no
+   looping motion (this is a persistent control, not a celebratory beat). */
+.handle {
+  transition:
+    transform 120ms ease-out,
+    filter 120ms ease-out;
+  touch-action: none;
+}
+.handle:hover,
+.handle:focus-visible {
+  transform: scale(1.08);
+}
+
+/* Pixel-grid cells fading in together when the resolution changes. */
+.gridFadeIn {
+  animation: fade-in 200ms ease-out both;
+}
+
+@keyframes wobble {
+  0%,
+  100% {
+    transform: rotate(0deg) translateX(0);
+  }
+  25% {
+    transform: rotate(-6deg) translateX(-1px);
+  }
+  75% {
+    transform: rotate(6deg) translateX(1px);
+  }
+}
+
+@keyframes line-reveal {
+  from {
+    opacity: 0;
+    transform: scaleY(0.6);
+  }
+  to {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+}
+
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    scale: 0.85;
+  }
+  to {
+    opacity: 1;
+    scale: 1;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wobble,
+  .lineReveal,
+  .popIn,
+  .gridFadeIn {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+  .handle:hover,
+  .handle:focus-visible {
+    transform: none;
+  }
+}

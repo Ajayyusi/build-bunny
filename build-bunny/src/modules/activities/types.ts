@@ -210,6 +210,46 @@ export interface GroupActivityPayload {
   starCriteria: { threeStarMaxBlocks?: number };
 }
 
+// ── AI Lab graft (phase G): AI_ETHICS + AI_SIM payloads ───────────────────
+
+/** Branching privacy/ethics scenarios; the `safe` flag never reaches the client. */
+export interface AiEthicsActivityPayload {
+  prompt: LocalizedText;
+  scenes: {
+    id: string;
+    text: LocalizedText;
+    art?: string;
+    choices: { id: string; text: LocalizedText; outcome: LocalizedText; next?: string }[];
+  }[];
+  takeaways: LocalizedText[];
+}
+
+/** AI_SIM: widget-specific config, opaque here — each widget owns its own shape. */
+export interface AiSimActivityPayload {
+  widget: { widgetId: string } & Record<string, unknown>;
+  intro: LocalizedText;
+  honesty: { kind: "REAL" | "SIMULATED"; note: LocalizedText };
+}
+
+/**
+ * AI_ETHICS branching resolution, shared by the player (client) and the
+ * grader (server) so what the child experiences and what gets graded can
+ * never diverge: a chosen `next` wins when it names an existing scene;
+ * otherwise the story falls through to the next scene in array order; a
+ * choice with no match either way ends the story (checklist screen).
+ */
+export function resolveNextSceneIndex(
+  scenes: { id: string }[],
+  currentIndex: number,
+  next: string | undefined,
+): number {
+  if (next) {
+    const named = scenes.findIndex((scene) => scene.id === next);
+    return named === -1 ? scenes.length : named;
+  }
+  return currentIndex + 1;
+}
+
 export interface ActivityPlayerProps {
   intro: ActivityIntro;
   /**

@@ -9,8 +9,14 @@ import {
   sequencingStudentPayload,
   shuffleSequencingItems,
 } from "@/modules/activities/server/sequencing";
+import {
+  aiEthicsStudentPayload,
+  aiSimStudentPayload,
+} from "@/modules/activities/server/student-views";
 import type {
   ActivityIntro,
+  AiEthicsActivityPayload,
+  AiSimActivityPayload,
   CodePredictionActivityPayload,
   GridActivityPayload,
   GroupActivityPayload,
@@ -134,7 +140,9 @@ export default async function PlayLevelPage({ params }: Props) {
     | SequencingActivityPayload
     | LearnActivityPayload
     | TeachActivityPayload
-    | GroupActivityPayload;
+    | GroupActivityPayload
+    | AiEthicsActivityPayload
+    | AiSimActivityPayload;
   if (playable.activityType === "DEBUGGING") {
     const parsed = debuggingPayload.parse(playable.payload);
     const resetWorkspace =
@@ -240,6 +248,26 @@ export default async function PlayLevelPage({ params }: Props) {
       })),
       starCriteria: raw.starCriteria,
     } satisfies GroupActivityPayload;
+  } else if (playable.activityType === "AI_ETHICS") {
+    // Parsed against the .strict() student mirror (student-views.ts): the
+    // choices' `safe` flags were removed by stripStudentPayload, and a strip
+    // regression fails this parse loudly instead of shipping the answer key.
+    const parsed = aiEthicsStudentPayload.parse(playable.payload);
+    payload = {
+      prompt: parsed.prompt,
+      scenes: parsed.scenes,
+      takeaways: parsed.takeaways,
+    } satisfies AiEthicsActivityPayload;
+  } else if (playable.activityType === "AI_SIM") {
+    // Envelope re-parse; the widget config passed through opaque because the
+    // widget's own stripConfig already removed its answer keys (a pixel
+    // round's imageId) and each widget player re-validates its own shape.
+    const parsed = aiSimStudentPayload.parse(playable.payload);
+    payload = {
+      widget: parsed.widget as AiSimActivityPayload["widget"],
+      intro: parsed.intro,
+      honesty: parsed.honesty,
+    } satisfies AiSimActivityPayload;
   } else if (playable.activityType === "CONCEPT_CARDS") {
     const parsed = conceptCardsStudentPayload.parse(playable.payload);
     payload = {

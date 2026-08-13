@@ -47,6 +47,18 @@ const GroupPlayer = dynamic(
   { ssr: false },
 );
 
+// Phase G graft. AiSimPlayer delegates further: it is a thin wrapper that
+// picks the actual widget component from src/modules/ai/lab/players/
+// registry.tsx by widgetId — the client mirror of how the server's AI_SIM
+// engine delegates grading to src/modules/ai/lab/registry.ts.
+const AiSimPlayer = dynamic(() => import("./AiSimPlayer").then((m) => m.AiSimPlayer), {
+  ssr: false,
+});
+const AiEthicsPlayer = dynamic(
+  () => import("./AiEthicsPlayer").then((m) => m.AiEthicsPlayer),
+  { ssr: false },
+);
+
 export const ACTIVITY_PLAYERS: Partial<Record<string, ComponentType<ActivityPlayerProps>>> = {
   BLOCK_CODING: GridPlayer,
   DEBUGGING: GridPlayer,
@@ -55,6 +67,8 @@ export const ACTIVITY_PLAYERS: Partial<Record<string, ComponentType<ActivityPlay
   CONCEPT_CARDS: LearnPlayer,
   AI_CLASSIFICATION: TeachPlayer,
   PATTERN_RECOGNITION: GroupPlayer,
+  AI_ETHICS: AiEthicsPlayer,
+  AI_SIM: AiSimPlayer,
 };
 
 export function getActivityPlayer(

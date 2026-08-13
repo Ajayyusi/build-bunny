@@ -4,6 +4,8 @@ import { z } from "zod";
 import { generateRequestId, logger, setRequestContext, withRequestContext } from "@/lib/logger";
 import { createRateLimiter } from "@/lib/rate-limit";
 import { aiClassificationAnswerSchema } from "@/modules/activities/server/ai-classification";
+import { aiEthicsAnswerSchema } from "@/modules/activities/server/ai-ethics";
+import { aiSimAnswerSchema } from "@/modules/activities/server/ai-sim";
 import { patternRecognitionAnswerSchema } from "@/modules/activities/server/pattern-recognition";
 import { hasPermission } from "@/modules/auth/permissions";
 import { getSessionContext } from "@/modules/auth/server/session";
@@ -70,6 +72,24 @@ const patternRecognitionBodySchema = z
   .object({
     attemptRunId: z.string().uuid(),
     answer: patternRecognitionAnswerSchema,
+  })
+  .strict();
+
+const aiEthicsBodySchema = z
+  .object({
+    attemptRunId: z.string().uuid(),
+    answer: aiEthicsAnswerSchema,
+  })
+  .strict();
+
+// AI_SIM answers differ per widget (line/prediction/rounds); the imported
+// union covers all three shapes, and the engine adapter
+// (activities/server/ai-sim.ts) re-validates against the level's OWN widget
+// schema before grading, so a body shaped for the wrong widget still fails.
+const aiSimBodySchema = z
+  .object({
+    attemptRunId: z.string().uuid(),
+    answer: aiSimAnswerSchema,
   })
   .strict();
 
@@ -155,6 +175,14 @@ export async function POST(
         input = parsed.data;
       } else if (activityType === "CONCEPT_CARDS") {
         const parsed = conceptCardsBodySchema.safeParse(raw);
+        if (!parsed.success) return validationError(parsed.error.flatten().fieldErrors);
+        input = parsed.data;
+      } else if (activityType === "AI_ETHICS") {
+        const parsed = aiEthicsBodySchema.safeParse(raw);
+        if (!parsed.success) return validationError(parsed.error.flatten().fieldErrors);
+        input = parsed.data;
+      } else if (activityType === "AI_SIM") {
+        const parsed = aiSimBodySchema.safeParse(raw);
         if (!parsed.success) return validationError(parsed.error.flatten().fieldErrors);
         input = parsed.data;
       } else if (!activityType || GRID_ACTIVITY_TYPES.has(activityType)) {

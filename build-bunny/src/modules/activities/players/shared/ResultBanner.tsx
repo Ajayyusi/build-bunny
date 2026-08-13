@@ -12,7 +12,9 @@ import type { ActivityFeedback } from "../../types";
  * CODE_PREDICTION/SEQUENCING): grid engines use the step-located codes
  * (bumped, splashed, …); the answer engines use wrongOption/wrongOrder, and
  * the Learn step uses tryAnotherBlock — deliberately an invitation rather
- * than a verdict, since a lesson has no failure state.
+ * than a verdict, since a lesson has no failure state. The AI_SIM widgets
+ * (phase G graft) report classifierErrors / trendMissTooHigh /
+ * mysteryRoundsWrong — always "how close", never "which one".
  * Shared across every activity engine's player.
  */
 const KNOWN_CODES = new Set([
@@ -29,6 +31,9 @@ const KNOWN_CODES = new Set([
   "wrongOption",
   "wrongOrder",
   "tryAnotherBlock",
+  "classifierErrors",
+  "trendMissTooHigh",
+  "mysteryRoundsWrong",
 ]);
 
 const CODE_ICON: Record<string, string> = {
@@ -45,6 +50,9 @@ const CODE_ICON: Record<string, string> = {
   wrongOption: "🤔",
   wrongOrder: "🔀",
   tryAnotherBlock: "🧩",
+  classifierErrors: "📈",
+  trendMissTooHigh: "📉",
+  mysteryRoundsWrong: "🖼️",
   generic: "🔍",
 };
 
@@ -74,6 +82,15 @@ export function useFeedbackText(): (feedback: ActivityFeedback | null) => string
         });
       case "tooManyBlocks":
         return t(code, { used: asNumber(data.used), max: asNumber(data.max) });
+      case "classifierErrors":
+        return t(code, { errors: asNumber(data.errors), maxErrors: asNumber(data.maxErrors) });
+      case "trendMissTooHigh":
+        return t(code, {
+          childScore: asNumber(data.childScore),
+          targetScore: asNumber(data.targetScore),
+        });
+      case "mysteryRoundsWrong":
+        return t(code, { correct: asNumber(data.correct), total: asNumber(data.total) });
       case "missingBlock":
       case "forbiddenBlock": {
         const blockType = typeof data.blockType === "string" ? data.blockType : "";

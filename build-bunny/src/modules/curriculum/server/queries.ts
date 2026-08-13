@@ -3,6 +3,7 @@ import "server-only";
 import type { ContentStatus, Prisma } from "@prisma/client";
 
 import { db } from "@/lib/db";
+import { getAiSimWidgetEngine } from "@/modules/ai/lab/registry";
 import type { SessionContext } from "@/modules/auth/server/session";
 import { localizedText, type LocalizedText } from "@/modules/curriculum/schemas";
 import {
@@ -356,29 +357,66 @@ const ANSWER_KEYS = [
  */
 const NESTED_ANSWER_KEYS = [["faded", "missingBlockType"]] as const;
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
+/** Shallow-copy an array of objects with the named keys removed from each. */
+function stripEach(list: unknown, keys: string[]): unknown {
+  if (!Array.isArray(list)) return list;
+  return list.map((item) => {
+    if (!isRecord(item)) return item;
+    const clone = { ...item };
+    for (const key of keys) delete clone[key];
+    return clone;
+  });
+}
+
 /**
  * Removes answer-bearing fields from a level payload before it is shipped to
  * a student surface. Hints are stored outside the payload (server-held), so
- * they never pass through here. The activityType parameter documents intent
- * and keeps the signature stable if a future activity needs bespoke rules —
- * today the key sets are activity-agnostic, so every type is swept for all of
- * them (a key that cannot occur in a payload is simply a no-op delete).
+ * they never pass through here.
+ *
+ * The pre-G types keep their answers at the top level (ANSWER_KEYS) or one
+ * container down (NESTED_ANSWER_KEYS), so every type is swept for all of them
+ * (a key that cannot occur in a payload is simply a no-op delete). The
+ * grafted AI Lab types nest theirs deeper — a choice's `safe` flag inside
+ * AI_ETHICS scenes — and AI_SIM delegates to its widget's own stripper
+ * (which knows, e.g., that a pixel round's imageId IS the mystery answer
+ * while the image list is the visible choice set).
  */
 export function stripStudentPayload(activityType: string, payload: unknown): unknown {
-  void activityType;
-  if (payload === null || typeof payload !== "object" || Array.isArray(payload)) {
-    return payload;
-  }
-  const clone: Record<string, unknown> = { ...(payload as Record<string, unknown>) };
+  if (!isRecord(payload)) return payload;
+  const clone: Record<string, unknown> = { ...payload };
   for (const key of ANSWER_KEYS) delete clone[key];
   for (const [container, key] of NESTED_ANSWER_KEYS) {
     const nested = clone[container];
-    if (nested === null || typeof nested !== "object" || Array.isArray(nested)) continue;
+    if (!isRecord(nested)) continue;
     // Shallow clone the container too: mutating it in place would edit the
     // caller's snapshot object, which is shared with the grader.
-    const nestedClone = { ...(nested as Record<string, unknown>) };
+    const nestedClone = { ...nested };
     delete nestedClone[key];
     clone[container] = nestedClone;
+  }
+
+  switch (activityType) {
+    case "AI_ETHICS":
+      clone.scenes = Array.isArray(clone.scenes)
+        ? (clone.scenes as unknown[]).map((scene) =>
+            isRecord(scene)
+              ? { ...scene, choices: stripEach(scene.choices, ["safe"]) }
+              : scene,
+          )
+        : clone.scenes;
+      break;
+    case "AI_SIM": {
+      const widget = clone.widget;
+      if (isRecord(widget) && typeof widget.widgetId === "string") {
+        const engine = getAiSimWidgetEngine(widget.widgetId);
+        if (engine) clone.widget = engine.stripConfig(widget);
+      }
+      break;
+    }
   }
   return clone;
 }

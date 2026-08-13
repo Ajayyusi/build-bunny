@@ -1,6 +1,8 @@
 import "server-only";
 
 import type { AiClassificationAnswer } from "@/modules/activities/server/ai-classification";
+import type { AiEthicsAnswer } from "@/modules/activities/server/ai-ethics";
+import type { AiSimAnswer } from "@/modules/activities/server/ai-sim";
 import type { PatternRecognitionAnswer } from "@/modules/activities/server/pattern-recognition";
 
 import { Prisma } from "@prisma/client";
@@ -52,7 +54,11 @@ export interface AnswerAttemptInput {
      */
     | AiClassificationAnswer
     /** PATTERN_RECOGNITION: flag positions (or a training seed) + exclusions. */
-    | PatternRecognitionAnswer;
+    | PatternRecognitionAnswer
+    /** AI_ETHICS: the full path walked through the branching story. */
+    | AiEthicsAnswer
+    /** AI_SIM: per-widget shape (line/prediction/rounds) — engine re-validates. */
+    | AiSimAnswer;
 }
 
 export type AttemptInput = GridAttemptInput | AnswerAttemptInput;

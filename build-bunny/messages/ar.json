@@ -25,7 +25,8 @@
       "TEACHER": "معلّم",
       "STUDENT": "طالب",
       "SYSTEM": "النظام"
-    }
+    },
+    "byNitaq": "من NITAQ Academy"
   },
   "landing": {
     "tagline": "بيلد باني — برمجة حقيقية لصغار المبتكرين، مهمة ممتعة تلو الأخرى.",
@@ -216,7 +217,10 @@
         "tryAnotherBlock": "ليست هذه اللبنة. شاهد المثال مرة أخرى وجرّب لبنة غيرها.",
         "generic": "ليس تمامًا! تأمّل الخريطة وحاول مرة أخرى.",
         "teachBothBuckets": "علّم الأرنب {need} حبات على الأقل في كل سلة أولًا.",
-        "modelGuessedWrong": "أصاب الأرنب {correct} من {total} — علّمه حبة قريبة مما أخطأ فيه."
+        "modelGuessedWrong": "أصاب الأرنب {correct} من {total} — علّمه حبة قريبة مما أخطأ فيه.",
+        "classifierErrors": "{errors, plural, one {نقطة واحدة موجودة} other {# نقاط موجودة}} في الجانب الخطأ من خطك — يسمح هذا المستوى بـ {maxErrors}. حاول تعديل الخط.",
+        "trendMissTooHigh": "مجموع الخطأ لديك هو {childScore} — استهدف {targetScore} أو أقل. حاول تعديل خطك.",
+        "mysteryRoundsWrong": "طابقت {correct} من أصل {total} صور غامضة. ألقِ نظرة أخرى على الصور الضبابية!"
       },
       "learn": {
         "stepWatch": "الخطوة 1 من 2 · شاهد",
@@ -374,6 +378,68 @@
         "walkSkip": "تخطٍّ",
         "walkNext": "التالي",
         "walkStart": "هيا نبدأ"
+      },
+      "aiEthics": {
+        "continueStory": "تابع",
+        "shieldTitle": "درع الخصوصية الخاص بك",
+        "finish": "إنهاء",
+        "submitFailed": "تعذّر حفظ قصتك.",
+        "retry": "حاول الحفظ مجددًا"
+      },
+      "aiSim": {
+        "submit": "تحقّق من عملي",
+        "submitFailed": "تعذّر حفظ عملك.",
+        "retry": "إعادة المحاولة",
+        "honestyReal": "حقيقي — يُحسب فعليًا",
+        "honestySimulated": "محاكاة — قصة، وليست حسابًا",
+        "unknownWidget": "تعذّر تحميل هذا النشاط. يرجى العودة والمحاولة مرة أخرى.",
+        "boundaryBuilder": {
+          "instructions": "اسحب الخط ليفصل بين المجموعتين. راقب عدد النقاط الموجودة في المكان الخطأ.",
+          "misclassifiedCount": "{count} في المكان الخطأ",
+          "misclassifiedZero": "تم تصنيف الجميع بشكل صحيح!",
+          "chartLabel": "رسم بياني مبعثر مع خط فاصل يمكنك سحبه",
+          "dragHandleLabel": "الخط الفاصل",
+          "dragHandleHelp": "اسحب في أي مكان على الخط، أو من أحد طرفيه لإمالته. عند تركيز الخط، استخدم مفتاحي السهم لأعلى ولأسفل لتحريكه، أو اضغط مع مفتاح Shift ومفتاحي السهم لإمالته.",
+          "letComputerTry": "دع الحاسوب يحاول",
+          "hideComputer": "إخفِ خط الحاسوب",
+          "comparison": "أنت: {childErrors} في المكان الخطأ · الحاسوب: {computerErrors} في المكان الخطأ"
+        },
+        "trendLine": {
+          "instructionsFit": "اسحب الخط لتقليل مجموع الخطأ. ثم دع الحاسوب يُظهر لك أفضل خط لديه.",
+          "instructionsPredict": "حدّد توقعك للنقطة المُشار إليها، ثم شاهد كيف يقارَن بمدى محتمل.",
+          "totalMiss": "مجموع الخطأ: {score}",
+          "computerMiss": "خطأ الحاسوب: {score}",
+          "chartLabel": "رسم بياني مبعثر مع خط اتجاه يمكنك سحبه",
+          "dragHandleLabel": "خط الاتجاه",
+          "dragHandleHelp": "اسحب في أي مكان على الخط، أو من أحد طرفيه لإمالته. عند تركيز الخط، استخدم مفتاحي السهم لأعلى ولأسفل لتحريكه، أو اضغط مع مفتاح Shift ومفتاحي السهم لإمالته.",
+          "computerTurn": "دور الحاسوب",
+          "continueToPredict": "تابع إلى التوقّع",
+          "predictionLabel": "توقّعك عند x = {x}",
+          "predictionDecrease": "أنقص التوقّع",
+          "predictionIncrease": "زِد التوقّع",
+          "predictionValue": "تخمينك: {value}",
+          "bandInsideNote": "هذا ضمن المدى الذي يتوقّعه العلماء",
+          "bandOutsideNote": "هذا خارج المدى الذي يتوقّعه العلماء"
+        },
+        "pixelPlayground": {
+          "exploreIntro": "اختر صورة وشاهد كيف يخزّنها الحاسوب — كشبكة من الأرقام.",
+          "realPicture": "الصورة الحقيقية",
+          "whatComputerSees": "ما يراه الحاسوب",
+          "pixelGridLabel": "الصورة كشبكة بكسل بحجم {resolution} × {resolution}",
+          "resolutionLabel": "الدقة: {resolution} × {resolution} بكسل",
+          "resolutionDetailed": "تفاصيل أكثر",
+          "resolutionBlocky": "تربيعات أكبر",
+          "greyscaleToggle": "تدرّج رمادي",
+          "edgesToggle": "اعثر على الحواف",
+          "kernelHeading": "نواة كشف الحواف",
+          "kernelReset": "إعادة الضبط لكشف الحواف",
+          "kernelCell": "خلية النواة، الصف {row}، العمود {col}",
+          "roundsHeading": "الصور الغامضة",
+          "roundLabel": "الجولة {number}",
+          "loadingImage": "جارٍ تحميل الصورة…",
+          "loadError": "تعذّر تحميل هذه الصورة.",
+          "mysteryImageLabel": "صورة غامضة معروضة بدقة {resolution} × {resolution} بكسل"
+        }
       }
     },
     "profile": {
