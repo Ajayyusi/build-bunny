@@ -135,6 +135,25 @@ export function gradeAiClassification(
     };
   }
 
+  // Hard cap. Without one, "teach it everything" beats any level whose
+  // lesson is WHICH examples to choose — and teaching the whole pool
+  // already wins berry-sorter. A cap turns "add more until it passes" into
+  // "choose well", which is the only version of the task that is about
+  // machine learning at all.
+  if (payload.maxExamples !== undefined && examples.length > payload.maxExamples) {
+    return {
+      verdict: "FAIL",
+      qualityPassed: false,
+      primaryFeedback: {
+        code: "tooManyExamples",
+        data: { used: examples.length, max: payload.maxExamples },
+      },
+      generatedCode: "",
+      blockCount: examples.length,
+      summary: { taught: examples.length, positives, negatives },
+    };
+  }
+
   let correct = 0;
   const missed: string[] = [];
   for (const probe of payload.testSet) {
@@ -143,10 +162,17 @@ export function gradeAiClassification(
     else missed.push(probe.id);
   }
   const passed = correct === payload.testSet.length;
+  // The 3rd star is the budget, and until now it was a lie: this engine
+  // returned `qualityPassed: passed`, so ANY pass scored 3 stars, while the
+  // comment below claimed the shared maxBlocks machinery was rewarding
+  // frugality. That machinery is grid-only (grade.ts gradeWorkspace), so
+  // threeStarMaxBlocks was dead data for every AI level. It is live here.
+  const budget = payload.starCriteria.threeStarMaxBlocks;
+  const withinBudget = budget === undefined || examples.length <= budget;
 
   return {
     verdict: passed ? "PASS" : "FAIL",
-    qualityPassed: passed,
+    qualityPassed: passed && withinBudget,
     // Naming WHICH specimens the model got wrong is the whole feedback
     // loop: the student goes back and teaches an example near those.
     primaryFeedback: passed
@@ -159,9 +185,9 @@ export function gradeAiClassification(
           data: { correct, total: payload.testSet.length, missed },
         },
     generatedCode: "",
-    // Reusing blockCount as "examples taught" is what lets the shared
-    // maxBlocks/threeStarMaxBlocks star machinery reward teaching it with
-    // fewer, better-chosen examples — no new star pathway needed.
+    // "Examples taught" travels as blockCount so the rest of the pipeline
+    // (attempt records, teacher reports, the star computation above) needs
+    // no AI-specific field.
     blockCount: examples.length,
     summary: {
       taught: examples.length,

@@ -137,7 +137,9 @@ function MatchScene({
   answer,
   correct,
   labels,
+  glyph,
 }: {
+  glyph: string;
   probe: { size: number; color: number };
   near: { size: number; color: number; tone: "safe" | "unsafe" };
   far: { size: number; color: number; tone: "safe" | "unsafe" };
@@ -148,7 +150,7 @@ function MatchScene({
   return (
     <div className="flex items-center justify-center gap-2">
       <div className="flex w-24 flex-col items-center gap-1.5">
-        <SceneBerry size={probe.size} color={probe.color} mystery />
+        <SceneBerry size={probe.size} color={probe.color} mystery theme={glyph} />
         <Chip tone={answer} className="bbw-pop">
           <span aria-hidden="true">{correct ? "✓" : "✗"}</span>
           {answer === "safe" ? labels.positive : labels.negative}
@@ -164,13 +166,13 @@ function MatchScene({
 
       <div className="flex flex-col gap-3">
         <div className="flex items-center gap-1.5">
-          <SceneBerry size={near.size} color={near.color} />
+          <SceneBerry size={near.size} color={near.color} theme={glyph} />
           <Chip tone={near.tone}>
             {near.tone === "safe" ? labels.positive : labels.negative}
           </Chip>
         </div>
         <div className="flex items-center gap-1.5 opacity-40">
-          <SceneBerry size={far.size} color={far.color} />
+          <SceneBerry size={far.size} color={far.color} theme={glyph} />
           <Chip tone={far.tone}>
             {far.tone === "safe" ? labels.positive : labels.negative}
           </Chip>
@@ -183,9 +185,12 @@ function MatchScene({
 export function TeachScene({
   step,
   labels,
+  glyph = DEFAULT_GLYPH_THEME,
 }: {
   step: number;
   labels: { positive: string; negative: string };
+  /** The level's glyph vocabulary, so the animation matches its own board. */
+  glyph?: string;
 }) {
   return (
     <div className="bbw-scene grid min-h-40 place-items-center overflow-hidden rounded-xl bg-surface p-3">
@@ -207,8 +212,8 @@ export function TeachScene({
             🤔
           </span>
           <div className="flex gap-2">
-            <SceneBerry size={0.2} color={0.15} mystery />
-            <SceneBerry size={0.8} color={0.85} mystery />
+            <SceneBerry size={0.2} color={0.15} mystery theme={glyph} />
+            <SceneBerry size={0.8} color={0.85} mystery theme={glyph} />
           </div>
         </div>
       ) : null}
@@ -219,11 +224,13 @@ export function TeachScene({
           <SceneBerry
             size={0.25}
             color={0.15}
+            theme={glyph}
             className="bbw-fly-a absolute start-[calc(50%-34px)] top-1"
           />
           <SceneBerry
             size={0.7}
             color={0.9}
+            theme={glyph}
             className="bbw-fly-b absolute start-[calc(50%+6px)] top-1"
           />
           <div className="absolute bottom-0 start-0 flex flex-col items-center gap-1">
@@ -251,6 +258,7 @@ export function TeachScene({
           answer="safe"
           correct
           labels={labels}
+          glyph={glyph}
         />
       ) : null}
 
@@ -264,6 +272,7 @@ export function TeachScene({
           answer="unsafe"
           correct={false}
           labels={labels}
+          glyph={glyph}
         />
       ) : null}
     </div>

@@ -19,6 +19,7 @@ import {
 } from "@/modules/ai/knn";
 import { Button, cn } from "@/ui";
 
+import { FeatureBoard } from "./FeatureBoard";
 import { TeachScene } from "./TeachScene";
 
 import type { ActivityPlayerProps } from "../types";
@@ -58,6 +59,14 @@ interface TeachPayload {
   pool: KnownSpecimen[];
   testSet: Specimen[];
   minPerLabel: number;
+  maxExamples?: number;
+  theme?: {
+    glyph: string;
+    featureNames: { size: string; color: string };
+    truthEmoji: { positive: string; negative: string };
+  };
+  walkthrough?: { title: string; body: string }[];
+  board?: { show: boolean; showBoundary: boolean; axisLabels: { x: string; y: string } };
   starCriteria: { threeStarMaxBlocks?: number };
 }
 
@@ -98,9 +107,20 @@ export function TeachPlayer({ intro, payload }: ActivityPlayerProps) {
   // state rather than a help button nobody presses.
   const [step, setStep] = useState(1);
   const [submitting, setSubmitting] = useState(false);
-  const [result, setResult] = useState<{ verdict: string; correct?: number; total?: number } | null>(
-    null,
-  );
+  const [result, setResult] = useState<{
+    verdict: string;
+    code?: string;
+    correct?: number;
+    total?: number;
+    missed?: string[];
+  } | null>(null);
+
+  // Presentation, with the berry defaults every already-authored level relies
+  // on. A level that sets none of this renders exactly as it did before.
+  const glyph = data.theme?.glyph ?? DEFAULT_GLYPH_THEME;
+  const truthEmoji = data.theme?.truthEmoji ?? { positive: "😋", negative: "🤢" };
+  const beats = data.walkthrough ?? null;
+  const stepCount = beats?.length ?? 4;
 
   const examples: LabelledSpecimen[] = useMemo(
     () =>
@@ -112,7 +132,11 @@ export function TeachPlayer({ intro, payload }: ActivityPlayerProps) {
 
   const positives = examples.filter((e) => e.label === "positive").length;
   const negatives = examples.length - positives;
-  const ready = positives >= data.minPerLabel && negatives >= data.minPerLabel;
+  const atCap = data.maxExamples !== undefined && examples.length >= data.maxExamples;
+  const ready =
+    positives >= data.minPerLabel &&
+    negatives >= data.minPerLabel &&
+    (data.maxExamples === undefined || examples.length <= data.maxExamples);
 
   // Live guesses. We keep the MATCHED example, not just the label, because
   // "it looks most like this one you taught me" is the only form in which a
@@ -137,7 +161,16 @@ export function TeachPlayer({ intro, payload }: ActivityPlayerProps) {
     // screen would have the bunny reporting a score for a set of examples
     // it is no longer being shown.
     if (result) setResult(null);
-    setAssigned((prev) => (prev[id] === label ? omit(prev, id) : { ...prev, [id]: label }));
+    setAssigned((prev) => {
+      if (prev[id] === label) return omit(prev, id);
+      // Refuse at the cap rather than accepting the click and failing on
+      // submit — a child who has to be told "no" by a server has already
+      // lost the thread of what they were choosing between.
+      if (data.maxExamples !== undefined && Object.keys(prev).length >= data.maxExamples) {
+        return prev;
+      }
+      return { ...prev, [id]: label };
+    });
   };
 
   const submit = async () => {
@@ -168,12 +201,14 @@ export function TeachPlayer({ intro, payload }: ActivityPlayerProps) {
       // The counts ride on the feedback payload, not a top-level summary —
       // reading the wrong one is why this said "0 of 0" for every attempt.
       const feedbackData = body.feedback?.data as
-        | { correct?: number; total?: number }
+        | { correct?: number; total?: number; missed?: string[]; used?: number; max?: number }
         | undefined;
       setResult({
         verdict: body.verdict,
+        code: body.feedback?.code,
         correct: feedbackData?.correct,
         total: feedbackData?.total,
+        missed: feedbackData?.missed,
       });
     } catch {
       setResult({ verdict: "ERROR" });
@@ -216,14 +251,16 @@ export function TeachPlayer({ intro, payload }: ActivityPlayerProps) {
           <div className="flex w-full max-w-lg flex-col gap-4 rounded-2xl bg-surface-raised p-6 shadow-overlay">
             {/* The animation carries the explanation; the text only names
                 what is already visible on screen above it. */}
-            <TeachScene step={step} labels={data.labels} />
+            <TeachScene step={step} labels={data.labels} glyph={glyph} />
             <h2 className="font-display text-xl font-bold text-ink">
-              {t(`walk${step}Title`)}
+              {beats ? beats[step - 1]!.title : t(`walk${step}Title`)}
             </h2>
-            <p className="text-sm leading-relaxed text-ink-muted">{t(`walk${step}Body`)}</p>
+            <p className="text-sm leading-relaxed text-ink-muted">
+              {beats ? beats[step - 1]!.body : t(`walk${step}Body`)}
+            </p>
             <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-1.5" aria-label={`${step} / 4`}>
-                {[1, 2, 3, 4].map((n) => (
+              <div className="flex items-center gap-1.5" aria-label={`${step} / ${stepCount}`}>
+                {Array.from({ length: stepCount }, (_, i) => i + 1).map((n) => (
                   <span
                     key={n}
                     aria-hidden="true"
@@ -238,8 +275,8 @@ export function TeachPlayer({ intro, payload }: ActivityPlayerProps) {
                 <Button variant="secondary" onClick={() => setStep(0)}>
                   {t("walkSkip")}
                 </Button>
-                <Button onClick={() => setStep(step >= 4 ? 0 : step + 1)}>
-                  {step >= 4 ? t("walkStart") : t("walkNext")}
+                <Button onClick={() => setStep(step >= stepCount ? 0 : step + 1)}>
+                  {step >= stepCount ? t("walkStart") : t("walkNext")}
                 </Button>
               </div>
             </div>
@@ -262,7 +299,7 @@ export function TeachPlayer({ intro, payload }: ActivityPlayerProps) {
                   and without this the cards ended up ragged and the labels
                   collided with the glyphs. */}
               <span className="grid h-14 place-items-center">
-                <Berry specimen={s} />
+                <Berry specimen={s} theme={glyph} />
               </span>
               {/* What ALREADY happened when the bunny ate it. Without this a
                   child has no way to know which berries are safe and the
@@ -275,12 +312,13 @@ export function TeachPlayer({ intro, payload }: ActivityPlayerProps) {
                     : "bg-danger/15 text-danger",
                 )}
               >
-                {s.truth === "positive" ? "😋" : "🤢"} {data.labels[s.truth]}
+                {truthEmoji[s.truth]} {data.labels[s.truth]}
               </span>
               <button
                 type="button"
                 onClick={() => assign(s.id, s.truth)}
-                className="w-full rounded-md bg-ink px-2 py-1.5 text-[11px] font-bold text-surface-raised"
+                disabled={atCap}
+                className="w-full rounded-md bg-ink px-2 py-1.5 text-[11px] font-bold text-surface-raised disabled:opacity-40"
               >
                 {t("teachThis")}
               </button>
@@ -320,7 +358,7 @@ export function TeachPlayer({ intro, payload }: ActivityPlayerProps) {
                       aria-label={t("removeExample")}
                       className="rounded-full p-0.5 transition-transform hover:scale-110"
                     >
-                      <Berry specimen={e} />
+                      <Berry specimen={e} theme={glyph} />
                     </button>
                   </li>
                 ))}
@@ -328,6 +366,25 @@ export function TeachPlayer({ intro, payload }: ActivityPlayerProps) {
           </section>
         ))}
       </div>
+
+      {/* The feature space. Optional per level: a tray is enough when the
+          lesson is "cover both kinds", but useless once the lesson is about
+          WHERE in the space your examples sit. */}
+      {data.board?.show ? (
+        <FeatureBoard
+          pool={data.pool}
+          testSet={data.testSet}
+          examples={examples}
+          assigned={assigned}
+          axisLabels={data.board.axisLabels}
+          showBoundary={data.board.showBoundary}
+          glyph={glyph}
+          missed={result?.missed ?? []}
+          onToggle={assign}
+          labels={data.labels}
+          disabled={result?.verdict === "PASS"}
+        />
+      ) : null}
 
       {/* What the bunny currently thinks — the heart of the activity */}
       <section className="flex flex-col gap-2 rounded-xl border border-border-token bg-surface-raised p-3">
@@ -344,12 +401,15 @@ export function TeachPlayer({ intro, payload }: ActivityPlayerProps) {
                 className="flex items-center gap-3 rounded-xl border border-border-token bg-surface p-3"
               >
                 <span className="relative shrink-0">
-                  <Berry specimen={probe} />
+                  <Berry specimen={probe} theme={glyph} />
                   <span
                     aria-hidden="true"
-                    className="absolute -end-1 -top-1 grid size-5 place-items-center rounded-full bg-ink text-[11px] font-bold text-surface-raised"
+                    className={cn(
+                      "absolute -end-1 -top-1 grid size-5 place-items-center rounded-full text-[11px] font-bold text-surface-raised",
+                      result?.missed?.includes(probe.id) ? "bg-danger" : "bg-ink",
+                    )}
                   >
-                    ?
+                    {result?.missed?.includes(probe.id) ? "✗" : "?"}
                   </span>
                 </span>
                 {/* The reason, not just the verdict. This is the difference
@@ -359,7 +419,7 @@ export function TeachPlayer({ intro, payload }: ActivityPlayerProps) {
                   <span className="flex items-center gap-2 text-xs text-ink-muted">
                     <span aria-hidden="true">→</span>
                     <span>{t("looksLike")}</span>
-                    <Berry specimen={match} className="scale-75" />
+                    <Berry specimen={match} theme={glyph} className="scale-75" />
                     <span aria-hidden="true">→</span>
                   </span>
                 ) : null}
@@ -393,9 +453,14 @@ export function TeachPlayer({ intro, payload }: ActivityPlayerProps) {
             ? t("passed")
             : result.verdict === "ERROR"
               ? t("submitFailed")
-              : typeof result.correct === "number" && typeof result.total === "number"
-                ? t("missed", { correct: result.correct, total: result.total })
-                : t("tryAgain")}
+              : result.code === "tooManyExamples"
+                ? t("tooManyExamples", {
+                    used: examples.length,
+                    max: data.maxExamples ?? 0,
+                  })
+                : typeof result.correct === "number" && typeof result.total === "number"
+                  ? t("missed", { correct: result.correct, total: result.total })
+                  : t("tryAgain")}
         </p>
       ) : null}
 
@@ -404,7 +469,9 @@ export function TeachPlayer({ intro, payload }: ActivityPlayerProps) {
           {t("check")}
         </Button>
         <span className="text-xs text-ink-muted">
-          {t("taughtCount", { count: examples.length })}
+          {data.maxExamples === undefined
+            ? t("taughtCount", { count: examples.length })
+            : t("capUsed", { used: examples.length, max: data.maxExamples })}
         </span>
       </div>
     </div>

@@ -130,7 +130,13 @@ export const aiIsland: WorldFixture = {
             ],
             rule: { feature: "color", threshold: 0.5 },
             minPerLabel: 2,
-            starCriteria: { threeStarMaxBlocks: 4 },
+            // 6 = the whole pool, i.e. deliberately not binding. The budget
+            // became live in the grader in the same commit, and this is the
+            // introductory level: its lesson is WHICH examples, not how few.
+            // Frugality is taught explicitly in draw-the-line, which sets
+            // maxExamples. Left at 4 this would have silently demoted every
+            // already-recorded 6-berry pass from 3 stars to 2.
+            starCriteria: { threeStarMaxBlocks: 6 },
           } satisfies AiClassificationDraft,
         },
       ],

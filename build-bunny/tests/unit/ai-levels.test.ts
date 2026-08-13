@@ -80,10 +80,13 @@ describe.each(aiLevels)("AI level $level.slug ($world)", ({ level }) => {
   const pool = payload.pool as PoolSpecimen[];
   const testSet = payload.testSet as Specimen[];
   const sets = honestTrainingSets(pool);
+  // What a student is actually allowed to submit: both buckets taught, and
+  // no more examples than the level's cap allows.
   const submittable = sets.filter(
     (s) =>
       s.filter((x) => x.truth === "positive").length >= payload.minPerLabel &&
-      s.filter((x) => x.truth === "negative").length >= payload.minPerLabel,
+      s.filter((x) => x.truth === "negative").length >= payload.minPerLabel &&
+      (payload.maxExamples === undefined || s.length <= payload.maxExamples),
   );
   const passing = submittable.filter((s) => grade(level, s).verdict === "PASS");
   const failing = submittable.filter((s) => grade(level, s).verdict === "FAIL");
@@ -118,6 +121,23 @@ describe.each(aiLevels)("AI level $level.slug ($world)", ({ level }) => {
     expect(negatives, "negatives available").toBeGreaterThanOrEqual(payload.minPerLabel);
   });
 
+  it("has a cap a student can actually satisfy", () => {
+    if (payload.maxExamples === undefined) return;
+    // minPerLabel * 2 examples is the smallest legal submission; a cap below
+    // that makes the level unplayable, and nothing else would notice.
+    expect(payload.maxExamples).toBeGreaterThanOrEqual(payload.minPerLabel * 2);
+    expect(submittable.length, "no legal submission exists under the cap").toBeGreaterThan(0);
+  });
+
+  it("rejects a training set over the cap instead of silently truncating it", () => {
+    if (payload.maxExamples === undefined) return;
+    const everything = pool;
+    if (everything.length <= payload.maxExamples) return;
+    const result = grade(level, everything);
+    expect(result.verdict).toBe("FAIL");
+    expect(result.primaryFeedback).toMatchObject({ code: "tooManyExamples" });
+  });
+
   it("is winnable", () => {
     expect(passing.length, "no honest training set passes this level").toBeGreaterThan(0);
   });
@@ -132,9 +152,11 @@ describe.each(aiLevels)("AI level $level.slug ($world)", ({ level }) => {
   it("awards its 3-star budget to a training set that actually exists", () => {
     const budget = payload.starCriteria.threeStarMaxBlocks;
     if (budget == null) return;
-    const withinBudget = passing.filter((s) => s.length <= budget);
+    const threeStar = passing.filter(
+      (s) => s.length <= budget && grade(level, s).qualityPassed,
+    );
     expect(
-      withinBudget.length,
+      threeStar.length,
       `no passing training set of ${budget} examples or fewer exists, so 3 stars is unreachable`,
     ).toBeGreaterThan(0);
   });

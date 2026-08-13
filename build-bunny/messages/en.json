@@ -319,7 +319,9 @@
         "walkSkip": "Skip",
         "walkStart": "Let's teach it",
         "bucketsHeading": "The bunny's two baskets",
-        "bucketsHelp": "Everything you teach it lands here. Click a berry to take it back out."
+        "bucketsHelp": "Everything you teach it lands here. Click a berry to take it back out.",
+        "tooManyExamples": "That is {used} examples, and you may only use {max}. Take some back out and pick the ones that teach it the most.",
+        "capUsed": "{used} of {max} used"
       }
     },
     "profile": {

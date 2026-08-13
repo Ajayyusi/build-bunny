@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  aiClassificationPayload,
   blockCodingPayload,
   debuggingPayload,
   hintsSchema,
@@ -192,6 +193,30 @@ describe("level payloads and hints", () => {
       checkField(`${label}.explanation`, level.explanation);
       for (const hint of level.hints) {
         checkField(`${label}.hint[tier ${hint.tier}]`, hint.text);
+      }
+
+      // Student-facing copy that lives in the PAYLOAD rather than in the
+      // level's own fields. AI levels carry their bucket names, their
+      // measurement names, their axis captions and the whole walkthrough
+      // script there — roughly a third of everything a child reads in those
+      // worlds — and without this it would all be outside the only Arabic
+      // coverage check the repo has.
+      if (level.activityType === "AI_CLASSIFICATION") {
+        const p = aiClassificationPayload.parse(level.payload);
+        checkField(`${label}.labels.positive`, p.labels.positive);
+        checkField(`${label}.labels.negative`, p.labels.negative);
+        if (p.theme) {
+          checkField(`${label}.theme.featureNames.size`, p.theme.featureNames.size);
+          checkField(`${label}.theme.featureNames.color`, p.theme.featureNames.color);
+        }
+        if (p.board) {
+          checkField(`${label}.board.axisLabels.x`, p.board.axisLabels.x);
+          checkField(`${label}.board.axisLabels.y`, p.board.axisLabels.y);
+        }
+        p.walkthrough?.forEach((beat, i) => {
+          checkField(`${label}.walkthrough[${i}].title`, beat.title);
+          checkField(`${label}.walkthrough[${i}].body`, beat.body);
+        });
       }
     }
   });

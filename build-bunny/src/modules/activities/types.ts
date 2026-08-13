@@ -170,6 +170,17 @@ export interface TeachActivityPayload {
   pool: { id: string; size: number; color: number; truth: "positive" | "negative" }[];
   testSet: { id: string; size: number; color: number }[];
   minPerLabel: number;
+  /** Hard cap on examples, when the level sets one. */
+  maxExamples?: number;
+  /** Presentation, already resolved to the request locale. */
+  theme?: {
+    glyph: string;
+    featureNames: { size: string; color: string };
+    truthEmoji: { positive: string; negative: string };
+  };
+  /** Per-level walkthrough script; absent = the global berry copy. */
+  walkthrough?: { title: string; body: string }[];
+  board?: { show: boolean; showBoundary: boolean; axisLabels: { x: string; y: string } };
   starCriteria: { threeStarMaxBlocks?: number };
 }
 

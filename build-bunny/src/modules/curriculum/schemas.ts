@@ -280,6 +280,61 @@ export const specimenSchema = z
   })
   .strict();
 
+
+/**
+ * How an AI level PRESENTS itself. None of this is answer-bearing — it all
+ * ships to the student on purpose — and all of it is optional, so every
+ * already-authored level renders byte-identically without it.
+ *
+ * It lives in the payload rather than in per-theme message namespaces for
+ * two reasons. next-intl's t() THROWS on a missing key, so one un-translated
+ * string would white-screen an entire world; and the content suite already
+ * enforces Arabic completeness on payload fields, so copy that lives here is
+ * covered by a test that copy in messages/*.json is not.
+ */
+const aiThemeSchema = z
+  .object({
+    /** Which glyph vocabulary — see src/modules/ai/glyph.ts. */
+    glyph: z.enum(["berry", "grain", "cell"]).default("berry"),
+    /** What the two measurements are CALLED in this world. */
+    featureNames: z.object({ size: localizedText, color: localizedText }),
+    /** The two outcomes, as a glyph a child reads before the words. */
+    truthEmoji: z.object({
+      positive: z.string().min(1).max(4),
+      negative: z.string().min(1).max(4),
+    }),
+  })
+  .strict();
+
+/**
+ * The explanation animation's script. Four beats maximum: the walkthrough is
+ * what a child reads before they have any context, and a fifth beat is a
+ * page of text with a picture on it.
+ */
+const aiWalkthroughSchema = z
+  .array(z.object({ title: localizedText, body: localizedText }).strict())
+  .min(3)
+  .max(4);
+
+/**
+ * The feature board: every specimen plotted at its own coordinates, so the
+ * child sees the space the machine actually works in instead of a wrapped
+ * row of circles. Read-only — the dots are a second click target for the
+ * assignment they can already make, never a drag surface.
+ */
+const aiBoardSchema = z
+  .object({
+    show: z.boolean().default(true),
+    /**
+     * Tint the whole space with what the model currently predicts. This is
+     * computed client-side from the student's OWN examples with the shared
+     * classifier, so it reveals nothing the student did not already teach it.
+     */
+    showBoundary: z.boolean().default(false),
+    axisLabels: z.object({ x: localizedText, y: localizedText }),
+  })
+  .strict();
+
 /**
  * The hidden rule a level is graded against.
  *
@@ -347,6 +402,15 @@ export const aiClassificationPayload = z
     rule: classificationRule,
     /** Refuse to grade until the student has taught both buckets. */
     minPerLabel: z.number().int().min(1).default(2),
+    /**
+     * Hard cap on examples. Levels whose lesson is WHICH examples to pick
+     * need one, because otherwise "teach the whole pool" wins without the
+     * student ever choosing anything.
+     */
+    maxExamples: z.number().int().min(2).max(64).optional(),
+    theme: aiThemeSchema.optional(),
+    walkthrough: aiWalkthroughSchema.optional(),
+    board: aiBoardSchema.optional(),
     /** 3-star budget lives in threeStarMaxBlocks — here, examples used. */
     starCriteria: starCriteriaSchema.default({}),
   })
@@ -370,6 +434,11 @@ export const aiClassificationStudentPayload = z
     pool: z.array(specimenSchema.extend({ truth: z.enum(["positive", "negative"]) })).min(4),
     testSet: z.array(specimenSchema).min(2),
     minPerLabel: z.number().int().min(1).default(2),
+    /** Ships on purpose: a cap the student cannot see is an unfair rule. */
+    maxExamples: z.number().int().min(2).max(64).optional(),
+    theme: aiThemeSchema.optional(),
+    walkthrough: aiWalkthroughSchema.optional(),
+    board: aiBoardSchema.optional(),
     starCriteria: starCriteriaSchema.default({}),
     // `rule` is deliberately absent, and .strict() is what enforces that.
   })

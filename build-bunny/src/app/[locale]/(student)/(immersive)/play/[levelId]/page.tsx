@@ -179,6 +179,33 @@ export default async function PlayLevelPage({ params }: Props) {
       pool: raw.pool,
       testSet: raw.testSet,
       minPerLabel: raw.minPerLabel,
+      maxExamples: raw.maxExamples,
+      // Localized once, on the server. The player receives strings, never
+      // LocalizedText, so no client component needs to know about locales.
+      theme: raw.theme
+        ? {
+            glyph: raw.theme.glyph,
+            featureNames: {
+              size: resolveText(raw.theme.featureNames.size, locale),
+              color: resolveText(raw.theme.featureNames.color, locale),
+            },
+            truthEmoji: raw.theme.truthEmoji,
+          }
+        : undefined,
+      walkthrough: raw.walkthrough?.map((beat) => ({
+        title: resolveText(beat.title, locale),
+        body: resolveText(beat.body, locale),
+      })),
+      board: raw.board
+        ? {
+            show: raw.board.show,
+            showBoundary: raw.board.showBoundary,
+            axisLabels: {
+              x: resolveText(raw.board.axisLabels.x, locale),
+              y: resolveText(raw.board.axisLabels.y, locale),
+            },
+          }
+        : undefined,
       starCriteria: raw.starCriteria,
     } satisfies TeachActivityPayload;
   } else if (playable.activityType === "CONCEPT_CARDS") {
