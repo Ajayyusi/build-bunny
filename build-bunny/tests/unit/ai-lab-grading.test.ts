@@ -262,6 +262,38 @@ describe("pixel-playground grading", () => {
     // The multiple-choice image list itself stays fully visible.
     expect(stripped.images.map((i) => i.id)).toEqual(["rabbit", "carrot"]);
   });
+
+  it("no round's src matches an option's src — the answer is not readable from the payload", () => {
+    const stripped = engine.stripConfig(config) as {
+      rounds: { id: string; src: string }[];
+      images: { id: string; src: string }[];
+    };
+    const optionSrcs = new Set(stripped.images.map((image) => image.src));
+    for (const round of stripped.rounds) {
+      // Stripping imageId is pointless if src still string-matches the
+      // option it came from — that was a real DevTools answer leak.
+      expect(optionSrcs.has(round.src)).toBe(false);
+      expect(round.src.startsWith("data:image/svg+xml;base64,")).toBe(true);
+    }
+    // Two rounds of the same image inline identically; that only reveals
+    // "these two are the same", never WHICH image they are.
+    expect(stripped.rounds[0]!.src).toBe(stripped.rounds[2]!.src);
+    expect(stripped.rounds[0]!.src).not.toBe(stripped.rounds[1]!.src);
+  });
+
+  it("falls back to the plain path when an asset cannot be inlined", () => {
+    const missing = {
+      ...config,
+      images: [
+        { id: "ghost", src: "/ai-lab/does-not-exist.svg", name: { en: "Ghost" } },
+        { id: "carrot", src: "/ai-lab/carrot.svg", name: { en: "Carrot" } },
+      ],
+      rounds: [{ id: "r1", imageId: "ghost", resolution: 16 }],
+    };
+    const stripped = engine.stripConfig(missing) as { rounds: { src: string }[] };
+    // Degrade the puzzle, never break the level.
+    expect(stripped.rounds[0]!.src).toBe("/ai-lab/does-not-exist.svg");
+  });
 });
 
 // ── unknown widget id ────────────────────────────────────────────────────

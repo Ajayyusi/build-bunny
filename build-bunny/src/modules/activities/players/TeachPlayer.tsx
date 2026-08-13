@@ -22,7 +22,9 @@ import { BunnyMascot, Button, cn, useReducedMotion } from "@/ui";
 import { FeatureBoard } from "./FeatureBoard";
 import { TeachRecap } from "./TeachRecap";
 import { TeachScene } from "./TeachScene";
+import { HintDrawer } from "./shared/HintDrawer";
 import { SuccessOverlay } from "./shared/SuccessOverlay";
+import { useHints } from "./shared/useHints";
 import styles from "./teach.module.css";
 
 import type { ActivityPlayerProps, AttemptResponse } from "../types";
@@ -110,9 +112,12 @@ function Berry({
   );
 }
 
-export function TeachPlayer({ intro, payload }: ActivityPlayerProps) {
+export function TeachPlayer({ intro, payload, revealHintAction }: ActivityPlayerProps) {
   // Cast back at the registry boundary — see ActivityPlayerProps.payload.
   const data = payload as TeachPayload;
+  // Hints authored on AI_CLASSIFICATION levels used to be unreachable: this
+  // player rendered no drawer at all.
+  const hints = useHints(intro.levelId, intro.hintsUsedTiers, revealHintAction);
   const t = useTranslations("student.play.teach");
   const tPlay = useTranslations("student.play");
   const locale = useLocale();
@@ -127,6 +132,7 @@ export function TeachPlayer({ intro, payload }: ActivityPlayerProps) {
   // state rather than a help button nobody presses.
   const [step, setStep] = useState(1);
   const [submitting, setSubmitting] = useState(false);
+  const [lastSubmitAt, setLastSubmitAt] = useState<number | null>(null);
   // The full server response is kept so the celebration can report stars,
   // XP, achievements and the way on to the next level.
   const [server, setServer] = useState<AttemptResponse | null>(null);
@@ -259,6 +265,9 @@ export function TeachPlayer({ intro, payload }: ActivityPlayerProps) {
   const submit = async () => {
     if (!ready || submitting) return;
     setSubmitting(true);
+    // Feeds the hint drawer's cooldown: a real attempt unlocks the next tier
+    // without waiting out the timer, same rule as every other player.
+    setLastSubmitAt(Date.now());
     try {
       const res = await fetch(`/api/levels/${intro.levelId}/attempts`, {
         method: "POST",
@@ -373,6 +382,14 @@ export function TeachPlayer({ intro, payload }: ActivityPlayerProps) {
         >
           <span aria-hidden="true">💡</span>
           {t("howItWorks")}
+        </button>
+        <button
+          type="button"
+          onClick={() => hints.setOpen(true)}
+          className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-lg border border-border-token bg-surface-raised px-3 text-sm font-bold text-ink-muted transition-colors hover:bg-surface-sunken hover:text-ink"
+        >
+          <span aria-hidden="true">🧭</span>
+          {tPlay("hint")}
         </button>
       </header>
 
@@ -819,6 +836,15 @@ export function TeachPlayer({ intro, payload }: ActivityPlayerProps) {
           }
         />
       ) : null}
+
+      <HintDrawer
+        open={hints.open}
+        onClose={() => hints.setOpen(false)}
+        hints={hints.hints}
+        lastRunAt={lastSubmitAt}
+        revealingTier={hints.revealingTier}
+        onReveal={(tier) => void hints.reveal(tier)}
+      />
     </div>
   );
 }

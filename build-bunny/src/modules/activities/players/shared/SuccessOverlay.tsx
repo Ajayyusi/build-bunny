@@ -7,6 +7,7 @@ import { Link } from "@/i18n/navigation";
 import {
   BunnyMascot,
   Button,
+  CountUp,
   Spinner,
   StarBurst,
   cn,
@@ -175,9 +176,13 @@ export function SuccessOverlay({
               </Button>
             </p>
           ) : xpAwarded !== null && xpAwarded > 0 ? (
+            // The XP climbs rather than appearing: a number that counts up
+            // reads as something you earned, not something you were handed.
             <span className="inline-flex h-9 items-center gap-1 rounded-full bg-accent/25 px-4 text-sm font-bold tabular-nums">
               <span aria-hidden="true">⚡</span>
-              {t("xp", { xp: xpAwarded })}
+              {t.rich("xp", {
+                xp: () => <CountUp key={xpAwarded} value={xpAwarded} />,
+              })}
             </span>
           ) : null}
           {gradeMismatch ? (

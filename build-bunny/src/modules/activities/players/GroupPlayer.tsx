@@ -15,7 +15,9 @@ import { assign, lloydStep, tightness } from "@/modules/ai/grouping";
 import { BunnyMascot, Button, cn, useReducedMotion } from "@/ui";
 
 import { GroupScene } from "./GroupScene";
+import { HintDrawer } from "./shared/HintDrawer";
 import { SuccessOverlay } from "./shared/SuccessOverlay";
+import { useHints } from "./shared/useHints";
 import styles from "./teach.module.css";
 
 import type { ActivityPlayerProps, AttemptResponse } from "../types";
@@ -51,7 +53,10 @@ interface Marker {
   color: number;
 }
 
-export function GroupPlayer({ intro, payload }: ActivityPlayerProps) {
+export function GroupPlayer({ intro, payload, revealHintAction }: ActivityPlayerProps) {
+  // PATTERN_RECOGNITION levels had no hint drawer either — same fix as
+  // TeachPlayer: authored hints were unreachable from the player.
+  const hints = useHints(intro.levelId, intro.hintsUsedTiers, revealHintAction);
   // Cast back at the registry boundary — see ActivityPlayerProps.payload.
   const data = payload as GroupActivityPayload;
   const t = useTranslations("student.play.group");
@@ -71,6 +76,7 @@ export function GroupPlayer({ intro, payload }: ActivityPlayerProps) {
   const [running, setRunning] = useState(false);
   const [hasRun, setHasRun] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [lastSubmitAt, setLastSubmitAt] = useState<number | null>(null);
   const [server, setServer] = useState<AttemptResponse | null>(null);
   const reducedMotion = useReducedMotion();
   const [result, setResult] = useState<{
@@ -211,6 +217,8 @@ export function GroupPlayer({ intro, payload }: ActivityPlayerProps) {
   const submit = async () => {
     if (!ready || submitting || frozen) return;
     setSubmitting(true);
+    // A real attempt unlocks the next hint tier without the 60s wait.
+    setLastSubmitAt(Date.now());
     try {
       const res = await fetch(`/api/levels/${intro.levelId}/attempts`, {
         method: "POST",
@@ -306,6 +314,14 @@ export function GroupPlayer({ intro, payload }: ActivityPlayerProps) {
         >
           <span aria-hidden="true">💡</span>
           {t("howItWorks")}
+        </button>
+        <button
+          type="button"
+          onClick={() => hints.setOpen(true)}
+          className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-lg border border-border-token bg-surface-raised px-3 text-sm font-bold text-ink-muted transition-colors hover:bg-surface-sunken hover:text-ink"
+        >
+          <span aria-hidden="true">🧭</span>
+          {tPlay("hint")}
         </button>
       </header>
 
@@ -669,6 +685,15 @@ export function GroupPlayer({ intro, payload }: ActivityPlayerProps) {
           }
         />
       ) : null}
+
+      <HintDrawer
+        open={hints.open}
+        onClose={() => hints.setOpen(false)}
+        hints={hints.hints}
+        lastRunAt={lastSubmitAt}
+        revealingTier={hints.revealingTier}
+        onReveal={(tier) => void hints.reveal(tier)}
+      />
     </div>
   );
 }
