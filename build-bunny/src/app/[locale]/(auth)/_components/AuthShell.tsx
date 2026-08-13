@@ -4,6 +4,8 @@ import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { Card, CardBody, SkipLink } from "@/ui";
 
+import { LocaleSwitcher } from "../../_components/LocaleSwitcher";
+
 interface AuthShellProps {
   theme: "play" | "pro";
   title: ReactNode;
@@ -23,7 +25,7 @@ export async function AuthShell({
   return (
     <div data-theme={theme} className="flex min-h-dvh flex-col bg-surface text-ink">
       <SkipLink label={t("skipToContent")} />
-      <header className="bb-container flex h-16 items-center">
+      <header className="bb-container flex h-16 items-center justify-between">
         <Link
           href="/"
           className="inline-flex h-11 items-center gap-2 rounded-md font-display text-lg font-bold text-ink"
@@ -31,6 +33,10 @@ export async function AuthShell({
           <span aria-hidden>🐰</span>
           {t("appName")}
         </Link>
+        {/* Reachable BEFORE signing in: the sign-in pages are exactly where
+            someone stranded in the wrong language cannot read their way to
+            any other control. */}
+        <LocaleSwitcher />
       </header>
       <main
         id="main-content"

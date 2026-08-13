@@ -14,6 +14,7 @@ import {
   TrophyIcon,
 } from "./_components/icons";
 import { SidebarNavItem } from "./_components/SidebarNav";
+import { LocaleSwitcher } from "../../_components/LocaleSwitcher";
 import { SidebarShell } from "./_components/SidebarShell";
 import { SidebarSignOut } from "./_components/SidebarSignOut";
 
@@ -91,10 +92,12 @@ export default async function StudentShellLayout({ children, params }: Props) {
         </SidebarNavItem>
       </nav>
 
-      {/* Account block pinned to the bottom of the rail. Profile carries the
-          language switcher and sign-out, so it plays the "settings" role the
-          reference layout puts down here. */}
+      {/* Account block pinned to the bottom of the rail. The language
+          switcher sits directly on the rail, not only inside Profile: a child
+          stranded in the wrong language cannot read their way to a settings
+          page, so the one control that fixes it must never be behind text. */}
       <div className="mt-auto flex flex-col gap-1 border-t border-border-token pt-3">
+        <LocaleSwitcher size="lg" className="w-full justify-start" />
         <SidebarNavItem href="/profile" icon={<ProfileIcon />}>
           {t("nav.profile")}
         </SidebarNavItem>
