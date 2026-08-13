@@ -96,3 +96,27 @@ export function glyphShapeStyle(theme: GlyphTheme): React.CSSProperties {
       return { borderRadius: "9999px" };
   }
 }
+
+/**
+ * The feature-space point a tint cell represents. Lives here, in the one
+ * dependency-free module of this feature area, so the orientation test can
+ * import it without dragging the player's UI dependencies into vitest.
+ *
+ * The grid renders row 0 at the TOP, but specimens are plotted with
+ * `bottom: color%` — colour increases UPWARD from the bottom edge. So the
+ * row axis must be inverted here, and the first version of this board did
+ * not: it painted the "safe" region exactly where the unsafe berries sat,
+ * which for a child is not a rendering bug but the machine visibly lying.
+ * Cell centres, so no sample sits exactly on an axis edge.
+ */
+export function tintCellFeatures(
+  row: number,
+  col: number,
+  steps: number,
+): { size: number; color: number } {
+  return {
+    size: (col + 0.5) / steps,
+    color: 1 - (row + 0.5) / steps,
+  };
+}
+

@@ -4,6 +4,9 @@ import { useTranslations } from "next-intl";
 
 import { glyphFill, glyphPx, glyphShapeStyle, glyphTheme, MYSTERY_FILL } from "@/modules/ai/glyph";
 import { nearest, type LabelledSpecimen } from "@/modules/ai/knn";
+import { cn } from "@/ui";
+
+import styles from "./teach.module.css";
 
 /**
  * The receipt for the training run the student just finished.
@@ -67,6 +70,15 @@ export function TeachRecap({
 
   return (
     <div className="flex flex-col gap-3 rounded-lg bg-surface-sunken p-4">
+      {/* The bunny the child just taught, celebrating what it learned. The
+          jump lives HERE rather than on the board because the board is
+          covered by this card at the moment of success — a cheer nobody can
+          see is not a cheer. */}
+      <div aria-hidden="true" className="flex items-end justify-center gap-2 text-2xl">
+        <span>✨</span>
+        <span className={cn(styles.cheer, "text-4xl")}>🐰</span>
+        <span>✨</span>
+      </div>
       <h2 className="font-display text-sm font-bold text-ink">
         {t("recapHeading")}
       </h2>

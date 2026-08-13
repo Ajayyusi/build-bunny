@@ -3,8 +3,11 @@
 import { useMemo } from "react";
 
 import { glyphFill, glyphPx, glyphTheme, MYSTERY_FILL } from "@/modules/ai/glyph";
+import { tintCellFeatures } from "@/modules/ai/glyph";
 import { classify, nearest, type LabelledSpecimen } from "@/modules/ai/knn";
 import { cn } from "@/ui";
+
+import styles from "./teach.module.css";
 
 /**
  * The feature space, drawn.
@@ -34,6 +37,7 @@ interface Specimen {
 interface PoolSpecimen extends Specimen {
   truth: "positive" | "negative";
 }
+
 
 /** Coarse enough to stay cheap, fine enough that the boundary reads as a line. */
 const TINT_STEPS = 24;
@@ -72,13 +76,7 @@ export function FeatureBoard({
     const cells: ("positive" | "negative" | null)[] = [];
     for (let row = 0; row < TINT_STEPS; row += 1) {
       for (let col = 0; col < TINT_STEPS; col += 1) {
-        cells.push(
-          classify(examples, {
-            // Cell centres, so no sample sits exactly on an axis edge.
-            size: (col + 0.5) / TINT_STEPS,
-            color: (row + 0.5) / TINT_STEPS,
-          }),
-        );
+        cells.push(classify(examples, tintCellFeatures(row, col, TINT_STEPS)));
       }
     }
     return cells;
@@ -97,7 +95,12 @@ export function FeatureBoard({
           {axisLabels.y}
         </span>
 
-        <div className="relative aspect-square w-full max-w-md overflow-hidden rounded-xl border border-border-token bg-surface">
+        <div
+          className={cn(
+            styles.gridLines,
+            "relative aspect-square w-full max-w-md overflow-hidden rounded-xl border border-border-token bg-surface",
+          )}
+        >
           {tint ? (
             <div
               aria-hidden="true"

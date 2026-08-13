@@ -23,6 +23,7 @@ import { FeatureBoard } from "./FeatureBoard";
 import { TeachRecap } from "./TeachRecap";
 import { TeachScene } from "./TeachScene";
 import { SuccessOverlay } from "./shared/SuccessOverlay";
+import styles from "./teach.module.css";
 
 import type { ActivityPlayerProps, AttemptResponse } from "../types";
 import { resolveLocalized } from "../types";
@@ -43,6 +44,12 @@ import { resolveLocalized } from "../types";
  * Predictions shown here come from the same classifier the server grades
  * with (@/modules/ai/knn), so the bunny can never say one thing on screen
  * and another in the verdict.
+ *
+ * The bunny itself is a character on the board, not a mascot in the corner:
+ * it breathes while idle, hops when taught, and shakes off a wrong answer.
+ * Every reaction is tied to something the CHILD did, because an animation
+ * that fires on its own schedule is decoration, and one that answers your
+ * action is feedback.
  */
 
 interface Specimen {
@@ -103,6 +110,7 @@ export function TeachPlayer({ intro, payload }: ActivityPlayerProps) {
   // Cast back at the registry boundary — see ActivityPlayerProps.payload.
   const data = payload as TeachPayload;
   const t = useTranslations("student.play.teach");
+  const tPlay = useTranslations("student.play");
   const locale = useLocale();
 
   const [assigned, setAssigned] = useState<Record<string, ClassLabel>>({});
@@ -112,10 +120,12 @@ export function TeachPlayer({ intro, payload }: ActivityPlayerProps) {
   const [step, setStep] = useState(1);
   const [submitting, setSubmitting] = useState(false);
   // The full server response is kept so the celebration can report stars,
-  // XP, achievements and — the thing this player was missing entirely — the
-  // way on to the next level.
+  // XP, achievements and the way on to the next level.
   const [server, setServer] = useState<AttemptResponse | null>(null);
   const [reducedMotion, setReducedMotion] = useState(false);
+  // Bumped every time the bunny is taught something — remounting the bunny
+  // span on this key is what retriggers the hop animation.
+  const [hopKey, setHopKey] = useState(0);
   const [result, setResult] = useState<{
     verdict: string;
     code?: string;
@@ -174,6 +184,16 @@ export function TeachPlayer({ intro, payload }: ActivityPlayerProps) {
     // the child to "teach it a berry like the one it got wrong", and then
     // the board refused every click until they reloaded the page.
     if (result?.verdict === "PASS") return;
+    // The hop must mirror what setAssigned actually does: only a click that
+    // ADDS an example (not a removal, not one refused at the cap) may fire
+    // it. A bunny that hops while nothing changed is lying to the child.
+    const isRemoval = assigned[id] === label;
+    const refused =
+      !isRemoval &&
+      !(id in assigned) &&
+      data.maxExamples !== undefined &&
+      Object.keys(assigned).length >= data.maxExamples;
+    if (!isRemoval && !refused) setHopKey((k) => k + 1);
     // Teaching something new invalidates the last verdict — leaving it on
     // screen would have the bunny reporting a score for a set of examples
     // it is no longer being shown.
@@ -246,27 +266,321 @@ export function TeachPlayer({ intro, payload }: ActivityPlayerProps) {
       ? `/play/${intro.nextLevel.id}`
       : null;
 
+  // The bunny's mood is derived, never scheduled: it shakes exactly when a
+  // verdict other than PASS is on screen, hops exactly when taught, and
+  // otherwise breathes. The changing key is what restarts the animation.
+  const failed = result !== null && result.verdict !== "PASS";
+  const bunnyKey = failed ? `shake-${hopKey}` : `hop-${hopKey}`;
+  const bunnyClass = failed ? styles.shake : hopKey > 0 ? styles.hop : styles.bob;
+
   return (
-    <div className="relative flex min-h-0 flex-1 flex-col gap-4 p-4 sm:p-6">
-      {/* Always-visible way out. Asked for directly, and a child who feels
-          stuck in an activity they do not understand needs an exit more than
-          they need another hint. */}
-      <div className="flex items-center justify-between gap-3">
+    <div className="relative flex h-dvh min-h-0 flex-col">
+      {/* ── Top bar: the same anatomy as every other player, so a child who
+          has played ANY level already knows where the exit is. ── */}
+      <header className="flex h-14 shrink-0 items-center gap-2 border-b border-border-token bg-surface-raised px-2 sm:px-4">
         <Link
           href="/adventure"
-          className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-border-token bg-surface-raised px-3 text-sm font-bold text-ink"
+          aria-label={tPlay("backToMap")}
+          className="grid size-11 shrink-0 place-items-center rounded-md text-ink-muted transition-colors hover:bg-surface-sunken hover:text-ink"
         >
-          <span aria-hidden="true">←</span>
-          {t("exit")}
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 16 16"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.75"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="size-5 rtl:-scale-x-100"
+          >
+            <path d="M10 3.5 5.5 8 10 12.5" />
+          </svg>
         </Link>
+        <h1 className="min-w-0 flex-1 truncate font-display text-base font-bold text-ink sm:text-lg">
+          {intro.title}
+        </h1>
+        <span
+          role="img"
+          aria-label={tPlay("starsBest", { stars: intro.starsBest, maxStars: intro.maxStars })}
+          className="hidden items-center gap-0.5 sm:flex"
+        >
+          {Array.from({ length: intro.maxStars }, (_, index) => (
+            <span
+              key={index}
+              aria-hidden="true"
+              className={cn(
+                "text-lg leading-none",
+                index < intro.starsBest ? "text-accent" : "text-ink-faint",
+              )}
+            >
+              ★
+            </span>
+          ))}
+        </span>
         <button
           type="button"
           onClick={() => setStep(1)}
-          className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-border-token bg-surface-raised px-3 text-sm font-bold text-ink-muted"
+          className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-lg border border-border-token bg-surface-raised px-3 text-sm font-bold text-ink-muted transition-colors hover:bg-surface-sunken hover:text-ink"
         >
           <span aria-hidden="true">💡</span>
           {t("howItWorks")}
         </button>
+      </header>
+
+      {/* ── Board ── */}
+      <div className="min-h-0 flex-1 overflow-y-auto">
+        <div className="mx-auto flex w-full max-w-5xl flex-col gap-5 p-4 sm:p-6">
+          {/* The bunny hosts its own level: the instructions are its speech,
+              and its body answers the child's actions — a hop for every
+              example taught, a shake for a wrong verdict. */}
+          <div className="flex items-start gap-3">
+            <span
+              key={bunnyKey}
+              aria-hidden="true"
+              className={cn(bunnyClass, "mt-1 text-4xl sm:text-5xl")}
+            >
+              🐰
+            </span>
+            <p
+              className={cn(
+                styles.bubble,
+                "flex-1 rounded-2xl border border-border-token bg-surface-raised p-3 text-sm leading-relaxed text-ink-muted sm:p-4",
+              )}
+            >
+              {intro.instructions}
+            </p>
+          </div>
+
+          <div className="grid items-start gap-5 lg:grid-cols-2">
+            {/* Left column: what the child controls. */}
+            <div className="flex flex-col gap-5">
+              {/* Tray of berries still to teach with */}
+              <section className="flex flex-col gap-3">
+                <StepHeading n={1} title={t("trayHeading")} help={t("trayHelp")} />
+                <ul className="flex flex-wrap gap-3">
+                  {unassigned.map((s) => (
+                    <li
+                      key={s.id}
+                      className="flex w-32 flex-col items-center gap-2 rounded-xl border border-border-token bg-surface-raised p-3 transition-all hover:-translate-y-0.5 hover:border-brand/40 hover:shadow-md"
+                    >
+                      {/* Fixed-height berry row: berries differ in diameter by
+                          design, and without this the cards ended up ragged and
+                          the labels collided with the glyphs. */}
+                      <span className="grid h-14 place-items-center">
+                        <Berry specimen={s} theme={glyph} />
+                      </span>
+                      {/* What ALREADY happened when the bunny ate it. Without
+                          this a child has no way to know which berries are safe
+                          and the whole activity collapses into guessing. */}
+                      <span
+                        className={cn(
+                          "whitespace-nowrap rounded-full px-2 py-0.5 text-[11px] font-bold",
+                          s.truth === "positive"
+                            ? "bg-brand/15 text-brand"
+                            : "bg-danger/15 text-danger",
+                        )}
+                      >
+                        {truthEmoji[s.truth]} {data.labels[s.truth]}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => assign(s.id, s.truth)}
+                        disabled={atCap}
+                        className="w-full rounded-md bg-ink px-2 py-1.5 text-[11px] font-bold text-surface-raised transition-colors hover:bg-brand disabled:opacity-40 disabled:hover:bg-ink"
+                      >
+                        {t("teachThis")}
+                      </button>
+                    </li>
+                  ))}
+                  {unassigned.length === 0 ? (
+                    <li className="text-sm text-ink-muted">{t("trayEmpty")}</li>
+                  ) : null}
+                </ul>
+              </section>
+
+              {/* The two taught buckets */}
+              <section className="flex flex-col gap-3">
+                <StepHeading n={2} title={t("bucketsHeading")} help={t("bucketsHelp")} />
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {(["positive", "negative"] as const).map((label) => (
+                    <div
+                      key={label}
+                      className={cn(
+                        "flex min-h-24 flex-col gap-2 rounded-xl border-2 border-dashed p-3",
+                        label === "positive"
+                          ? "border-brand/40 bg-brand/5"
+                          : "border-danger/40 bg-danger/5",
+                      )}
+                    >
+                      <h3 className="font-display text-sm font-bold text-ink">
+                        {/* The basket the walkthrough animation already showed
+                            them — the board speaks the same picture language. */}
+                        <span aria-hidden="true" className="me-1">
+                          🧺
+                        </span>
+                        {data.labels[label]}{" "}
+                        <span className="font-normal text-ink-muted">
+                          ({label === "positive" ? positives : negatives})
+                        </span>
+                      </h3>
+                      <ul className="flex flex-wrap gap-2">
+                        {examples
+                          .filter((e) => e.label === label)
+                          .map((e) => (
+                            <li key={e.id} className={styles.popIn}>
+                              <button
+                                type="button"
+                                onClick={() => assign(e.id, label)}
+                                aria-label={t("removeExample")}
+                                className="rounded-full p-0.5 transition-transform hover:scale-110"
+                              >
+                                <Berry specimen={e} theme={glyph} />
+                              </button>
+                            </li>
+                          ))}
+                      </ul>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            </div>
+
+            {/* Right column: what the machine does with it. */}
+            <div className="flex flex-col gap-5">
+              {/* The feature space. Optional per level: a tray is enough when
+                  the lesson is "cover both kinds", but useless once the lesson
+                  is about WHERE in the space your examples sit. */}
+              {data.board?.show ? (
+                <FeatureBoard
+                  pool={data.pool}
+                  testSet={data.testSet}
+                  examples={examples}
+                  assigned={assigned}
+                  axisLabels={data.board.axisLabels}
+                  showBoundary={data.board.showBoundary}
+                  glyph={glyph}
+                  missed={result?.missed ?? []}
+                  onToggle={assign}
+                  labels={data.labels}
+                  disabled={result?.verdict === "PASS"}
+                />
+              ) : null}
+
+              {/* What the bunny currently thinks — the heart of the activity.
+                  This is the one panel where the MACHINE does the work, and
+                  the lab dressing (corner brackets, dot matrix) marks exactly
+                  that boundary and nothing else. */}
+              <section
+                className={cn(
+                  styles.techPanel,
+                  styles.dotGrid,
+                  "flex flex-col gap-3 rounded-xl border border-border-token bg-surface-raised p-3 sm:p-4",
+                )}
+              >
+                <StepHeading n={3} title={t("guessHeading")} help={t("guessHelp")} />
+                {!ready ? (
+                  <p className="text-sm text-ink-muted">
+                    {t("needMore", { count: data.minPerLabel })}
+                  </p>
+                ) : (
+                  <ul className="flex flex-col gap-2">
+                    {guesses.map(({ probe, match, guess }) => (
+                      <li
+                        key={probe.id}
+                        className="flex items-center gap-2 rounded-xl border border-border-token bg-surface p-3"
+                      >
+                        <span className="relative shrink-0">
+                          <Berry specimen={probe} theme={glyph} />
+                          <span
+                            aria-hidden="true"
+                            className={cn(
+                              "absolute -end-1 -top-1 grid size-5 place-items-center rounded-full text-[11px] font-bold text-surface-raised",
+                              result?.missed?.includes(probe.id) ? "bg-danger" : "bg-ink",
+                            )}
+                          >
+                            {result?.missed?.includes(probe.id) ? "✗" : "?"}
+                          </span>
+                        </span>
+                        {/* The reason, not just the verdict: the dashes drift
+                            from the mystery berry to the taught berry it
+                            copies, which is the 1-NN decision drawn as data
+                            flow rather than asserted in prose. */}
+                        {match ? (
+                          <>
+                            <span className={styles.flowLine} aria-hidden="true" />
+                            <span className="flex shrink-0 items-center gap-1.5 text-[11px] text-ink-muted">
+                              <span>{t("looksLike")}</span>
+                              <Berry specimen={match} theme={glyph} className="scale-75" />
+                            </span>
+                            <span className={styles.flowLine} aria-hidden="true" />
+                          </>
+                        ) : (
+                          <span className="flex-1" />
+                        )}
+                        <span
+                          key={`${probe.id}-${match?.id ?? "none"}-${guess ?? "none"}`}
+                          className={cn(
+                            styles.popIn,
+                            "shrink-0 rounded-md px-2 py-0.5 text-[11px] font-bold",
+                            guess === "positive"
+                              ? "bg-brand/15 text-brand"
+                              : "bg-danger/15 text-danger",
+                          )}
+                        >
+                          {guess ? data.labels[guess] : "—"}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </section>
+            </div>
+          </div>
+
+          {result ? (
+            <p
+              key={result.verdict}
+              role="status"
+              className={cn(
+                styles.popIn,
+                "rounded-lg px-3 py-2 text-sm font-semibold",
+                result.verdict === "PASS"
+                  ? "bg-brand/15 text-brand"
+                  : "bg-accent/20 text-warning",
+              )}
+            >
+              {result.verdict === "PASS"
+                ? t("passed")
+                : result.verdict === "ERROR"
+                  ? t("submitFailed")
+                  : result.code === "tooManyExamples"
+                    ? t("tooManyExamples", {
+                        used: examples.length,
+                        max: data.maxExamples ?? 0,
+                      })
+                    : typeof result.correct === "number" && typeof result.total === "number"
+                      ? t("missed", { correct: result.correct, total: result.total })
+                      : t("tryAgain")}
+            </p>
+          ) : null}
+
+          <div className="flex items-center gap-3 pb-2">
+            <Button
+              size="lg"
+              onClick={submit}
+              disabled={!ready}
+              loading={submitting}
+              className={ready && !result && !submitting ? styles.pulseReady : undefined}
+            >
+              {t("check")}
+            </Button>
+            <span className="text-xs text-ink-muted">
+              {data.maxExamples === undefined
+                ? t("taughtCount", { count: examples.length })
+                : t("capUsed", { used: examples.length, max: data.maxExamples })}
+            </span>
+          </div>
+        </div>
       </div>
 
       {/* Walkthrough. Four beats, each naming ONE idea, because the activity
@@ -311,189 +625,7 @@ export function TeachPlayer({ intro, payload }: ActivityPlayerProps) {
         </div>
       ) : null}
 
-      <p className="text-sm text-ink-muted">{intro.instructions}</p>
-
-      {/* Tray of berries still to teach with */}
-      <section className="flex flex-col gap-2">
-        <StepHeading n={1} title={t("trayHeading")} help={t("trayHelp")} />
-        <ul className="flex flex-wrap gap-3">
-          {unassigned.map((s) => (
-            <li
-              key={s.id}
-              className="flex w-32 flex-col items-center gap-2 rounded-xl border border-border-token bg-surface-raised p-3"
-            >
-              {/* Fixed-height berry row: berries differ in diameter by design,
-                  and without this the cards ended up ragged and the labels
-                  collided with the glyphs. */}
-              <span className="grid h-14 place-items-center">
-                <Berry specimen={s} theme={glyph} />
-              </span>
-              {/* What ALREADY happened when the bunny ate it. Without this a
-                  child has no way to know which berries are safe and the
-                  whole activity collapses into guessing. */}
-              <span
-                className={cn(
-                  "whitespace-nowrap rounded-full px-2 py-0.5 text-[11px] font-bold",
-                  s.truth === "positive"
-                    ? "bg-brand/15 text-brand"
-                    : "bg-danger/15 text-danger",
-                )}
-              >
-                {truthEmoji[s.truth]} {data.labels[s.truth]}
-              </span>
-              <button
-                type="button"
-                onClick={() => assign(s.id, s.truth)}
-                disabled={atCap}
-                className="w-full rounded-md bg-ink px-2 py-1.5 text-[11px] font-bold text-surface-raised disabled:opacity-40"
-              >
-                {t("teachThis")}
-              </button>
-            </li>
-          ))}
-          {unassigned.length === 0 ? (
-            <li className="text-sm text-ink-muted">{t("trayEmpty")}</li>
-          ) : null}
-        </ul>
-      </section>
-
-      {/* The two taught buckets */}
-      <StepHeading n={2} title={t("bucketsHeading")} help={t("bucketsHelp")} />
-      <div className="grid gap-3 sm:grid-cols-2">
-        {(["positive", "negative"] as const).map((label) => (
-          <section
-            key={label}
-            className={cn(
-              "flex min-h-24 flex-col gap-2 rounded-xl border-2 border-dashed p-3",
-              label === "positive" ? "border-brand/40 bg-brand/5" : "border-danger/40 bg-danger/5",
-            )}
-          >
-            <h3 className="font-display text-sm font-bold text-ink">
-              {data.labels[label]}{" "}
-              <span className="font-normal text-ink-muted">
-                ({label === "positive" ? positives : negatives})
-              </span>
-            </h3>
-            <ul className="flex flex-wrap gap-2">
-              {examples
-                .filter((e) => e.label === label)
-                .map((e) => (
-                  <li key={e.id}>
-                    <button
-                      type="button"
-                      onClick={() => assign(e.id, label)}
-                      aria-label={t("removeExample")}
-                      className="rounded-full p-0.5 transition-transform hover:scale-110"
-                    >
-                      <Berry specimen={e} theme={glyph} />
-                    </button>
-                  </li>
-                ))}
-            </ul>
-          </section>
-        ))}
-      </div>
-
-      {/* The feature space. Optional per level: a tray is enough when the
-          lesson is "cover both kinds", but useless once the lesson is about
-          WHERE in the space your examples sit. */}
-      {data.board?.show ? (
-        <FeatureBoard
-          pool={data.pool}
-          testSet={data.testSet}
-          examples={examples}
-          assigned={assigned}
-          axisLabels={data.board.axisLabels}
-          showBoundary={data.board.showBoundary}
-          glyph={glyph}
-          missed={result?.missed ?? []}
-          onToggle={assign}
-          labels={data.labels}
-          disabled={result?.verdict === "PASS"}
-        />
-      ) : null}
-
-      {/* What the bunny currently thinks — the heart of the activity */}
-      <section className="flex flex-col gap-2 rounded-xl border border-border-token bg-surface-raised p-3">
-        <StepHeading n={3} title={t("guessHeading")} help={t("guessHelp")} />
-        {!ready ? (
-          <p className="text-sm text-ink-muted">
-            {t("needMore", { count: data.minPerLabel })}
-          </p>
-        ) : (
-          <ul className="flex flex-wrap gap-4">
-            {guesses.map(({ probe, match, guess }) => (
-              <li
-                key={probe.id}
-                className="flex items-center gap-3 rounded-xl border border-border-token bg-surface p-3"
-              >
-                <span className="relative shrink-0">
-                  <Berry specimen={probe} theme={glyph} />
-                  <span
-                    aria-hidden="true"
-                    className={cn(
-                      "absolute -end-1 -top-1 grid size-5 place-items-center rounded-full text-[11px] font-bold text-surface-raised",
-                      result?.missed?.includes(probe.id) ? "bg-danger" : "bg-ink",
-                    )}
-                  >
-                    {result?.missed?.includes(probe.id) ? "✗" : "?"}
-                  </span>
-                </span>
-                {/* The reason, not just the verdict. This is the difference
-                    between "the bunny says no" and a child being able to see
-                    WHY, and therefore what to teach next. */}
-                {match ? (
-                  <span className="flex items-center gap-2 text-xs text-ink-muted">
-                    <span aria-hidden="true">→</span>
-                    <span>{t("looksLike")}</span>
-                    <Berry specimen={match} theme={glyph} className="scale-75" />
-                    <span aria-hidden="true">→</span>
-                  </span>
-                ) : null}
-                <span
-                  className={cn(
-                    "rounded-md px-2 py-0.5 text-[11px] font-bold",
-                    guess === "positive"
-                      ? "bg-brand/15 text-brand"
-                      : "bg-danger/15 text-danger",
-                  )}
-                >
-                  {guess ? data.labels[guess] : "—"}
-                </span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-
-      {result ? (
-        <p
-          role="status"
-          className={cn(
-            "rounded-lg px-3 py-2 text-sm font-semibold",
-            result.verdict === "PASS"
-              ? "bg-brand/15 text-brand"
-              : "bg-accent/20 text-warning",
-          )}
-        >
-          {result.verdict === "PASS"
-            ? t("passed")
-            : result.verdict === "ERROR"
-              ? t("submitFailed")
-              : result.code === "tooManyExamples"
-                ? t("tooManyExamples", {
-                    used: examples.length,
-                    max: data.maxExamples ?? 0,
-                  })
-                : typeof result.correct === "number" && typeof result.total === "number"
-                  ? t("missed", { correct: result.correct, total: result.total })
-                  : t("tryAgain")}
-        </p>
-      ) : null}
-
-      {/* The celebration, the receipt, and the way onward. This player had
-          none of it: it announced a verdict in a status line and left the
-          child on a finished board with no route to the next level. */}
+      {/* The celebration, the receipt, and the way onward. */}
       {result?.verdict === "PASS" && server ? (
         <SuccessOverlay
           stars={server.stars}
@@ -529,17 +661,6 @@ export function TeachPlayer({ intro, payload }: ActivityPlayerProps) {
           }
         />
       ) : null}
-
-      <div className="flex items-center gap-3">
-        <Button size="lg" onClick={submit} disabled={!ready} loading={submitting}>
-          {t("check")}
-        </Button>
-        <span className="text-xs text-ink-muted">
-          {data.maxExamples === undefined
-            ? t("taughtCount", { count: examples.length })
-            : t("capUsed", { used: examples.length, max: data.maxExamples })}
-        </span>
-      </div>
     </div>
   );
 }
@@ -551,10 +672,10 @@ export function TeachPlayer({ intro, payload }: ActivityPlayerProps) {
  */
 function StepHeading({ n, title, help }: { n: number; title: string; help: string }) {
   return (
-    <div className="flex items-start gap-2">
+    <div className="flex items-start gap-2.5">
       <span
         aria-hidden="true"
-        className="mt-0.5 grid size-6 shrink-0 place-items-center rounded-full bg-ink text-xs font-bold text-surface-raised"
+        className="mt-0.5 grid size-6 shrink-0 place-items-center rounded-full bg-brand text-xs font-bold text-surface-raised ring-4 ring-brand/15"
       >
         {n}
       </span>

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  tintCellFeatures,
   glyphFill,
   glyphHue,
   glyphPx,
@@ -59,5 +60,25 @@ describe("glyph geometry", () => {
     // A gradient whose highlight moved with the value would add a third
     // visual channel the child would try to read as a measurement.
     expect(glyphFill(berry, 0.3)).toContain("circle at 32% 30%");
+  });
+});
+
+describe("feature board tint orientation", () => {
+  // The board plots specimens with `bottom: color%` — colour grows upward.
+  // The tint grid renders row 0 at the top, so its mapping must invert the
+  // row axis. The first version did not, and painted "safe" exactly where
+  // the unsafe berries sat: to a child, the machine visibly lying.
+  it("maps the top row to high colour and the bottom row to low", () => {
+    const steps = 24;
+    expect(tintCellFeatures(0, 0, steps).color).toBeGreaterThan(0.9);
+    expect(tintCellFeatures(steps - 1, 0, steps).color).toBeLessThan(0.1);
+    // Columns are not inverted: size grows left to right.
+    expect(tintCellFeatures(0, 0, steps).size).toBeLessThan(0.1);
+    expect(tintCellFeatures(0, steps - 1, steps).size).toBeGreaterThan(0.9);
+    // A cell and the specimen at the same visual position agree exactly:
+    // centre of the grid is the centre of the space.
+    const mid = tintCellFeatures(steps / 2, steps / 2, steps);
+    expect(mid.size).toBeCloseTo(0.5, 1);
+    expect(mid.color).toBeCloseTo(0.5, 1);
   });
 });

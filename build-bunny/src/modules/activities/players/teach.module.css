@@ -1,0 +1,269 @@
+/*
+ * Teach the Bunny — board motion and the AI-lab look.
+ *
+ * Everything here follows the two rules the walkthrough animation
+ * established for this feature area:
+ *
+ *  1. Every element is styled in its FINAL state and the keyframes animate
+ *     toward it, so prefers-reduced-motion can switch the whole file off at
+ *     the bottom and the board still reads as a finished screen — never a
+ *     pile of invisible or mid-flight elements.
+ *  2. Direction lives in CSS. The flow lines reverse under html[dir="rtl"]
+ *     (attribute selectors survive CSS-module hashing; only class names are
+ *     rewritten), and the HUD corners use logical inset properties, so the
+ *     Arabic board mirrors without a line of JS.
+ *
+ * Plain keyframes, no motion library: this ships to school tablets over
+ * classroom wifi and four short loops do not justify a dependency.
+ */
+
+/* ── The bunny host ─────────────────────────────────────────────────── */
+
+/* Resting breath. Subtle on purpose: the bunny must feel alive without
+   pulling the eye away from the berries, which carry the actual lesson. */
+.bob {
+  display: inline-block;
+  animation: teach-bob 2.6s ease-in-out infinite;
+}
+
+/* One happy hop (retriggered by remounting on a changing key), then back
+   to breathing. Squash-and-stretch, because a rigid translate reads as a
+   glitch while a squashed landing reads as a creature. */
+.hop {
+  display: inline-block;
+  animation:
+    teach-hop 0.55s cubic-bezier(0.36, 0.07, 0.19, 0.97),
+    teach-bob 2.6s ease-in-out 0.6s infinite;
+}
+
+/* The wrong-answer wobble. Runs once and settles — a bunny that keeps
+   shaking turns feedback into mockery. */
+.shake {
+  display: inline-block;
+  animation: teach-shake 0.5s ease-in-out;
+}
+
+/* Success-card celebration: the bunny the child taught, jumping. */
+.cheer {
+  display: inline-block;
+  animation: teach-cheer 0.9s ease-in-out infinite;
+}
+
+@keyframes teach-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes teach-hop {
+  0% {
+    transform: translateY(0) scale(1, 1);
+  }
+  30% {
+    transform: translateY(-16px) scale(0.95, 1.07);
+  }
+  60% {
+    transform: translateY(0) scale(1.06, 0.9);
+  }
+  80% {
+    transform: translateY(-5px) scale(1, 1);
+  }
+  100% {
+    transform: translateY(0) scale(1, 1);
+  }
+}
+
+@keyframes teach-shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-5px) rotate(-5deg);
+  }
+  75% {
+    transform: translateX(5px) rotate(5deg);
+  }
+}
+
+@keyframes teach-cheer {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  35% {
+    transform: translateY(-12px) rotate(-7deg);
+  }
+  70% {
+    transform: translateY(0) rotate(0deg);
+  }
+}
+
+/* ── Speech bubble ──────────────────────────────────────────────────── */
+
+.bubble {
+  position: relative;
+}
+
+/* Borderless rotated square for the tail: symmetric, so the same shape
+   works mirrored when inset-inline-start lands it on the other side. */
+.bubble::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: -5px;
+  top: 16px;
+  width: 12px;
+  height: 12px;
+  transform: rotate(45deg);
+  background: var(--color-surface-raised);
+  border-inline-start: 1px solid var(--color-border);
+  border-block-end: 1px solid var(--color-border);
+}
+
+:global(html[dir="rtl"]) .bubble::before {
+  transform: rotate(-45deg);
+}
+
+/* ── Motion accents ─────────────────────────────────────────────────── */
+
+/* Berries popping into baskets and verdict chips updating. */
+.popIn {
+  animation: teach-pop 0.35s ease-out;
+}
+
+@keyframes teach-pop {
+  0% {
+    transform: scale(0.4);
+    opacity: 0;
+  }
+  70% {
+    transform: scale(1.12);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Data flowing from the mystery berry to the taught berry it copies. The
+   dashes drift toward the answer, which is the direction the DECISION
+   travels — under RTL the row mirrors, so the drift reverses with it. */
+.flowLine {
+  flex: 1 1 18px;
+  min-width: 18px;
+  height: 2px;
+  border-radius: 999px;
+  opacity: 0.45;
+  background-image: repeating-linear-gradient(
+    90deg,
+    currentColor 0 6px,
+    transparent 6px 12px
+  );
+  animation: teach-flow 0.9s linear infinite;
+}
+
+:global(html[dir="rtl"]) .flowLine {
+  animation-direction: reverse;
+}
+
+@keyframes teach-flow {
+  to {
+    background-position-x: 12px;
+  }
+}
+
+/* A soft ready-glow on the submit button — the one moment the board should
+   call the child's eye somewhere, because nothing else changes when the
+   minimum teaching threshold is crossed. */
+.pulseReady {
+  animation: teach-glow 1.8s ease-in-out infinite;
+}
+
+@keyframes teach-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in oklab, var(--color-brand) 45%, transparent);
+  }
+  55% {
+    box-shadow: 0 0 0 9px transparent;
+  }
+}
+
+/* ── The lab look ───────────────────────────────────────────────────── */
+
+/* HUD corner brackets on the bunny's "thinking" panel. Logical insets so
+   the bracket pair mirrors under RTL. */
+.techPanel {
+  position: relative;
+  --teach-corner: color-mix(in oklab, var(--color-brand) 55%, transparent);
+}
+
+.techPanel::before,
+.techPanel::after {
+  content: "";
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  pointer-events: none;
+}
+
+.techPanel::before {
+  inset-block-start: -2px;
+  inset-inline-start: -2px;
+  border-block-start: 2px solid var(--teach-corner);
+  border-inline-start: 2px solid var(--teach-corner);
+  border-start-start-radius: 12px;
+}
+
+.techPanel::after {
+  inset-block-end: -2px;
+  inset-inline-end: -2px;
+  border-block-end: 2px solid var(--teach-corner);
+  border-inline-end: 2px solid var(--teach-corner);
+  border-end-end-radius: 12px;
+}
+
+/* Faint dot matrix behind the thinking panel — lab equipment, not décor:
+   it marks the one panel where the MACHINE is doing the work. */
+.dotGrid {
+  background-image: radial-gradient(
+    color-mix(in oklab, var(--color-ink) 7%, transparent) 1px,
+    transparent 1px
+  );
+  background-size: 14px 14px;
+}
+
+/* Graph-paper lines on the feature board. The board plots specimens at
+   coordinates; gridlines say "coordinates" the way an empty rectangle
+   cannot, and they give the boundary tint something to be measured on. */
+.gridLines {
+  background-image:
+    linear-gradient(
+      color-mix(in oklab, var(--color-ink) 6%, transparent) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      90deg,
+      color-mix(in oklab, var(--color-ink) 6%, transparent) 1px,
+      transparent 1px
+    );
+  background-size: 12.5% 12.5%;
+}
+
+/* ── The kill switch ────────────────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  .bob,
+  .hop,
+  .shake,
+  .cheer,
+  .popIn,
+  .flowLine,
+  .pulseReady {
+    animation: none;
+  }
+}
