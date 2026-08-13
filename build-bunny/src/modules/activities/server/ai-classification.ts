@@ -52,6 +52,11 @@ export const aiClassificationAnswerSchema = z
   .object({
     /** Every specimen the student put in a bucket. */
     examples: z.array(labelledSpecimen).min(1).max(64),
+    /**
+     * Pool ids the student set aside as their OWN test pile (levels with a
+     * `holdout` block). Never trained on; the grader enforces the split.
+     */
+    checkSet: z.array(z.string().min(1)).max(64).optional(),
   })
   .strict();
 export type AiClassificationAnswer = z.infer<typeof aiClassificationAnswerSchema>;
@@ -89,6 +94,17 @@ export function trueLabel(
   }
 }
 
+function refusal(code: string, data: Record<string, unknown>): ActivityGradeResult {
+  return {
+    verdict: "FAIL",
+    qualityPassed: false,
+    primaryFeedback: { code, data },
+    generatedCode: "",
+    blockCount: null,
+    summary: {},
+  };
+}
+
 function invalid(reason: string): ActivityGradeResult {
   return {
     verdict: "ERROR",
@@ -111,12 +127,32 @@ export function gradeAiClassification(
   // Only specimens that actually belong to this level's pool may be taught
   // with — otherwise a crafted request could invent a perfect training set.
   const poolById = new Map(payload.pool.map((p) => [p.id, p]));
+  const heldBack = new Set(payload.holdout ? (answer.checkSet ?? []) : []);
   const examples: Example[] = [];
   for (const example of answer.examples) {
     const known = poolById.get(example.id);
     if (!known) continue;
+    // A held-back specimen can never teach, whatever the client claims.
+    if (heldBack.has(example.id)) continue;
     // Trust the level's own geometry, never the client's copy of it.
     examples.push({ ...known, label: example.label });
+  }
+
+  // Student-designed hold-out (E9). The held-back ids are removed from
+  // training BEFORE any other check: a specimen cannot teach and test at
+  // once, and a split that pretends otherwise is the exact fraud the level
+  // exists to make impossible.
+  if (payload.holdout) {
+    const held = new Set(answer.checkSet ?? []);
+    if (held.size < payload.holdout.min) {
+      return refusal("needMoreHeldBack", {
+        need: payload.holdout.min,
+        got: held.size,
+      });
+    }
+    if (answer.examples.some((e) => held.has(e.id))) {
+      return refusal("cannotTeachAndTest", {});
+    }
   }
 
   const positives = examples.filter((e) => e.label === "positive").length;
@@ -156,12 +192,26 @@ export function gradeAiClassification(
 
   let correct = 0;
   const missed: string[] = [];
+  // Errors counted by DIRECTION, not just volume: under a safetyFirst rule
+  // a mistake one way is forbidden while the other way is merely budgeted,
+  // which is the entire lesson of which-mistake-is-worse.
+  let dangerousMisses = 0;
+  let falseAlarms = 0;
+  const safety = payload.passRule.kind === "safetyFirst" ? payload.passRule : null;
   for (const probe of payload.testSet) {
     const predicted = classify(examples, probe);
-    if (predicted === trueLabel(payload.rule, probe)) correct += 1;
-    else missed.push(probe.id);
+    const truth = trueLabel(payload.rule, probe);
+    if (predicted === truth) {
+      correct += 1;
+    } else {
+      missed.push(probe.id);
+      if (safety && truth === safety.neverMisclassify) dangerousMisses += 1;
+      else falseAlarms += 1;
+    }
   }
-  const passed = correct === payload.testSet.length;
+  const passed = safety
+    ? dangerousMisses === 0 && falseAlarms <= safety.maxOtherErrors
+    : correct === payload.testSet.length;
   // The 3rd star is the budget, and until now it was a lie: this engine
   // returned `qualityPassed: passed`, so ANY pass scored 3 stars, while the
   // comment below claimed the shared maxBlocks machinery was rewarding
@@ -178,11 +228,25 @@ export function gradeAiClassification(
     primaryFeedback: passed
       ? null
       : {
-          code: "modelGuessedWrong",
+          // Under safetyFirst the failure NAMES the direction — "you called
+          // a dangerous one safe" and "too many false alarms" are different
+          // lessons, and a generic wrong-count teaches neither.
+          code: safety
+            ? dangerousMisses > 0
+              ? "calledADangerousOneSafe"
+              : "tooManyFalseAlarms"
+            : "modelGuessedWrong",
           // `missed` rides on the FEEDBACK, not just the summary: the player
           // reads feedback.data, and "3 of 4 right" without naming which one
           // is an arbitrary verdict a child cannot act on.
-          data: { correct, total: payload.testSet.length, missed },
+          data: {
+            correct,
+            total: payload.testSet.length,
+            missed,
+            ...(safety
+              ? { dangerousMisses, falseAlarms, maxOtherErrors: safety.maxOtherErrors }
+              : {}),
+          },
         },
     generatedCode: "",
     // "Examples taught" travels as blockCount so the rest of the pipeline
@@ -196,6 +260,8 @@ export function gradeAiClassification(
       correct,
       total: payload.testSet.length,
       missed,
+      ...(safety ? { dangerousMisses, falseAlarms } : {}),
+      ...(payload.holdout ? { heldBack: (answer.checkSet ?? []).length } : {}),
     },
   };
 }

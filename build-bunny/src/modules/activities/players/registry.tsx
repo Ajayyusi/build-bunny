@@ -42,6 +42,11 @@ const TeachPlayer = dynamic(
   { ssr: false },
 );
 
+const GroupPlayer = dynamic(
+  () => import("./GroupPlayer").then((m) => m.GroupPlayer),
+  { ssr: false },
+);
+
 export const ACTIVITY_PLAYERS: Partial<Record<string, ComponentType<ActivityPlayerProps>>> = {
   BLOCK_CODING: GridPlayer,
   DEBUGGING: GridPlayer,
@@ -49,6 +54,7 @@ export const ACTIVITY_PLAYERS: Partial<Record<string, ComponentType<ActivityPlay
   SEQUENCING: SequencingPlayer,
   CONCEPT_CARDS: LearnPlayer,
   AI_CLASSIFICATION: TeachPlayer,
+  PATTERN_RECOGNITION: GroupPlayer,
 };
 
 export function getActivityPlayer(

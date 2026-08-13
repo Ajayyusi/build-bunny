@@ -2,32 +2,12 @@ import type { WorldFixture } from "@/modules/curriculum/schemas";
 
 /**
  * Horizon worlds: visible on the adventure map as "coming next" territory,
- * zero playable modules. Robot Lab graduated to real content in M3 wave 3
- * (content/worlds/robot-lab.ts); the rest span the program arc (design §6).
+ * zero playable modules. Robot Lab graduated in M3 wave 3, AI Island when
+ * AI_CLASSIFICATION landed, and Data Desert + ML Lab when the Grouping
+ * Machine (PATTERN_RECOGNITION) landed — leaving Code City and Inventor
+ * Island as the remaining roadmap (design §6).
  */
 export const horizonWorlds: WorldFixture[] = [
-  {
-    slug: "data-desert",
-    name: { en: "Data Desert", ar: "صحراء البيانات" },
-    tagline: {
-      en: "Patterns hide in the dunes. Learn to spot them.",
-      ar: "الأنماط تختبئ بين الكثبان — تعلّم كيف تكتشفها.",
-    },
-    theme: "desert",
-    horizon: true,
-    modules: [],
-  },
-  {
-    slug: "ml-lab",
-    name: { en: "Machine Learning Lab", ar: "مختبر تعلّم الآلة" },
-    tagline: {
-      en: "Train a real model with your own hands.",
-      ar: "درّب نموذجًا حقيقيًا بيديك.",
-    },
-    theme: "ml",
-    horizon: true,
-    modules: [],
-  },
   {
     slug: "code-city",
     name: { en: "Code City", ar: "مدينة الشيفرة" },

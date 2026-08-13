@@ -26,6 +26,13 @@ export interface SolvablePayload {
   testSet: { id: string; size: number; color: number }[];
   minPerLabel: number;
   maxExamples?: number;
+  /** Levels demanding a student-designed test pile: the untaught remainder
+   *  must be at least this big, so the training set is capped implicitly. */
+  holdout?: { min: number };
+  /** safetyFirst weighs mistakes by direction — see the grader. */
+  passRule?:
+    | { kind: "allCorrect" }
+    | { kind: "safetyFirst"; neverMisclassify: ClassLabel; maxOtherErrors: number };
 }
 
 /**
@@ -74,6 +81,11 @@ function* legalTrainingSets(payload: SolvablePayload): Generator<LabelledSpecime
     for (const mask of masks) {
       const set = examples.filter((_, i) => (mask >> i) & 1);
       if (payload.maxExamples !== undefined && set.length > payload.maxExamples) continue;
+      // Holdout levels: whatever is not taught becomes the held-back pile,
+      // and it must be big enough to satisfy the level's minimum.
+      if (payload.holdout !== undefined && pool.length - set.length < payload.holdout.min) {
+        continue;
+      }
       const positives = set.filter((e) => e.label === "positive").length;
       if (positives < payload.minPerLabel) continue;
       if (set.length - positives < payload.minPerLabel) continue;
@@ -88,13 +100,27 @@ function popcount(n: number): number {
   return count;
 }
 
-/** Scores one training set the way the grader does. */
+/** Scores one training set the way the grader does — passRule included. */
 function scores(
   examples: LabelledSpecimen[],
   payload: SolvablePayload,
   truthOf: (probe: { size: number; color: number }) => ClassLabel,
 ): boolean {
-  return payload.testSet.every((probe) => classify(examples, probe) === truthOf(probe));
+  const rule = payload.passRule ?? { kind: "allCorrect" as const };
+  if (rule.kind === "allCorrect") {
+    return payload.testSet.every((probe) => classify(examples, probe) === truthOf(probe));
+  }
+  // safetyFirst: a miss on the protected class is fatal; the other
+  // direction has an allowance. Mirrors gradeAiClassification exactly.
+  let otherErrors = 0;
+  for (const probe of payload.testSet) {
+    const truth = truthOf(probe);
+    if (classify(examples, probe) === truth) continue;
+    if (truth === rule.neverMisclassify) return false;
+    otherErrors += 1;
+    if (otherErrors > rule.maxOtherErrors) return false;
+  }
+  return true;
 }
 
 /**

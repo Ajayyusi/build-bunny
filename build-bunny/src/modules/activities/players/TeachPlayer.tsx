@@ -77,6 +77,10 @@ interface TeachPayload {
   };
   walkthrough?: { title: string; body: string }[];
   board?: { show: boolean; showBoundary: boolean; axisLabels: { x: string; y: string } };
+  holdout?: { min: number };
+  passRule:
+    | { kind: "allCorrect" }
+    | { kind: "safetyFirst"; neverMisclassify: "positive" | "negative"; maxOtherErrors: number };
   starCriteria: { threeStarMaxBlocks?: number };
 }
 
@@ -114,6 +118,10 @@ export function TeachPlayer({ intro, payload }: ActivityPlayerProps) {
   const locale = useLocale();
 
   const [assigned, setAssigned] = useState<Record<string, ClassLabel>>({});
+  // The student's OWN test pile (holdout levels): ids set aside, never
+  // taught. Kept separate from `assigned` so a specimen physically cannot
+  // be in both — moving it to one side removes it from the other.
+  const [heldBack, setHeldBack] = useState<Set<string>>(new Set());
   // Opens on arrival. A child (or an adult) landing on an abstract board of
   // circles has no way to infer the rules, so the walkthrough is the default
   // state rather than a help button nobody presses.
@@ -132,6 +140,7 @@ export function TeachPlayer({ intro, payload }: ActivityPlayerProps) {
     correct?: number;
     total?: number;
     missed?: string[];
+    data?: Record<string, unknown>;
   } | null>(null);
 
   // Presentation, with the berry defaults every already-authored level relies
@@ -160,10 +169,27 @@ export function TeachPlayer({ intro, payload }: ActivityPlayerProps) {
   const positives = examples.filter((e) => e.label === "positive").length;
   const negatives = examples.length - positives;
   const atCap = data.maxExamples !== undefined && examples.length >= data.maxExamples;
+  const holdOk = !data.holdout || heldBack.size >= data.holdout.min;
   const ready =
     positives >= data.minPerLabel &&
     negatives >= data.minPerLabel &&
+    holdOk &&
     (data.maxExamples === undefined || examples.length <= data.maxExamples);
+
+  // The self-score: the model's answers on the student's OWN test pile,
+  // checked against those specimens' already-shipped truth, with the same
+  // classifier the server uses. This is the first number in the product a
+  // child sees before submitting — and the level's lesson is that a perfect
+  // one can still lose, because a test YOU rigged proves nothing.
+  const selfScore = useMemo(() => {
+    if (!data.holdout || heldBack.size === 0 || examples.length === 0) return null;
+    const held = data.pool.filter((s) => heldBack.has(s.id));
+    let right = 0;
+    for (const specimen of held) {
+      if (nearest(examples, specimen)?.label === specimen.truth) right += 1;
+    }
+    return { right, total: held.length };
+  }, [data.holdout, data.pool, heldBack, examples]);
 
   // Live guesses. We keep the MATCHED example, not just the label, because
   // "it looks most like this one you taught me" is the only form in which a
@@ -194,6 +220,15 @@ export function TeachPlayer({ intro, payload }: ActivityPlayerProps) {
       data.maxExamples !== undefined &&
       Object.keys(assigned).length >= data.maxExamples;
     if (!isRemoval && !refused) setHopKey((k) => k + 1);
+    // Teaching a specimen pulls it OUT of the test pile: one specimen, one
+    // role, enforced physically rather than by an error message.
+    if (!isRemoval && heldBack.has(id)) {
+      setHeldBack((prev) => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
+    }
     // Teaching something new invalidates the last verdict — leaving it on
     // screen would have the bunny reporting a score for a set of examples
     // it is no longer being shown.
@@ -211,6 +246,23 @@ export function TeachPlayer({ intro, payload }: ActivityPlayerProps) {
     });
   };
 
+  const holdBack = (id: string) => {
+    if (result?.verdict === "PASS") return;
+    if (result) setResult(null);
+    if (server) setServer(null);
+    setHeldBack((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+        // One specimen, one role — see assign().
+        setAssigned((a) => (a[id] ? omit(a, id) : a));
+      }
+      return next;
+    });
+  };
+
   const submit = async () => {
     if (!ready || submitting) return;
     setSubmitting(true);
@@ -225,7 +277,10 @@ export function TeachPlayer({ intro, payload }: ActivityPlayerProps) {
           // schema is .strict(), so spreading the whole specimen made every
           // submission 400 — silently, because the failure surfaced as the
           // generic "not quite yet" line rather than an error.
-          answer: { examples: examples.map(toTrainingExample) },
+          answer: {
+            examples: examples.map(toTrainingExample),
+            ...(data.holdout ? { checkSet: [...heldBack] } : {}),
+          },
         }),
       });
       if (!res.ok) {
@@ -248,6 +303,7 @@ export function TeachPlayer({ intro, payload }: ActivityPlayerProps) {
         correct: feedbackData?.correct,
         total: feedbackData?.total,
         missed: feedbackData?.missed,
+        data: body.feedback?.data,
       });
     } catch {
       setResult({ verdict: "ERROR" });
@@ -256,7 +312,7 @@ export function TeachPlayer({ intro, payload }: ActivityPlayerProps) {
     }
   };
 
-  const unassigned = data.pool.filter((s) => !assigned[s.id]);
+  const unassigned = data.pool.filter((s) => !assigned[s.id] && !heldBack.has(s.id));
 
   // Same rule as every other player: offer the next level only once it is
   // actually open — either it already was, or this very run unlocked it.
@@ -390,6 +446,15 @@ export function TeachPlayer({ intro, payload }: ActivityPlayerProps) {
                       >
                         {t("teachThis")}
                       </button>
+                      {data.holdout ? (
+                        <button
+                          type="button"
+                          onClick={() => holdBack(s.id)}
+                          className="w-full rounded-md border border-info/50 bg-info/10 px-2 py-1.5 text-[11px] font-bold text-info transition-colors hover:bg-info/20"
+                        >
+                          {t("keepForTesting")}
+                        </button>
+                      ) : null}
                     </li>
                   ))}
                   {unassigned.length === 0 ? (
@@ -443,6 +508,46 @@ export function TeachPlayer({ intro, payload }: ActivityPlayerProps) {
                   ))}
                 </div>
               </section>
+
+              {/* The student's own test pile (holdout levels). */}
+              {data.holdout ? (
+                <section className="flex flex-col gap-3">
+                  <StepHeading
+                    n={3}
+                    title={t("holdHeading")}
+                    help={t("holdHelp", { min: data.holdout.min })}
+                  />
+                  <div className="flex min-h-20 flex-col gap-2 rounded-xl border-2 border-dashed border-info/50 bg-info/5 p-3">
+                    <h3 className="font-display text-sm font-bold text-ink">
+                      <span aria-hidden="true" className="me-1">
+                        🔬
+                      </span>
+                      {t("holdCount", { used: heldBack.size, min: data.holdout.min })}
+                    </h3>
+                    <ul className="flex flex-wrap gap-2">
+                      {data.pool
+                        .filter((s) => heldBack.has(s.id))
+                        .map((s) => (
+                          <li key={s.id} className={styles.popIn}>
+                            <button
+                              type="button"
+                              onClick={() => holdBack(s.id)}
+                              aria-label={t("removeFromHold")}
+                              className="rounded-full p-0.5 transition-transform hover:scale-110"
+                            >
+                              <Berry specimen={s} theme={glyph} />
+                            </button>
+                          </li>
+                        ))}
+                    </ul>
+                    {selfScore ? (
+                      <p className="text-sm font-semibold text-ink">
+                        {t("selfScore", { right: selfScore.right, total: selfScore.total })}
+                      </p>
+                    ) : null}
+                  </div>
+                </section>
+              ) : null}
             </div>
 
             {/* Right column: what the machine does with it. */}
@@ -470,6 +575,47 @@ export function TeachPlayer({ intro, payload }: ActivityPlayerProps) {
                   This is the one panel where the MACHINE does the work, and
                   the lab dressing (corner brackets, dot matrix) marks exactly
                   that boundary and nothing else. */}
+              {data.passRule.kind === "safetyFirst" ? (
+                <section className="flex flex-col gap-2 rounded-xl border-2 border-warning/40 bg-accent/10 p-3">
+                  <h2 className="font-display text-sm font-bold text-ink">
+                    <span aria-hidden="true" className="me-1">
+                      ⚠️
+                    </span>
+                    {t("safetyRule", {
+                      danger: data.labels[data.passRule.neverMisclassify === "positive" ? "positive" : "negative"],
+                      allowed: data.passRule.maxOtherErrors,
+                    })}
+                  </h2>
+                  {result?.data && typeof result.data.dangerousMisses === "number" ? (
+                    <div className="flex flex-wrap gap-2 text-sm font-semibold">
+                      <span
+                        className={cn(
+                          "rounded-full px-3 py-1",
+                          (result.data.dangerousMisses as number) > 0
+                            ? "bg-danger/15 text-danger"
+                            : "bg-brand/15 text-brand",
+                        )}
+                      >
+                        {t("dangerTally", { count: result.data.dangerousMisses as number })}
+                      </span>
+                      <span
+                        className={cn(
+                          "rounded-full px-3 py-1",
+                          (result.data.falseAlarms as number) > (data.passRule.maxOtherErrors ?? 0)
+                            ? "bg-danger/15 text-danger"
+                            : "bg-brand/15 text-brand",
+                        )}
+                      >
+                        {t("alarmTally", {
+                          count: result.data.falseAlarms as number,
+                          max: data.passRule.maxOtherErrors,
+                        })}
+                      </span>
+                    </div>
+                  ) : null}
+                </section>
+              ) : null}
+
               <section
                 className={cn(
                   styles.techPanel,
@@ -477,7 +623,11 @@ export function TeachPlayer({ intro, payload }: ActivityPlayerProps) {
                   "flex flex-col gap-3 rounded-xl border border-border-token bg-surface-raised p-3 sm:p-4",
                 )}
               >
-                <StepHeading n={3} title={t("guessHeading")} help={t("guessHelp")} />
+                <StepHeading
+                  n={data.holdout ? 4 : 3}
+                  title={t("guessHeading")}
+                  help={t("guessHelp")}
+                />
                 {!ready ? (
                   <p className="text-sm text-ink-muted">
                     {t("needMore", { count: data.minPerLabel })}
@@ -553,6 +703,22 @@ export function TeachPlayer({ intro, payload }: ActivityPlayerProps) {
                 ? t("passed")
                 : result.verdict === "ERROR"
                   ? t("submitFailed")
+                  : result.code === "calledADangerousOneSafe"
+                    ? t("calledADangerousOneSafe", {
+                        danger:
+                          data.labels[
+                            data.passRule.kind === "safetyFirst" &&
+                            data.passRule.neverMisclassify === "positive"
+                              ? "positive"
+                              : "negative"
+                          ],
+                      })
+                    : result.code === "tooManyFalseAlarms"
+                      ? t("tooManyFalseAlarms", {
+                          max: data.passRule.kind === "safetyFirst" ? data.passRule.maxOtherErrors : 0,
+                        })
+                      : result.code === "needMoreHeldBack"
+                        ? t("needMoreHeldBack", { need: data.holdout?.min ?? 0 })
                   : result.code === "tooManyExamples"
                     ? t("tooManyExamples", {
                         used: examples.length,

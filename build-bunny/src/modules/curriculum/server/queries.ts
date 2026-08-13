@@ -346,8 +346,7 @@ const ANSWER_KEYS = [
   "correctOrder",
   "rule",
   // Names the deliberately-wrong record — i.e. the answer to that level.
-  "mislabelled",
-] as const;
+  "mislabelled", "groundTruth"] as const;
 
 /**
  * Answer-bearing keys nested one level down, as [container, key] pairs.

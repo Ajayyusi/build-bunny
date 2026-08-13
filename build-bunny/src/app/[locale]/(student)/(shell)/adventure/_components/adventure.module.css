@@ -37,6 +37,13 @@
   --world-deep: var(--bb-sky-900);
 }
 
+.world[data-world-theme="ml"] {
+  /* Cool sky family: the lab reads clinical next to the desert's sand. */
+  --world-band: var(--bb-sky-50);
+  --world-edge: var(--bb-sky-300);
+  --world-deep: var(--bb-sky-800);
+}
+
 .world[data-world-theme*="desert"] {
   --world-band: var(--bb-star-50);
   --world-edge: var(--bb-star-200);

@@ -295,7 +295,7 @@ export const specimenSchema = z
 const aiThemeSchema = z
   .object({
     /** Which glyph vocabulary — see src/modules/ai/glyph.ts. */
-    glyph: z.enum(["berry", "grain", "cell"]).default("berry"),
+    glyph: z.enum(["berry", "grain", "cell", "blip"]).default("berry"),
     /** What the two measurements are CALLED in this world. */
     featureNames: z.object({ size: localizedText, color: localizedText }),
     /** The two outcomes, as a glyph a child reads before the words. */
@@ -370,6 +370,21 @@ const classificationRule = z.union([
 ]);
 export type ClassificationRule = z.infer<typeof classificationRule>;
 
+/** See `passRule` on aiClassificationPayload. Shared with the student mirror. */
+const classificationPassRule = z
+  .discriminatedUnion("kind", [
+    z.object({ kind: z.literal("allCorrect") }).strict(),
+    z
+      .object({
+        kind: z.literal("safetyFirst"),
+        neverMisclassify: z.enum(["positive", "negative"]),
+        maxOtherErrors: z.number().int().min(0).max(8),
+      })
+      .strict(),
+  ])
+  .default({ kind: "allCorrect" });
+export type ClassificationPassRule = z.infer<typeof classificationPassRule>;
+
 /**
  * AI_CLASSIFICATION — teach by example. The first activity in the product
  * where the student does something a programmer would not: they never write
@@ -426,6 +441,23 @@ export const aiClassificationPayload = z
     theme: aiThemeSchema.optional(),
     walkthrough: aiWalkthroughSchema.optional(),
     board: aiBoardSchema.optional(),
+    /**
+     * Student-designed hold-out (ml-lab/keep-some-back). A rule of the game,
+     * so it ships: the player refuses to grade until at least `min` pool
+     * specimens sit in the "keep for testing" pile, and the grader excludes
+     * them from training. Without a third destination there is no way for a
+     * child to physically enact "I am not allowed to train on this".
+     */
+    holdout: z.object({ min: z.number().int().min(2).max(8) }).strict().optional(),
+    /**
+     * What counts as passing. `allCorrect` is the default so nothing already
+     * authored moves. `safetyFirst` makes mistake DIRECTION matter: calling
+     * a `neverMisclassify` specimen the other thing fails outright, while up
+     * to `maxOtherErrors` mistakes the cheap way round are tolerated. Ships
+     * to the student — an objective the child cannot see is not an
+     * objective, it is a trap.
+     */
+    passRule: classificationPassRule,
     /** 3-star budget lives in threeStarMaxBlocks — here, examples used. */
     starCriteria: starCriteriaSchema.default({}),
   })
@@ -454,14 +486,105 @@ export const aiClassificationStudentPayload = z
     theme: aiThemeSchema.optional(),
     walkthrough: aiWalkthroughSchema.optional(),
     board: aiBoardSchema.optional(),
+    holdout: z.object({ min: z.number().int().min(2).max(8) }).strict().optional(),
+    passRule: classificationPassRule,
     starCriteria: starCriteriaSchema.default({}),
     // `rule` is deliberately absent, and .strict() is what enforces that.
+  })
+  .strict();
+
+
+/**
+ * PATTERN_RECOGNITION — "the Grouping Machine" (Data Desert / ML Lab).
+ *
+ * The one activity family where the data has NO labels anywhere: not on
+ * screen, not in the payload, not on the server. The student places flags
+ * (markers) in the feature space; every specimen belongs to its nearest
+ * flag; the grade is a geometric quantity (tightness) the player shows live
+ * from the same shared implementation the grader replays.
+ *
+ * Everything secret lives under ONE key, `groundTruth`, which
+ * stripStudentPayload sweeps by name — the reference placement the publish
+ * gate checks, and the hidden kind names revealed only in the PASS summary.
+ */
+export const patternRecognitionPayload = z
+  .object({
+    conceptSlug: z.string().regex(/^[a-z0-9-]+$/),
+    theme: aiThemeSchema.optional(),
+    walkthrough: aiWalkthroughSchema.optional(),
+    /** Unlabelled by construction: specimenSchema has no truth field. */
+    specimens: z.array(specimenSchema).min(6).max(20),
+    /** How many flags the student may place. */
+    markers: z
+      .object({
+        min: z.number().int().min(1).max(6),
+        max: z.number().int().min(1).max(6),
+      })
+      .strict()
+      .refine((m) => m.min <= m.max, { message: "markers.min must be <= markers.max" }),
+    /** Readings the student may strike out ("not an animal"). */
+    maxExclusions: z.number().int().min(0).max(2).default(0),
+    /** Pass bar on the tightness score, computed over the KEPT specimens. */
+    objective: z.object({ minTightness: z.number().min(0).max(1) }).strict(),
+    /**
+     * When present, the submitted markers are a SEED: the grader replays
+     * this many Lloyd iterations before scoring, and the player animates the
+     * identical steps. Deterministic on purpose — shared code, fixed
+     * tie-breaks, no randomness anywhere in either half.
+     */
+    training: z
+      .object({
+        kind: z.literal("lloyd"),
+        iterations: z.number().int().min(1).max(12),
+      })
+      .strict()
+      .optional(),
+    groundTruth: z
+      .object({
+        /** A placement the author asserts passes; the publish gate proves it. */
+        referencePlacement: z
+          .array(z.object({ size: z.number(), color: z.number() }).strict())
+          .min(1),
+        /** specimen id -> index into kindNames. Revealed on PASS only. */
+        hiddenKinds: z.record(z.string(), z.number().int().min(0)).optional(),
+        kindNames: z.array(localizedText).optional(),
+      })
+      .strict(),
+    starCriteria: starCriteriaSchema.default({}),
+  })
+  .strict();
+
+/** Answer-free mirror, .parse'd at the play page — same contract as the others. */
+export const patternRecognitionStudentPayload = z
+  .object({
+    conceptSlug: z.string().regex(/^[a-z0-9-]+$/),
+    theme: aiThemeSchema.optional(),
+    walkthrough: aiWalkthroughSchema.optional(),
+    specimens: z.array(specimenSchema).min(6).max(20),
+    markers: z
+      .object({
+        min: z.number().int().min(1).max(6),
+        max: z.number().int().min(1).max(6),
+      })
+      .strict(),
+    maxExclusions: z.number().int().min(0).max(2).default(0),
+    objective: z.object({ minTightness: z.number().min(0).max(1) }).strict(),
+    training: z
+      .object({
+        kind: z.literal("lloyd"),
+        iterations: z.number().int().min(1).max(12),
+      })
+      .strict()
+      .optional(),
+    starCriteria: starCriteriaSchema.default({}),
+    // `groundTruth` is deliberately absent; .strict() enforces it.
   })
   .strict();
 
 /** V1 activity types with a real engine behind them (plan §0.1-7). */
 export const V1_ACTIVITY_TYPES = [
   "AI_CLASSIFICATION",
+  "PATTERN_RECOGNITION",
   "BLOCK_CODING",
   "CODE_PREDICTION",
   "CONCEPT_CARDS",
@@ -472,6 +595,7 @@ export type V1ActivityType = (typeof V1_ACTIVITY_TYPES)[number];
 
 const PAYLOAD_SCHEMAS: Record<V1ActivityType, z.ZodTypeAny> = {
   AI_CLASSIFICATION: aiClassificationPayload,
+  PATTERN_RECOGNITION: patternRecognitionPayload,
   BLOCK_CODING: blockCodingPayload,
   CODE_PREDICTION: codePredictionPayload,
   CONCEPT_CARDS: conceptCardsPayload,

@@ -181,6 +181,32 @@ export interface TeachActivityPayload {
   /** Per-level walkthrough script; absent = the global berry copy. */
   walkthrough?: { title: string; body: string }[];
   board?: { show: boolean; showBoundary: boolean; axisLabels: { x: string; y: string } };
+  /** Present = the level demands a student-designed test pile of >= min. */
+  holdout?: { min: number };
+  /** What counts as passing; safetyFirst weighs mistakes by direction. */
+  passRule:
+    | { kind: "allCorrect" }
+    | { kind: "safetyFirst"; neverMisclassify: "positive" | "negative"; maxOtherErrors: number };
+  starCriteria: { threeStarMaxBlocks?: number };
+}
+
+/** Answer-free slice of a PATTERN_RECOGNITION payload (`groundTruth` removed). */
+export interface GroupActivityPayload {
+  conceptSlug: string;
+  /** Unlabelled on purpose — no truth field exists anywhere in this family. */
+  specimens: { id: string; size: number; color: number }[];
+  markers: { min: number; max: number };
+  maxExclusions: number;
+  objective: { minTightness: number };
+  /** Present = the submission is a seed and the grader replays the loop. */
+  training?: { kind: "lloyd"; iterations: number };
+  theme?: {
+    glyph: string;
+    featureNames: { size: string; color: string };
+    truthEmoji: { positive: string; negative: string };
+  };
+  /** Per-level walkthrough script, already resolved to the request locale. */
+  walkthrough?: { title: string; body: string }[];
   starCriteria: { threeStarMaxBlocks?: number };
 }
 

@@ -47,6 +47,15 @@ export const GLYPH_THEMES = {
   grain: { shape: "diamond", hueFrom: 45, hueSpan: -125, pxMin: 24, pxMax: 48 },
   /** ML Lab. 190° cyan → 360° red — already clear of the green band. */
   cell: { shape: "hex", hueFrom: 190, hueSpan: 170, pxMin: 26, pxMax: 50 },
+  /**
+   * Night-camera readings (Data Desert): cold blue up THROUGH violet to warm
+   * amber (210° → 400°≡40°). The short way round (210° down to 40°) crosses
+   * the 60–160° green band, and a leaf-green dot reads as "safe"/"plant" to
+   * a child regardless of what the level means by it — the same trap the
+   * berry ramp was rerouted around, and the glyph suite pins it for every
+   * theme.
+   */
+  blip: { shape: "circle", hueFrom: 210, hueSpan: 190, pxMin: 22, pxMax: 44 },
 } satisfies Record<string, GlyphTheme>;
 
 export type GlyphThemeName = keyof typeof GLYPH_THEMES;

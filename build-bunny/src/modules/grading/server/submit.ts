@@ -1,6 +1,7 @@
 import "server-only";
 
 import type { AiClassificationAnswer } from "@/modules/activities/server/ai-classification";
+import type { PatternRecognitionAnswer } from "@/modules/activities/server/pattern-recognition";
 
 import { Prisma } from "@prisma/client";
 
@@ -49,7 +50,9 @@ export interface AnswerAttemptInput {
      * AI_CLASSIFICATION: every specimen the student taught the model with.
      * Derived from the engine's schema, never re-typed — see the note there.
      */
-    | AiClassificationAnswer;
+    | AiClassificationAnswer
+    /** PATTERN_RECOGNITION: flag positions (or a training seed) + exclusions. */
+    | PatternRecognitionAnswer;
 }
 
 export type AttemptInput = GridAttemptInput | AnswerAttemptInput;

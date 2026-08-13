@@ -70,6 +70,14 @@ function honestTrainingSets(pool: PoolSpecimen[]) {
  */
 function grade(level: LevelFixture, examples: PoolSpecimen[]) {
   const snapshot = { payload: level.payload } as unknown as LevelSnapshot;
+  const payload = level.payload as { holdout?: { min: number }; pool: PoolSpecimen[] };
+  // Holdout levels demand a student-designed test pile. The honest analogue
+  // in a brute-force sweep is "everything I did not teach with, I held
+  // back" — which is exactly the maximal legal checkSet for the subset.
+  const taught = new Set(examples.map((e) => e.id));
+  const checkSet = payload.holdout
+    ? payload.pool.filter((p) => !taught.has(p.id)).map((p) => p.id)
+    : undefined;
   return gradeAiClassification(snapshot, {
     examples: examples.map(({ id, size, color, truth }) => ({
       id,
@@ -77,6 +85,7 @@ function grade(level: LevelFixture, examples: PoolSpecimen[]) {
       color,
       label: truth,
     })),
+    ...(checkSet ? { checkSet } : {}),
   });
 }
 
@@ -91,7 +100,10 @@ describe.each(aiLevels)("AI level $level.slug ($world)", ({ level }) => {
     (s) =>
       s.filter((x) => x.truth === "positive").length >= payload.minPerLabel &&
       s.filter((x) => x.truth === "negative").length >= payload.minPerLabel &&
-      (payload.maxExamples === undefined || s.length <= payload.maxExamples),
+      (payload.maxExamples === undefined || s.length <= payload.maxExamples) &&
+      // Holdout levels: the untaught remainder is the held-back pile, and it
+      // must be big enough to satisfy the level's minimum.
+      (payload.holdout === undefined || pool.length - s.length >= payload.holdout.min),
   );
   const passing = submittable.filter((s) => grade(level, s).verdict === "PASS");
   const failing = submittable.filter((s) => grade(level, s).verdict === "FAIL");
@@ -213,7 +225,14 @@ describe.each(aiLevels)("AI level $level.slug ($world)", ({ level }) => {
     const result = grade(level, loser);
     expect(result.summary.missed).toBeInstanceOf(Array);
     expect((result.summary.missed as string[]).length).toBeGreaterThan(0);
-    expect(result.primaryFeedback).toMatchObject({ code: "modelGuessedWrong" });
+    // Plain levels report a wrong-count; safetyFirst levels name the
+    // DIRECTION of the failure instead — both carry the missed ids.
+    expect([
+      "modelGuessedWrong",
+      "calledADangerousOneSafe",
+      "tooManyFalseAlarms",
+    ]).toContain(result.primaryFeedback?.code);
+    expect((result.primaryFeedback?.data as { missed: string[] }).missed.length).toBeGreaterThan(0);
   });
 });
 

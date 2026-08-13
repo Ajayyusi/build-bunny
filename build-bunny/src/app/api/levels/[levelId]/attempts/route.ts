@@ -4,6 +4,7 @@ import { z } from "zod";
 import { generateRequestId, logger, setRequestContext, withRequestContext } from "@/lib/logger";
 import { createRateLimiter } from "@/lib/rate-limit";
 import { aiClassificationAnswerSchema } from "@/modules/activities/server/ai-classification";
+import { patternRecognitionAnswerSchema } from "@/modules/activities/server/pattern-recognition";
 import { hasPermission } from "@/modules/auth/permissions";
 import { getSessionContext } from "@/modules/auth/server/session";
 import { getPublishedLevelSnapshot } from "@/modules/curriculum/server/queries";
@@ -62,6 +63,13 @@ const aiClassificationBodySchema = z
   .object({
     attemptRunId: z.string().uuid(),
     answer: aiClassificationAnswerSchema,
+  })
+  .strict();
+
+const patternRecognitionBodySchema = z
+  .object({
+    attemptRunId: z.string().uuid(),
+    answer: patternRecognitionAnswerSchema,
   })
   .strict();
 
@@ -139,6 +147,10 @@ export async function POST(
         input = parsed.data;
       } else if (activityType === "AI_CLASSIFICATION") {
         const parsed = aiClassificationBodySchema.safeParse(raw);
+        if (!parsed.success) return validationError(parsed.error.flatten().fieldErrors);
+        input = parsed.data;
+      } else if (activityType === "PATTERN_RECOGNITION") {
+        const parsed = patternRecognitionBodySchema.safeParse(raw);
         if (!parsed.success) return validationError(parsed.error.flatten().fieldErrors);
         input = parsed.data;
       } else if (activityType === "CONCEPT_CARDS") {

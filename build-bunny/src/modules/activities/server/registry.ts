@@ -14,6 +14,10 @@ import {
   gradeCodePrediction,
 } from "./code-prediction";
 import { conceptCardsAnswerSchema, gradeConceptCards } from "./concept-cards";
+import {
+  gradePatternRecognition,
+  patternRecognitionAnswerSchema,
+} from "./pattern-recognition";
 import { gradeGridActivity } from "./grid";
 import { gradeSequencing, sequencingAnswerSchema } from "./sequencing";
 
@@ -83,6 +87,15 @@ const conceptCards: ActivityEngine = {
   stripPayload: (payload) => stripStudentPayload("CONCEPT_CARDS", payload),
 };
 
+/** The Grouping Machine (Data Desert / ML Lab). Unlabelled data, flags, tightness. */
+const patternRecognition: ActivityEngine = {
+  grade: (snapshot, input) => {
+    const parsed = patternRecognitionAnswerSchema.safeParse(input);
+    return parsed.success ? gradePatternRecognition(snapshot, parsed.data) : invalidAnswer();
+  },
+  stripPayload: (payload) => stripStudentPayload("PATTERN_RECOGNITION", payload),
+};
+
 /** Teach-by-example (AI Island). Fits 1-NN to the student's own labels. */
 const aiClassification: ActivityEngine = {
   grade: (snapshot, input) => {
@@ -99,6 +112,7 @@ export const ACTIVITY_ENGINES: Partial<Record<V1ActivityType, ActivityEngine>> =
   SEQUENCING: sequencing,
   CONCEPT_CARDS: conceptCards,
   AI_CLASSIFICATION: aiClassification,
+  PATTERN_RECOGNITION: patternRecognition,
 };
 
 export function getActivityEngine(activityType: string): ActivityEngine | undefined {

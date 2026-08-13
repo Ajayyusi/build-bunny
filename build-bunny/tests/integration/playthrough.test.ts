@@ -11,8 +11,13 @@ import { submitAttempt, type AttemptResponse } from "@/modules/grading/server/su
 import { verifyCertificate } from "@/modules/certificates/server/verify";
 import { trueLabel } from "@/modules/activities/server/ai-classification";
 import { toTrainingExample } from "@/modules/ai/knn";
+import { runLloyd, tightness } from "@/modules/ai/grouping";
 import { solveAiClassification } from "@/modules/ai/solve";
-import { aiClassificationPayload, XP_BY_DIFFICULTY } from "@/modules/curriculum/schemas";
+import {
+  aiClassificationPayload,
+  patternRecognitionPayload,
+  XP_BY_DIFFICULTY,
+} from "@/modules/curriculum/schemas";
 import { bundle } from "../../content";
 import { ACHIEVEMENTS } from "../../prisma/seed-data/achievements";
 
@@ -95,7 +100,52 @@ function solutionFor(level: PlayableLevel): Record<string, unknown> {
         trueLabel(parsed.data.rule, probe),
       );
       if (!solution) throw new Error(`${level.slug}: no legal training set wins this level`);
-      return { answer: { examples: solution.map(toTrainingExample) } };
+      // Holdout levels: everything untaught is the student's test pile —
+      // the same maximal-legal split the unit gate sweeps with.
+      const taught = new Set(solution.map((e) => e.id));
+      const checkSet = parsed.data.holdout
+        ? parsed.data.pool.filter((s) => !taught.has(s.id)).map((s) => s.id)
+        : undefined;
+      return {
+        answer: {
+          examples: solution.map(toTrainingExample),
+          ...(checkSet ? { checkSet } : {}),
+        },
+      };
+    }
+    case "PATTERN_RECOGNITION": {
+      // The reference placement IS the recorded solution — the fixture
+      // asserts it passes, and the unit suite pins the arithmetic. What the
+      // author does NOT record is which readings to strike out, so the
+      // exclusions are found by the same search a student performs: try
+      // none, then each legal single, and keep the first that clears the
+      // bar after the (optional) training replay.
+      const parsed = patternRecognitionPayload.safeParse(payload);
+      if (!parsed.success) throw new Error(`${level.slug}: payload is not a valid PR level`);
+      const data = parsed.data;
+      const round2 = (v: number) => Number(v.toFixed(2));
+      const markers = data.groundTruth.referencePlacement.map((m) => ({
+        size: round2(m.size),
+        color: round2(m.color),
+      }));
+      const settle = (kept: { size: number; color: number }[]) => {
+        const finalMarkers = data.training
+          ? runLloyd(kept, markers, data.training.iterations)
+          : markers;
+        return tightness(kept, finalMarkers);
+      };
+      const candidates: string[][] = [[]];
+      if (data.maxExclusions > 0) {
+        for (const s of data.specimens) candidates.push([s.id]);
+      }
+      for (const excluded of candidates) {
+        const gone = new Set(excluded);
+        const kept = data.specimens.filter((s) => !gone.has(s.id));
+        if (settle(kept) >= data.objective.minTightness) {
+          return { answer: { markers, excluded } };
+        }
+      }
+      throw new Error(`${level.slug}: reference placement cannot clear its own bar`);
     }
     default:
       throw new Error(`${level.slug}: no solution strategy for ${level.activityType}`);
@@ -217,7 +267,14 @@ describe("playthrough — every shipped level is winnable by its own solution", 
   it("ships the expected curriculum", () => {
     expect(levels.length).toBeGreaterThanOrEqual(18);
     const worlds = [...new Set(levels.map((l) => l.worldSlug))];
-    expect(worlds).toEqual(["bunny-meadow", "logic-forest", "robot-lab", "ai-island"]);
+    expect(worlds).toEqual([
+      "bunny-meadow",
+      "logic-forest",
+      "robot-lab",
+      "ai-island",
+      "data-desert",
+      "ml-lab",
+    ]);
   });
 
   it("plays all levels in order: each is unlocked, solvable, fully scored, and opens the next", async () => {
@@ -311,8 +368,8 @@ describe("playthrough — every shipped level is winnable by its own solution", 
     expect(profile.starsTotal).toBe(runningStars);
 
     // Finishing every world must produce a verifiable certificate per world
-    // — four of them now that AI Island is real content, not horizon art.
-    expect(certificates.length).toBe(4);
+    // — six of them now that Data Desert and ML Lab are real content.
+    expect(certificates.length).toBe(6);
     for (const cert of certificates) {
       const publicView = await verifyCertificate(cert.verifySlug);
       expect(publicView, `certificate ${cert.serial} does not verify`).not.toBeNull();

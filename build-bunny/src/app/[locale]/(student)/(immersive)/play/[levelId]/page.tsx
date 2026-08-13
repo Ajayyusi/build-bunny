@@ -13,6 +13,7 @@ import type {
   ActivityIntro,
   CodePredictionActivityPayload,
   GridActivityPayload,
+  GroupActivityPayload,
   LearnActivityPayload,
   SequencingActivityPayload,
   TeachActivityPayload,
@@ -22,6 +23,7 @@ import {
   aiClassificationStudentPayload,
   blockCodingPayload,
   debuggingPayload,
+  patternRecognitionStudentPayload,
   resolveText,
 } from "@/modules/curriculum/schemas";
 import {
@@ -131,7 +133,8 @@ export default async function PlayLevelPage({ params }: Props) {
     | CodePredictionActivityPayload
     | SequencingActivityPayload
     | LearnActivityPayload
-    | TeachActivityPayload;
+    | TeachActivityPayload
+    | GroupActivityPayload;
   if (playable.activityType === "DEBUGGING") {
     const parsed = debuggingPayload.parse(playable.payload);
     const resetWorkspace =
@@ -206,8 +209,37 @@ export default async function PlayLevelPage({ params }: Props) {
             },
           }
         : undefined,
+      holdout: raw.holdout,
+      passRule: raw.passRule,
       starCriteria: raw.starCriteria,
     } satisfies TeachActivityPayload;
+  } else if (playable.activityType === "PATTERN_RECOGNITION") {
+    // Same contract as AI_CLASSIFICATION: parsed against a .strict() mirror
+    // with `groundTruth` absent, so a strip regression is a 500, not a leak.
+    const raw = patternRecognitionStudentPayload.parse(playable.payload);
+    payload = {
+      conceptSlug: raw.conceptSlug,
+      specimens: raw.specimens,
+      markers: raw.markers,
+      maxExclusions: raw.maxExclusions,
+      objective: raw.objective,
+      training: raw.training,
+      theme: raw.theme
+        ? {
+            glyph: raw.theme.glyph,
+            featureNames: {
+              size: resolveText(raw.theme.featureNames.size, locale),
+              color: resolveText(raw.theme.featureNames.color, locale),
+            },
+            truthEmoji: raw.theme.truthEmoji,
+          }
+        : undefined,
+      walkthrough: raw.walkthrough?.map((beat) => ({
+        title: resolveText(beat.title, locale),
+        body: resolveText(beat.body, locale),
+      })),
+      starCriteria: raw.starCriteria,
+    } satisfies GroupActivityPayload;
   } else if (playable.activityType === "CONCEPT_CARDS") {
     const parsed = conceptCardsStudentPayload.parse(playable.payload);
     payload = {
