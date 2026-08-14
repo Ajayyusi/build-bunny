@@ -741,9 +741,39 @@ export const aiIsland: WorldFixture = {
               ],
             },
             intro: {
-              en: "Zoom in until a photo becomes a grid of squares — then try to recognise it anyway, the way a computer has to.",
-              ar: "قرّب حتى تتحول الصورة إلى شبكة من المربعات — ثم حاول التعرّف عليها رغم ذلك، بالطريقة التي يضطر بها الحاسوب.",
+              en: "Every picture is really a grid of tiny squares. Make the squares bigger and see how much you can still recognise — that is all a computer ever gets.",
+              ar: "كل صورة هي في الحقيقة شبكة من مربعات صغيرة. كبّر المربعات وانظر كم يمكنك أن تتعرّف رغم ذلك — فهذا كل ما يصل إلى الحاسوب.",
             },
+            walkthrough: [
+              {
+                title: { en: "A picture is a grid of squares", ar: "الصورة شبكة من المربعات" },
+                body: {
+                  en: "Zoom close enough into any picture and it stops being a picture. It is rows and columns of little coloured squares, and nothing else.",
+                  ar: "قرّب بما يكفي في أي صورة فتتوقف عن كونها صورة. إنها صفوف وأعمدة من مربعات ملوّنة صغيرة، لا أكثر.",
+                },
+              },
+              {
+                title: { en: "Fewer squares, less detail", ar: "مربعات أقل، تفاصيل أقل" },
+                body: {
+                  en: "Use bigger squares and you get fewer of them. The same picture survives, but the fine detail is gone for good — you cannot get it back.",
+                  ar: "استخدم مربعات أكبر فيقلّ عددها. تبقى الصورة نفسها، لكن التفاصيل الدقيقة تضيع نهائيًا — ولا يمكن استرجاعها.",
+                },
+              },
+              {
+                title: { en: "The computer only gets numbers", ar: "الحاسوب لا يتلقّى سوى أرقام" },
+                body: {
+                  en: "A computer never sees a house or a rabbit. Each square reaches it as a number for how bright that square is. That grid of numbers is the whole picture, to a machine.",
+                  ar: "لا يرى الحاسوب منزلًا ولا أرنبًا أبدًا. يصله كل مربع كرقم يدلّ على مقدار سطوعه. شبكة الأرقام تلك هي الصورة كاملةً بالنسبة للآلة.",
+                },
+              },
+              {
+                title: { en: "So — can you still tell?", ar: "فهل ما زلت تستطيع المعرفة؟" },
+                body: {
+                  en: "Your turn to do the machine's job. A few mystery pictures arrive as blocks. Work out what each one is, and you will know exactly how hard the machine's task is.",
+                  ar: "دورك لتقوم بعمل الآلة. تصلك صور غامضة على هيئة مربعات. اكتشف ما هي كل واحدة، وستعرف تمامًا مدى صعوبة مهمة الآلة.",
+                },
+              },
+            ],
             honesty: {
               kind: "REAL",
               note: {

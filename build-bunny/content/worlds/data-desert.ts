@@ -709,9 +709,39 @@ export const dataDesert: WorldFixture = {
               maxErrors: 1,
             },
             intro: {
-              en: "Sort tart fruit from sweet fruit by drawing a line — then see the computer's simple method for the same job.",
-              ar: "افصل الفاكهة الحامضة عن الحلوة برسم خط — ثم شاهد طريقة الحاسوب البسيطة لنفس المهمة.",
+              en: "Draw one line that keeps the tart fruit on one side and the sweet fruit on the other — then the stall can sort new fruit without tasting it.",
+              ar: "ارسم خطًا واحدًا يُبقي الفاكهة الحامضة في جهة والحلوة في الجهة الأخرى — عندها يستطيع البسطة فرز فاكهة جديدة دون تذوّقها.",
             },
+            walkthrough: [
+              {
+                title: { en: "Someone already tasted these", ar: "أحدهم تذوّق هذه بالفعل" },
+                body: {
+                  en: "Every dot is one fruit the stallholder tasted. Red ones were tart, green ones were sweet. Bigger fruit sits further right, sweeter fruit sits higher up.",
+                  ar: "كل نقطة فاكهة تذوّقها صاحب البسطة. الحمراء كانت حامضة والخضراء كانت حلوة. الفاكهة الأكبر تقع نحو اليمين، والأحلى تقع نحو الأعلى.",
+                },
+              },
+              {
+                title: { en: "Your line goes in the gap", ar: "خطك يمرّ في الفجوة" },
+                body: {
+                  en: "Drag one straight line into the empty space between the two colours — reds on one side, greens on the other. Not through the middle of a group.",
+                  ar: "اسحب خطًا مستقيمًا واحدًا إلى الفراغ بين اللونين — الأحمر في جهة والأخضر في الجهة الأخرى. لا تمرّ به وسط إحدى المجموعتين.",
+                },
+              },
+              {
+                title: { en: "Tilt it, don't just slide it", ar: "أمِله، لا تحرّكه فقط" },
+                body: {
+                  en: "Two fruits sit awkwardly close to the other colour. A slanted line can slip between them when a straight up-and-down one cannot.",
+                  ar: "توجد فاكهتان قريبتان بشكل محرج من اللون الآخر. الخط المائل قد يمرّ بينهما بينما يعجز الخط الرأسي عن ذلك.",
+                },
+              },
+              {
+                title: { en: "Now it can sort a new fruit", ar: "الآن يستطيع فرز فاكهة جديدة" },
+                body: {
+                  en: "Drop in a fruit nobody has tasted. Whichever side of your line it lands on is the guess. That is all a classifier is — a line, and a side.",
+                  ar: "ضع فاكهة لم يتذوّقها أحد. الجهة التي تقع فيها من خطك هي التخمين. هذا كل ما يعنيه المصنِّف — خط، وجهة.",
+                },
+              },
+            ],
             honesty: {
               kind: "REAL",
               note: {

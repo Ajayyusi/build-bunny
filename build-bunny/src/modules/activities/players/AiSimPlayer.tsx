@@ -5,6 +5,8 @@ import { useLocale, useTranslations } from "next-intl";
 
 import { Link } from "@/i18n/navigation";
 import { getAiSimWidgetPlayer } from "@/modules/ai/lab/players/registry";
+import { BoundaryScene } from "@/modules/ai/lab/players/BoundaryScene";
+import { PixelScene } from "@/modules/ai/lab/players/PixelScene";
 import { TrendScene } from "@/modules/ai/lab/players/TrendScene";
 import { Badge, Button, cn, useReducedMotion } from "@/ui";
 
@@ -356,6 +358,8 @@ export function AiSimPlayer({ intro, payload: rawPayload, revealHintAction }: Ac
         <div className="fixed inset-0 z-50 grid place-items-center bg-ink/50 p-4">
           <div className="flex w-full max-w-lg flex-col gap-4 rounded-2xl bg-surface-raised p-6 shadow-overlay">
             {widgetId === "trend-line" ? <TrendScene step={step} /> : null}
+            {widgetId === "boundary-builder" ? <BoundaryScene step={step} /> : null}
+            {widgetId === "pixel-playground" ? <PixelScene step={step} /> : null}
             <h2 className="font-display text-xl font-bold text-ink">
               {resolveLocalized(beats[step - 1]!.title, locale)}
             </h2>
