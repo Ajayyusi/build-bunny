@@ -89,7 +89,7 @@ that claims more than the code does is worse than no plan.
 | 4 · Player polish & success/failure | **Mostly done** | `7ba69ec`, `0c6850a` |
 | 5 · AI games & engines | **Started** (security fix only) | `7ba69ec` |
 | 6 · Teacher experience | **Mostly done** | `c3d1919` |
-| 7 · School & NITAQ admin + security hardening | Not started | — |
+| 7 · School & NITAQ admin + security hardening | **Partly done** | `83e6082` |
 | 8 · Assignments, notifications, missions, cosmetics | Not started | — |
 | 9 · Performance, accessibility, tablets, offline | Not started | — |
 | 10 · Production QA & demo | Not started | — |
@@ -99,6 +99,19 @@ PARTIAL (a near miss reads the same as a wild one); GroupPlayer, AiSimPlayer
 and AiEthicsPlayer still have no draft autosave (TeachPlayer now does); the
 AST-budget infinite loop still surfaces as a generic `runtimeError` rather
 than a kid-readable failure.
+
+Phase 7 remainder — **licences are the commercially important gap**. A
+licence is immutable after creation (no renew, extend, seat change or
+suspend) and, more seriously, **enforces nothing at runtime**: no code reads
+`Licence` outside analytics, so an expired or SUSPENDED licence has zero
+effect and students keep playing. Seat counts are reported for display but
+never checked, so a school can be provisioned past its limit. `graceDays` is
+written by its default and read nowhere. Also still open: school profile
+editing, the school-admin audit page (`listSchoolAuditLogs` exists and is
+isolation-tested but has no route), curriculum publishWorld/transitionStatus
+UI and version rollback, and the security hardening items (forced-password-
+change proof, MFA for platform roles, sudo re-auth, verified impersonation
+audit fields).
 
 Phase 6 remainder: classroom mode is still the existing projector view with
 no launch-a-level flow or on-screen controls. Also noted while working: the
