@@ -148,15 +148,32 @@ async function completeLevel(levelId: string, stars: number): Promise<void> {
 }
 
 describe("unlock engine", () => {
-  it("fresh student before any recompute: content visible, all levels LOCKED", async () => {
+  /**
+   * Loading the map materializes the student's starting levels.
+   *
+   * This test used to assert the opposite — that a student with no progress
+   * rows saw everything LOCKED — which was the engine describing a dead end
+   * rather than a rule. Rows were only ever written by recomputeUnlocks,
+   * which only ran after a submission or a teacher assignment, and a student
+   * with nothing unlocked can never submit. Any student whose school gained
+   * its curriculum after they were created was stuck permanently.
+   */
+  it("fresh student opens the map and gets their first level, having submitted nothing", async () => {
+    expect(await progressRows()).toEqual(new Map());
+
     const state = await computeAdventureState(ctx);
     expect(state.program).not.toBeNull();
-    expect(state.currentLevelId).toBeNull();
+    expect(state.currentLevelId).toBe(l1Id);
+
     const one = world(state, w1Id);
-    // No rows yet — world 1 is still the current (first available) world.
     expect(one.state).toBe("CURRENT");
     expect(world(state, w2Id).state).toBe("LOCKED");
-    for (const level of one.modules.flatMap((m) => m.levels)) {
+
+    // Exactly the first level — materializing must not fling the whole
+    // program open.
+    const levels = one.modules.flatMap((m) => m.levels);
+    expect(levels.find((l) => l.id === l1Id)?.state).toBe("UNLOCKED");
+    for (const level of levels.filter((l) => l.id !== l1Id)) {
       expect(level.state).toBe("LOCKED");
       expect(level.stars).toBe(0);
     }

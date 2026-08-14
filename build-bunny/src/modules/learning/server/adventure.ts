@@ -325,6 +325,19 @@ export async function computeAdventureState(ctx: SessionContext): Promise<Advent
   const program = await resolveProgramForStudent(ctx.userId, schoolId);
   if (!program) return { program: null, worlds: [], currentLevelId: null };
 
+  // Materialize unlocks before reading them, or a student who has never
+  // submitted anything sees every level LOCKED forever: absence of a
+  // StudentProgress row means LOCKED, rows were only ever written by
+  // recomputeUnlocks, and recomputeUnlocks only ran after a submission or a
+  // teacher assignment — which a locked-out student can never trigger.
+  //
+  // Safe on a read path: it never downgrades or removes an existing row, and
+  // once a student's first levels exist it computes to nothing and writes
+  // nothing. It is also what makes this self-healing — a student whose school
+  // gained (or changed) its curriculum after they were created gets their
+  // starting levels on the next page load rather than needing a backfill.
+  await recomputeUnlocks(ctx.userId);
+
   const worlds = await loadProgramContent(program.id);
   const allLevels = worlds.flatMap((w) => w.modules.flatMap((m) => m.levels));
   const [progress, versions] = await Promise.all([

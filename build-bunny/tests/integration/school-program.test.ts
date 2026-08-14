@@ -1,14 +1,20 @@
 import { beforeAll, describe, expect, it } from "vitest";
 
 import { db } from "@/lib/db";
+import { createStudent } from "@/modules/auth/server/provisioning";
+import { computeAdventureState } from "@/modules/learning/server/adventure";
 import { setSchoolProgram } from "@/modules/schools/server/platform-management";
 import { getSchoolDetail } from "@/modules/schools/server/platform-queries";
 import type { SessionContext } from "@/modules/auth/server/session";
 import {
+  addWorldToProgram,
   createCtx,
+  createTestLevel,
+  createTestModule,
   createTestProgram,
   createTestSchool,
   enableProgramForSchool,
+  SYSTEM_ACTOR,
   wipeDatabase,
 } from "../helpers/fixtures";
 
@@ -112,6 +118,59 @@ describe("setSchoolProgram", () => {
   it("is platform-only — a school admin cannot set their own curriculum", async () => {
     const program = await createTestProgram();
     await expect(setSchoolProgram(schoolAdminCtx, schoolId, program.id)).rejects.toThrow();
+  });
+});
+
+/**
+ * The end-to-end shape of the real failure: a school gets its students first
+ * and its curriculum second. Both halves had to be fixed for this to work —
+ * a programme the console can set, and unlocks that materialize when the
+ * student next opens the map instead of only after a submission they were
+ * locked out of making.
+ */
+describe("a school that gains curriculum after its students exist", () => {
+  it("opens the first level for a student who was created before the programme", async () => {
+    // No wipe: this builds its own school and student, and the suite's other
+    // blocks are still using theirs.
+    const school = await createTestSchool("Late");
+    const student = await createStudent(SYSTEM_ACTOR, {
+      schoolId: school.id,
+      schoolCode: school.code,
+      username: "late",
+      displayName: "Late Starter",
+      studentIdentifier: "LATE-001",
+      grade: 4,
+    });
+    const studentCtx = createCtx({
+      userId: student.userId,
+      role: "STUDENT",
+      schoolId: school.id,
+    });
+    const platform = createCtx({ role: "NITAQ_ADMIN", schoolId: null });
+
+    // Before curriculum: no programme, so no map at all.
+    const before = await computeAdventureState(studentCtx);
+    expect(before.program).toBeNull();
+    expect(before.worlds).toEqual([]);
+
+    const program = await createTestProgram({ name: "Late Curriculum" });
+    const world = await addWorldToProgram(program.id, 1, { name: "First World" });
+    const mod = await createTestModule(world.id, 1);
+    const first = await createTestLevel(mod.id, 1, { title: "First Level" });
+    await createTestLevel(mod.id, 2, { title: "Second Level" });
+
+    await setSchoolProgram(platform, school.id, program.id);
+
+    // The student has still submitted nothing and has no progress rows —
+    // opening the map is what gives them their starting level.
+    expect(await db.studentProgress.count({ where: { studentUserId: student.userId } })).toBe(0);
+
+    const after = await computeAdventureState(studentCtx);
+    expect(after.program?.id).toBe(program.id);
+    expect(after.currentLevelId).toBe(first.id);
+
+    const levels = after.worlds.flatMap((w) => w.modules.flatMap((m) => m.levels));
+    expect(levels.find((l) => l.id === first.id)?.state).toBe("UNLOCKED");
   });
 });
 
