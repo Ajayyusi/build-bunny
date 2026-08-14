@@ -96,6 +96,13 @@ function lineSegment(line: Line, domain: Domain): { x1: number; y1: number; x2: 
   };
 }
 
+/**
+ * Radius of the invisible circle that catches the drag, in viewBox units.
+ * Clears the 44px touch minimum with a unit to spare for the chart's border.
+ * See the identical constant in TrendLine.tsx.
+ */
+const HIT_R = 23;
+
 const INTERCEPT_STEP_FRACTION = 1 / 40;
 const SLOPE_STEP_FRACTION = 1 / 20;
 
@@ -342,7 +349,7 @@ export function BoundaryBuilder({ config: rawConfig, locale, disabled, reducedMo
               <circle
                 cx={(childSegment.x1 + childSegment.x2) / 2}
                 cy={(childSegment.y1 + childSegment.y2) / 2}
-                r={22}
+                r={HIT_R}
                 fill="transparent"
               />
               <circle
@@ -354,7 +361,7 @@ export function BoundaryBuilder({ config: rawConfig, locale, disabled, reducedMo
               />
             </g>
             <g {...dragHandle("left")} className={cn(styles.handle, "cursor-ns-resize")}>
-              <circle cx={childSegment.x1} cy={childSegment.y1} r={20} fill="transparent" />
+              <circle cx={childSegment.x1} cy={childSegment.y1} r={HIT_R} fill="transparent" />
               <circle
                 cx={childSegment.x1}
                 cy={childSegment.y1}
@@ -364,7 +371,7 @@ export function BoundaryBuilder({ config: rawConfig, locale, disabled, reducedMo
               />
             </g>
             <g {...dragHandle("right")} className={cn(styles.handle, "cursor-ns-resize")}>
-              <circle cx={childSegment.x2} cy={childSegment.y2} r={20} fill="transparent" />
+              <circle cx={childSegment.x2} cy={childSegment.y2} r={HIT_R} fill="transparent" />
               <circle
                 cx={childSegment.x2}
                 cy={childSegment.y2}

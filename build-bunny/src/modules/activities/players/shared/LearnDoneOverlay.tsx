@@ -65,7 +65,7 @@ export function LearnDoneOverlay({
           ) : saveFailed ? (
             <p className="flex items-center gap-2 text-sm font-semibold text-warning">
               {tSuccess("saveFailed")}
-              <Button variant="secondary" size="sm" onClick={onRetrySave}>
+              <Button variant="secondary" size="lg" onClick={onRetrySave}>
                 {tSuccess("saveRetry")}
               </Button>
             </p>

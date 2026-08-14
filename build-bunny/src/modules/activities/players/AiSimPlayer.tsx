@@ -281,7 +281,7 @@ export function AiSimPlayer({ intro, payload: rawPayload, revealHintAction }: Ac
               className="flex items-center gap-3 rounded-lg border border-danger/35 bg-surface-raised p-4 text-sm font-semibold text-ink"
             >
               {tSim("submitFailed")}
-              <Button size="sm" variant="secondary" onClick={handleRetrySubmit}>
+              <Button size="lg" variant="secondary" onClick={handleRetrySubmit}>
                 {tSim("retry")}
               </Button>
             </div>

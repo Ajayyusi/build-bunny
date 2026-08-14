@@ -91,7 +91,7 @@ that claims more than the code does is worse than no plan.
 | 6 · Teacher experience | **Mostly done** | `c3d1919` |
 | 7 · School & NITAQ admin + security hardening | **Partly done** | `83e6082` |
 | 8 · Assignments, notifications, missions, cosmetics | **Started** (assignments done) | `0091c21` |
-| 9 · Performance, accessibility, tablets, offline | Not started | — |
+| 9 · Performance, accessibility, tablets, offline | **Partly done** (Arabic dates, walkthroughs, tablet audit) | — |
 | 10 · Production QA & demo | Not started | — |
 
 Phase 4 remainder: AI_CLASSIFICATION / PATTERN_RECOGNITION still never emit
@@ -240,10 +240,33 @@ limiters degrade under multi-instance deploys (documented constraint).
   derived), Mission/MissionProgress, CosmeticItem/StudentCosmetic tables.
 
 ### Phase 9 — Performance, accessibility, tablets, offline
-- Tablet audit (1024×768, 1180×820, portrait/landscape): Blockly drag,
-  AI-widget touch targets, modals, map. (Currently unaudited product-wide;
-  one component — FeatureBoard — deliberately chose click-over-drag.)
-- Bundle audit, lazy-loading verification, image optimization.
+- ~~Tablet audit~~ **done** — measured, not eyeballed: a harness read
+  `scrollWidth > clientWidth`, every interactive box under 44px, and any
+  element past the viewport edge, at 1024×768, 1180×820, 768×1024 and
+  820×1180. No horizontal overflow or content bleed anywhere. Five
+  touch-target misses found and fixed:
+  - drawer toggle 40px — the only navigation on a portrait tablet;
+  - GridPlayer's Blocks/Code tabs 36px (the `p-1` wrapper was insetting
+    them below its own 44px height — the segments now carry the height);
+  - `Button size="sm"` (32px) on ten student surfaces, including every
+    failed-save retry: now `lg`, with the size scale documented as
+    staff-only vs student;
+  - trend-line and boundary-builder endpoint drag handles 40px — the
+    core interaction of two AI games;
+  - sidebar brand link 43px.
+  Both charts' invisible hit circles are now a named `HIT_R`, sized one
+  unit over so the chart border can't shave them under 44px.
+  **Not covered:** the harness cannot emulate real touch at tablet widths
+  (`maxTouchPoints: 0` above 768px), so Blockly drag and the chart drags
+  are verified as *geometry and configuration* — Blockly's injection div
+  carries `touch-action: none` — but not as actual finger input. That
+  needs a physical iPad before the pilot.
+  Observed, not changed: the AI charts cap at `max-w-[600px]` to stay 1:1,
+  so on a 768px portrait tablet they leave a ragged right edge against
+  full-width text. Cosmetic; raising the cap would enlarge the drag
+  targets but also lengthen the chart in landscape.
+- Bundle audit, lazy-loading verification, image optimization. (First
+  measurement taken: 104 kB shared first-load JS across all routes.)
 - Offline: queued/persisted unsent attempts (idempotency already makes
   replay safe), connection indicator, autosave for AI players.
 - Digit-policy consistency (2 pages render Arabic-Indic numerals against

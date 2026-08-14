@@ -74,7 +74,7 @@ export function CertificatesPanel({ certificates, locale, labels }: Props) {
             </div>
             {!cert.revoked ? (
               <Button
-                size="sm"
+                size="lg"
                 variant="secondary"
                 onClick={() => setOpenId(cert.id)}
                 className="self-start"
@@ -99,10 +99,10 @@ export function CertificatesPanel({ certificates, locale, labels }: Props) {
           }}
         >
           <div className="flex w-full max-w-4xl items-center justify-end gap-2 print:hidden">
-            <Button size="sm" onClick={() => window.print()}>
+            <Button size="lg" onClick={() => window.print()}>
               {tCert("print")}
             </Button>
-            <Button size="sm" variant="secondary" onClick={() => setOpenId(null)}>
+            <Button size="lg" variant="secondary" onClick={() => setOpenId(null)}>
               {tCert("close")}
             </Button>
           </div>

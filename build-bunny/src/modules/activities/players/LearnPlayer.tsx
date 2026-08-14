@@ -429,7 +429,7 @@ export function LearnPlayer({
                 {nudge}
               </p>
               {submission?.saveFailed ? (
-                <Button size="sm" variant="secondary" onClick={handleRetrySave}>
+                <Button size="lg" variant="secondary" onClick={handleRetrySave}>
                   {tLearn("retry")}
                 </Button>
               ) : null}

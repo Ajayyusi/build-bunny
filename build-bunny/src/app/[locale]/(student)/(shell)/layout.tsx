@@ -56,7 +56,7 @@ export default async function StudentShellLayout({ children, params }: Props) {
       <div className="flex flex-col gap-4">
         <Link
           href="/home"
-          className="flex items-center gap-2 font-display text-lg font-bold text-ink"
+          className="flex min-h-11 items-center gap-2 font-display text-lg font-bold text-ink"
         >
           <BunnyMascot size="xs" />
           {tCommon("appName")}

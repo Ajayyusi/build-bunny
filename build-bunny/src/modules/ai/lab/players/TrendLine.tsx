@@ -29,6 +29,17 @@ const PLOT_W = VIEW_W - MARGIN.left - MARGIN.right;
 const PLOT_H = VIEW_H - MARGIN.top - MARGIN.bottom;
 const BAND_MULTIPLIER = 1.5; // must match trend-line/grade.ts exactly
 
+/**
+ * Radius of the invisible circle that actually catches the drag, in viewBox
+ * units. The visible dots are deliberately small, so this is the only thing
+ * keeping the line draggable by finger.
+ *
+ * 23 rather than the 22 that would be exactly 44 units: the chart's own border
+ * takes a pixel off each side of the content box, so units render at ~0.997 of
+ * a CSS pixel and 22 lands just under the 44px minimum.
+ */
+const HIT_R = 23;
+
 interface Domain {
   xMin: number;
   xMax: number;
@@ -405,15 +416,15 @@ export function TrendLine({ config: rawConfig, locale, disabled, reducedMotion, 
         {subPhase === "fit" && !disabled ? (
           <>
             <g {...dragHandle("center")} tabIndex={0} role="button" aria-label={t("dragHandleLabel")} aria-describedby="trend-line-help" onKeyDown={handleKeyDown} className={cn(styles.handle, "cursor-grab focus:outline-none")}>
-              <circle cx={(childX1 + childX2) / 2} cy={(childY1 + childY2) / 2} r={22} fill="transparent" />
+              <circle cx={(childX1 + childX2) / 2} cy={(childY1 + childY2) / 2} r={HIT_R} fill="transparent" />
               <circle cx={(childX1 + childX2) / 2} cy={(childY1 + childY2) / 2} r={10} className="fill-brand-strong stroke-surface-raised" strokeWidth={2} />
             </g>
             <g {...dragHandle("left")} className={cn(styles.handle, "cursor-ns-resize")}>
-              <circle cx={childX1} cy={childY1} r={20} fill="transparent" />
+              <circle cx={childX1} cy={childY1} r={HIT_R} fill="transparent" />
               <circle cx={childX1} cy={childY1} r={7} className="fill-surface-raised stroke-brand-strong" strokeWidth={2.5} />
             </g>
             <g {...dragHandle("right")} className={cn(styles.handle, "cursor-ns-resize")}>
-              <circle cx={childX2} cy={childY2} r={20} fill="transparent" />
+              <circle cx={childX2} cy={childY2} r={HIT_R} fill="transparent" />
               <circle cx={childX2} cy={childY2} r={7} className="fill-surface-raised stroke-brand-strong" strokeWidth={2.5} />
             </g>
           </>

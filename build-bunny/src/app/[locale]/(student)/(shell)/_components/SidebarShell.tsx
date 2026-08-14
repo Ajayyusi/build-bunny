@@ -113,7 +113,7 @@ export function SidebarShell({
             onClick={() => setOpen(true)}
             aria-label={menuLabel}
             aria-expanded={open}
-            className="grid size-10 place-items-center rounded-lg border border-border-token text-ink transition-colors hover:bg-surface-sunken"
+            className="grid size-11 place-items-center rounded-lg border border-border-token text-ink transition-colors hover:bg-surface-sunken"
           >
             <svg
               viewBox="0 0 24 24"

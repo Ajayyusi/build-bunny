@@ -406,14 +406,16 @@ export function GridPlayer({
         <div
           role="group"
           aria-label={t("view.label")}
-          className="flex h-11 shrink-0 items-center gap-1 rounded-lg border border-border-token bg-surface-sunken p-1"
+          className="flex shrink-0 items-center overflow-hidden rounded-lg border border-border-token bg-surface-sunken"
         >
           <button
             type="button"
             aria-pressed={view === "blocks"}
             onClick={() => setView("blocks")}
             className={cn(
-              "h-9 rounded-md px-3 text-sm font-semibold transition-colors",
+              // The segments ARE the touch targets, so they carry the 44px
+              // minimum themselves and the control sizes around them.
+              "h-11 px-3 text-sm font-semibold transition-colors",
               view === "blocks"
                 ? "bg-surface-raised text-ink shadow-soft"
                 : "text-ink-muted hover:text-ink",
@@ -426,7 +428,9 @@ export function GridPlayer({
             aria-pressed={view === "code"}
             onClick={showCodeView}
             className={cn(
-              "h-9 rounded-md px-3 text-sm font-semibold transition-colors",
+              // The segments ARE the touch targets, so they carry the 44px
+              // minimum themselves and the control sizes around them.
+              "h-11 px-3 text-sm font-semibold transition-colors",
               view === "code"
                 ? "bg-surface-raised text-ink shadow-soft"
                 : "text-ink-muted hover:text-ink",

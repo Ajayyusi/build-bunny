@@ -11,10 +11,15 @@ const variantClasses = {
   danger: "bg-danger text-on-brand hover:bg-danger/90",
 } as const;
 
+// Only `lg` clears the 44px touch minimum. `sm` and `md` exist for the dense
+// staff tables (rosters, the progress matrix) which are mouse-driven; they are
+// too small for a finger and must not be used on student surfaces.
 const sizeClasses = {
+  /** Staff-only — 32px. */
   sm: "h-8 gap-1.5 rounded-sm px-3 text-sm",
+  /** Staff-only — 40px. */
   md: "h-10 gap-2 rounded-md px-4 text-sm",
-  // 44px — minimum touch target on student surfaces.
+  /** 44px — the minimum touch target, and the only size student surfaces use. */
   lg: "h-11 gap-2 rounded-lg px-5 text-base",
 } as const;
 
