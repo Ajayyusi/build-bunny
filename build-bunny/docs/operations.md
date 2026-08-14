@@ -65,7 +65,22 @@ curl -s https://<your-domain>/api/health
 `content.publishedLevels` is the number students can reach. Compare it with
 the bundle: 37 levels across 6 playable worlds at the time of writing.
 
-Two ways to bring it up to date, both idempotent:
+**On Vercel this now happens automatically.** The `vercel-build` script runs
+the content sync before `next build`, using the `DATABASE_URL` Vercel already
+holds, so a push to `main` ships content as well as code. Three guards make
+that safe to leave on:
+
+- It runs **only when `VERCEL_ENV === "production"`**. Preview deploys share
+  the production database, and a preview branch publishing its half-finished
+  content into the live curriculum would be a nasty way to discover that.
+- It **never fails the build.** Content and code are separate concerns; a
+  database hiccup or a level failing its gates must not stop a code fix from
+  shipping. It shouts in the build log instead — check there if
+  `publishedLevels` does not move.
+- It is **idempotent and additive.** Import never deletes, and publishing
+  skips levels that are already live.
+
+For a self-hosted deploy, or to run it by hand, two ways — both idempotent:
 
 ```bash
 DATABASE_URL="postgresql://..." npm run content:check

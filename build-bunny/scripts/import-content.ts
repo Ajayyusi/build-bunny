@@ -39,8 +39,43 @@ function printGroup(label: string, entries: string[]): void {
   for (const entry of entries) console.log(`  - ${entry}`);
 }
 
+/**
+ * `--ci` is the deploy-time mode, used by the `vercel-build` hook so a push
+ * ships content as well as code. It differs from a hand-run in two ways
+ * that both matter on a build machine:
+ *
+ *  - It only acts on a PRODUCTION Vercel build. Preview deploys share the
+ *    production DATABASE_URL, and a preview branch quietly publishing its
+ *    half-finished content to the live curriculum would be a nasty way to
+ *    find that out.
+ *  - It never fails the build. Content and code are separate concerns; a
+ *    database hiccup or a level that fails its gates must not stop a code
+ *    fix from shipping. It shouts in the build log instead.
+ */
+const CI_MODE = process.argv.includes("--ci");
+
+/** Non-zero exit, unless we are inside a build (see --ci). */
+function markFailed(): void {
+  process.exitCode = CI_MODE ? 0 : 1;
+}
+
+function ciShouldRun(): boolean {
+  const env = process.env.VERCEL_ENV;
+  if (env === undefined) {
+    console.log("--ci: not a Vercel build (VERCEL_ENV unset) — skipping content sync.");
+    return false;
+  }
+  if (env !== "production") {
+    console.log(`--ci: VERCEL_ENV is "${env}", not production — skipping content sync.`);
+    return false;
+  }
+  return true;
+}
+
 async function main(): Promise<void> {
-  const publish = process.argv.includes("--publish");
+  if (CI_MODE && !ciShouldRun()) return;
+
+  const publish = process.argv.includes("--publish") || CI_MODE;
   // Publishing what you did not import makes no sense, so --publish implies
   // --commit rather than silently doing nothing.
   const commit = process.argv.includes("--commit") || publish;
@@ -63,7 +98,7 @@ async function main(): Promise<void> {
   printGroup("Issues", dryRun.issues);
 
   if (dryRun.issues.length > 0) {
-    process.exitCode = 1;
+    markFailed();
     if (commit) {
       console.error("\nRefusing to commit: the dry run reported issues.");
       await db.$disconnect();
@@ -83,7 +118,7 @@ async function main(): Promise<void> {
   printGroup("Updated", result.updates);
   printGroup("Unchanged", result.unchanged);
   printGroup("Issues", result.issues);
-  if (result.issues.length > 0) process.exitCode = 1;
+  if (result.issues.length > 0) markFailed();
 
   console.log(
     `\nDone: ${result.creates.length} created, ${result.updates.length} updated, ` +
@@ -118,7 +153,7 @@ async function main(): Promise<void> {
       for (const level of outcome.levels.filter((l) => !l.ok)) {
         console.error(`      level "${level.slug}" failed its gates`);
       }
-      process.exitCode = 1;
+      markFailed();
       continue;
     }
     publishedLevels += outcome.levels.length;
@@ -134,5 +169,6 @@ async function main(): Promise<void> {
 
 main().catch((err) => {
   console.error("\nImport failed:", err);
-  process.exitCode = 1;
+  // In a build, a content failure is loud but never fatal — see --ci above.
+  process.exitCode = CI_MODE ? 0 : 1;
 });
