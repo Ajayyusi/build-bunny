@@ -46,6 +46,9 @@ export const PERMISSIONS = [
   // recognition
   "certificates:issue",
   "certificates:read",
+  // Issuer-side only: a school admin may print and verify their own
+  // certificates but may not invalidate one NITAQ issued.
+  "certificates:revoke",
 
   // communication
   "announcements:platform",

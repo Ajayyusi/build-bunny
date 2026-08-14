@@ -85,6 +85,10 @@ export const AUDIT = {
     rosterChanged: "classes.roster_changed",
     joinCodeRotated: "classes.join_code_rotated",
   },
+  certificates: {
+    issued: "certificates.issued",
+    revoked: "certificates.revoked",
+  },
   impersonation: {
     start: "impersonation.start",
     stop: "impersonation.stop",

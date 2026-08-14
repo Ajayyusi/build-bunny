@@ -1246,7 +1246,24 @@
       "confirmCta": "Confirm",
       "forbidden": "You don't have permission to manage schools.",
       "conflict": "That slug or school code is already in use.",
-      "errorGeneric": "Something went wrong. Please try again."
+      "errorGeneric": "Something went wrong. Please try again.",
+      "features": {
+        "heading": "Features",
+        "caveat": "Turn surfaces on or off for this school. Changes take effect on the next page load and are recorded in the audit log.",
+        "on": "On",
+        "off": "Off",
+        "turnOn": "Turn on",
+        "turnOff": "Turn off",
+        "enabled": "Feature turned on",
+        "disabled": "Feature turned off",
+        "failed": "Couldn't change that feature",
+        "flags": {
+          "adventure": {
+            "name": "Adventure map",
+            "description": "The student world map, the levels, and the player. With this off, students can sign in but have nothing to play."
+          }
+        }
+      }
     },
     "schoolDetail": {
       "backLink": "Back to schools",
@@ -1298,9 +1315,33 @@
     },
     "certificates": {
       "title": "Certificates",
-      "subtitle": "The registry of certificates issued across every school.",
-      "emptyTitle": "Certificates aren't available yet",
-      "emptyBody": "The certificates module is being built and will appear here once it ships."
+      "subtitle": "Every certificate issued across every school.",
+      "searchLabel": "Search",
+      "searchPlaceholder": "Serial, student or school",
+      "searchSubmit": "Search",
+      "revokedOnly": "Revoked only",
+      "emptyTitle": "No certificates yet",
+      "emptyBody": "Certificates appear here as students complete worlds.",
+      "emptyFiltered": "No certificates match that search.",
+      "colStudent": "Student",
+      "colSchool": "School",
+      "colTitle": "Achievement",
+      "colSerial": "Serial",
+      "colIssued": "Issued",
+      "colStatus": "Status",
+      "statusValid": "Valid",
+      "statusRevoked": "Revoked",
+      "verifyLink": "Verify page",
+      "revoke": "Revoke",
+      "revokeTitle": "Revoke this certificate?",
+      "revokeBody": "This invalidates {student}'s {title}. The public verify page will show it as revoked — the link keeps working, so anyone checking it learns the certificate is no longer valid rather than finding nothing.",
+      "reasonLabel": "Reason",
+      "reasonHelp": "Recorded in the audit log and shown to staff. Write what a colleague would need in six months.",
+      "revokeConfirm": "Revoke certificate",
+      "cancel": "Cancel",
+      "revokeDone": "Certificate revoked",
+      "alreadyRevoked": "That certificate was already revoked",
+      "revokeFailed": "Couldn't revoke that certificate"
     },
     "licence": {
       "ACTIVE": "Active",

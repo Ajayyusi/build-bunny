@@ -2,6 +2,7 @@ import "server-only";
 
 import { db } from "@/lib/db";
 import type { SessionContext } from "@/modules/auth/server/session";
+import { FEATURE_FLAGS, isFeatureEnabled } from "@/modules/shared/features";
 
 /**
  * Platform-wide queries — NITAQ/SUPER admins only. These are the only
@@ -70,6 +71,8 @@ export interface SchoolDetail {
   timezone: string;
   createdAt: Date;
   counts: { teachers: number; students: number; classes: number };
+  /** Which registry flags are on for this school (default-off). */
+  features: Record<string, boolean>;
   licences: {
     id: string;
     seats: number;
@@ -97,6 +100,7 @@ export async function getSchoolDetail(
       status: true,
       timezone: true,
       createdAt: true,
+      features: true,
       licences: { orderBy: { expiresAt: "desc" } },
       users: {
         where: { role: "SCHOOL_ADMIN" },
@@ -120,6 +124,11 @@ export async function getSchoolDetail(
       students: school._count.studentProfiles,
       classes: school._count.classes,
     },
+    // Resolved through the same reader the gates use, so the console can
+    // never show a flag as ON that the student surface reads as OFF.
+    features: Object.fromEntries(
+      FEATURE_FLAGS.map((flag) => [flag.key, isFeatureEnabled(school.features, flag.key)]),
+    ),
     licences: school.licences,
     admins: school.users,
   };

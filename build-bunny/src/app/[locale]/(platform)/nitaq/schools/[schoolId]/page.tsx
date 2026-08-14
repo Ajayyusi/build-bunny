@@ -3,6 +3,8 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { requireRole } from "@/modules/auth/server/session";
 import { getSchoolDetail } from "@/modules/schools/server/platform-queries";
+
+import { FeatureFlags } from "./_components/FeatureFlags";
 import { Badge, Card, CardBody, CardHeader, CardTitle, ErrorState, PageHeader, StatCard, type BadgeVariant } from "@/ui";
 
 interface Props {
@@ -20,10 +22,11 @@ export default async function SchoolDetailPage({ params }: Props) {
   const { locale, schoolId } = await params;
   setRequestLocale(locale);
   const ctx = await requireRole("SUPER_ADMIN", "NITAQ_ADMIN");
-  const [school, t, tLicence] = await Promise.all([
+  const [school, t, tLicence, tFeatures] = await Promise.all([
     getSchoolDetail(ctx, schoolId),
     getTranslations("platform.schoolDetail"),
     getTranslations("platform.licence"),
+    getTranslations("platform.schools.features"),
   ]);
 
   const dateFormat = new Intl.DateTimeFormat(`${locale}-u-nu-latn`, { dateStyle: "medium" });
@@ -82,6 +85,19 @@ export default async function SchoolDetailPage({ params }: Props) {
               </div>
             ))
           )}
+        </CardBody>
+      </Card>
+
+      {/* Per-school surface switches. Before this, a flag could only be
+          changed by editing JSONB by hand — which meant anything shipped
+          behind one was, in practice, shipped off. */}
+      <Card>
+        <CardHeader>
+          <CardTitle>{tFeatures("heading")}</CardTitle>
+        </CardHeader>
+        <CardBody className="flex flex-col gap-3">
+          <p className="text-sm text-ink-muted">{tFeatures("caveat")}</p>
+          <FeatureFlags schoolId={school.id} features={school.features} />
         </CardBody>
       </Card>
 

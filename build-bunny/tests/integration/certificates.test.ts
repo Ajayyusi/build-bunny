@@ -7,7 +7,9 @@ import {
   generateVerifySlug,
   issueWorldCertificate,
 } from "@/modules/certificates/server/issue";
+import { revokeCertificate } from "@/modules/certificates/server/revoke";
 import { verifyCertificate } from "@/modules/certificates/server/verify";
+import type { SessionContext } from "@/modules/auth/server/session";
 import {
   addWorldToProgram,
   createTestLevel,
@@ -229,5 +231,103 @@ describe("verifyCertificate — public, safe-field-only", () => {
     expect(result!.revoked).toBe(true);
     // Revocation still resolves — it is not treated as "not found".
     expect(result!.serial).toBe(cert.serial);
+  });
+});
+
+describe("revokeCertificate — the issuer-side mutation", () => {
+  function ctx(role: string): SessionContext {
+    return {
+      userId: "revoker-1",
+      role,
+      schoolId,
+      displayName: "Reem",
+      impersonatedBy: null,
+    } as unknown as SessionContext;
+  }
+
+  async function freshCertificate() {
+    const cert = await db.certificate.findFirstOrThrow({ where: { studentUserId, worldId } });
+    await db.certificate.update({
+      where: { id: cert.id },
+      data: { revokedAt: null, revokeReason: null },
+    });
+    return cert;
+  }
+
+  it("marks the certificate revoked with its reason, and keeps the row", async () => {
+    const cert = await freshCertificate();
+    const result = await revokeCertificate(ctx("NITAQ_ADMIN"), {
+      certificateId: cert.id,
+      reason: "Issued in error during a data import.",
+    });
+
+    expect(result.alreadyRevoked).toBe(false);
+    expect(result.serial).toBe(cert.serial);
+    const stored = await db.certificate.findUniqueOrThrow({ where: { id: cert.id } });
+    expect(stored.revokedAt).not.toBeNull();
+    expect(stored.revokeReason).toBe("Issued in error during a data import.");
+  });
+
+  it("keeps the certificate resolvable at its public URL after revocation", async () => {
+    const cert = await freshCertificate();
+    await revokeCertificate(ctx("NITAQ_ADMIN"), { certificateId: cert.id, reason: "Test." });
+
+    // A revoked serial that 404s is indistinguishable from a forged one, so
+    // the verify page must still answer — with "revoked", not "not found".
+    const result = await verifyCertificate(cert.verifySlug);
+    expect(result).not.toBeNull();
+    expect(result!.revoked).toBe(true);
+    expect(result!.valid).toBe(false);
+  });
+
+  it("is idempotent and keeps the ORIGINAL revocation on a second call", async () => {
+    const cert = await freshCertificate();
+    const first = await revokeCertificate(ctx("NITAQ_ADMIN"), {
+      certificateId: cert.id,
+      reason: "The real reason.",
+    });
+    const second = await revokeCertificate(ctx("NITAQ_ADMIN"), {
+      certificateId: cert.id,
+      reason: "A later, different reason.",
+    });
+
+    expect(second.alreadyRevoked).toBe(true);
+    expect(second.revokedAt.getTime()).toBe(first.revokedAt.getTime());
+    const stored = await db.certificate.findUniqueOrThrow({ where: { id: cert.id } });
+    // A double-click must not quietly rewrite why a certificate was revoked.
+    expect(stored.revokeReason).toBe("The real reason.");
+  });
+
+  it("writes an audit row naming the actor, the serial and the reason", async () => {
+    const cert = await freshCertificate();
+    await revokeCertificate(ctx("SUPER_ADMIN"), {
+      certificateId: cert.id,
+      reason: "Audited revocation.",
+    });
+
+    const entry = await db.auditLog.findFirst({
+      where: { action: "certificates.revoked", targetId: cert.id },
+      orderBy: { createdAt: "desc" },
+    });
+    expect(entry).not.toBeNull();
+    expect(entry!.actorRole).toBe("SUPER_ADMIN");
+    expect(entry!.meta).toMatchObject({ serial: cert.serial, reason: "Audited revocation." });
+  });
+
+  it("refuses non-issuer roles — revoking is not a school-side operation", async () => {
+    const cert = await freshCertificate();
+    for (const role of ["SCHOOL_ADMIN", "TEACHER", "STUDENT"]) {
+      await expect(
+        revokeCertificate(ctx(role), { certificateId: cert.id, reason: "Nope." }),
+      ).rejects.toThrow();
+    }
+    const stored = await db.certificate.findUniqueOrThrow({ where: { id: cert.id } });
+    expect(stored.revokedAt).toBeNull();
+  });
+
+  it("throws NotFound for a certificate that does not exist", async () => {
+    await expect(
+      revokeCertificate(ctx("NITAQ_ADMIN"), { certificateId: "no-such-id", reason: "Test." }),
+    ).rejects.toThrow();
   });
 });

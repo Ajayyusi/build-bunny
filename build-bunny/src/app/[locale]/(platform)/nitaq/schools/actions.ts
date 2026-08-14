@@ -6,6 +6,7 @@ import { withAuth, type ActionResult } from "@/modules/auth/server/guard";
 import {
   createSchoolWithAdmin,
   setSchoolActive,
+  setSchoolFeatureFlag,
   type CreateSchoolResult,
 } from "@/modules/schools/server/platform-management";
 
@@ -46,5 +47,22 @@ const activeInput = z.object({ schoolId: z.string().min(1), active: z.boolean() 
 export async function setSchoolActiveAction(input: unknown): Promise<ActionResult<void>> {
   return withAuth("schools:manage", activeInput, (ctx, { schoolId, active }) =>
     setSchoolActive(ctx, schoolId, active),
+  )(input);
+}
+
+const featureInput = z.object({
+  schoolId: z.string().min(1),
+  key: z.string().min(1).max(60),
+  enabled: z.boolean(),
+});
+
+/**
+ * Toggling a school's feature flags is a profile write, not school
+ * lifecycle — so it runs under school:profile:write, which the catalog has
+ * granted since m1 and nothing had ever checked.
+ */
+export async function setSchoolFeatureFlagAction(input: unknown): Promise<ActionResult<void>> {
+  return withAuth("school:profile:write", featureInput, (ctx, { schoolId, key, enabled }) =>
+    setSchoolFeatureFlag(ctx, schoolId, key, enabled),
   )(input);
 }
