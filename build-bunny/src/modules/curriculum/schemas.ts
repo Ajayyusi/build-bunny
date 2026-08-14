@@ -311,7 +311,7 @@ const aiThemeSchema = z
  * what a child reads before they have any context, and a fifth beat is a
  * page of text with a picture on it.
  */
-const aiWalkthroughSchema = z
+export const aiWalkthroughSchema = z
   .array(z.object({ title: localizedText, body: localizedText }).strict())
   .min(3)
   .max(4);
@@ -694,6 +694,12 @@ export const aiSimPayload = z.object({
   ]),
   /** Shown above the widget: what the child is exploring and why it is honest. */
   intro: localizedText,
+  /**
+   * Optional animated explanation, shown before the child touches anything.
+   * Same contract as the other AI engines: the animation carries the
+   * meaning and these beats only name what is already moving on screen.
+   */
+  walkthrough: aiWalkthroughSchema.optional(),
   /** The REAL/SIMULATED honesty ribbon (plan §M, "no fake AI"). */
   honesty: z.object({
     kind: z.enum(["REAL", "SIMULATED"]),

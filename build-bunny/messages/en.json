@@ -481,7 +481,10 @@
           "loadingImage": "Loading picture…",
           "loadError": "This picture couldn't load.",
           "mysteryImageLabel": "A mystery picture shown at {resolution} by {resolution} pixels"
-        }
+        },
+        "walkNext": "Next",
+        "walkSkip": "Skip",
+        "walkStart": "Let's go"
       }
     },
     "profile": {

@@ -2,7 +2,7 @@ import "server-only";
 
 import { z } from "zod";
 
-import { localizedText } from "@/modules/curriculum/schemas";
+import { aiWalkthroughSchema, localizedText } from "@/modules/curriculum/schemas";
 
 /**
  * Answer-free student-view schemas for the grafted AI Lab activity types
@@ -51,6 +51,10 @@ export const aiEthicsStudentPayload = z
 export const aiSimStudentPayload = z.object({
   widget: z.object({ widgetId: z.string() }).passthrough(),
   intro: localizedText,
+  // Mirrored deliberately: this schema strips unknown keys, so a field that
+  // is authored but not listed here reaches the child as undefined and the
+  // walkthrough silently never opens.
+  walkthrough: aiWalkthroughSchema.optional(),
   honesty: z.object({
     kind: z.enum(["REAL", "SIMULATED"]),
     note: localizedText,

@@ -5,6 +5,7 @@ import { useLocale, useTranslations } from "next-intl";
 
 import { Link } from "@/i18n/navigation";
 import { getAiSimWidgetPlayer } from "@/modules/ai/lab/players/registry";
+import { TrendScene } from "@/modules/ai/lab/players/TrendScene";
 import { Badge, Button, cn, useReducedMotion } from "@/ui";
 
 import { HintDrawer, type HintTierState } from "./shared/HintDrawer";
@@ -45,6 +46,14 @@ export function AiSimPlayer({ intro, payload: rawPayload, revealHintAction }: Ac
   const t = useTranslations("student.play");
   const tSim = useTranslations("student.play.aiSim");
   const locale = useLocale();
+
+  const beats = payload.walkthrough ?? null;
+  // Opens on arrival when the level authored one. A child landing on an
+  // abstract chart has no way to infer the rules, so the walkthrough is the
+  // default state rather than a help button nobody presses (same reasoning
+  // as Teach the Bunny, which needed exactly this).
+  const [step, setStep] = useState(beats === null ? 0 : 1);
+  const stepCount = beats?.length ?? 0;
 
   const [phase, setPhase] = useState<Phase>("intro");
   const [work, setWork] = useState<unknown>(null);
@@ -339,6 +348,45 @@ export function AiSimPlayer({ intro, payload: rawPayload, revealHintAction }: Ac
         revealingTier={revealingTier}
         onReveal={(tier) => void handleRevealHint(tier)}
       />
+
+      {/* Walkthrough. One idea per beat, because a child meeting an abstract
+          chart for the first time cannot hold four at once. The animation
+          carries the meaning; the text only names what is already moving. */}
+      {beats !== null && step > 0 ? (
+        <div className="fixed inset-0 z-50 grid place-items-center bg-ink/50 p-4">
+          <div className="flex w-full max-w-lg flex-col gap-4 rounded-2xl bg-surface-raised p-6 shadow-overlay">
+            {widgetId === "trend-line" ? <TrendScene step={step} /> : null}
+            <h2 className="font-display text-xl font-bold text-ink">
+              {resolveLocalized(beats[step - 1]!.title, locale)}
+            </h2>
+            <p className="text-sm leading-relaxed text-ink-muted">
+              {resolveLocalized(beats[step - 1]!.body, locale)}
+            </p>
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-1.5" aria-label={`${step} / ${stepCount}`}>
+                {Array.from({ length: stepCount }, (_, i) => i + 1).map((n) => (
+                  <span
+                    key={n}
+                    aria-hidden="true"
+                    className={cn(
+                      "size-1.5 rounded-full transition-colors",
+                      n === step ? "bg-brand" : "bg-ink/15",
+                    )}
+                  />
+                ))}
+              </div>
+              <div className="flex items-center gap-2">
+                <Button variant="ghost" onClick={() => setStep(0)}>
+                  {tSim("walkSkip")}
+                </Button>
+                <Button onClick={() => setStep(step >= stepCount ? 0 : step + 1)}>
+                  {step >= stepCount ? tSim("walkStart") : tSim("walkNext")}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

@@ -229,6 +229,8 @@ export interface AiSimActivityPayload {
   widget: { widgetId: string } & Record<string, unknown>;
   intro: LocalizedText;
   honesty: { kind: "REAL" | "SIMULATED"; note: LocalizedText };
+  /** Animated explanation shown before the child touches the widget. */
+  walkthrough?: { title: LocalizedText; body: LocalizedText }[];
 }
 
 /**

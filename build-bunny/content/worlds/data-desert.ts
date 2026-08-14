@@ -806,9 +806,39 @@ export const dataDesert: WorldFixture = {
               predictAt: 12,
             },
             intro: {
-              en: "Fit a line to real (slightly messy) plant-growth data, then predict beyond it — with an honest error band.",
-              ar: "اضبط خطًا على بيانات نمو نباتات حقيقية (بها تشويش بسيط)، ثم توقّع خارجها — مع مدى خطأ صادق.",
+              en: "Ten plants got different amounts of sun. Draw the line that fits them best — then guess how tall a plant with even MORE sun would grow.",
+              ar: "عشر نبتات حصلت على كميات مختلفة من الشمس. ارسم الخط الذي يناسبها أفضل ما يكون — ثم خمّن كم يبلغ طول نبتة نالت شمسًا أكثر.",
             },
+            walkthrough: [
+              {
+                title: { en: "Every dot is a real plant", ar: "كل نقطة نبتة حقيقية" },
+                body: {
+                  en: "A gardener measured ten sunflowers. More sun on the right, taller plants higher up. The dots are a bit scattered — real measurements never sit in a perfect line.",
+                  ar: "قاس بستاني عشر زهرات دوّار شمس. الشمس أكثر كلما اتجهت يمينًا، والنبتة أطول كلما ارتفعت. النقاط مبعثرة قليلًا — القياسات الحقيقية لا تقع أبدًا على خط مثالي.",
+                },
+              },
+              {
+                title: { en: "Your line goes through the middle", ar: "خطك يمرّ من المنتصف" },
+                body: {
+                  en: "Drag your line so it runs through the middle of the dots. The red gaps show how far each dot sits from your line. Add all the gaps up and that is your total miss — make it small.",
+                  ar: "اسحب خطك ليمرّ من منتصف النقاط. الفجوات الحمراء تُظهر بُعد كل نقطة عن خطك. اجمع كل الفجوات فيكون ذلك خطأك الكلي — اجعله صغيرًا.",
+                },
+              },
+              {
+                title: { en: "Then the computer tries", ar: "ثم يحاول الحاسوب" },
+                body: {
+                  en: "The computer checks every line there is and keeps the one with the smallest total miss. It is not magic and it is not guessing — it is arithmetic. See if you can get close to it.",
+                  ar: "يفحص الحاسوب كل خط ممكن ويحتفظ بالخط صاحب أصغر خطأ كلي. ليس سحرًا ولا تخمينًا — إنه حساب. جرّب أن تقترب منه.",
+                },
+              },
+              {
+                title: { en: "Past the dots, answers get fuzzy", ar: "بعد النقاط تصبح الإجابات ضبابية" },
+                body: {
+                  en: "Last, you predict a plant with more sun than anyone measured. Nobody can know that exactly, so the answer is a shaded range, not one number. That is the honest way to guess.",
+                  ar: "أخيرًا تتوقّع نبتة نالت شمسًا أكثر من كل ما قِيس. لا أحد يعرف ذلك بالضبط، لذا تكون الإجابة مدًى مظللًا لا رقمًا واحدًا. هذه هي الطريقة الصادقة في التخمين.",
+                },
+              },
+            ],
             honesty: {
               kind: "REAL",
               note: {

@@ -481,7 +481,10 @@
           "loadingImage": "جارٍ تحميل الصورة…",
           "loadError": "تعذّر تحميل هذه الصورة.",
           "mysteryImageLabel": "صورة غامضة معروضة بدقة {resolution} × {resolution} بكسل"
-        }
+        },
+        "walkNext": "التالي",
+        "walkSkip": "تخطٍّ",
+        "walkStart": "هيا بنا"
       }
     },
     "profile": {

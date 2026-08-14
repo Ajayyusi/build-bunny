@@ -266,6 +266,10 @@ export default async function PlayLevelPage({ params }: Props) {
     payload = {
       widget: parsed.widget as AiSimActivityPayload["widget"],
       intro: parsed.intro,
+      // Carries no answers — it is the explanation shown BEFORE the child
+      // touches anything. Omitting it here is how a walkthrough authored,
+      // stored and published still never reaches the player.
+      walkthrough: parsed.walkthrough,
       honesty: parsed.honesty,
     } satisfies AiSimActivityPayload;
   } else if (playable.activityType === "CONCEPT_CARDS") {

@@ -160,6 +160,35 @@ async function main(): Promise<void> {
     console.log(`  ✓ ${world.slug}: ${outcome.levels.length} level(s) published`);
   }
 
+  // Republish levels whose CONTENT changed but which were already published.
+  // Snapshots are immutable, so an edit to a live level updates its draft
+  // and changes nothing a student sees — publishWorld deliberately skips
+  // them. Without this, editing a level looks like it worked and silently
+  // did not, which is the same trap as importing without publishing. The
+  // seed solves it the same way (ensureCurriculumPublished).
+  const changedSlugs = new Set<string>();
+  for (const label of [...result.creates, ...result.updates]) {
+    const match = /level:([a-z0-9-]+)$/.exec(label);
+    if (match) changedSlugs.add(match[1]!);
+  }
+  if (changedSlugs.size > 0) {
+    const { publishLevel } = await import("../src/modules/curriculum/server/publish");
+    const changedLevels = await db.level.findMany({
+      where: { slug: { in: [...changedSlugs] }, status: "PUBLISHED" },
+      select: { id: true, slug: true },
+    });
+    for (const level of changedLevels) {
+      const outcome = await publishLevel({ userId: "system", role: "SYSTEM" }, level.id);
+      if (outcome.ok) {
+        publishedLevels += 1;
+        console.log(`  ✓ ${level.slug}: republished with the updated content`);
+      } else {
+        console.error(`  ✗ ${level.slug}: failed its gates on republish`);
+        markFailed();
+      }
+    }
+  }
+
   const live = await db.level.count({
     where: { status: "PUBLISHED", publishedVersionId: { not: null } },
   });
