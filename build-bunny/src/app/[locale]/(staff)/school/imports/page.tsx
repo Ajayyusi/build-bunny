@@ -3,7 +3,16 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { requireRole } from "@/modules/auth/server/session";
 import { listImportHistory } from "@/modules/schools/server/queries";
-import { Button, Card, CardBody, CardHeader, CardTitle, DataTable, type DataTableColumn } from "@/ui";
+import {
+  Button,
+  Card,
+  CardBody,
+  CardHeader,
+  CardTitle,
+  createDateFormat,
+  DataTable,
+  type DataTableColumn,
+} from "@/ui";
 
 interface Props {
   params: Promise<{ locale: string }>;
@@ -24,7 +33,7 @@ export default async function ImportsPage({ params }: Props) {
     getTranslations("staff.school.importsPage"),
   ]);
 
-  const dateFormat = new Intl.DateTimeFormat(`${locale}-u-nu-latn`, {
+  const dateFormat = createDateFormat(locale, {
     dateStyle: "medium",
     timeStyle: "short",
   });

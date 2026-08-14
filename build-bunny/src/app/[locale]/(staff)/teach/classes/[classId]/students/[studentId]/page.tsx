@@ -11,6 +11,7 @@ import {
   CardBody,
   CardHeader,
   CardTitle,
+  createDateFormat,
   DataTable,
   ErrorState,
   PageHeader,
@@ -22,18 +23,6 @@ import { FeedbackComposer, type FeedbackEntryVM } from "./_components/FeedbackCo
 
 interface Props {
   params: Promise<{ locale: string; classId: string; studentId: string }>;
-}
-
-/**
- * CLDR's Arabic date patterns embed RIGHT-TO-LEFT MARKs between the parts.
- * Those are strong directional characters, so they survive a `dir="ltr"`
- * wrapper and reorder the segments — a last-active date rendered as the
- * unreadable "232026/07/" instead of "23/07/2026". Stripping the marks and
- * keeping the LTR wrapper renders the date correctly in both locales while
- * `-u-nu-latn` keeps the numerals Western (product-wide numeral policy).
- */
-function stripBidiMarks(value: string): string {
-  return value.replace(/[‎‏؜]/g, "");
 }
 
 function formatDuration(ms: number | null): string {
@@ -67,11 +56,8 @@ export default async function StudentDetailPage({ params }: Props) {
     );
   }
 
-  // -u-nu-latn keeps Western Arabic numerals in dates for both locales
-  // (product-wide numeral policy). Without it the Arabic page rendered a
-  // last-active date as a scrambled "232026/7/".
-  const dateFormat = new Intl.DateTimeFormat(`${locale}-u-nu-latn`, { dateStyle: "medium" });
-  const dateTimeFormat = new Intl.DateTimeFormat(`${locale}-u-nu-latn`, {
+  const dateFormat = createDateFormat(locale, { dateStyle: "medium" });
+  const dateTimeFormat = createDateFormat(locale, {
     dateStyle: "medium",
     timeStyle: "short",
   });
@@ -113,7 +99,7 @@ export default async function StudentDetailPage({ params }: Props) {
     {
       key: "when",
       header: t("attempts.when"),
-      cell: (row) => <span dir="ltr">{stripBidiMarks(dateTimeFormat.format(new Date(row.createdAt)))}</span>,
+      cell: (row) => <span dir="ltr">{dateTimeFormat.format(new Date(row.createdAt))}</span>,
     },
     {
       key: "replay",
@@ -171,7 +157,7 @@ export default async function StudentDetailPage({ params }: Props) {
             <div>
               <dt className="text-sm text-ink-muted">{t("header.lastActive")}</dt>
               <dd className="font-display text-base font-semibold text-ink" dir="ltr">
-                {detail.lastActiveAt ? stripBidiMarks(dateFormat.format(new Date(detail.lastActiveAt))) : t("header.never")}
+                {detail.lastActiveAt ? dateFormat.format(new Date(detail.lastActiveAt)) : t("header.never")}
               </dd>
             </div>
           </dl>

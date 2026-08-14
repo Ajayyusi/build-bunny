@@ -10,6 +10,7 @@ import {
   CardBody,
   CardHeader,
   CardTitle,
+  createDateFormat,
   DataTable,
   EmptyState,
   PageHeader,
@@ -115,7 +116,7 @@ export default async function CurriculumLevelPage({ params }: Props) {
     );
   }
 
-  const dateTimeFormat = new Intl.DateTimeFormat(`${locale}-u-nu-latn`, {
+  const dateTimeFormat = createDateFormat(locale, {
     dateStyle: "medium",
     timeStyle: "short",
   });

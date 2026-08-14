@@ -15,6 +15,7 @@ import {
 import { resolveText } from "@/modules/curriculum/schemas";
 import {
   Badge,
+  createDateFormat,
   DataTable,
   PageHeader,
   Sparkline,
@@ -68,10 +69,10 @@ export default async function PlatformOverviewPage({ params }: Props) {
 
   // -u-nu-latn keeps Western Arabic numerals in dates for both locales
   // (product-wide numeral policy).
-  const dateFormat = new Intl.DateTimeFormat(`${locale}-u-nu-latn`, {
+  const dateFormat = createDateFormat(locale, {
     dateStyle: "medium",
   });
-  const dateTimeFormat = new Intl.DateTimeFormat(`${locale}-u-nu-latn`, {
+  const dateTimeFormat = createDateFormat(locale, {
     dateStyle: "medium",
     timeStyle: "short",
   });

@@ -3,7 +3,13 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { requireRole } from "@/modules/auth/server/session";
 import { resolveText } from "@/modules/curriculum/schemas";
 import { listSchoolCertificates } from "@/modules/certificates/server/queries";
-import { Badge, DataTable, PageHeader, type DataTableColumn } from "@/ui";
+import {
+  Badge,
+  createDateFormat,
+  DataTable,
+  PageHeader,
+  type DataTableColumn,
+} from "@/ui";
 
 interface Props {
   params: Promise<{ locale: string }>;
@@ -24,7 +30,7 @@ export default async function SchoolCertificatesPage({ params }: Props) {
     getTranslations("staff.school.certificatesPage"),
   ]);
 
-  const dateFormat = new Intl.DateTimeFormat(`${locale}-u-nu-latn`, { dateStyle: "medium" });
+  const dateFormat = createDateFormat(locale, { dateStyle: "medium" });
 
   type Row = (typeof certificates)[number];
   const columns: DataTableColumn<Row>[] = [

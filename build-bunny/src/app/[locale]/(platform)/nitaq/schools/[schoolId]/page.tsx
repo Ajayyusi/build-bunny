@@ -3,9 +3,20 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { requireRole } from "@/modules/auth/server/session";
 import { getSchoolDetail } from "@/modules/schools/server/platform-queries";
+import {
+  Badge,
+  Card,
+  CardBody,
+  CardHeader,
+  CardTitle,
+  createDateFormat,
+  ErrorState,
+  PageHeader,
+  StatCard,
+  type BadgeVariant,
+} from "@/ui";
 
 import { FeatureFlags } from "./_components/FeatureFlags";
-import { Badge, Card, CardBody, CardHeader, CardTitle, ErrorState, PageHeader, StatCard, type BadgeVariant } from "@/ui";
 
 interface Props {
   params: Promise<{ locale: string; schoolId: string }>;
@@ -29,7 +40,7 @@ export default async function SchoolDetailPage({ params }: Props) {
     getTranslations("platform.schools.features"),
   ]);
 
-  const dateFormat = new Intl.DateTimeFormat(`${locale}-u-nu-latn`, { dateStyle: "medium" });
+  const dateFormat = createDateFormat(locale, { dateStyle: "medium" });
 
   if (!school) {
     return (

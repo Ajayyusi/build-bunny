@@ -3,7 +3,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { requireRole } from "@/modules/auth/server/session";
 import { listPlatformCertificates } from "@/modules/certificates/server/platform-queries";
 import { resolveText } from "@/modules/curriculum/schemas";
-import { EmptyState, PageHeader } from "@/ui";
+import { createDateFormat, EmptyState, PageHeader } from "@/ui";
 
 import { CertificateRegistry, type CertificateRowVM } from "./_components/CertificateRegistry";
 
@@ -30,7 +30,7 @@ export default async function NitaqCertificatesPage({ params, searchParams }: Pr
     getTranslations("platform.certificates"),
   ]);
 
-  const dateFormat = new Intl.DateTimeFormat(`${locale}-u-nu-latn`, { dateStyle: "medium" });
+  const dateFormat = createDateFormat(locale, { dateStyle: "medium" });
 
   const certificates: CertificateRowVM[] = rows.map((row) => ({
     id: row.id,

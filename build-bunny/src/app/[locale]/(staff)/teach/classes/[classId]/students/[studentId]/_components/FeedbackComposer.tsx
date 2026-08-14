@@ -5,7 +5,16 @@ import { useLocale, useTranslations } from "next-intl";
 
 import { useRouter } from "@/i18n/navigation";
 import { giveFeedback } from "@/modules/analytics/server/actions";
-import { Badge, Button, Card, CardBody, Field, Select, useToast } from "@/ui";
+import {
+  Badge,
+  Button,
+  Card,
+  CardBody,
+  Field,
+  Select,
+  formatDisplayDate,
+  useToast,
+} from "@/ui";
 
 export interface FeedbackEntryVM {
   id: string;
@@ -104,7 +113,10 @@ export function FeedbackComposer({ studentUserId, levelOptions, entries }: Feedb
                 <div className="flex items-center gap-2">
                   {entry.readAt === null ? <Badge variant="brand">{t("unread")}</Badge> : null}
                   <span className="text-xs text-ink-muted" dir="ltr">
-                    {new Date(entry.createdAt).toLocaleString(locale)}
+                    {formatDisplayDate(new Date(entry.createdAt), locale, {
+                      dateStyle: "medium",
+                      timeStyle: "short",
+                    })}
                   </span>
                 </div>
               </div>

@@ -3,7 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import type { MyAssignment } from "@/modules/assignments/server/queries";
 import { resolveText } from "@/modules/curriculum/schemas";
-import { BunnyMascot, cn } from "@/ui";
+import { BunnyMascot, cn, createDateFormat } from "@/ui";
 
 interface Props {
   assignments: MyAssignment[];
@@ -26,7 +26,7 @@ export async function AssignmentsCard({ assignments, locale }: Props) {
   const t = await getTranslations("student.home.assignments");
   if (assignments.length === 0) return null;
 
-  const dateFormat = new Intl.DateTimeFormat(`${locale}-u-nu-latn`, { dateStyle: "medium" });
+  const dateFormat = createDateFormat(locale, { dateStyle: "medium" });
   const now = Date.now();
 
   return (

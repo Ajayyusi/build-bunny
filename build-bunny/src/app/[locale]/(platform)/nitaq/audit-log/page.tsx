@@ -2,7 +2,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { requireRole } from "@/modules/auth/server/session";
 import { listSchools, searchPlatformAuditLogs } from "@/modules/schools/server/platform-queries";
-import { Badge, Button, DataTable, Field, Input, PageHeader, Select, type BadgeVariant, type DataTableColumn } from "@/ui";
+import { Badge, Button, createDateFormat, DataTable, Field, Input, PageHeader, Select, type BadgeVariant, type DataTableColumn } from "@/ui";
 
 interface Props {
   params: Promise<{ locale: string }>;
@@ -50,7 +50,7 @@ export default async function AuditLogPage({ params, searchParams }: Props) {
     getTranslations("common"),
   ]);
 
-  const dateTimeFormat = new Intl.DateTimeFormat(`${locale}-u-nu-latn`, {
+  const dateTimeFormat = createDateFormat(locale, {
     dateStyle: "medium",
     timeStyle: "short",
   });

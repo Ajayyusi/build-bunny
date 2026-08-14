@@ -14,6 +14,7 @@ import {
   Field,
   Input,
   Select,
+  formatDisplayDate,
   useToast,
   type DataTableColumn,
 } from "@/ui";
@@ -180,7 +181,7 @@ export function AssignmentsManager({
         header: t("table.due"),
         cell: (row) =>
           row.dueAt ? (
-            <span dir="ltr">{new Date(row.dueAt).toLocaleDateString(locale)}</span>
+            <span dir="ltr">{formatDisplayDate(new Date(row.dueAt), locale)}</span>
           ) : (
             <span className="text-ink-muted">{t("table.noDue")}</span>
           ),

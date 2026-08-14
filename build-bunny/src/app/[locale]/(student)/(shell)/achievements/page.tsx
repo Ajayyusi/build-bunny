@@ -8,7 +8,7 @@ import {
   getMyAchievements,
   getMyClassLeaderboard,
 } from "@/modules/students/server/queries";
-import { EmptyState, PageHeader } from "@/ui";
+import { EmptyState, PageHeader, createDateFormat } from "@/ui";
 import { NitaqLogo } from "@/ui/BrandLogo";
 
 import { CertificatesPanel, type CertificateVM } from "./_components/CertificatesPanel";
@@ -45,7 +45,7 @@ export default async function AchievementsPage({ params }: Props) {
       : Math.round((earnedCount / badges.length) * 100);
   const me = leaderboard.find((row) => row.isMe) ?? null;
 
-  const dateFormatter = new Intl.DateTimeFormat(locale, { dateStyle: "long" });
+  const dateFormatter = createDateFormat(locale, { dateStyle: "long" });
 
   const certificateVMs: CertificateVM[] = certificates.map((cert) => ({
     id: cert.id,

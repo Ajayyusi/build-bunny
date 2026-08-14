@@ -3,7 +3,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { verifyCertificate } from "@/modules/certificates/server/verify";
 import { resolveText } from "@/modules/curriculum/schemas";
-import { Badge, BunnyMascot, Card, CardBody } from "@/ui";
+import { Badge, BunnyMascot, Card, CardBody, formatDisplayDate } from "@/ui";
 
 interface Props {
   params: Promise<{ locale: string; verifySlug: string }>;
@@ -81,9 +81,9 @@ export default async function VerifyCertificatePage({ params }: Props) {
                   />
                   <Row
                     label={t("fields.issued")}
-                    value={new Intl.DateTimeFormat(locale, {
+                    value={formatDisplayDate(new Date(certificate.issuedAt), locale, {
                       dateStyle: "long",
-                    }).format(new Date(certificate.issuedAt))}
+                    })}
                   />
                   <Row label={t("fields.serial")} value={certificate.serial} mono />
                   <Row
