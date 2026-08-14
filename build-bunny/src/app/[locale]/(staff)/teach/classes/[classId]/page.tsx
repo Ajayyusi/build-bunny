@@ -6,6 +6,7 @@ import { resolveText } from "@/modules/curriculum/schemas";
 import { requireRole } from "@/modules/auth/server/session";
 import { getClassHardestLevels, getClassMatrix } from "@/modules/analytics/server/queries";
 import {
+  getClassAssignmentProgress,
   listAssignableContent,
   listClassAssignments,
 } from "@/modules/assignments/server/queries";
@@ -154,10 +155,12 @@ async function ClassAssignmentsTab({
   className: string;
   grade: number;
 }) {
-  const [assignments, content] = await Promise.all([
+  const [assignments, content, progress] = await Promise.all([
     listClassAssignments(ctx, classId),
     listAssignableContent(ctx),
+    getClassAssignmentProgress(ctx, classId),
   ]);
+  const progressById = new Map(progress.map((row) => [row.assignmentId, row]));
   const rows: AssignmentRowVM[] = assignments.map((a) => ({
     id: a.id,
     classId: a.classId,
@@ -169,6 +172,7 @@ async function ClassAssignmentsTab({
     dueAt: a.dueAt ? a.dueAt.toISOString() : null,
     closedAt: a.closedAt ? a.closedAt.toISOString() : null,
     createdByName: a.createdByName,
+    progress: progressById.get(a.id) ?? null,
   }));
 
   return (

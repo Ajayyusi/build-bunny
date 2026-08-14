@@ -157,6 +157,16 @@
             "body": "Every mission has hints. Using one is not cheating — it's how you get unstuck."
           }
         }
+      },
+      "assignments": {
+        "heading": "From your teacher",
+        "from": "Set by {teacher}",
+        "due": "Due",
+        "wasDue": "Was due",
+        "done": "Done",
+        "start": "Start",
+        "continue": "Continue",
+        "progress": "{done} of {total}"
       }
     },
     "adventure": {
@@ -707,7 +717,9 @@
           "noDue": "No due date",
           "open": "Open",
           "closed": "Closed",
-          "close": "Close"
+          "close": "Close",
+          "progress": "Completed",
+          "progressValue": "{done} of {total}"
         },
         "target": {
           "WORLD": "World",

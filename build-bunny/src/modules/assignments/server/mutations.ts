@@ -1,7 +1,9 @@
 import "server-only";
 
 import { db } from "@/lib/db";
-import { ConflictError, NotFoundError } from "@/modules/auth/server/guard";
+import { NotFoundError } from "@/modules/auth/server/guard";
+
+import { resolveAssignmentLevelIds } from "./scope";
 import type { SessionContext } from "@/modules/auth/server/session";
 import { recomputeUnlocks } from "@/modules/learning/server/adventure";
 
@@ -36,38 +38,6 @@ async function requireOwnedClass(
   });
   if (!membership) throw new NotFoundError("Class not found");
   return { id: classId };
-}
-
-async function resolveAssignmentLevelIds(input: {
-  target: "WORLD" | "MODULE" | "LEVEL";
-  worldId?: string;
-  moduleId?: string;
-  levelId?: string;
-}): Promise<string[]> {
-  const publishedFilter = { status: "PUBLISHED" as const, publishedVersionId: { not: null } };
-  if (input.target === "LEVEL") {
-    if (!input.levelId) throw new ConflictError("LEVEL target requires levelId");
-    const level = await db.level.findFirst({ where: { id: input.levelId, ...publishedFilter } });
-    if (!level) throw new NotFoundError("Level not found or not published");
-    return [level.id];
-  }
-  if (input.target === "MODULE") {
-    if (!input.moduleId) throw new ConflictError("MODULE target requires moduleId");
-    const levels = await db.level.findMany({
-      where: { moduleId: input.moduleId, ...publishedFilter },
-      select: { id: true },
-    });
-    if (levels.length === 0) throw new NotFoundError("Module has no published levels");
-    return levels.map((l) => l.id);
-  }
-  // WORLD
-  if (!input.worldId) throw new ConflictError("WORLD target requires worldId");
-  const levels = await db.level.findMany({
-    where: { module: { worldId: input.worldId }, ...publishedFilter },
-    select: { id: true },
-  });
-  if (levels.length === 0) throw new NotFoundError("World has no published levels");
-  return levels.map((l) => l.id);
 }
 
 export interface CreateAssignmentInput {

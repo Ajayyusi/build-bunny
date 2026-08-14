@@ -536,6 +536,29 @@ async function assertQueryIsolated(entry: RegistryEntry): Promise<void> {
       expect(rows.length).toBe(0);
       break;
     }
+    case "listMyStudentAssignments": {
+      // A student only ever sees assignments for their own classes, and
+      // staff sessions get nothing from this reader at all.
+      expect(asRows(await query(studentCtxA))).toEqual([]);
+      expect(asRows(await query(studentCtxB))).toEqual([]);
+      expect(asRows(await query(teacherCtxA))).toEqual([]);
+      expect(asRows(await query(ctxA))).toEqual([]);
+      break;
+    }
+    case "getClassAssignmentProgress": {
+      // Same access rule as the assignment list beside it: a class in
+      // another school, or another teacher's class, is unreachable rather
+      // than empty-but-real.
+      expect(asRows(await query(teacherCtxA, B.classId))).toEqual([]);
+      expect(asRows(await query(teacherCtxB, classTwoBId))).toEqual([]);
+      const own = await query(teacherCtxA, A.classId);
+      expect(Array.isArray(own)).toBe(true);
+      expectNoForeignIds(own, name);
+      // SCHOOL_ADMIN may read any class in their own school, never another's.
+      expect(Array.isArray(await query(ctxB, classTwoBId))).toBe(true);
+      expect(asRows(await query(ctxA, classTwoBId))).toEqual([]);
+      break;
+    }
     case "listClassAssignments": {
       const ownRows = asRows(await query(teacherCtxA, A.classId));
       expect(ownRows.length).toBe(0);

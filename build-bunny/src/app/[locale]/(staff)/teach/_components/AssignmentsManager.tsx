@@ -31,6 +31,12 @@ export interface AssignmentRowVM {
   dueAt: string | null;
   closedAt: string | null;
   createdByName: string;
+  /**
+   * How many of the class have finished every level in scope. Null when the
+   * caller did not ask for progress (the all-classes list), so the column
+   * can be absent rather than showing a misleading zero.
+   */
+  progress: { completedCount: number; studentCount: number } | null;
 }
 
 export interface AssignableLevelVM {
@@ -177,6 +183,24 @@ export function AssignmentsManager({
             <span dir="ltr">{new Date(row.dueAt).toLocaleDateString(locale)}</span>
           ) : (
             <span className="text-ink-muted">{t("table.noDue")}</span>
+          ),
+      },
+      {
+        key: "progress",
+        header: t("table.progress"),
+        cell: (row) =>
+          row.progress === null ? (
+            <span className="text-ink-faint">—</span>
+          ) : (
+            // Counts, never names: this answers "did the work happen?",
+            // not "who is behind?" — that lives on the student page with
+            // its evidence attached.
+            <span className="tabular-nums">
+              {t("table.progressValue", {
+                done: row.progress.completedCount,
+                total: row.progress.studentCount,
+              })}
+            </span>
           ),
       },
       {

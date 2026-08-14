@@ -1,6 +1,10 @@
 import { beforeAll, describe, expect, it } from "vitest";
 
 import { db } from "@/lib/db";
+import {
+  getClassAssignmentProgress,
+  listMyStudentAssignments,
+} from "@/modules/assignments/server/queries";
 import { createStaff, createStudent } from "@/modules/auth/server/provisioning";
 import type { SessionContext } from "@/modules/auth/server/session";
 import { gradeWorkspace } from "@/modules/grading/server/grade";
@@ -561,5 +565,84 @@ describe("getAttemptReplay — deterministic re-run matches the stored verdict",
 
   it("an unknown attempt id resolves to null, not an error", async () => {
     expect(await getAttemptReplay(ctxTeacherOne, "no-such-attempt")).toBeNull();
+  });
+});
+
+describe("the assignment loop — both halves", () => {
+  // The fixture's class A carries one open LEVEL assignment on l1, and
+  // studentNormal has completed l1.
+
+  it("shows a student the work their teacher set, with who set it", async () => {
+    const ctxStudent = createCtx({ userId: studentNormalId, role: "STUDENT", schoolId });
+    const rows = await listMyStudentAssignments(ctxStudent);
+    expect(rows).toHaveLength(1);
+    expect(rows[0]!.title).toBe("Finish level one");
+    expect(rows[0]!.totalLevels).toBe(1);
+    // This student finished the assigned level, so the card reads as done.
+    expect(rows[0]!.completedLevels).toBe(1);
+    expect(rows[0]!.done).toBe(true);
+    expect(rows[0]!.nextLevelId).toBeNull();
+  });
+
+  it("points an unfinished student at the level to play next", async () => {
+    const ctxStudent = createCtx({ userId: studentNotStartedId, role: "STUDENT", schoolId });
+    const rows = await listMyStudentAssignments(ctxStudent);
+    expect(rows).toHaveLength(1);
+    expect(rows[0]!.done).toBe(false);
+    expect(rows[0]!.completedLevels).toBe(0);
+    // A card with nowhere to go is just a reminder; this one leads somewhere.
+    expect(rows[0]!.nextLevelId).toBe(l1Id);
+  });
+
+  it("shows nothing to a student in another class", async () => {
+    const ctxStudent = createCtx({ userId: studentInClassBId, role: "STUDENT", schoolId });
+    expect(await listMyStudentAssignments(ctxStudent)).toEqual([]);
+  });
+
+  it("hides an assignment once it is closed", async () => {
+    const assignment = await db.assignment.findFirstOrThrow({ where: { classId: classAId } });
+    await db.assignment.update({ where: { id: assignment.id }, data: { closedAt: new Date() } });
+    const ctxStudent = createCtx({ userId: studentNormalId, role: "STUDENT", schoolId });
+    expect(await listMyStudentAssignments(ctxStudent)).toEqual([]);
+    await db.assignment.update({ where: { id: assignment.id }, data: { closedAt: null } });
+  });
+
+  it("tells the teacher how many of the class finished it", async () => {
+    const rows = await getClassAssignmentProgress(ctxTeacherOne, classAId);
+    expect(rows).toHaveLength(1);
+    const roster = await db.classMembership.count({
+      where: { classId: classAId, role: "STUDENT" },
+    });
+    expect(rows[0]!.studentCount).toBe(roster);
+    // Only studentNormal completed l1 in the fixture.
+    expect(rows[0]!.completedCount).toBe(1);
+  });
+
+  it("counts a multi-level assignment only when every level is done", async () => {
+    const world = await db.level.findUniqueOrThrow({
+      where: { id: l1Id },
+      select: { module: { select: { worldId: true } } },
+    });
+    const created = await db.assignment.create({
+      data: {
+        schoolId,
+        classId: classAId,
+        createdById: teacherOneId,
+        target: "WORLD",
+        worldId: world.module.worldId,
+        title: "Finish the whole world",
+      },
+    });
+
+    const rows = await getClassAssignmentProgress(ctxTeacherOne, classAId);
+    const row = rows.find((r) => r.assignmentId === created.id);
+    // studentNormal finished l1 but not l2, so partial progress is not done.
+    expect(row?.completedCount).toBe(0);
+
+    await db.assignment.delete({ where: { id: created.id } });
+  });
+
+  it("is not readable by a teacher who does not teach the class", async () => {
+    expect(await getClassAssignmentProgress(ctxTeacherTwo, classAId)).toEqual([]);
   });
 });

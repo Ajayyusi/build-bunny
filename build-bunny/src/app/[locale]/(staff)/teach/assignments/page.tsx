@@ -37,6 +37,9 @@ export default async function AssignmentsPage({ params }: Props) {
     dueAt: a.dueAt ? a.dueAt.toISOString() : null,
     closedAt: a.closedAt ? a.closedAt.toISOString() : null,
     createdByName: a.createdByName,
+    // The all-classes view spans rosters, so completion is asked for on
+    // the class page instead of computed per row here.
+    progress: null,
   }));
 
   return (

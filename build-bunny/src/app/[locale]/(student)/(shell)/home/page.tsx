@@ -7,11 +7,13 @@ import {
   computeAdventureState,
   type AdventureWorldNode,
 } from "@/modules/learning/server/adventure";
+import { listMyStudentAssignments } from "@/modules/assignments/server/queries";
 import { isFeatureEnabled } from "@/modules/shared/features";
 import { getMyStudentSnapshot } from "@/modules/students/server/queries";
 import { BunnyMascot, CountUp, EmptyState } from "@/ui";
 
 import { themeEmoji } from "../adventure/_components/theme";
+import { AssignmentsCard } from "./_components/AssignmentsCard";
 import { Onboarding } from "./_components/Onboarding";
 import { WorldCard, type WorldCardVM } from "./_components/WorldCard";
 
@@ -23,8 +25,9 @@ export default async function StudentHomePage({ params }: Props) {
   const { locale } = await params;
   setRequestLocale(locale);
   const ctx = await requireRole("STUDENT");
-  const [snapshot, t] = await Promise.all([
+  const [snapshot, assignments, t] = await Promise.all([
     getMyStudentSnapshot(ctx),
+    listMyStudentAssignments(ctx),
     getTranslations("student.home"),
   ]);
   const displayName = snapshot?.user.displayName ?? ctx.displayName;
@@ -72,6 +75,8 @@ export default async function StudentHomePage({ params }: Props) {
       {/* A student who has never earned XP has never finished a level, so
           this is their first visit — Bunny introduces the place. */}
       <Onboarding show={(snapshot?.xpTotal ?? 0) === 0} />
+
+      <AssignmentsCard assignments={assignments} locale={locale} />
 
       {/* ── Row 1: hero + progress panels ─────────────────────────────── */}
       <div className="grid gap-4 lg:grid-cols-[1fr_20rem]">

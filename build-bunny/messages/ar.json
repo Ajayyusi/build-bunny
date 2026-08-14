@@ -157,6 +157,16 @@
             "body": "كل مهمة فيها تلميحات. استخدام تلميح ليس غشًّا — بل هو طريقك لتجاوز العقبة."
           }
         }
+      },
+      "assignments": {
+        "heading": "من معلّمك",
+        "from": "من إعداد {teacher}",
+        "due": "الموعد",
+        "wasDue": "كان موعدها",
+        "done": "مكتملة",
+        "start": "ابدأ",
+        "continue": "أكمل",
+        "progress": "{done} من {total}"
       }
     },
     "adventure": {
@@ -707,7 +717,9 @@
           "noDue": "بلا موعد استحقاق",
           "open": "مفتوح",
           "closed": "مغلق",
-          "close": "إغلاق"
+          "close": "إغلاق",
+          "progress": "المكتملون",
+          "progressValue": "{done} من {total}"
         },
         "target": {
           "WORLD": "عالم",
