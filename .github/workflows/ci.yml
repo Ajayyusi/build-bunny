@@ -37,9 +37,13 @@ jobs:
           --health-retries 10
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v4
+      # v5+ can cache automatically off a `packageManager` field, but this
+      # package.json has none and the app is nested, so caching stays explicit:
+      # the path is repo-relative because `defaults.run.working-directory`
+      # applies to run steps, not to actions.
+      - uses: actions/setup-node@v7
         with:
           # engines floor is >=22.12; ride the latest 22.x (some transitive
           # deps already want ^22.13, and dev machines run 22.18+).
