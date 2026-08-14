@@ -24,6 +24,18 @@ interface Props {
   params: Promise<{ locale: string; classId: string; studentId: string }>;
 }
 
+/**
+ * CLDR's Arabic date patterns embed RIGHT-TO-LEFT MARKs between the parts.
+ * Those are strong directional characters, so they survive a `dir="ltr"`
+ * wrapper and reorder the segments — a last-active date rendered as the
+ * unreadable "232026/07/" instead of "23/07/2026". Stripping the marks and
+ * keeping the LTR wrapper renders the date correctly in both locales while
+ * `-u-nu-latn` keeps the numerals Western (product-wide numeral policy).
+ */
+function stripBidiMarks(value: string): string {
+  return value.replace(/[‎‏؜]/g, "");
+}
+
 function formatDuration(ms: number | null): string {
   if (ms === null) return "—";
   const totalSeconds = Math.round(ms / 1000);
@@ -54,6 +66,15 @@ export default async function StudentDetailPage({ params }: Props) {
       <ErrorState title={t("notFoundTitle")} description={t("notFoundBody")} className="my-8" />
     );
   }
+
+  // -u-nu-latn keeps Western Arabic numerals in dates for both locales
+  // (product-wide numeral policy). Without it the Arabic page rendered a
+  // last-active date as a scrambled "232026/7/".
+  const dateFormat = new Intl.DateTimeFormat(`${locale}-u-nu-latn`, { dateStyle: "medium" });
+  const dateTimeFormat = new Intl.DateTimeFormat(`${locale}-u-nu-latn`, {
+    dateStyle: "medium",
+    timeStyle: "short",
+  });
 
   const attemptColumns: DataTableColumn<(typeof detail.recentAttempts)[number]>[] = [
     {
@@ -92,7 +113,7 @@ export default async function StudentDetailPage({ params }: Props) {
     {
       key: "when",
       header: t("attempts.when"),
-      cell: (row) => <span dir="ltr">{new Date(row.createdAt).toLocaleString(locale)}</span>,
+      cell: (row) => <span dir="ltr">{stripBidiMarks(dateTimeFormat.format(new Date(row.createdAt)))}</span>,
     },
     {
       key: "replay",
@@ -150,7 +171,7 @@ export default async function StudentDetailPage({ params }: Props) {
             <div>
               <dt className="text-sm text-ink-muted">{t("header.lastActive")}</dt>
               <dd className="font-display text-base font-semibold text-ink" dir="ltr">
-                {detail.lastActiveAt ? new Date(detail.lastActiveAt).toLocaleDateString(locale) : t("header.never")}
+                {detail.lastActiveAt ? stripBidiMarks(dateFormat.format(new Date(detail.lastActiveAt))) : t("header.never")}
               </dd>
             </div>
           </dl>
@@ -164,6 +185,51 @@ export default async function StudentDetailPage({ params }: Props) {
           </div>
         </CardBody>
       </Card>
+
+      {/* What to DO about the flags. Renders nothing when the student is
+          fine — advice invented for a student who needs none teaches
+          teachers to skip the panel. */}
+      {detail.interventions.length > 0 ? (
+        <section className="flex flex-col gap-3">
+          <div className="flex flex-col gap-1">
+            <h2 className="font-display text-lg font-semibold text-ink">
+              {t("interventions.heading")}
+            </h2>
+            <p className="text-sm text-ink-muted">{t("interventions.caveat")}</p>
+          </div>
+          <ul className="flex flex-col gap-3">
+            {detail.interventions.map((suggestion) => (
+              <li key={`${suggestion.kind}-${suggestion.levelId ?? "none"}`}>
+                <Card>
+                  <CardBody className="flex flex-col gap-1.5">
+                    <h3 className="font-display text-base font-semibold text-ink">
+                      {t(`interventions.kind.${suggestion.kind}.title`)}
+                    </h3>
+                    {/* The evidence, before the advice: a teacher has to be
+                        able to check the claim against the rows below. */}
+                    <p className="text-sm text-ink">
+                      {t(`interventions.kind.${suggestion.kind}.evidence`, {
+                        level:
+                          suggestion.levelTitle === null
+                            ? ""
+                            : resolveText(suggestion.levelTitle, locale),
+                        attempts: suggestion.facts.attempts ?? 0,
+                        minutes: suggestion.facts.minutes ?? 0,
+                        estimatedMinutes: suggestion.facts.estimatedMinutes ?? 0,
+                        levels: suggestion.facts.levels ?? 0,
+                        days: suggestion.facts.days ?? 0,
+                      })}
+                    </p>
+                    <p className="text-sm text-ink-muted">
+                      {t(`interventions.kind.${suggestion.kind}.suggestion`)}
+                    </p>
+                  </CardBody>
+                </Card>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
 
       <section className="flex flex-col gap-3">
         <h2 className="font-display text-lg font-semibold text-ink">{t("progress.heading")}</h2>

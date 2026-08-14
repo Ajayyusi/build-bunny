@@ -475,6 +475,21 @@ async function assertQueryIsolated(entry: RegistryEntry): Promise<void> {
       expect(await query(ctxA, classTwoBId)).toBeNull();
       break;
     }
+    case "getClassHardestLevels": {
+      // Same access rule as the matrix it sits beside: a foreign class is
+      // not "empty", it is unreachable — and an empty array is the only
+      // safe answer, since leaking WHICH levels another school struggles
+      // with would still be a cross-tenant read.
+      expect(await query(teacherCtxA, B.classId)).toEqual([]);
+      expect(await query(teacherCtxB, classTwoBId)).toEqual([]);
+      const own = await query(teacherCtxA, A.classId);
+      expect(Array.isArray(own)).toBe(true);
+      expectNoForeignIds(own, name);
+      // SCHOOL_ADMIN reaches any class in their own school, never another's.
+      expect(Array.isArray(await query(ctxB, classTwoBId))).toBe(true);
+      expect(await query(ctxA, classTwoBId)).toEqual([]);
+      break;
+    }
     case "getTeacherOverview": {
       const overview = (await query(teacherCtxA)) as { classes: { id: string }[] };
       expect(overview.classes.map((c) => c.id)).toEqual([A.classId]);

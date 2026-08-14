@@ -3,6 +3,8 @@ import "server-only";
 import type { AttemptVerdict } from "@prisma/client";
 
 import { db } from "@/lib/db";
+import { suggestInterventions, type SuggestedIntervention } from "./intervention";
+import { computeLevelActivityStats, rankMostFailed } from "./level-activity";
 import type { SessionContext } from "@/modules/auth/server/session";
 import { localizedText, type LocalizedText } from "@/modules/curriculum/schemas";
 import type { LevelSnapshot } from "@/modules/curriculum/server/publish";
@@ -161,6 +163,12 @@ export interface StudentDetail {
   streakBest: number;
   lastActiveAt: string | null;
   flags: StudentFlag[];
+  /**
+   * What a teacher might do about those flags, most actionable first. Empty
+   * when nothing is flagged — silence is the correct output for a student who
+   * is fine, and inventing advice for them would train teachers to skip this.
+   */
+  interventions: SuggestedIntervention[];
   progress: StudentDetailWorldProgress[];
   recentAttempts: StudentDetailAttempt[];
   achievements: StudentDetailAchievement[];
@@ -227,6 +235,26 @@ function schoolDaysAgoCutoff(now: Date, timeZone: string, weekStructure: unknown
     cursor = previousSchoolDay(cursor, schoolDays);
   }
   return cursor;
+}
+
+/**
+ * School days between two date keys, walking the school's own week — "quiet
+ * for 6 days" must not count a weekend a child was never expected to work.
+ * Capped so a student inactive since last term reports a usable number
+ * instead of spinning.
+ */
+const MAX_QUIET_DAYS_COUNTED = 60;
+
+function countSchoolDaysBetween(fromKey: string, toKey: string, weekStructure: unknown): number {
+  if (fromKey >= toKey) return 0;
+  const schoolDays = schoolDaysFrom(weekStructure);
+  let cursor = toKey;
+  let days = 0;
+  while (cursor > fromKey && days < MAX_QUIET_DAYS_COUNTED) {
+    cursor = previousSchoolDay(cursor, schoolDays);
+    days += 1;
+  }
+  return days;
 }
 
 /** Resolve a class row scoped by the caller's role — the isolation rule. */
@@ -352,11 +380,42 @@ interface FlagComputationInput {
 }
 
 /**
+ * Which rows made each flag fire. The flags themselves are deliberately bare
+ * enums (m4-contracts pins `StudentFlag[]`), but a teacher asking "stuck on
+ * WHAT?" needs the level, and the intervention engine needs the numbers. This
+ * is computed in the same pass rather than re-derived, so a suggestion can
+ * never disagree with the flag that produced it.
+ */
+export interface FlagEvidence {
+  /** Not-yet-completed level whose last three attempts all failed. */
+  stuck: { levelId: string; attempts: number } | null;
+  /** Level where total time ran to 3× its estimate. */
+  overtime: { levelId: string; minutes: number; estimatedMinutes: number } | null;
+  /** How many distinct levels needed a tier-4 hint. */
+  hintHeavyLevels: number;
+  /** School days since the student was last active; null = never active. */
+  quietSchoolDays: number | null;
+}
+
+/**
  * The five named flag rules (m4-contracts), evaluated over real rows only.
  * Every rule is independent — a student may carry several flags at once.
  */
 function computeStudentFlags(input: FlagComputationInput): StudentFlag[] {
+  return computeFlagsWithEvidence(input).flags;
+}
+
+export function computeFlagsWithEvidence(input: FlagComputationInput): {
+  flags: StudentFlag[];
+  evidence: FlagEvidence;
+} {
   const flags: StudentFlag[] = [];
+  const evidence: FlagEvidence = {
+    stuck: null,
+    overtime: null,
+    hintHeavyLevels: input.tier4LevelCount,
+    quietSchoolDays: null,
+  };
 
   // NOT_STARTED describes a learning state, not a table: a student who has
   // made progress has started, whether or not attempt rows exist for it
@@ -385,12 +444,23 @@ function computeStudentFlags(input: FlagComputationInput): StudentFlag[] {
       const lastThree = list.slice(0, 3);
       if (lastThree.length === 3 && lastThree.every((a) => a.verdict === "FAIL")) {
         stuck = true;
+        // Most-attempted qualifying level wins: with several stuck levels,
+        // the one they have hammered hardest is where help lands best.
+        if (evidence.stuck === null || list.length > evidence.stuck.attempts) {
+          evidence.stuck = { levelId, attempts: list.length };
+        }
       }
     }
     const estimatedMinutes = input.estimatedMinutesByLevel.get(levelId);
     if (estimatedMinutes !== undefined) {
       const totalMs = list.reduce((sum, a) => sum + (a.durationMs ?? 0), 0);
-      if (totalMs >= estimatedMinutes * 60_000 * 3) overtime = true;
+      if (totalMs >= estimatedMinutes * 60_000 * 3) {
+        overtime = true;
+        const minutes = Math.round(totalMs / 60_000);
+        if (evidence.overtime === null || minutes > evidence.overtime.minutes) {
+          evidence.overtime = { levelId, minutes, estimatedMinutes };
+        }
+      }
     }
   }
   if (stuck) flags.push("STUCK");
@@ -410,10 +480,17 @@ function computeStudentFlags(input: FlagComputationInput): StudentFlag[] {
       : null;
     if (!lastActiveKey || lastActiveKey <= cutoff) {
       flags.push("INACTIVE");
+      evidence.quietSchoolDays = lastActiveKey
+        ? countSchoolDaysBetween(
+            lastActiveKey,
+            localDateKey(input.now, input.timeZone),
+            input.weekStructure,
+          )
+        : null;
     }
   }
 
-  return flags;
+  return { flags, evidence };
 }
 
 interface ClassRosterStudent {
@@ -673,6 +750,70 @@ export async function getTeacherOverview(ctx: SessionContext): Promise<TeacherOv
   return { classes: overviewClasses, needsAttention };
 }
 
+export interface ClassHardLevel {
+  levelId: string;
+  title: LocalizedText;
+  worldName: LocalizedText;
+  attempts: number;
+  failRatePct: number;
+}
+
+/**
+ * The levels this class finds hardest, by fail rate over their own runs.
+ *
+ * A teaching signal, not a ranking of children: it names LEVELS, and every
+ * number behind it is an aggregate over the whole class. Reuses the same
+ * ranking helper the school and platform dashboards use, so "hardest" means
+ * the same thing at every altitude, and inherits its minimum-sample rule so
+ * one unlucky run never reads as a 100% fail rate.
+ */
+export async function getClassHardestLevels(
+  ctx: SessionContext,
+  classId: string,
+  limit = 3,
+): Promise<ClassHardLevel[]> {
+  const schoolId = requireSchool(ctx);
+  const cls = await resolveClassAccess(ctx, classId);
+  if (!cls) return [];
+
+  const roster = await db.classMembership.findMany({
+    where: { schoolId, classId, role: "STUDENT" },
+    select: { userId: true },
+  });
+  if (roster.length === 0) return [];
+
+  const stats = await computeLevelActivityStats({
+    schoolId,
+    studentUserId: { in: roster.map((row) => row.userId) },
+  });
+  // rankMostFailed returns a top-N even when nothing failed, which is right
+  // for a "most failed" chart and wrong here: a level at a 0% fail rate
+  // listed under "finding it hard" tells a teacher to reteach something the
+  // class has already mastered.
+  const ranked = rankMostFailed(stats, limit).filter((row) => row.failRatePct > 0);
+  if (ranked.length === 0) return [];
+
+  const levels = await db.level.findMany({
+    where: { id: { in: ranked.map((row) => row.levelId) } },
+    select: { id: true, title: true, module: { select: { world: { select: { name: true } } } } },
+  });
+  const byId = new Map(levels.map((level) => [level.id, level]));
+
+  return ranked.flatMap((row) => {
+    const level = byId.get(row.levelId);
+    if (!level) return [];
+    return [
+      {
+        levelId: row.levelId,
+        title: localizedText.parse(level.title),
+        worldName: localizedText.parse(level.module.world.name),
+        attempts: row.attempts,
+        failRatePct: row.failRatePct,
+      },
+    ];
+  });
+}
+
 export async function getStudentDetail(
   ctx: SessionContext,
   studentUserId: string,
@@ -789,7 +930,7 @@ export async function getStudentDetail(
   let hasOpenAssignment = false;
   let isBehindMedian = false;
   if (membership) {
-    const [openAssignments, rosterProgress] = await Promise.all([
+    const [openAssignments, rosterProgress, roster] = await Promise.all([
       db.assignment.findMany({
         where: { schoolId, classId: membership.class.id, closedAt: null },
         select: { id: true },
@@ -805,9 +946,17 @@ export async function getStudentDetail(
             select: { studentUserId: true },
           })
         : Promise.resolve([]),
+      db.classMembership.findMany({
+        where: { schoolId, classId: membership.class.id, role: "STUDENT" },
+        select: { userId: true },
+      }),
     ]);
     hasOpenAssignment = openAssignments.length > 0;
-    const countByStudent = new Map<string, number>();
+    // Seed every roster student at zero BEFORE counting completions. The
+    // class matrix computes this median over the whole roster, and omitting
+    // students who have completed nothing raises the median here — which
+    // made the same student show INACTIVE on one page and not the other.
+    const countByStudent = new Map<string, number>(roster.map((row) => [row.userId, 0]));
     for (const row of rosterProgress) {
       countByStudent.set(row.studentUserId, (countByStudent.get(row.studentUserId) ?? 0) + 1);
     }
@@ -822,7 +971,7 @@ export async function getStudentDetail(
     isBehindMedian = (countByStudent.get(studentUserId) ?? 0) < median;
   }
 
-  const flags = computeStudentFlags({
+  const { flags, evidence } = computeFlagsWithEvidence({
     attempts,
     progressByLevel,
     estimatedMinutesByLevel,
@@ -833,6 +982,14 @@ export async function getStudentDetail(
     now: new Date(),
     timeZone: school?.timezone ?? "Asia/Dubai",
     weekStructure: school?.weekStructure ?? null,
+  });
+
+  // Suggestions come from the same pass as the flags, so a suggestion can
+  // never point at a level the flag did not actually fire on.
+  const interventions = suggestInterventions({
+    flags,
+    evidence,
+    levelTitles: new Map(levelRows.map((row) => [row.matrix.id, row.matrix.title])),
   });
 
   const progressByWorld = new Map<string, StudentDetailWorldProgress>();
@@ -865,6 +1022,7 @@ export async function getStudentDetail(
       ? student.studentProfile.lastActiveDate.toISOString()
       : null,
     flags,
+    interventions,
     progress: [...progressByWorld.values()],
     recentAttempts: attempts.slice(0, 20).map((a) => ({
       id: a.id,

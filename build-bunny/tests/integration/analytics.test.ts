@@ -5,6 +5,7 @@ import { toCsvBody } from "@/lib/csv";
 import { createStaff, createStudent } from "@/modules/auth/server/provisioning";
 import type { SessionContext } from "@/modules/auth/server/session";
 import { resolveText } from "@/modules/curriculum/schemas";
+import { getClassHardestLevels } from "@/modules/analytics/server/teacher";
 import { getSchoolAnalytics } from "@/modules/analytics/server/school";
 import { getPlatformAnalytics } from "@/modules/analytics/server/platform";
 import {
@@ -469,5 +470,37 @@ describe("getPlatformAnalytics — platform-only guard and cross-school figures"
     const analytics = await getPlatformAnalytics(nitaqCtx);
     expect(analytics.mostFailedLevels.map((l) => l.levelId)).toEqual([l2Id, l1Id]);
     expect(analytics.mostFailedLevels.map((l) => l.failRatePct)).toEqual([80, 25]);
+  });
+});
+
+describe("getClassHardestLevels — a teaching signal, scoped to one class", () => {
+  it("ranks this class's levels by fail rate, worst first", async () => {
+    const hardest = await getClassHardestLevels(teacherCtx, classAId);
+    // The shared fixture gives L2 an 80% fail rate and L1 25%.
+    expect(hardest.map((l) => l.levelId)).toEqual([l2Id, l1Id]);
+    expect(hardest.map((l) => l.failRatePct)).toEqual([80, 25]);
+    expect(hardest.map((l) => l.attempts)).toEqual([5, 4]);
+  });
+
+  it("never lists a level the class has not actually failed", async () => {
+    const hardest = await getClassHardestLevels(teacherCtx, classAId);
+    // rankMostFailed alone would pad the list out to its limit with 0%
+    // levels; under a heading that says "finding it hard" that would tell a
+    // teacher to reteach something the class has already mastered.
+    expect(hardest.every((l) => l.failRatePct > 0)).toBe(true);
+  });
+
+  it("returns nothing for a class the caller cannot reach", async () => {
+    // classB belongs to the same school but not to this teacher.
+    expect(await getClassHardestLevels(teacherCtx, classBId)).toEqual([]);
+  });
+
+  it("is visible to the school admin for any class in their school", async () => {
+    const hardest = await getClassHardestLevels(adminCtx, classAId);
+    expect(hardest.map((l) => l.levelId)).toEqual([l2Id, l1Id]);
+  });
+
+  it("is not a student-facing query", async () => {
+    expect(await getClassHardestLevels(studentCtx, classAId)).toEqual([]);
   });
 });

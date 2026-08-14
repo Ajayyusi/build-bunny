@@ -2,6 +2,7 @@ import "server-only";
 
 import {
   getAttemptReplay,
+  getClassHardestLevels,
   getClassMatrix,
   getStudentDetail,
   getTeacherOverview,
@@ -19,11 +20,19 @@ import { getSchoolAnalytics } from "./school";
  * intentionally NOT re-exported here — it is cross-tenant by design, guarded
  * like schools/server/platform-queries.ts instead of registered.
  */
-export { getAttemptReplay, getClassMatrix, getStudentDetail, getTeacherOverview, getSchoolAnalytics };
+export {
+  getAttemptReplay,
+  getClassHardestLevels,
+  getClassMatrix,
+  getStudentDetail,
+  getTeacherOverview,
+  getSchoolAnalytics,
+};
 
 /** Registry walked by the tenant-isolation test suite. */
 export const tenantScopedQueries = {
   getClassMatrix,
+  getClassHardestLevels,
   getTeacherOverview,
   getStudentDetail,
   getAttemptReplay,

@@ -582,6 +582,12 @@
         "cell": {
           "label": "{student}, {level}: {state}, {stars} stars, {attempts} attempts",
           "attempts": "{count, plural, one {# attempt} other {# attempts}}"
+        },
+        "hardest": {
+          "heading": "Where this class is finding it hard",
+          "caveat": "Levels with the highest fail rate across this class. A teaching signal about the content, not about individual students.",
+          "attempts": "{attempts, plural, one {# attempt} other {# attempts}}",
+          "failRate": "{pct}% fail rate"
         }
       },
       "student": {
@@ -635,6 +641,37 @@
           "sent": "Feedback sent.",
           "error": "Couldn't send feedback. Please try again.",
           "unread": "Unread"
+        },
+        "interventions": {
+          "heading": "Suggested next steps",
+          "caveat": "Worked out from this student's attempts, hints and activity. You know them; this only knows their work.",
+          "kind": {
+            "REVIEW_CONCEPT": {
+              "title": "Review the idea behind this level together",
+              "evidence": "{attempts, plural, one {# attempt} other {# attempts}} on {level}, and the last three all failed.",
+              "suggestion": "Repeated failure on one level usually means the idea has not landed yet, not that they are not trying. A few minutes on the concept is likely to unblock the rest of the world."
+            },
+            "HINT_RELIANCE": {
+              "title": "Check they can work without the last hint",
+              "evidence": "Needed the final hint tier on {levels, plural, one {# level} other {# levels}}.",
+              "suggestion": "Reaching the deepest hint on several levels can mean a gap earlier in the sequence. Try watching them start one level unaided to see where they stall."
+            },
+            "PACING": {
+              "title": "They are getting there, slowly",
+              "evidence": "About {minutes} minutes on {level}, which is planned for around {estimatedMinutes}.",
+              "suggestion": "Worth a look at whether the time is thinking, re-reading, or fiddling. Slow and correct is fine; slow and lost is not."
+            },
+            "CHECK_IN": {
+              "title": "Check in — they have gone quiet",
+              "evidence": "No activity for {days, plural, =0 {several school days} one {# school day} other {# school days}}, while there is work outstanding.",
+              "suggestion": "A short conversation usually finds the reason faster than more assignments will: a forgotten password and lost confidence look identical from here."
+            },
+            "GET_STARTED": {
+              "title": "Help them start",
+              "evidence": "No attempts recorded yet.",
+              "suggestion": "Sitting with them through the first level tends to be enough. Check they can sign in before assuming they chose not to."
+            }
+          }
         }
       },
       "replay": {
