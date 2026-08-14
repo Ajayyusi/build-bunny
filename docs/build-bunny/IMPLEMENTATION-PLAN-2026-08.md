@@ -90,7 +90,7 @@ that claims more than the code does is worse than no plan.
 | 5 · AI games & engines | **Started** (security fix only) | `7ba69ec` |
 | 6 · Teacher experience | **Mostly done** | `c3d1919` |
 | 7 · School & NITAQ admin + security hardening | **Partly done** | `83e6082` |
-| 8 · Assignments, notifications, missions, cosmetics | Not started | — |
+| 8 · Assignments, notifications, missions, cosmetics | **Started** (assignments done) | `0091c21` |
 | 9 · Performance, accessibility, tablets, offline | Not started | — |
 | 10 · Production QA & demo | Not started | — |
 
@@ -99,6 +99,13 @@ PARTIAL (a near miss reads the same as a wild one); GroupPlayer, AiSimPlayer
 and AiEthicsPlayer still have no draft autosave (TeachPlayer now does); the
 AST-budget infinite loop still surfaces as a generic `runtimeError` rather
 than a kid-readable failure.
+
+Phase 8 remainder: notifications, daily missions and bunny cosmetics are all
+untouched, and each needs new tables — this is still the phase where the
+schema changes. The assignment half needed none (completion derives from
+StudentProgress). Note before building cosmetics: `User.avatarId` exists,
+is plumbed through auth/session/queries, and is never set or rendered by
+anything — decide what it means before building on it.
 
 Phase 7 remainder — **licences are the commercially important gap**. A
 licence is immutable after creation (no renew, extend, seat change or
