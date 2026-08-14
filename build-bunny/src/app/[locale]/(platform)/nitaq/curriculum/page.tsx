@@ -2,6 +2,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { Link } from "@/i18n/navigation";
 import { requireRole } from "@/modules/auth/server/session";
+import { PublishWorldButton } from "./_components/PublishWorldButton";
 import { resolveText } from "@/modules/curriculum/schemas";
 import {
   listCurriculumPrograms,
@@ -227,6 +228,17 @@ export default async function CurriculumPage({ params }: Props) {
                       </>
                     ) : null}
                   </div>
+                  {world.horizon ? null : (
+                    <PublishWorldButton
+                      worldId={world.id}
+                      worldName={resolveText(world.name, locale)}
+                      pendingCount={
+                        world.modules
+                          .flatMap((m) => m.levels)
+                          .filter((l) => l.status !== "PUBLISHED" && l.status !== "ARCHIVED").length
+                      }
+                    />
+                  )}
                 </CardHeader>
                 <CardBody className="flex flex-col gap-4">
                   {world.horizon ? (

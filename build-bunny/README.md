@@ -42,6 +42,8 @@ Demo credentials are written to `prisma/seed-output/credentials.md` after seedin
 | `npm run db:deploy` | `prisma migrate deploy` (prod/CI)     |
 | `npm run db:seed`   | Seed the NITAQ Demo School            |
 | `npm run db:studio` | Prisma Studio                         |
+| `npm run content:check` | Dry-run the curriculum bundle against `DATABASE_URL` |
+| `npm run content:deploy` | Import **and publish** the curriculum (the content half of a release) |
 | `npm run demo:reset`| Reset the DEMO school for a sales demo (see `docs/demo-script.md`) |
 | `npm run dev:skip-to`| Jump a dev student to a given level without playing to it |
 | `npm run load-check`| Concurrent-submission load test against a dev server |
@@ -92,6 +94,10 @@ tests/            # Vitest unit + integration suites (real PostgreSQL)
   container CMD.
 - Required runtime env vars: `DATABASE_URL`, `BETTER_AUTH_SECRET`,
   `NEXT_PUBLIC_APP_URL` (public origin of the app).
+- **Content is a separate release step.** Levels live in the database, so
+  deploying code does not ship curriculum — run `npm run content:deploy`
+  against the production database (or import + publish in `/nitaq/curriculum`).
+  See `docs/operations.md`.
 - Health probe: `GET /api/health` — returns `{ ok, db, version, migrations:
   { applied, expected, upToDate }, content: { publishedLevels } }`, 503 when
   the database is unreachable.

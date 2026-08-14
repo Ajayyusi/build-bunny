@@ -1168,6 +1168,13 @@
           "xp": "{xp} نقطة خبرة",
           "stars": "{stars, plural, one {نجمة واحدة} two {نجمتان} few {{stars} نجوم} many {{stars} نجمة} other {{stars} نجمة}}"
         }
+      },
+      "publishWorld": {
+        "action": "انشر {count} {count, plural, zero {مستوى} one {مستوى} two {مستويين} few {مستويات} many {مستوى} other {مستوى}} قيد الانتظار",
+        "done": "تم نشر {count} {count, plural, zero {مستوى} one {مستوى} two {مستويين} few {مستويات} many {مستوى} other {مستوى}} في {world}",
+        "failed": "تعذّر نشر هذا العالم",
+        "gatesFailed": "لم يُنشر شيء — بعض المستويات لم تجتز الفحوصات",
+        "gatesFailedDetail": "صحّح هذه المستويات ثم أعد المحاولة: {levels}"
       }
     },
     "overviewTitle": "نظرة عامة على المنصة",

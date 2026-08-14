@@ -1168,6 +1168,13 @@
           "xp": "{xp} XP",
           "stars": "{stars, plural, one {# star} other {# stars}}"
         }
+      },
+      "publishWorld": {
+        "action": "Publish {count} pending {count, plural, one {level} other {levels}}",
+        "done": "Published {count} {count, plural, one {level} other {levels}} in {world}",
+        "failed": "Couldn't publish that world",
+        "gatesFailed": "Nothing was published — some levels failed their checks",
+        "gatesFailedDetail": "Fix these levels and try again: {levels}"
       }
     },
     "overviewTitle": "Platform overview",

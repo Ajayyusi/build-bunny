@@ -48,6 +48,49 @@ PORT=3000 NODE_ENV=production DATABASE_URL="postgresql://..." \
   node .next/standalone/server.js
 ```
 
+### Shipping content — a separate step from shipping code
+
+**Deploying code does not deploy curriculum.** Levels live in the database;
+`content/` is an import format, not the source of truth. A release that
+updates the app but skips this step leaves production serving whatever
+content it was last given — the symptom is a live site with the new UI and
+the old (or missing) worlds.
+
+Check what production actually has at any time:
+
+```bash
+curl -s https://<your-domain>/api/health
+```
+
+`content.publishedLevels` is the number students can reach. Compare it with
+the bundle: 37 levels across 6 playable worlds at the time of writing.
+
+Two ways to bring it up to date, both idempotent:
+
+```bash
+DATABASE_URL="postgresql://..." npm run content:check
+```
+
+Dry run: prints exactly what would be created, updated or left alone, and
+writes nothing. Then:
+
+```bash
+DATABASE_URL="postgresql://..." npm run content:deploy
+```
+
+Imports the bundle and publishes every non-horizon world. Publishing runs
+the eight gates per level and is all-or-nothing per world, so a world either
+goes live intact or nothing about it changes.
+
+Without shell access, the same thing is available in the console: import at
+`/nitaq/curriculum/import`, then press **Publish N pending levels** on each
+world at `/nitaq/curriculum`.
+
+One more thing to check after a content release: the `adventure` feature
+flag on each school (`/nitaq/schools/[id]`). It defaults to **off**, so a
+school created through the console rather than the seed will show students
+"your adventure map is being prepared" no matter how much content exists.
+
 ### Deploying on Vercel (alternative to the container path)
 
 The app is compatible with Vercel; configure the project as follows.

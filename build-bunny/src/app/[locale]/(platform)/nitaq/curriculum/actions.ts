@@ -12,6 +12,8 @@ import {
 import {
   publishLevel,
   type GateResult,
+  publishWorld,
+  type PublishWorldResult,
 } from "@/modules/curriculum/server/publish";
 
 /**
@@ -84,5 +86,24 @@ export async function publishLevelAction(
     z.object({ levelId: z.string().min(1) }),
     async (ctx, { levelId }) =>
       publishLevel({ userId: ctx.userId, role: ctx.role }, levelId),
+  )(input);
+}
+
+/**
+ * Publish every not-yet-live level in a world in one go.
+ *
+ * publishWorld has existed in the curriculum module since m2 with no caller,
+ * which meant bringing a world live in production was one click per level —
+ * fourteen of them after a content import, with no way to tell part-way
+ * through whether you had missed one. It is all-or-nothing on the gates, so
+ * a world either goes live intact or nothing changes.
+ */
+export async function publishWorldAction(
+  input: unknown,
+): Promise<ActionResult<PublishWorldResult>> {
+  return withAuth(
+    "curriculum:publish",
+    z.object({ worldId: z.string().min(1) }),
+    async (ctx, { worldId }) => publishWorld({ userId: ctx.userId, role: ctx.role }, worldId),
   )(input);
 }
