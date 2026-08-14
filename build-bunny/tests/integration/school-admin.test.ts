@@ -21,7 +21,13 @@ import {
 } from "@/modules/schools/server/management";
 import { commitStudentImport, dryRunStudentImport } from "@/modules/schools/server/imports";
 import { createSchoolWithAdmin, setSchoolActive } from "@/modules/schools/server/platform-management";
-import { createCtx, createTestSchool, SYSTEM_ACTOR, wipeDatabase } from "../helpers/fixtures";
+import {
+  createCtx,
+  createTestProgram,
+  createTestSchool,
+  SYSTEM_ACTOR,
+  wipeDatabase,
+} from "../helpers/fixtures";
 
 /**
  * M4 school-admin management surfaces: teacher/student/class CRUD, the CSV
@@ -370,6 +376,56 @@ describe("platform school onboarding", () => {
       body: { email: result.admin.username, password: result.admin.password },
     });
     expect(signIn.user.id).toBe(result.admin.userId);
+  });
+
+  /**
+   * A school created without curriculum shows every one of its students the
+   * empty "adventure is being prepared" map. Onboarding attaches the
+   * programme so that state is not the default a new school starts in.
+   */
+  it("attaches the curriculum when exactly one programme is published", async () => {
+    await db.schoolProgram.deleteMany();
+    await db.program.deleteMany();
+    const program = await createTestProgram({ name: "Only Published" });
+
+    const result = await createSchoolWithAdmin(nitaqCtx, {
+      name: "Auto Programme School",
+      slug: `auto-prog-${Date.now()}`,
+      code: `AP${Date.now()}`.slice(0, 12),
+      timezone: "Asia/Dubai",
+      licenceSeats: 10,
+      licenceStartsAt: new Date(),
+      licenceExpiresAt: new Date(Date.now() + 1000),
+      adminEmail: `auto-${Date.now()}@example.test`,
+      adminDisplayName: "Admin",
+    });
+
+    const rows = await db.schoolProgram.findMany({ where: { schoolId: result.schoolId } });
+    expect(rows).toHaveLength(1);
+    expect(rows[0]!.programId).toBe(program.id);
+  });
+
+  it("attaches nothing when the default is ambiguous or absent", async () => {
+    await db.schoolProgram.deleteMany();
+    await db.program.deleteMany();
+    // Two published programmes: there is no right one to guess, so onboarding
+    // must leave it for the programme picker rather than pick arbitrarily.
+    await createTestProgram({ name: "Alpha" });
+    await createTestProgram({ name: "Beta" });
+
+    const result = await createSchoolWithAdmin(nitaqCtx, {
+      name: "Ambiguous Programme School",
+      slug: `amb-prog-${Date.now()}`,
+      code: `MP${Date.now()}`.slice(0, 12),
+      timezone: "Asia/Dubai",
+      licenceSeats: 10,
+      licenceStartsAt: new Date(),
+      licenceExpiresAt: new Date(Date.now() + 1000),
+      adminEmail: `amb-${Date.now()}@example.test`,
+      adminDisplayName: "Admin",
+    });
+
+    expect(await db.schoolProgram.count({ where: { schoolId: result.schoolId } })).toBe(0);
   });
 
   it("rejects a duplicate school code", async () => {

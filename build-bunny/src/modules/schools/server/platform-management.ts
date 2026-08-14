@@ -73,6 +73,24 @@ export async function createSchoolWithAdmin(
       status: "ACTIVE",
     },
   });
+  // Attach the curriculum so the school is usable the moment it exists.
+  // Before this, every school created through the console had no programme
+  // and no screen that could give it one, so its students sat on the empty
+  // adventure map permanently.
+  //
+  // Only when exactly one programme is published: with several there is no
+  // right default to guess, and the programme card on the school page is
+  // where that choice belongs. take: 2 is enough to tell one from many.
+  const published = await db.program.findMany({
+    where: { status: "PUBLISHED" },
+    select: { id: true },
+    take: 2,
+  });
+  const defaultProgramId = published.length === 1 ? published[0]!.id : null;
+  if (defaultProgramId) {
+    await db.schoolProgram.create({ data: { schoolId: school.id, programId: defaultProgramId } });
+  }
+
   await audit({
     action: AUDIT.schools.created,
     actorUserId: ctx.userId,
@@ -80,7 +98,7 @@ export async function createSchoolWithAdmin(
     schoolId: school.id,
     targetType: "school",
     targetId: school.id,
-    meta: { code: school.code, seats: input.licenceSeats },
+    meta: { code: school.code, seats: input.licenceSeats, programId: defaultProgramId },
   });
 
   // Not wrapped in the same transaction as the school/licence create:
@@ -141,6 +159,61 @@ export async function setSchoolFeatureFlag(
     targetType: "school",
     targetId: schoolId,
     meta: { feature: key, from: before, to: enabled },
+  });
+}
+
+/**
+ * Point a school at one curriculum programme — or at none.
+ *
+ * REPLACES rather than adds, and that is the whole point. The adventure map
+ * resolves a school's programme with `if (enabled.length !== 1) return null`,
+ * so a school with TWO enabled programmes shows students the same empty
+ * "your adventure is being prepared" screen as a school with none. An
+ * operator adding a second programme would silently take the map away from
+ * every child in the school, with nothing on this screen to explain it.
+ * Deleting first makes that state unreachable.
+ *
+ * Draft programmes are refused rather than stored: the map only ever renders
+ * PUBLISHED content, so accepting one would leave the console claiming a
+ * programme is set while students still see nothing.
+ */
+export async function setSchoolProgram(
+  ctx: SessionContext,
+  schoolId: string,
+  programId: string | null,
+): Promise<void> {
+  requirePlatform(ctx);
+  const school = await db.school.findUnique({ where: { id: schoolId }, select: { id: true } });
+  if (!school) throw new NotFoundError("School not found");
+
+  if (programId) {
+    const program = await db.program.findFirst({
+      where: { id: programId, status: "PUBLISHED" },
+      select: { id: true },
+    });
+    if (!program) throw new NotFoundError("Published programme not found");
+  }
+
+  const before = await db.schoolProgram.findMany({
+    where: { schoolId },
+    select: { programId: true },
+  });
+
+  await db.$transaction(async (tx) => {
+    await tx.schoolProgram.deleteMany({ where: { schoolId } });
+    if (programId) {
+      await tx.schoolProgram.create({ data: { schoolId, programId } });
+    }
+  });
+
+  await audit({
+    action: AUDIT.schools.updated,
+    actorUserId: ctx.userId,
+    actorRole: ctx.role,
+    schoolId,
+    targetType: "school",
+    targetId: schoolId,
+    meta: { programFrom: before.map((row) => row.programId), programTo: programId },
   });
 }
 

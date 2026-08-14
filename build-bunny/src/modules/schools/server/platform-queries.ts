@@ -2,7 +2,14 @@ import "server-only";
 
 import { db } from "@/lib/db";
 import type { SessionContext } from "@/modules/auth/server/session";
+import { localizedText, type LocalizedText } from "@/modules/curriculum/schemas";
 import { FEATURE_FLAGS, isFeatureEnabled } from "@/modules/shared/features";
+
+/** Programme names are localized JSON; fall back to the slug if malformed. */
+function asText(value: unknown, fallback: string): LocalizedText {
+  const parsed = localizedText.safeParse(value);
+  return parsed.success ? parsed.data : { en: fallback };
+}
 
 /**
  * Platform-wide queries — NITAQ/SUPER admins only. These are the only
@@ -82,6 +89,27 @@ export interface SchoolDetail {
     notes: string | null;
   }[];
   admins: { id: string; displayName: string; email: string; banned: boolean | null }[];
+  /**
+   * The school's single enabled programme, or null. `ambiguous` is true when
+   * the school somehow has more than one: the adventure map treats that
+   * exactly like none, so the console has to be able to say so rather than
+   * pick one row and look correct.
+   */
+  program: { id: string; name: LocalizedText } | null;
+  programAmbiguous: boolean;
+}
+
+/** Published programmes, for the school programme picker. */
+export async function listPublishedPrograms(
+  ctx: SessionContext,
+): Promise<{ id: string; name: LocalizedText }[]> {
+  requirePlatform(ctx);
+  const programs = await db.program.findMany({
+    where: { status: "PUBLISHED" },
+    select: { id: true, slug: true, name: true },
+    orderBy: { slug: "asc" },
+  });
+  return programs.map((p) => ({ id: p.id, name: asText(p.name, p.slug) }));
 }
 
 /** Full overview for /nitaq/schools/[schoolId] — any school, platform staff only. */
@@ -108,9 +136,18 @@ export async function getSchoolDetail(
         orderBy: { displayName: "asc" },
       },
       _count: { select: { teacherProfiles: true, studentProfiles: true, classes: true } },
+      // take: 2 — enough to distinguish "one" from "more than one", which is
+      // the distinction the adventure map actually cares about.
+      schoolPrograms: {
+        select: { program: { select: { id: true, slug: true, name: true } } },
+        take: 2,
+      },
     },
   });
   if (!school) return null;
+
+  const enabled = school.schoolPrograms;
+  const only = enabled.length === 1 ? enabled[0]!.program : null;
   return {
     id: school.id,
     name: school.name,
@@ -131,6 +168,8 @@ export async function getSchoolDetail(
     ),
     licences: school.licences,
     admins: school.users,
+    program: only ? { id: only.id, name: asText(only.name, only.slug) } : null,
+    programAmbiguous: enabled.length > 1,
   };
 }
 

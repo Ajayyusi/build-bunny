@@ -789,7 +789,7 @@
         "teachers": "Teachers",
         "students": "Students",
         "classes": "Classes",
-        "imports": "Imports",
+        "imports": "Student imports",
         "certificates": "Certificates",
         "reports": "Reports",
         "privacy": "Privacy"
@@ -955,8 +955,8 @@
         "errorGeneric": "Something went wrong. Please try again."
       },
       "importsPage": {
-        "title": "Imports",
-        "subtitle": "Bulk-add or update students from a CSV file.",
+        "title": "Student imports",
+        "subtitle": "Bulk-add or update students from a CSV file. This does not import courses — the adventure map appears for every student automatically.",
         "newCta": "New import",
         "historyHeading": "Recent imports",
         "historyEmpty": "No imports yet.",
@@ -1273,6 +1273,17 @@
       "forbidden": "You don't have permission to manage schools.",
       "conflict": "That slug or school code is already in use.",
       "errorGeneric": "Something went wrong. Please try again.",
+      "program": {
+        "heading": "Curriculum",
+        "label": "Programme for this school",
+        "none": "No programme",
+        "save": "Save curriculum",
+        "saved": "Curriculum updated",
+        "failed": "Couldn't change the curriculum",
+        "noneAvailable": "No published programmes yet. Publish one under Curriculum before assigning it to a school.",
+        "help": "Students see the adventure map only when their school has exactly one programme set. Without it, every student gets the \"adventure is being prepared\" screen.",
+        "ambiguous": "This school has more than one programme enabled, which hides the adventure map from every student — the same as having none. Pick one below and save to fix it."
+      },
       "features": {
         "heading": "Features",
         "caveat": "Turn surfaces on or off for this school. Changes take effect on the next page load and are recorded in the audit log.",

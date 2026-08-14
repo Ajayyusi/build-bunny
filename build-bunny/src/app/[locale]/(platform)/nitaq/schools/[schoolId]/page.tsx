@@ -2,7 +2,11 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { Link } from "@/i18n/navigation";
 import { requireRole } from "@/modules/auth/server/session";
-import { getSchoolDetail } from "@/modules/schools/server/platform-queries";
+import { resolveText } from "@/modules/curriculum/schemas";
+import {
+  getSchoolDetail,
+  listPublishedPrograms,
+} from "@/modules/schools/server/platform-queries";
 import {
   Badge,
   Card,
@@ -17,6 +21,7 @@ import {
 } from "@/ui";
 
 import { FeatureFlags } from "./_components/FeatureFlags";
+import { ProgramPicker } from "./_components/ProgramPicker";
 
 interface Props {
   params: Promise<{ locale: string; schoolId: string }>;
@@ -33,11 +38,13 @@ export default async function SchoolDetailPage({ params }: Props) {
   const { locale, schoolId } = await params;
   setRequestLocale(locale);
   const ctx = await requireRole("SUPER_ADMIN", "NITAQ_ADMIN");
-  const [school, t, tLicence, tFeatures] = await Promise.all([
+  const [school, programs, t, tLicence, tFeatures, tProgram] = await Promise.all([
     getSchoolDetail(ctx, schoolId),
+    listPublishedPrograms(ctx),
     getTranslations("platform.schoolDetail"),
     getTranslations("platform.licence"),
     getTranslations("platform.schools.features"),
+    getTranslations("platform.schools.program"),
   ]);
 
   const dateFormat = createDateFormat(locale, { dateStyle: "medium" });
@@ -96,6 +103,27 @@ export default async function SchoolDetailPage({ params }: Props) {
               </div>
             ))
           )}
+        </CardBody>
+      </Card>
+
+      {/* Which curriculum this school's students get. Sits above the feature
+          switches deliberately: turning the adventure flag on for a school
+          with no programme still shows every child an empty map, so this is
+          the more fundamental of the two. */}
+      <Card>
+        <CardHeader>
+          <CardTitle>{tProgram("heading")}</CardTitle>
+        </CardHeader>
+        <CardBody>
+          <ProgramPicker
+            schoolId={school.id}
+            current={school.program?.id ?? ""}
+            programs={programs.map((program) => ({
+              id: program.id,
+              name: resolveText(program.name, locale),
+            }))}
+            ambiguous={school.programAmbiguous}
+          />
         </CardBody>
       </Card>
 

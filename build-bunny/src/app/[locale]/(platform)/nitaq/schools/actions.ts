@@ -7,6 +7,7 @@ import {
   createSchoolWithAdmin,
   setSchoolActive,
   setSchoolFeatureFlag,
+  setSchoolProgram,
   type CreateSchoolResult,
 } from "@/modules/schools/server/platform-management";
 
@@ -64,5 +65,21 @@ const featureInput = z.object({
 export async function setSchoolFeatureFlagAction(input: unknown): Promise<ActionResult<void>> {
   return withAuth("school:profile:write", featureInput, (ctx, { schoolId, key, enabled }) =>
     setSchoolFeatureFlag(ctx, schoolId, key, enabled),
+  )(input);
+}
+
+/** Empty string is how the picker sends "no programme" through a <select>. */
+const programInput = z.object({
+  schoolId: z.string().min(1),
+  programId: z
+    .string()
+    .max(60)
+    .transform((value) => (value === "" ? null : value))
+    .nullable(),
+});
+
+export async function setSchoolProgramAction(input: unknown): Promise<ActionResult<void>> {
+  return withAuth("school:profile:write", programInput, (ctx, { schoolId, programId }) =>
+    setSchoolProgram(ctx, schoolId, programId),
   )(input);
 }
