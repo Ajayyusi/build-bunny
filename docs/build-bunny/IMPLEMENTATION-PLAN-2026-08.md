@@ -88,7 +88,7 @@ that claims more than the code does is worse than no plan.
 | 3 · Home, map, game-entry, onboarding | **Done** | `0601580` |
 | 4 · Player polish & success/failure | **Mostly done** | `7ba69ec`, `0c6850a` |
 | 5 · AI games & engines | **Started** (security fix only) | `7ba69ec` |
-| 6 · Teacher experience | Not started | — |
+| 6 · Teacher experience | **Mostly done** | `c3d1919` |
 | 7 · School & NITAQ admin + security hardening | Not started | — |
 | 8 · Assignments, notifications, missions, cosmetics | Not started | — |
 | 9 · Performance, accessibility, tablets, offline | Not started | — |
@@ -99,6 +99,12 @@ PARTIAL (a near miss reads the same as a wild one); GroupPlayer, AiSimPlayer
 and AiEthicsPlayer still have no draft autosave (TeachPlayer now does); the
 AST-budget infinite loop still surfaces as a generic `runtimeError` rather
 than a kid-readable failure.
+
+Phase 6 remainder: classroom mode is still the existing projector view with
+no launch-a-level flow or on-screen controls. Also noted while working: the
+Arabic RTL-mark date bug fixed on the student detail page almost certainly
+affects the other staff surfaces that format dates the same way — worth a
+sweep in Phase 9 rather than one page at a time.
 
 ### Phase 1 — Infrastructure & critical fixes (this change)
 1. Move `ci.yml` to repo root with `defaults.run.working-directory:
