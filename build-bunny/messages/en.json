@@ -457,7 +457,11 @@
           "predictionIncrease": "Increase prediction",
           "predictionValue": "Your guess: {value}",
           "bandInsideNote": "that's inside the range scientists would expect",
-          "bandOutsideNote": "that's outside the range scientists would expect"
+          "bandOutsideNote": "that's outside the range scientists would expect",
+          "lowerIsBetter": "lower is better",
+          "legendYours": "Your line",
+          "legendComputer": "Computer's line",
+          "legendBand": "Likely range"
         },
         "pixelPlayground": {
           "exploreIntro": "Pick a picture and see how a computer stores it — as a grid of numbers.",

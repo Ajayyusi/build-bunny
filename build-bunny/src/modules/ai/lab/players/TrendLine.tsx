@@ -46,6 +46,25 @@ function screenToDataY(screenY: number, domain: Domain): number {
   const t = (screenY - MARGIN.top) / PLOT_H;
   return domain.yMin + (domain.yMax - domain.yMin) * (1 - t);
 }
+
+/**
+ * Evenly spaced axis values, rounded to something a child would say out loud.
+ *
+ * The chart shipped with axis TITLES but no numbers, while the prediction
+ * control asks for a number ("28.5"). Reading a value off a scale that has
+ * no scale is not a hard puzzle, it is an impossible one — this is what the
+ * axes were missing.
+ */
+function axisTicks(min: number, max: number, count = 4): number[] {
+  const span = max - min;
+  if (!Number.isFinite(span) || span <= 0) return [min];
+  const step = span / count;
+  // One decimal only when the range is small enough to need it.
+  const round = (v: number) => (span >= 10 ? Math.round(v) : Math.round(v * 10) / 10);
+  const ticks: number[] = [];
+  for (let i = 0; i <= count; i += 1) ticks.push(round(min + step * i));
+  return [...new Set(ticks)];
+}
 function clientToSvgPoint(svg: SVGSVGElement, clientX: number, clientY: number): { x: number; y: number } {
   const point = svg.createSVGPoint();
   point.x = clientX;
@@ -199,6 +218,9 @@ export function TrendLine({ config: rawConfig, locale, disabled, reducedMotion, 
   const predictionY = dataToScreenY(currentPrediction, domain);
   const inBand = subPhase === "predict" && currentPrediction >= bandLow && currentPrediction <= bandHigh;
 
+  const tickXMin = Math.min(...config.points.map((p) => p.x));
+  const tickXMax = Math.max(...config.points.map((p) => p.x), config.predictAt);
+
   const sliderMin = domain.yMin;
   const sliderMax = domain.yMax;
   const sliderStep = Math.max((sliderMax - sliderMin) / 200, 0.01);
@@ -221,6 +243,39 @@ export function TrendLine({ config: rawConfig, locale, disabled, reducedMotion, 
             {t("computerMiss", { score: round1(optimumSSE) })}
           </span>
         ) : null}
+        {/* The scores are meaningless without knowing which way is good. */}
+        <span className="text-xs font-normal text-ink-muted">{t("lowerIsBetter")}</span>
+      </div>
+
+      {/* Which line is whose. Two lines were on screen with nothing naming
+          them; the dash pattern carries the difference as well as the colour
+          so it does not rely on colour alone. */}
+      <div className="flex flex-wrap items-center gap-4 text-xs text-ink-muted">
+        <span className="inline-flex items-center gap-2">
+          <svg aria-hidden="true" viewBox="0 0 28 8" className="h-2 w-7">
+            <line x1="0" y1="4" x2="28" y2="4" className="stroke-brand-strong" strokeWidth="3" strokeLinecap="round" />
+          </svg>
+          {t("legendYours")}
+        </span>
+        {computerRevealed ? (
+          <span className="inline-flex items-center gap-2">
+            <svg aria-hidden="true" viewBox="0 0 28 8" className="h-2 w-7">
+              <line x1="0" y1="4" x2="28" y2="4" className="stroke-warning" strokeWidth="3" strokeDasharray="8 6" strokeLinecap="round" />
+            </svg>
+            {t("legendComputer")}
+          </span>
+        ) : null}
+        {/* The shaded band is the whole lesson — "predictions come with a
+            range, not a number" — and it was on screen unnamed. */}
+        {subPhase === "predict" ? (
+          <span className="inline-flex items-center gap-2">
+            <span
+              aria-hidden="true"
+              className="inline-block h-3 w-7 rounded-sm bg-info/25 ring-1 ring-info/40"
+            />
+            {t("legendBand")}
+          </span>
+        ) : null}
       </div>
 
       <svg
@@ -239,6 +294,60 @@ export function TrendLine({ config: rawConfig, locale, disabled, reducedMotion, 
         <text x={14} y={MARGIN.top + PLOT_H / 2} textAnchor="middle" transform={`rotate(-90 14 ${MARGIN.top + PLOT_H / 2})`} className="fill-ink-muted text-[13px] font-semibold">
           {yAxisText}
         </text>
+
+        {/* Numbers on the axes. Without these the prediction slider asks a
+            child to name a height on a chart that shows no heights. */}
+        <g aria-hidden="true">
+          {axisTicks(domain.yMin, domain.yMax).map((value) => {
+            const y = dataToScreenY(value, domain);
+            return (
+              <g key={`y-${value}`}>
+                <line
+                  x1={MARGIN.left - 4}
+                  y1={y}
+                  x2={MARGIN.left}
+                  y2={y}
+                  className="stroke-border-token"
+                  strokeWidth={1.5}
+                />
+                <text
+                  x={MARGIN.left - 7}
+                  y={y + 4}
+                  textAnchor="end"
+                  className="fill-ink-muted text-[11px] tabular-nums"
+                >
+                  {value}
+                </text>
+              </g>
+            );
+          })}
+          {/* Ticks span the real data, not the padded drawing domain: the
+              padding exists to keep dots off the frame, and labelling it
+              produced "-1 hours of sunlight". */}
+          {axisTicks(tickXMin, tickXMax).map((value) => {
+            const x = dataToScreenX(value, domain);
+            return (
+              <g key={`x-${value}`}>
+                <line
+                  x1={x}
+                  y1={MARGIN.top + PLOT_H}
+                  x2={x}
+                  y2={MARGIN.top + PLOT_H + 4}
+                  className="stroke-border-token"
+                  strokeWidth={1.5}
+                />
+                <text
+                  x={x}
+                  y={MARGIN.top + PLOT_H + 16}
+                  textAnchor="middle"
+                  className="fill-ink-muted text-[11px] tabular-nums"
+                >
+                  {value}
+                </text>
+              </g>
+            );
+          })}
+        </g>
 
         {/* Prediction guide + honest error band (predict phase only) */}
         {subPhase === "predict" ? (

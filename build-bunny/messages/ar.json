@@ -457,7 +457,11 @@
           "predictionIncrease": "زِد التوقّع",
           "predictionValue": "تخمينك: {value}",
           "bandInsideNote": "هذا ضمن المدى الذي يتوقّعه العلماء",
-          "bandOutsideNote": "هذا خارج المدى الذي يتوقّعه العلماء"
+          "bandOutsideNote": "هذا خارج المدى الذي يتوقّعه العلماء",
+          "lowerIsBetter": "كلما قلّ كان أفضل",
+          "legendYours": "خطّك",
+          "legendComputer": "خط الحاسوب",
+          "legendBand": "المدى المُرجَّح"
         },
         "pixelPlayground": {
           "exploreIntro": "اختر صورة وشاهد كيف يخزّنها الحاسوب — كشبكة من الأرقام.",
