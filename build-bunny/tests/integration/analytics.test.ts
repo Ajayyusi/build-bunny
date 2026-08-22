@@ -54,9 +54,10 @@ let s3Id: string;
 
 beforeAll(async () => {
   await wipeDatabase();
-  const school = await createTestSchool("Analytika");
+  // This suite asserts on licence seat totals, so it owns its licences.
+  const school = await createTestSchool("Analytika", { licence: false });
   schoolId = school.id;
-  const schoolTwo = await createTestSchool("AnalytikaTwo");
+  const schoolTwo = await createTestSchool("AnalytikaTwo", { licence: false });
   schoolTwoId = schoolTwo.id;
 
   const admin = await createStaff(SYSTEM_ACTOR, {
