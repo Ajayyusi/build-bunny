@@ -63,7 +63,10 @@ let schoolCounter = 0;
  * `seats` is generous by default and overridable so seat-limit behaviour
  * stays testable.
  */
-export async function createTestSchool(prefix: string, opts: { seats?: number } = {}) {
+export async function createTestSchool(
+  prefix: string,
+  opts: { seats?: number; licence?: boolean } = {},
+) {
   schoolCounter += 1;
   const unique = `${prefix.toLowerCase()}${schoolCounter}${randomUUID().slice(0, 8)}`;
   const school = await db.school.create({
@@ -73,6 +76,9 @@ export async function createTestSchool(prefix: string, opts: { seats?: number } 
       code: unique,
     },
   });
+  // Suites that assert on licence analytics create their own rows and opt
+  // out, so the default licence cannot skew their totals.
+  if (opts.licence === false) return school;
   await db.licence.create({
     data: {
       schoolId: school.id,

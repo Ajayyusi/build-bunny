@@ -78,7 +78,7 @@ describe("the flag registry", () => {
   it("only lists flags the app actually reads", () => {
     // A registry entry becomes a switch in the admin console. Listing a flag
     // that gates nothing ships an operator a control that does nothing.
-    expect(FEATURE_FLAGS.map((flag) => flag.key)).toEqual(["adventure"]);
+    expect(FEATURE_FLAGS.map((flag) => flag.key)).toEqual(["adventure", "leaderboard"]);
   });
 
   it("recognises registry keys and rejects anything else", () => {
