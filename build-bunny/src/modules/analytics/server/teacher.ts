@@ -713,10 +713,28 @@ export async function getClassMatrix(
 
 export async function getTeacherOverview(ctx: SessionContext): Promise<TeacherOverview> {
   const schoolId = requireSchool(ctx);
-  if (ctx.role !== "TEACHER") return { classes: [], needsAttention: [] };
+  // TEACHER sees the classes they teach; SCHOOL_ADMIN sees every class in
+  // their own school.
+  //
+  // This returned an empty list for anything but TEACHER, which made the
+  // whole teaching area a dead end for school admins: the nav offered them
+  // "Teaching", requireRole let them in, and the page then showed the "no
+  // classes yet" empty state for a school full of classes. The class detail
+  // page and getClassMatrix already admit school admins (resolveClassAccess
+  // grants them any class in their own school), so only the LIST that leads
+  // there was missing — an oversight, not a boundary.
+  //
+  // Anyone else — a platform admin holding a school-scoped session, say —
+  // still gets nothing rather than a school's roster by accident.
+  if (ctx.role !== "TEACHER" && ctx.role !== "SCHOOL_ADMIN") {
+    return { classes: [], needsAttention: [] };
+  }
 
   const classes = await db.class.findMany({
-    where: { schoolId, memberships: { some: { userId: ctx.userId, role: "TEACHER", schoolId } } },
+    where:
+      ctx.role === "TEACHER"
+        ? { schoolId, memberships: { some: { userId: ctx.userId, role: "TEACHER", schoolId } } }
+        : { schoolId },
     select: { id: true, name: true, grade: true },
     orderBy: [{ grade: "asc" }, { name: "asc" }],
   });
