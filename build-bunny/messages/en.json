@@ -36,6 +36,16 @@
   },
   "auth": {
     "staff": {
+      "licenceBanner": {
+        "label": "Licence status",
+        "cta": "School overview",
+        "expiringSoon": "This school's licence expires in {days, plural, one {# day} other {# days}}. Contact NITAQ Academy to renew — students lose access when it lapses.",
+        "grace": "This school's licence has expired and is in its grace period, ending in {days, plural, one {# day} other {# days}}. Renew now to avoid losing access.",
+        "readOnly": "This school's licence is read-only. Records can be viewed, but students cannot submit work and accounts cannot be created.",
+        "noLicence": "No active licence is on file for this school. Contact NITAQ Academy to restore access.",
+        "seatsFull": "All {total} licensed seats are in use. Disable a student who has left, or contact NITAQ Academy to add seats.",
+        "seatsNearlyFull": "{used} of {total} licensed seats are in use."
+      },
       "title": "Staff sign in",
       "subtitle": "Teachers and school admins sign in with their email.",
       "email": "Email",

@@ -437,6 +437,39 @@ async function assertQueryIsolated(entry: RegistryEntry): Promise<void> {
       expectNoForeignIds(summary, name);
       break;
     }
+    case "getLicenceNotice": {
+      // A healthy school has nothing to warn about. Fixture schools get a
+      // 1000-seat licence running for a year, so this must be silent —
+      // a banner that is always on is a banner nobody reads.
+      expect(await query(ctxA)).toBeNull();
+
+      // Force school A's licence close to expiry and confirm the notice
+      // describes A ONLY: A's seat count, never B's roster. Restored
+      // afterwards so the surrounding suite still sees a healthy school.
+      const licence = await db.licence.findFirstOrThrow({ where: { schoolId: A.school.id } });
+      const soon = new Date(Date.now() + 5 * 24 * 60 * 60 * 1000);
+      await db.licence.update({ where: { id: licence.id }, data: { expiresAt: soon } });
+      try {
+        const notice = (await query(ctxA)) as {
+          kind: string;
+          daysRemaining: number | null;
+          seatsUsed: number;
+        } | null;
+        expect(notice?.kind).toBe("EXPIRING_SOON");
+        expect(notice?.daysRemaining).toBeLessThanOrEqual(5);
+        // School A has exactly two students; B's must not be counted.
+        expect(notice?.seatsUsed).toBe(A.studentIds.length);
+        expectNoForeignIds(notice, name);
+        // School B is untouched by A's expiry.
+        expect(await query(ctxB)).toBeNull();
+      } finally {
+        await db.licence.update({
+          where: { id: licence.id },
+          data: { expiresAt: licence.expiresAt },
+        });
+      }
+      break;
+    }
     case "listTeachers": {
       const rows = asRows(await query(ctxA));
       expect(rows.length).toBe(1);

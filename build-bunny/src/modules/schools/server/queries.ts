@@ -481,8 +481,115 @@ export async function getSchoolDataExport(ctx: SessionContext): Promise<SchoolDa
  * must be listed; tests iterate this and verify cross-school leakage is
  * impossible. Adding a query without registering it fails the meta-test.
  */
+export type LicenceNoticeKind =
+  | "EXPIRING_SOON"
+  | "GRACE"
+  | "READ_ONLY"
+  | "SEATS_FULL"
+  | "SEATS_NEARLY_FULL"
+  | "NO_LICENCE";
+
+export interface LicenceNotice {
+  kind: LicenceNoticeKind;
+  /** Whole days until the licence (or its grace period) runs out. */
+  daysRemaining: number | null;
+  seatsUsed: number;
+  seatsTotal: number | null;
+}
+
+/** A school is "nearly full" from this fraction of its seats onward. */
+const SEATS_WARNING_RATIO = 0.9;
+/** Warn this many days before expiry — long enough to raise a purchase order. */
+const EXPIRY_WARNING_DAYS = 30;
+
+/**
+ * What this school's own admin needs warning about, or null when nothing is
+ * wrong.
+ *
+ * This exists because enforcement became real. Licence state now decides
+ * access (resolveEntitlement, enforced in the session guard), so a school
+ * whose licence lapses genuinely loses the product — and until now the only
+ * licence information a school admin could see was a seat count with no
+ * expiry date anywhere. Cutting a school off on a date nobody showed them is
+ * not enforcement, it is an outage.
+ *
+ * Derived on read from rows that already exist: no new table, and nothing to
+ * keep in sync. The trade is that it cannot say "new since you last looked" —
+ * which is the honest shape here anyway, because an expiring licence does not
+ * stop mattering once it has been seen.
+ */
+export async function getLicenceNotice(ctx: SessionContext): Promise<LicenceNotice | null> {
+  const schoolId = requireSchool(ctx);
+  const now = new Date();
+
+  const [licences, seatsUsed] = await Promise.all([
+    db.licence.findMany({
+      where: { schoolId },
+      select: { status: true, startsAt: true, expiresAt: true, graceDays: true, seats: true },
+    }),
+    db.user.count({ where: { schoolId, role: "STUDENT", banned: { not: true } } }),
+  ]);
+
+  const live = licences.filter(
+    (licence) =>
+      licence.status !== "SUSPENDED" && licence.startsAt <= now && licence.expiresAt >= now,
+  );
+  const seatsTotal =
+    live.length > 0 ? live.reduce((total, licence) => total + licence.seats, 0) : null;
+
+  const base = { seatsUsed, seatsTotal };
+
+  if (licences.length === 0) return { kind: "NO_LICENCE", daysRemaining: null, ...base };
+
+  // Seat pressure is reported only when the school still HAS a working
+  // licence — telling an expired school it is nearly full buries the thing
+  // that actually needs doing.
+  if (live.length === 0) {
+    // Past the end date: the grace window is the last useful warning.
+    const latest = [...licences].sort(
+      (a, b) => b.expiresAt.getTime() - a.expiresAt.getTime(),
+    )[0]!;
+    const graceEnds = new Date(latest.expiresAt);
+    graceEnds.setDate(graceEnds.getDate() + latest.graceDays);
+    if (now <= graceEnds) {
+      return { kind: "GRACE", daysRemaining: daysBetween(now, graceEnds), ...base };
+    }
+    return { kind: "NO_LICENCE", daysRemaining: null, ...base };
+  }
+
+  if (live.some((licence) => licence.status === "READ_ONLY")) {
+    return { kind: "READ_ONLY", daysRemaining: null, ...base };
+  }
+
+  // Soonest expiry among live licences — a renewal alongside an old term
+  // must not hide the term that is actually about to lapse.
+  const soonest = [...live].sort((a, b) => a.expiresAt.getTime() - b.expiresAt.getTime())[0]!;
+  const daysRemaining = daysBetween(now, soonest.expiresAt);
+  if (daysRemaining <= EXPIRY_WARNING_DAYS) {
+    return { kind: "EXPIRING_SOON", daysRemaining, ...base };
+  }
+
+  if (seatsTotal !== null) {
+    if (seatsUsed >= seatsTotal) {
+      return { kind: "SEATS_FULL", daysRemaining: null, ...base };
+    }
+    if (seatsUsed >= Math.floor(seatsTotal * SEATS_WARNING_RATIO)) {
+      return { kind: "SEATS_NEARLY_FULL", daysRemaining: null, ...base };
+    }
+  }
+
+  return null;
+}
+
+/** Whole days from `from` to `to`, never negative. */
+function daysBetween(from: Date, to: Date): number {
+  const ms = to.getTime() - from.getTime();
+  return Math.max(0, Math.ceil(ms / (24 * 60 * 60 * 1000)));
+}
+
 export const tenantScopedQueries = {
   getSchoolSummary,
+  getLicenceNotice,
   listTeachers,
   listStudents,
   getStudentDetail,
