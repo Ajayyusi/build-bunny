@@ -528,10 +528,16 @@ describe("teacher-scope isolation and school-admin wider scope", () => {
     expect(detail?.studentUserId).toBe(studentInClassBId);
   });
 
-  it("SCHOOL_ADMIN has no personal teaching overview (honest empty, not every class)", async () => {
+  it("SCHOOL_ADMIN's overview lists every class in the school, not just ones they teach", async () => {
+    // This asserted an empty list, which contradicted the test directly
+    // above it: an admin "reaches any class or student in the school", yet
+    // had no list of those classes anywhere. The result was a dead end --
+    // the nav offered them Teaching and the page showed "no classes yet"
+    // for a school full of classes, while the detail pages sat built and
+    // authorised with nothing linking to them.
     const overview = await getTeacherOverview(ctxAdmin);
-    expect(overview.classes).toEqual([]);
-    expect(overview.needsAttention).toEqual([]);
+    const ids = overview.classes.map((cls) => cls.id).sort();
+    expect(ids).toEqual([classAId, classBId].sort());
   });
 });
 
