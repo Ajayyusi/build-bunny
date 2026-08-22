@@ -1316,6 +1316,17 @@
       "forbidden": "You don't have permission to manage schools.",
       "conflict": "That slug or school code is already in use.",
       "errorGeneric": "Something went wrong. Please try again.",
+      "week": {
+        "heading": "School week",
+        "save": "Save school week",
+        "saved": "School week updated",
+        "failed": "Couldn't change the school week",
+        "presetGulf": "Sun–Thu",
+        "presetWestern": "Mon–Fri",
+        "unset": "This school has no week set, so streaks and teacher analytics assume Monday–Friday. If the school teaches Sunday–Thursday, students lose their streak for working every school day.",
+        "help": "Used by student streaks and by \"active in the last 5 school days\" in teacher analytics.",
+        "days": {"1": "Mon", "2": "Tue", "3": "Wed", "4": "Thu", "5": "Fri", "6": "Sat", "7": "Sun"}
+      },
       "program": {
         "heading": "Curriculum",
         "label": "Programme for this school",

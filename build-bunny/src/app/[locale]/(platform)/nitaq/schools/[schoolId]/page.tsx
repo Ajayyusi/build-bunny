@@ -22,6 +22,7 @@ import {
 
 import { FeatureFlags } from "./_components/FeatureFlags";
 import { ProgramPicker } from "./_components/ProgramPicker";
+import { SchoolWeekPicker } from "./_components/SchoolWeekPicker";
 
 interface Props {
   params: Promise<{ locale: string; schoolId: string }>;
@@ -38,13 +39,14 @@ export default async function SchoolDetailPage({ params }: Props) {
   const { locale, schoolId } = await params;
   setRequestLocale(locale);
   const ctx = await requireRole("SUPER_ADMIN", "NITAQ_ADMIN");
-  const [school, programs, t, tLicence, tFeatures, tProgram] = await Promise.all([
+  const [school, programs, t, tLicence, tFeatures, tProgram, tWeek] = await Promise.all([
     getSchoolDetail(ctx, schoolId),
     listPublishedPrograms(ctx),
     getTranslations("platform.schoolDetail"),
     getTranslations("platform.licence"),
     getTranslations("platform.schools.features"),
     getTranslations("platform.schools.program"),
+    getTranslations("platform.schools.week"),
   ]);
 
   const dateFormat = createDateFormat(locale, { dateStyle: "medium" });
@@ -124,6 +126,18 @@ export default async function SchoolDetailPage({ params }: Props) {
             }))}
             ambiguous={school.programAmbiguous}
           />
+        </CardBody>
+      </Card>
+
+      {/* Which days this school teaches on. Sits with the other per-school
+          settings because it is one: the streak engine and teacher analytics
+          both read it, and until now nothing could write it. */}
+      <Card>
+        <CardHeader>
+          <CardTitle>{tWeek("heading")}</CardTitle>
+        </CardHeader>
+        <CardBody>
+          <SchoolWeekPicker schoolId={school.id} current={school.schoolWeek} />
         </CardBody>
       </Card>
 

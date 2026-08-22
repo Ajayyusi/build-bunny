@@ -5,6 +5,17 @@ import type { SessionContext } from "@/modules/auth/server/session";
 import { localizedText, type LocalizedText } from "@/modules/curriculum/schemas";
 import { FEATURE_FLAGS, isFeatureEnabled } from "@/modules/shared/features";
 
+/** Mirrors schoolDaysFrom's tolerance: anything malformed reads as unset. */
+function parseWeek(value: unknown): number[] | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const days = (value as { days?: unknown }).days;
+  if (!Array.isArray(days)) return null;
+  const valid = days.filter(
+    (d): d is number => typeof d === "number" && Number.isInteger(d) && d >= 1 && d <= 7,
+  );
+  return valid.length > 0 ? [...new Set(valid)].sort() : null;
+}
+
 /** Programme names are localized JSON; fall back to the slug if malformed. */
 function asText(value: unknown, fallback: string): LocalizedText {
   const parsed = localizedText.safeParse(value);
@@ -97,6 +108,8 @@ export interface SchoolDetail {
    */
   program: { id: string; name: LocalizedText } | null;
   programAmbiguous: boolean;
+  /** ISO weekdays this school teaches on; null = never set (Mon–Fri assumed). */
+  schoolWeek: number[] | null;
 }
 
 /** Published programmes, for the school programme picker. */
@@ -129,6 +142,7 @@ export async function getSchoolDetail(
       timezone: true,
       createdAt: true,
       features: true,
+      weekStructure: true,
       licences: { orderBy: { expiresAt: "desc" } },
       users: {
         where: { role: "SCHOOL_ADMIN" },
@@ -170,6 +184,7 @@ export async function getSchoolDetail(
     admins: school.users,
     program: only ? { id: only.id, name: asText(only.name, only.slug) } : null,
     programAmbiguous: enabled.length > 1,
+    schoolWeek: parseWeek(school.weekStructure),
   };
 }
 

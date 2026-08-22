@@ -235,6 +235,60 @@ export async function setSchoolProgram(
   });
 }
 
+/** ISO weekdays: 1 = Monday … 7 = Sunday. */
+const ISO_WEEKDAYS = [1, 2, 3, 4, 5, 6, 7];
+
+/**
+ * Which days of the week this school actually teaches on.
+ *
+ * `School.weekStructure` had three production readers — the streak engine
+ * and two teacher-analytics paths — and no writer anywhere. Every school
+ * therefore fell back to Mon–Fri.
+ *
+ * That default is wrong for the market this product is sold into. The Gulf
+ * school week is Sunday–Thursday, and the schema's own default timezone is
+ * Asia/Dubai. With Mon–Fri assumed, a child who works every single school
+ * day still loses their streak — Monday looks back to Friday, which for a
+ * Sun–Thu school has no activity — and their Sunday work is discarded
+ * entirely. Teacher analytics ("active in the last 5 school days") misread
+ * the same calendar.
+ *
+ * Stored as `{ days: number[] }` to match the parser (schoolDaysFrom), which
+ * already tolerates malformed input by falling back rather than throwing.
+ */
+export async function setSchoolWeek(
+  ctx: SessionContext,
+  schoolId: string,
+  days: number[],
+): Promise<void> {
+  requirePlatform(ctx);
+  const school = await db.school.findUnique({
+    where: { id: schoolId },
+    select: { id: true, weekStructure: true },
+  });
+  if (!school) throw new NotFoundError("School not found");
+
+  const valid = [...new Set(days)].filter((day) => ISO_WEEKDAYS.includes(day)).sort();
+  // An empty week would mean "no day counts", which silently freezes every
+  // streak in the school — refuse it rather than store a shape the parser
+  // would quietly discard anyway.
+  if (valid.length === 0) throw new ConflictError("A school week needs at least one day");
+
+  await db.school.update({
+    where: { id: schoolId },
+    data: { weekStructure: { days: valid } },
+  });
+  await audit({
+    action: AUDIT.schools.updated,
+    actorUserId: ctx.userId,
+    actorRole: ctx.role,
+    schoolId,
+    targetType: "school",
+    targetId: schoolId,
+    meta: { weekFrom: school.weekStructure, weekTo: { days: valid } },
+  });
+}
+
 export async function setSchoolActive(
   ctx: SessionContext,
   schoolId: string,

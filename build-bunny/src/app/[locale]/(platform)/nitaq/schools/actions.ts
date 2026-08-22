@@ -8,6 +8,7 @@ import {
   setSchoolActive,
   setSchoolFeatureFlag,
   setSchoolProgram,
+  setSchoolWeek,
   type CreateSchoolResult,
 } from "@/modules/schools/server/platform-management";
 
@@ -84,6 +85,18 @@ const programInput = z.object({
     .transform((value) => (value === "" ? null : value))
     .nullable(),
 });
+
+const weekInput = z.object({
+  schoolId: z.string().min(1),
+  // ISO weekdays, 1 = Monday … 7 = Sunday.
+  days: z.array(z.number().int().min(1).max(7)).min(1).max(7),
+});
+
+export async function setSchoolWeekAction(input: unknown): Promise<ActionResult<void>> {
+  return withAuth("school:profile:write", weekInput, (ctx, { schoolId, days }) =>
+    setSchoolWeek(ctx, schoolId, days),
+  )(input);
+}
 
 export async function setSchoolProgramAction(input: unknown): Promise<ActionResult<void>> {
   return withAuth("school:profile:write", programInput, (ctx, { schoolId, programId }) =>
