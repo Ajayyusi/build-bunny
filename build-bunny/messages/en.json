@@ -823,6 +823,7 @@
         "imports": "Student imports",
         "certificates": "Certificates",
         "reports": "Reports",
+        "activity": "Activity",
         "privacy": "Privacy"
       },
       "manageHeading": "Manage your school",
@@ -1068,6 +1069,12 @@
         "certificatesTitle": "Certificates issued",
         "certificatesHint": "Every certificate issued to a student at this school.",
         "certificatesCta": "Download certificates (CSV)"
+      },
+      "activityPage": {
+        "title": "Activity log",
+        "subtitle": "Who did what in this school — account changes, imports, resets and erasures.",
+        "emptyTitle": "Nothing recorded yet",
+        "emptyBody": "Actions taken in your school will appear here."
       },
       "privacyPage": {
         "title": "Privacy",
