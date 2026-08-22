@@ -17,6 +17,7 @@ import { BunnyMascot, Button, cn, useReducedMotion } from "@/ui";
 import { GroupScene } from "./GroupScene";
 import { HintDrawer } from "./shared/HintDrawer";
 import { SuccessOverlay } from "./shared/SuccessOverlay";
+import { useDraftAutosave } from "./shared/useDraftAutosave";
 import { useHints } from "./shared/useHints";
 import styles from "./teach.module.css";
 
@@ -53,7 +54,46 @@ interface Marker {
   color: number;
 }
 
-export function GroupPlayer({ intro, payload, revealHintAction }: ActivityPlayerProps) {
+/**
+ * Rebuild a saved board, keeping only what this level can still accept.
+ * A draft is the child's own work but still untrusted input from a past
+ * session, so anything malformed degrades to an empty board rather than
+ * throwing the player away on load.
+ */
+function restoreDraft(draft: unknown, data: GroupActivityPayload) {
+  const empty = { seed: [] as Marker[], excluded: new Set<string>() };
+  if (draft === null || typeof draft !== "object") return empty;
+  const source = draft as { seed?: unknown; excluded?: unknown };
+
+  const seed: Marker[] = Array.isArray(source.seed)
+    ? source.seed
+        .filter(
+          (m): m is { size: number; color: number } =>
+            typeof m === "object" &&
+            m !== null &&
+            typeof (m as { size?: unknown }).size === "number" &&
+            typeof (m as { color?: unknown }).color === "number",
+        )
+        .slice(0, data.markers.max)
+        .map((m) => ({ size: snap(m.size), color: snap(m.color) }))
+    : [];
+
+  const knownIds = new Set(data.specimens.map((specimen) => specimen.id));
+  const excluded = new Set<string>(
+    Array.isArray(source.excluded)
+      ? source.excluded.filter((id): id is string => typeof id === "string" && knownIds.has(id))
+      : [],
+  );
+  return { seed, excluded };
+}
+
+export function GroupPlayer({
+  intro,
+  payload,
+  draft,
+  revealHintAction,
+  saveDraftAction,
+}: ActivityPlayerProps) {
   // PATTERN_RECOGNITION levels had no hint drawer either — same fix as
   // TeachPlayer: authored hints were unreachable from the player.
   const hints = useHints(intro.levelId, intro.hintsUsedTiers, revealHintAction);
@@ -67,12 +107,14 @@ export function GroupPlayer({ intro, payload, revealHintAction }: ActivityPlayer
   const beats = data.walkthrough ?? null;
   const stepCount = beats?.length ?? 4;
 
+  const restored = useMemo(() => restoreDraft(draft, data), [draft, data]);
+
   const [step, setStep] = useState(1);
-  const [seed, setSeed] = useState<Marker[]>([]);
+  const [seed, setSeed] = useState<Marker[]>(restored.seed);
   /** What the board shows: the seed, or the training run's current state. */
-  const [display, setDisplay] = useState<Marker[]>([]);
+  const [display, setDisplay] = useState<Marker[]>(restored.seed);
   const [selected, setSelected] = useState<number | null>(null);
-  const [excluded, setExcluded] = useState<Set<string>>(new Set());
+  const [excluded, setExcluded] = useState<Set<string>>(restored.excluded);
   const [running, setRunning] = useState(false);
   const [hasRun, setHasRun] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -107,6 +149,17 @@ export function GroupPlayer({ intro, payload, revealHintAction }: ActivityPlayer
   );
 
   const frozen = result?.verdict === "PASS";
+
+  // Placing and nudging markers is the work here; losing it to a sleeping
+  // tablet costs the child the whole level. Stops once they have passed —
+  // a finished attempt should not keep rewriting the draft behind the
+  // celebration screen.
+  useDraftAutosave(
+    intro.levelId,
+    { seed, excluded: [...excluded] },
+    saveDraftAction,
+    !frozen,
+  );
   const scorePct = score === null ? null : Math.round(Math.max(0, score) * 100);
   const needPct = Math.round(data.objective.minTightness * 100);
   const countOk = seed.length >= data.markers.min && seed.length <= data.markers.max;

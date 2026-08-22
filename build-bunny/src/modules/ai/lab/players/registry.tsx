@@ -28,6 +28,13 @@ export interface AiSimWidgetPlayerProps {
   reducedMotion: boolean;
   /** Called whenever the child's work changes; `ready` gates the wrapper's Submit button. */
   onWorkChange: (work: unknown, ready: boolean) => void;
+  /**
+   * A previously autosaved snapshot in the SAME shape this widget reports
+   * through onWorkChange, or null. Untrusted: it comes from a past session
+   * and must be validated before use — a malformed draft has to degrade to
+   * the widget's normal starting state, never break the level.
+   */
+  initialWork?: unknown;
 }
 
 const BoundaryBuilder = dynamic(

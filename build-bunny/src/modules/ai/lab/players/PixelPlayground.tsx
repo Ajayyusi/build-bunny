@@ -16,6 +16,7 @@ import type {
 } from "../pixel-playground/types";
 import { resolveLocalized } from "./format";
 import type { AiSimWidgetPlayerProps } from "./registry";
+import { restoreRounds } from "./restore-work";
 import { useStableCallback } from "./useStableCallback";
 import styles from "./widgets.module.css";
 
@@ -204,6 +205,7 @@ export function PixelPlayground({
   disabled,
   reducedMotion,
   onWorkChange,
+  initialWork,
 }: AiSimWidgetPlayerProps) {
   const config = rawConfig as StudentPixelPlaygroundConfig;
   const t = useTranslations("student.play.aiSim.pixelPlayground");
@@ -236,7 +238,15 @@ export function PixelPlayground({
   const resetKernel = () => setKernel(EDGE_DETECTION_KERNEL.map((row) => [...row]));
 
   // ── Mystery rounds state ─────────────────────────────────────────────
-  const [rounds, setRounds] = useState<Record<string, string>>({});
+  // The mystery-round answers ARE the work here — restore them, keeping only
+  // rounds and images this level still has.
+  const [rounds, setRounds] = useState<Record<string, string>>(() =>
+    restoreRounds(
+      initialWork,
+      config.rounds.map((round) => round.id),
+      config.images.map((image) => image.id),
+    ),
+  );
   const allAnswered = config.rounds.every((round) => rounds[round.id]);
 
   useEffect(() => {

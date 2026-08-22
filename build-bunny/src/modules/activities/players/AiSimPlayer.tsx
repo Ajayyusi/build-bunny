@@ -12,6 +12,7 @@ import { Badge, Button, cn, useReducedMotion } from "@/ui";
 
 import { HintDrawer, type HintTierState } from "./shared/HintDrawer";
 import { IntroOverlay } from "./shared/IntroOverlay";
+import { useDraftAutosave } from "./shared/useDraftAutosave";
 import { ResultBanner } from "./shared/ResultBanner";
 import { SuccessOverlay } from "./shared/SuccessOverlay";
 import type { ActivityPlayerProps, AiSimActivityPayload, AttemptResponse } from "../types";
@@ -39,7 +40,13 @@ interface Submission {
   saveFailed: boolean;
 }
 
-export function AiSimPlayer({ intro, payload: rawPayload, revealHintAction }: ActivityPlayerProps) {
+export function AiSimPlayer({
+  intro,
+  payload: rawPayload,
+  draft,
+  revealHintAction,
+  saveDraftAction,
+}: ActivityPlayerProps) {
   // Registry dispatch guarantees this matches intro.activityType.
   const payload = rawPayload as AiSimActivityPayload;
   const widgetId = payload.widget.widgetId;
@@ -79,6 +86,13 @@ export function AiSimPlayer({ intro, payload: rawPayload, revealHintAction }: Ac
   const editStartRef = useRef<number>(Date.now());
 
   const locked = phase === "result" || submitting;
+
+  // The widget owns the interaction, but this wrapper already holds the
+  // child's work — so autosave belongs here, once, rather than in each
+  // widget. Fitting a line or answering mystery rounds is real effort to
+  // lose to a tablet that sleeps. Stops at the result, where the attempt is
+  // already recorded.
+  useDraftAutosave(intro.levelId, work, saveDraftAction, phase !== "result");
 
   // Stable identity across renders (empty deps, functional setState) — the
   // widget below reports on every drag tick, so a fresh identity per render
@@ -264,6 +278,7 @@ export function AiSimPlayer({ intro, payload: rawPayload, revealHintAction }: Ac
             disabled={locked}
             reducedMotion={reducedMotion}
             onWorkChange={handleWorkChange}
+            initialWork={draft}
           />
 
           {showFailure ? (

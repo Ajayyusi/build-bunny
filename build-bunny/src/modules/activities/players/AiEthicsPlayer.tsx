@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 
 import { Link } from "@/i18n/navigation";
@@ -8,6 +8,7 @@ import { Button, cn, useReducedMotion } from "@/ui";
 
 import { HintDrawer, type HintTierState } from "./shared/HintDrawer";
 import { IntroOverlay } from "./shared/IntroOverlay";
+import { useDraftAutosave } from "./shared/useDraftAutosave";
 import styles from "./shared/player.module.css";
 import { SuccessOverlay } from "./shared/SuccessOverlay";
 import type {
@@ -39,22 +40,53 @@ interface Submission {
   saveFailed: boolean;
 }
 
+/**
+ * Rebuild a branching story in progress: which scene the child had reached
+ * and the choices behind them. Only choices this level still contains are
+ * kept, so an edited or stale draft restarts the story rather than
+ * stranding a child on a scene that no longer exists.
+ */
+function restoreDraft(
+  draft: unknown,
+  payload: AiEthicsActivityPayload,
+): { sceneIndex: number; path: { sceneId: string; choiceId: string }[] } {
+  const empty = { sceneIndex: 0, path: [] };
+  if (draft === null || typeof draft !== "object") return empty;
+  const source = draft as { path?: unknown };
+  if (!Array.isArray(source.path)) return empty;
+
+  const path: { sceneId: string; choiceId: string }[] = [];
+  for (const step of source.path) {
+    if (typeof step !== "object" || step === null) break;
+    const { sceneId, choiceId } = step as { sceneId?: unknown; choiceId?: unknown };
+    if (typeof sceneId !== "string" || typeof choiceId !== "string") break;
+    const scene = payload.scenes.find((candidate) => candidate.id === sceneId);
+    if (!scene || !scene.choices.some((choice) => choice.id === choiceId)) break;
+    path.push({ sceneId, choiceId });
+  }
+  // Resume on the scene AFTER the last valid answer, clamped inside the story.
+  return { sceneIndex: Math.min(path.length, payload.scenes.length - 1), path };
+}
+
 export function AiEthicsPlayer({
   intro,
   payload: rawPayload,
+  draft,
   revealHintAction,
+  saveDraftAction,
 }: ActivityPlayerProps) {
   // Registry dispatch guarantees this matches intro.activityType.
   const payload = rawPayload as AiEthicsActivityPayload;
+  const restored = useMemo(() => restoreDraft(draft, payload), [draft, payload]);
 
   const t = useTranslations("student.play");
   const tEthics = useTranslations("student.play.aiEthics");
   const locale = useLocale();
 
   const [phase, setPhase] = useState<Phase>("intro");
-  const [sceneIndex, setSceneIndex] = useState(0);
+  const [sceneIndex, setSceneIndex] = useState(restored.sceneIndex);
   const [chosenChoiceId, setChosenChoiceId] = useState<string | null>(null);
-  const [path, setPath] = useState<{ sceneId: string; choiceId: string }[]>([]);
+  const [path, setPath] = useState<{ sceneId: string; choiceId: string }[]>(restored.path);
   const [submission, setSubmission] = useState<Submission | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [starsBest, setStarsBest] = useState(intro.starsBest);
@@ -85,6 +117,12 @@ export function AiEthicsPlayer({
 
   const locked = phase === "result" || submitting;
   const scene = payload.scenes[sceneIndex];
+
+  // A branching story is long, and a child part-way through one has real
+  // work behind them. Only the path is stored — the scene to resume on is
+  // derived from it, so the two can never disagree. Stops at the result:
+  // the attempt is recorded and the draft should stop moving.
+  useDraftAutosave(intro.levelId, { path }, saveDraftAction, phase !== "result");
 
   const choose = (choiceId: string) => {
     if (locked || chosenChoiceId) return;
