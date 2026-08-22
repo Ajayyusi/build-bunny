@@ -10,6 +10,7 @@ import { sumSquaredError } from "../math/sumSquaredError";
 import type { TrendLineConfig, TrendLineWork } from "../trend-line/types";
 import { resolveLocalized } from "./format";
 import type { AiSimWidgetPlayerProps } from "./registry";
+import { restoreLine } from "./restore-work";
 import { useStableCallback } from "./useStableCallback";
 import styles from "./widgets.module.css";
 
@@ -99,7 +100,14 @@ function round1(value: number): number {
 const INTERCEPT_STEP_FRACTION = 1 / 40;
 const SLOPE_STEP_FRACTION = 1 / 20;
 
-export function TrendLine({ config: rawConfig, locale, disabled, reducedMotion, onWorkChange }: AiSimWidgetPlayerProps) {
+export function TrendLine({
+  config: rawConfig,
+  locale,
+  disabled,
+  reducedMotion,
+  onWorkChange,
+  initialWork,
+}: AiSimWidgetPlayerProps) {
   const config = rawConfig as TrendLineConfig;
   const t = useTranslations("student.play.aiSim.trendLine");
 
@@ -138,10 +146,13 @@ export function TrendLine({ config: rawConfig, locale, disabled, reducedMotion, 
     () => config.points.reduce((sum, p) => sum + p.y, 0) / config.points.length,
     [config.points],
   );
-  const [line, setLine] = useState<{ slope: number; intercept: number }>({
-    slope: 0,
-    intercept: initialIntercept,
-  });
+  // Restore the dragged line if one was autosaved. Only the line: subPhase
+  // stays at "fit" on purpose, so a resuming child re-confirms their line
+  // before predicting rather than being dropped past a step they may not
+  // remember finishing.
+  const [line, setLine] = useState<{ slope: number; intercept: number }>(
+    () => restoreLine(initialWork) ?? { slope: 0, intercept: initialIntercept },
+  );
   const [computerRevealed, setComputerRevealed] = useState(false);
   const [subPhase, setSubPhase] = useState<"fit" | "predict">("fit");
   const [prediction, setPrediction] = useState<number | null>(null);

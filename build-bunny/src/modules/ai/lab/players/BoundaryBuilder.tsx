@@ -11,6 +11,7 @@ import type { Line } from "../math/types";
 import type { BoundaryBuilderConfig, BoundaryBuilderWork } from "../boundary-builder/types";
 import { resolveLocalized } from "./format";
 import type { AiSimWidgetPlayerProps } from "./registry";
+import { restoreLine } from "./restore-work";
 import { useStableCallback } from "./useStableCallback";
 import styles from "./widgets.module.css";
 
@@ -106,7 +107,14 @@ const HIT_R = 23;
 const INTERCEPT_STEP_FRACTION = 1 / 40;
 const SLOPE_STEP_FRACTION = 1 / 20;
 
-export function BoundaryBuilder({ config: rawConfig, locale, disabled, reducedMotion, onWorkChange }: AiSimWidgetPlayerProps) {
+export function BoundaryBuilder({
+  config: rawConfig,
+  locale,
+  disabled,
+  reducedMotion,
+  onWorkChange,
+  initialWork,
+}: AiSimWidgetPlayerProps) {
   const config = rawConfig as BoundaryBuilderConfig;
   const t = useTranslations("student.play.aiSim.boundaryBuilder");
 
@@ -123,10 +131,9 @@ export function BoundaryBuilder({ config: rawConfig, locale, disabled, reducedMo
     () => config.points.reduce((sum, p) => sum + p.y, 0) / config.points.length,
     [config.points],
   );
-  const [line, setLine] = useState<{ slope: number; intercept: number }>({
-    slope: 0,
-    intercept: initialIntercept,
-  });
+  const [line, setLine] = useState<{ slope: number; intercept: number }>(
+    () => restoreLine(initialWork) ?? { slope: 0, intercept: initialIntercept },
+  );
   const [computerRevealed, setComputerRevealed] = useState(false);
 
   const { errors, misclassifiedIds } = useMemo(
