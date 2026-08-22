@@ -212,6 +212,27 @@ export function gradeAiClassification(
   const passed = safety
     ? dangerousMisses === 0 && falseAlarms <= safety.maxOtherErrors
     : correct === payload.testSet.length;
+
+  /**
+   * PARTIAL, for the one case where it means what it means everywhere else.
+   *
+   * The engine defines PARTIAL as "every CORE check clean, at least one
+   * SECONDARY check failed" (aggregateVerdict). A safetyFirst level has
+   * exactly that shape: never misclassifying the dangerous label is the core
+   * rule, and maxOtherErrors is a budgeted allowance. A child with zero
+   * dangerous misses who was merely over-cautious has learned the actual
+   * lesson — which-mistake-is-worse — and reading identically to a child who
+   * called a dangerous one safe teaches them nothing.
+   *
+   * Deliberately NOT extended to plain levels, tempting as "3 of 4" looks.
+   * submit.ts treats PARTIAL as completed and unlocks the next level, so a
+   * near miss there would advance a child whose model is still wrong. On a
+   * safetyFirst level the core rule really was satisfied; on a plain one it
+   * was not, and the honest verdict is FAIL with the count named in the
+   * feedback (which it already is).
+   */
+  const partial =
+    !passed && safety !== null && dangerousMisses === 0 && falseAlarms > safety.maxOtherErrors;
   // The 3rd star is the budget, and until now it was a lie: this engine
   // returned `qualityPassed: passed`, so ANY pass scored 3 stars, while the
   // comment below claimed the shared maxBlocks machinery was rewarding
@@ -221,7 +242,7 @@ export function gradeAiClassification(
   const withinBudget = budget === undefined || examples.length <= budget;
 
   return {
-    verdict: passed ? "PASS" : "FAIL",
+    verdict: passed ? "PASS" : partial ? "PARTIAL" : "FAIL",
     qualityPassed: passed && withinBudget,
     // Naming WHICH specimens the model got wrong is the whole feedback
     // loop: the student goes back and teaches an example near those.

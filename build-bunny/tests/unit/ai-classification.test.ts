@@ -269,3 +269,76 @@ describe("the missed specimens reach the player", () => {
     }
   });
 });
+
+describe("safetyFirst verdicts", () => {
+  /**
+   * A safetyFirst level has the same shape as every other engine check: the
+   * "never misclassify this label" rule is CORE, and maxOtherErrors is a
+   * budgeted SECONDARY allowance. So over-caution must not read like danger.
+   *
+   * Truth here is colour again (colour < 0.5 → safe). The dangerous label is
+   * "negative" — calling an unsafe berry safe is the mistake that must never
+   * happen; being too cautious about safe ones is merely budgeted.
+   */
+  const safetyPayload = {
+    ...payload,
+    testSet: [
+      { id: "s1", size: 0.8, color: 0.15 }, // truly safe
+      { id: "s2", size: 0.7, color: 0.2 }, // truly safe
+      { id: "s3", size: 0.2, color: 0.85 }, // truly unsafe
+    ],
+    // minPerLabel 1 so a deliberately lopsided teaching set is reachable —
+    // at 2 the only valid sets on this 4-berry pool already classify well,
+    // and the over-caution case could not be constructed at all.
+    minPerLabel: 1,
+    passRule: {
+      kind: "safetyFirst" as const,
+      neverMisclassify: "negative" as const,
+      maxOtherErrors: 0,
+    },
+  };
+  const safetySnapshot = { payload: safetyPayload } as unknown as Parameters<
+    typeof gradeAiClassification
+  >[0];
+  const teachSafety = (...ids: [string, "positive" | "negative"][]) => ({
+    examples: ids.map(([id, label]) => {
+      const found = safetyPayload.pool.find((x) => x.id === id)!;
+      return { ...found, label };
+    }),
+  });
+
+  it("is PARTIAL when nothing dangerous was missed but the child was over-cautious", () => {
+    // Teaching only red/unsafe-ish examples makes the model call safe
+    // berries unsafe: false alarms, zero dangerous misses.
+    // Teach one safe berry and both red ones: the model then calls the big
+    // blue probe unsafe (a false alarm) while never calling an unsafe one safe.
+    const result = gradeAiClassification(
+      safetySnapshot,
+      teachSafety(["a", "positive"], ["c", "negative"], ["d", "negative"]),
+    );
+    expect(result.verdict).toBe("PARTIAL");
+    const data = result.primaryFeedback?.data as { dangerousMisses: number } | undefined;
+    expect(data?.dangerousMisses).toBe(0);
+    expect(result.primaryFeedback?.code).toBe("tooManyFalseAlarms");
+  });
+
+  it("is FAIL when a dangerous one was called safe", () => {
+    // The opposite mistake: everything taught as safe, so the unsafe probe
+    // is misclassified. This is the core rule broken — never PARTIAL.
+    // Mislabel the small RED berry as safe: the unsafe probe now sits
+    // nearest a positive example, so the model calls it safe.
+    const result = gradeAiClassification(
+      safetySnapshot,
+      teachSafety(["c", "positive"], ["a", "negative"]),
+    );
+    expect(result.verdict).toBe("FAIL");
+    expect(result.primaryFeedback?.code).toBe("calledADangerousOneSafe");
+  });
+
+  it("keeps a plain near miss at FAIL, because PARTIAL would unlock the next level", () => {
+    // No safety rule: one wrong probe means the model is still wrong, and
+    // submit.ts treats PARTIAL as completed. Progress must be earned.
+    const result = gradeAiClassification(snapshot, teach(["a", "positive"], ["b", "positive"]));
+    expect(result.verdict).toBe("FAIL");
+  });
+});
