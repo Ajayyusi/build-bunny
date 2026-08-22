@@ -104,6 +104,7 @@
       "achievements": "Achievements",
       "profile": "My profile",
       "menu": "Open menu",
+      "unreadFeedback": "{count, plural, one {# unread message from your teacher} other {# unread messages from your teacher}}",
       "sectionMain": "Learn",
       "sectionAccount": "Account"
     },

@@ -4,7 +4,10 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { requireRole } from "@/modules/auth/server/session";
 import { isFeatureEnabled } from "@/modules/shared/features";
-import { getMyStudentSnapshot } from "@/modules/students/server/queries";
+import {
+  getMyStudentSnapshot,
+  getMyUnreadFeedbackCount,
+} from "@/modules/students/server/queries";
 import { Avatar, BunnyMascot, SkipLink, SoundToggle } from "@/ui";
 
 import {
@@ -37,8 +40,9 @@ export default async function StudentShellLayout({ children, params }: Props) {
   const { locale } = await params;
   setRequestLocale(locale);
   const ctx = await requireRole("STUDENT");
-  const [snapshot, t, tCommon] = await Promise.all([
+  const [snapshot, unreadFeedback, t, tCommon] = await Promise.all([
     getMyStudentSnapshot(ctx),
+    getMyUnreadFeedbackCount(ctx),
     getTranslations("student"),
     getTranslations("common"),
   ]);
@@ -77,7 +81,15 @@ export default async function StudentShellLayout({ children, params }: Props) {
       </div>
 
       <nav aria-label={t("nav.label")} className="flex flex-col gap-1">
-        <SidebarNavItem href="/home" icon={<HomeIcon />}>
+        {/* The inbox lives on Home, so the unread count belongs on the row
+            that leads there — a message a child never notices is one their
+            teacher may as well not have written. */}
+        <SidebarNavItem
+          href="/home"
+          icon={<HomeIcon />}
+          badge={unreadFeedback}
+          badgeLabel={t("nav.unreadFeedback", { count: unreadFeedback })}
+        >
           {t("nav.home")}
         </SidebarNavItem>
         {adventureEnabled ? (

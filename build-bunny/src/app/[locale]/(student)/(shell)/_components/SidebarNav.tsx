@@ -9,6 +9,10 @@ interface SidebarNavItemProps {
   href: string;
   icon: ReactNode;
   children: ReactNode;
+  /** Unread count; hidden at 0. Announced in words, not just as a number. */
+  badge?: number;
+  /** Localized description of what the badge counts, for screen readers. */
+  badgeLabel?: string;
 }
 
 /**
@@ -19,7 +23,13 @@ interface SidebarNavItemProps {
  * 44px tall — the same touch target the old top-nav used, kept because
  * the primary audience is 8-12 year olds on shared classroom hardware.
  */
-export function SidebarNavItem({ href, icon, children }: SidebarNavItemProps) {
+export function SidebarNavItem({
+  href,
+  icon,
+  children,
+  badge = 0,
+  badgeLabel,
+}: SidebarNavItemProps) {
   const pathname = usePathname();
   const active = pathname === href || pathname.startsWith(`${href}/`);
 
@@ -43,6 +53,20 @@ export function SidebarNavItem({ href, icon, children }: SidebarNavItemProps) {
         {icon}
       </span>
       <span className="truncate">{children}</span>
+      {badge > 0 ? (
+        <span
+          className={cn(
+            "ms-auto grid min-w-5 shrink-0 place-items-center rounded-full px-1.5 py-0.5 text-xs font-bold tabular-nums",
+            active ? "bg-on-brand/20 text-on-brand" : "bg-brand text-on-brand",
+          )}
+        >
+          {/* The digit alone tells a screen-reader user nothing about what
+              it counts, so the meaning is in the label and the digit is
+              decorative. */}
+          <span aria-hidden="true">{badge}</span>
+          <span className="sr-only">{badgeLabel ?? String(badge)}</span>
+        </span>
+      ) : null}
     </Link>
   );
 }
