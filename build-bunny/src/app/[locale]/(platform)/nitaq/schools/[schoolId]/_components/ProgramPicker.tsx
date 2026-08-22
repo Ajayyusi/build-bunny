@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 
-import { Button, Select, useToast } from "@/ui";
+import { Button, Select, useToast, runAction } from "@/ui";
 
 import { setSchoolProgramAction } from "../../actions";
 
@@ -41,7 +41,7 @@ export function ProgramPicker({ schoolId, current, programs, ambiguous }: Props)
 
   const save = () => {
     startTransition(async () => {
-      const result = await setSchoolProgramAction({ schoolId, programId: value });
+      const result = await runAction(() => setSchoolProgramAction({ schoolId, programId: value }));
       if (result.ok) {
         toast({ title: t("saved"), variant: "positive" });
         router.refresh();

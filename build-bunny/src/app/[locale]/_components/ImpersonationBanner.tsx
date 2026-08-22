@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 
-import { Button } from "@/ui";
+import { Button, runAction } from "@/ui";
 
 import { stopImpersonatingAction } from "./impersonation-actions";
 import { localePath } from "./locale-path";
@@ -21,7 +21,7 @@ export function ImpersonationBanner() {
   async function handleStop() {
     setLoading(true);
     try {
-      const result = await stopImpersonatingAction();
+      const result = await runAction(() => stopImpersonatingAction());
       if (result.ok) {
         // Hard navigation: the new Set-Cookie only takes effect on the next request.
         window.location.assign(localePath(locale, result.data.redirectTo));

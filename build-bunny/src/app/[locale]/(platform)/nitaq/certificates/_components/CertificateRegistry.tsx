@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 
-import { Badge, Button, Dialog, useToast } from "@/ui";
+import { Badge, Button, Dialog, useToast, runAction } from "@/ui";
 
 import { revokeCertificateAction } from "../actions";
 
@@ -46,10 +46,10 @@ export function CertificateRegistry({ rows }: { rows: CertificateRowVM[] }) {
   const confirm = () => {
     if (target === null || reason.trim().length < 3) return;
     startTransition(async () => {
-      const result = await revokeCertificateAction({
+      const result = await runAction(() => revokeCertificateAction({
         certificateId: target.id,
         reason: reason.trim(),
-      });
+      }));
       if (result.ok) {
         toast({
           title: result.data.alreadyRevoked ? t("alreadyRevoked") : t("revokeDone"),

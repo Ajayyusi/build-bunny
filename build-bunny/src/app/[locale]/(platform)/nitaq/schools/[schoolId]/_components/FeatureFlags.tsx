@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 
 import { FEATURE_FLAGS } from "@/modules/shared/features";
-import { Button, useToast } from "@/ui";
+import { Button, useToast, runAction } from "@/ui";
 
 import { setSchoolFeatureFlagAction } from "../../actions";
 
@@ -38,7 +38,7 @@ export function FeatureFlags({ schoolId, features }: Props) {
     setBusyKey(key);
     setState((current) => ({ ...current, [key]: next }));
     startTransition(async () => {
-      const result = await setSchoolFeatureFlagAction({ schoolId, key, enabled: next });
+      const result = await runAction(() => setSchoolFeatureFlagAction({ schoolId, key, enabled: next }));
       if (result.ok) {
         toast({ title: next ? t("enabled") : t("disabled"), variant: "positive" });
         router.refresh();

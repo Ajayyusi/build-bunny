@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 
-import { Button, useToast } from "@/ui";
+import { Button, useToast, runAction } from "@/ui";
 
 import { publishWorldAction } from "../actions";
 
@@ -37,7 +37,7 @@ export function PublishWorldButton({ worldId, worldName, pendingCount }: Props) 
   const publish = () => {
     setFailures([]);
     startTransition(async () => {
-      const result = await publishWorldAction({ worldId });
+      const result = await runAction(() => publishWorldAction({ worldId }));
       if (!result.ok) {
         toast({ title: t("failed"), variant: "danger" });
         return;
