@@ -54,16 +54,35 @@ export async function wipeDatabase(): Promise<void> {
 // embedded in student usernames, which must satisfy the username validator).
 let schoolCounter = 0;
 
-export async function createTestSchool(prefix: string) {
+/**
+ * A school WITH an active licence, because that is the only kind that
+ * exists in production — createSchoolWithAdmin always writes one, and a
+ * school with no licence can neither be accessed nor provisioned. A
+ * licence-less fixture would test a state the product cannot reach.
+ *
+ * `seats` is generous by default and overridable so seat-limit behaviour
+ * stays testable.
+ */
+export async function createTestSchool(prefix: string, opts: { seats?: number } = {}) {
   schoolCounter += 1;
   const unique = `${prefix.toLowerCase()}${schoolCounter}${randomUUID().slice(0, 8)}`;
-  return db.school.create({
+  const school = await db.school.create({
     data: {
       name: `${prefix} Test School`,
       slug: unique,
       code: unique,
     },
   });
+  await db.licence.create({
+    data: {
+      schoolId: school.id,
+      seats: opts.seats ?? 1000,
+      startsAt: new Date(Date.now() - 24 * 60 * 60 * 1000),
+      expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+      status: "ACTIVE",
+    },
+  });
+  return school;
 }
 
 // ── M2 curriculum builders (direct prisma writes — the import/publish
