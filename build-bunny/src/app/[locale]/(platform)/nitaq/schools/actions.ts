@@ -9,6 +9,7 @@ import {
   setSchoolFeatureFlag,
   setSchoolProgram,
   setSchoolWeek,
+  updateLicence,
   type CreateSchoolResult,
 } from "@/modules/schools/server/platform-management";
 
@@ -85,6 +86,35 @@ const programInput = z.object({
     .transform((value) => (value === "" ? null : value))
     .nullable(),
 });
+
+const licenceInput = z
+  .object({
+    licenceId: z.string().min(1),
+    seats: z.coerce.number().int().min(1).max(100000),
+    startsAt: z.coerce.date(),
+    expiresAt: z.coerce.date(),
+    // 0 is meaningful: "cut them off the day it expires, no grace".
+    graceDays: z.coerce.number().int().min(0).max(365),
+    status: z.enum(["ACTIVE", "GRACE", "READ_ONLY", "SUSPENDED"]),
+    notes: z
+      .string()
+      .trim()
+      .max(500)
+      .transform((value) => (value === "" ? null : value))
+      .nullable(),
+  })
+  .refine((v) => v.startsAt.getTime() < v.expiresAt.getTime(), {
+    message: "The licence must expire after it starts",
+    path: ["expiresAt"],
+  });
+
+export async function updateLicenceAction(input: unknown): Promise<ActionResult<void>> {
+  // licences:manage, not school:profile:write — this is the commercial
+  // contract, not a school setting, and the catalog already separates them.
+  return withAuth("licences:manage", licenceInput, (ctx, { licenceId, ...rest }) =>
+    updateLicence(ctx, licenceId, rest),
+  )(input);
+}
 
 const weekInput = z.object({
   schoolId: z.string().min(1),

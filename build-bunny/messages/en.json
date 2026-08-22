@@ -1325,7 +1325,15 @@
         "presetWestern": "Mon–Fri",
         "unset": "This school has no week set, so streaks and teacher analytics assume Monday–Friday. If the school teaches Sunday–Thursday, students lose their streak for working every school day.",
         "help": "Used by student streaks and by \"active in the last 5 school days\" in teacher analytics.",
-        "days": {"1": "Mon", "2": "Tue", "3": "Wed", "4": "Thu", "5": "Fri", "6": "Sat", "7": "Sun"}
+        "days": {
+          "1": "Mon",
+          "2": "Tue",
+          "3": "Wed",
+          "4": "Thu",
+          "5": "Fri",
+          "6": "Sat",
+          "7": "Sun"
+        }
       },
       "program": {
         "heading": "Curriculum",
@@ -1437,6 +1445,21 @@
       "revokeDone": "Certificate revoked",
       "alreadyRevoked": "That certificate was already revoked",
       "revokeFailed": "Couldn't revoke that certificate"
+    },
+    "licenceEditor": {
+      "editCta": "Edit licence",
+      "saveCta": "Save licence",
+      "cancelCta": "Cancel",
+      "saved": "Licence updated",
+      "failed": "Couldn't update the licence",
+      "status": "Status",
+      "seats": "Seats",
+      "startsAt": "Starts",
+      "expiresAt": "Expires",
+      "graceDays": "Grace days",
+      "graceHint": "Days of continued access after expiry. 0 cuts access off on the expiry date.",
+      "notes": "Notes",
+      "confirmSuspend": "Suspend {school}? This ends every open session and blocks all access until the licence is restored."
     },
     "licence": {
       "ACTIVE": "Active",
