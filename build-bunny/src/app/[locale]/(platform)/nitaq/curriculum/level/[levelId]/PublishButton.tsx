@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 
 import { useRouter } from "@/i18n/navigation";
 import type { GateResult } from "@/modules/curriculum/server/publish";
-import { Button } from "@/ui";
+import { Button, runAction } from "@/ui";
 
 import { publishLevelAction } from "../../actions";
 
@@ -28,7 +28,7 @@ export function PublishButton({ levelId }: { levelId: string }) {
     setFailedGates(null);
     setPublishedVersion(null);
     try {
-      const result = await publishLevelAction({ levelId });
+      const result = await runAction(() => publishLevelAction({ levelId }));
       if (!result.ok) {
         setError(result.error === "FORBIDDEN" ? t("forbidden") : t("errorGeneric"));
         return;

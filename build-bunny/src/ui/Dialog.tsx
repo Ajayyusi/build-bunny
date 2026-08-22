@@ -33,6 +33,17 @@ export interface DialogProps {
   closeLabel?: string;
   size?: DialogSize;
   className?: string;
+  /**
+   * Blocks Esc and backdrop dismissal, leaving only the explicit footer
+   * actions.
+   *
+   * For dialogs showing something that CANNOT be recovered once closed —
+   * generated passwords are the case this exists for. They are displayed
+   * exactly once and never stored in plaintext, so a stray Esc or a
+   * misplaced click used to destroy the only copy of a whole class's
+   * credentials, with no way to get them back short of resetting again.
+   */
+  dismissible?: boolean;
 }
 
 /**
@@ -49,6 +60,7 @@ export function Dialog({
   closeLabel,
   size = "md",
   className,
+  dismissible = true,
 }: DialogProps) {
   const ref = useRef<HTMLDialogElement>(null);
   const titleId = useId();
@@ -63,14 +75,17 @@ export function Dialog({
     }
   }, [open]);
 
-  // Native close (Esc) fires "close" — mirror it into the open prop.
+  // Native close (Esc) fires "close" — mirror it into the open prop, unless
+  // the caller has said this content must not be lost by accident.
   const handleClose = () => {
+    if (!dismissible) return;
     if (open) onClose();
   };
 
   // Only clicks on the dialog element itself hit the backdrop region;
   // clicks on content land on descendants.
   const handleClick = (event: MouseEvent<HTMLDialogElement>) => {
+    if (!dismissible) return;
     if (event.target === ref.current) onClose();
   };
 
@@ -79,6 +94,12 @@ export function Dialog({
       ref={ref}
       aria-labelledby={titleId}
       onClose={handleClose}
+      // Esc fires "cancel" BEFORE the dialog closes; "close" is too late to
+      // stop it. Preventing the default here is what actually keeps
+      // unrecoverable content on screen.
+      onCancel={(event) => {
+        if (!dismissible) event.preventDefault();
+      }}
       onClick={handleClick}
       className={cn(
         // Preflight zeroes margins, so m-auto restores native centering.

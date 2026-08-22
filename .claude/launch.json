@@ -16,6 +16,12 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["--prefix", "build-bunny", "run", "dev"],
       "port": 3000
+    },
+    {
+      "name": "nitaq-crm-live",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "C:/Users/User/nitaq-crm-live", "run", "dev", "--", "-p", "3005"],
+      "port": 3005
     }
   ]
 }

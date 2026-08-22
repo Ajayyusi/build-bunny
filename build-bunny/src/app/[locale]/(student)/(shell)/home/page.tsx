@@ -9,11 +9,12 @@ import {
 } from "@/modules/learning/server/adventure";
 import { listMyStudentAssignments } from "@/modules/assignments/server/queries";
 import { isFeatureEnabled } from "@/modules/shared/features";
-import { getMyStudentSnapshot } from "@/modules/students/server/queries";
-import { BunnyMascot, CountUp, EmptyState } from "@/ui";
+import { getMyFeedback, getMyStudentSnapshot } from "@/modules/students/server/queries";
+import { BunnyMascot, CountUp, EmptyState, createDateFormat } from "@/ui";
 
 import { themeEmoji } from "../adventure/_components/theme";
 import { AssignmentsCard } from "./_components/AssignmentsCard";
+import { FeedbackInbox } from "./_components/FeedbackInbox";
 import { Onboarding } from "./_components/Onboarding";
 import { WorldCard, type WorldCardVM } from "./_components/WorldCard";
 
@@ -25,11 +26,13 @@ export default async function StudentHomePage({ params }: Props) {
   const { locale } = await params;
   setRequestLocale(locale);
   const ctx = await requireRole("STUDENT");
-  const [snapshot, assignments, t] = await Promise.all([
+  const [snapshot, assignments, feedback, t] = await Promise.all([
     getMyStudentSnapshot(ctx),
     listMyStudentAssignments(ctx),
+    getMyFeedback(ctx),
     getTranslations("student.home"),
   ]);
+  const feedbackDate = createDateFormat(locale, { dateStyle: "medium" });
   const displayName = snapshot?.user.displayName ?? ctx.displayName;
   const adventureEnabled = isFeatureEnabled(
     snapshot?.school.features,
@@ -74,9 +77,23 @@ export default async function StudentHomePage({ params }: Props) {
     <div className="flex flex-col gap-6">
       {/* A student who has never earned XP has never finished a level, so
           this is their first visit — Bunny introduces the place. */}
-      <Onboarding show={(snapshot?.xpTotal ?? 0) === 0} />
+      <Onboarding show={(snapshot?.xpTotal ?? 0) === 0} userId={ctx.userId} />
 
       <AssignmentsCard assignments={assignments} locale={locale} />
+
+      {/* Messages from a teacher sit beside the work they were set — this is
+          the delivery half of a loop that previously only had a sender. */}
+      <FeedbackInbox
+        items={feedback.map((item) => ({
+          id: item.id,
+          body: item.body,
+          teacherName: item.teacherName,
+          levelId: item.levelId,
+          levelTitle: resolveText(item.levelTitle, locale),
+          dateLabel: feedbackDate.format(item.createdAt),
+          read: item.readAt !== null,
+        }))}
+      />
 
       {/* ── Row 1: hero + progress panels ─────────────────────────────── */}
       <div className="grid gap-4 lg:grid-cols-[1fr_20rem]">

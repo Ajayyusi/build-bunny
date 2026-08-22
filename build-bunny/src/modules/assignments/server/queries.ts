@@ -300,6 +300,7 @@ export async function listMyStudentAssignments(ctx: SessionContext): Promise<MyA
       moduleId: row.moduleId,
       levelId: row.levelId,
     })),
+    schoolId,
   );
 
   const allLevelIds = [...new Set([...scopes.values()].flat())];
@@ -384,7 +385,7 @@ export async function getClassAssignmentProgress(
   if (assignments.length === 0) return [];
 
   const studentIds = roster.map((row) => row.userId);
-  const scopes = await resolveLevelIdsForAssignments(assignments);
+  const scopes = await resolveLevelIdsForAssignments(assignments, schoolId);
   const allLevelIds = [...new Set([...scopes.values()].flat())];
 
   const progress =

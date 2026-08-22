@@ -33,6 +33,12 @@ export const FEATURE_FLAGS: readonly FeatureFlagDefinition[] = [
   // Gates the whole student adventure surface: the map, the nav item, and
   // the level player (4 server-side checks, all default-off).
   { key: "adventure", labelKey: "adventure" },
+  // Ranks classmates by XP under their names. Default-off and per-school on
+  // purpose: publicly ranking children is a safeguarding decision a school
+  // has to make, not a product default, and some will not permit it at all.
+  // Deliberately independent of achievements and certificates — a school
+  // that declines the ranking still gets every badge and certificate.
+  { key: "leaderboard", labelKey: "leaderboard" },
 ];
 
 const FLAG_KEYS = new Set(FEATURE_FLAGS.map((flag) => flag.key));

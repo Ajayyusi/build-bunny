@@ -106,6 +106,30 @@ export function hasPermission(role: Role, permission: Permission): boolean {
   return GRANTS[role].includes(permission);
 }
 
+/**
+ * Permissions that only READ. Everything not listed here is treated as a
+ * write, so a permission added later is restricted by default rather than
+ * silently escaping a READ_ONLY licence.
+ *
+ * This is what a READ_ONLY school keeps: its people can still look at
+ * everything they already have — records, reports, certificates, curriculum —
+ * but cannot create, change or submit. Their data does not disappear because
+ * an invoice is late.
+ */
+const READ_ONLY_PERMISSIONS: readonly Permission[] = [
+  "platform:analytics",
+  "curriculum:read",
+  "attempts:read",
+  "analytics:school",
+  "analytics:classes",
+  "exports:school",
+  "certificates:read",
+];
+
+export function isReadOnlyPermission(permission: Permission): boolean {
+  return READ_ONLY_PERMISSIONS.includes(permission);
+}
+
 export function permissionsForRole(role: Role): readonly Permission[] {
   return GRANTS[role];
 }

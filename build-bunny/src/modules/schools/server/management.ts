@@ -1,6 +1,7 @@
 import "server-only";
 
 import { randomInt } from "node:crypto";
+import { hashPassword } from "better-auth/crypto";
 
 import { db } from "@/lib/db";
 import { audit, AUDIT } from "@/lib/audit";
@@ -9,10 +10,13 @@ import type { SessionContext } from "@/modules/auth/server/session";
 import {
   createStaff,
   createStudent,
+  CREDENTIAL_PROVIDER,
+  generateFriendlyPassword,
   resetPassword,
   setAccountDisabled,
   type CreatedCredentials,
 } from "@/modules/auth/server/provisioning";
+import { assertSeatAvailable } from "./seats";
 
 /**
  * School-admin mutations (plan §1.2 school management surfaces). Every
@@ -108,27 +112,45 @@ export async function createStudentAccount(
   });
   if (!school) throw new NotFoundError("School not found");
 
-  const created = await createStudent(actorFrom(ctx), {
-    schoolId,
-    schoolCode: school.code,
-    username: input.username,
-    displayName: input.displayName,
-    studentIdentifier: input.studentIdentifier,
-    grade: input.grade,
-  });
-
+  // Prevalidate the class BEFORE creating anything. It used to be checked
+  // after the student existed, so a bad class id left a real account with no
+  // class — a child who cannot be found on any roster.
   if (input.classId) {
     const klass = await db.class.findFirst({
       where: { id: input.classId, schoolId },
       select: { id: true },
     });
     if (!klass) throw new NotFoundError("Class not found in this school");
-    await db.classMembership.create({
-      data: { schoolId, classId: klass.id, userId: created.userId, role: "STUDENT" },
-    });
   }
 
-  return created;
+  // Seat check, account and class membership in ONE transaction: the check
+  // is worthless outside the transaction that inserts (two concurrent
+  // requests would both pass it), and the membership must not be able to
+  // fail independently of the account it belongs to.
+  return db.$transaction(async (tx) => {
+    await assertSeatAvailable(tx, schoolId);
+
+    const created = await createStudent(
+      actorFrom(ctx),
+      {
+        schoolId,
+        schoolCode: school.code,
+        username: input.username,
+        displayName: input.displayName,
+        studentIdentifier: input.studentIdentifier,
+        grade: input.grade,
+      },
+      tx,
+    );
+
+    if (input.classId) {
+      await tx.classMembership.create({
+        data: { schoolId, classId: input.classId, userId: created.userId, role: "STUDENT" },
+      });
+    }
+
+    return created;
+  });
 }
 
 export async function resetStudentPassword(
@@ -215,21 +237,62 @@ export async function resetClassPasswords(
   });
   if (!klass) throw new NotFoundError("Class not found in this school");
 
-  const results: { userId: string; displayName: string; username: string | null; password: string }[] = [];
-  for (const membership of klass.memberships) {
-    const { password } = await resetPassword(actorFrom(ctx), {
-      userId: membership.user.id,
+  // All-or-nothing, because the failure mode here is the worst one in the
+  // product: a sequential loop that died halfway had already invalidated
+  // some children's passwords, then threw — so the operator got NO
+  // credentials back for pupils who could no longer sign in, and the only
+  // recovery was resetting the whole class again.
+  //
+  // Hashing is done first and outside the transaction (it is the slow part
+  // and touches no rows), so the transaction is a short burst of writes that
+  // either all land or all roll back.
+  const prepared = await Promise.all(
+    klass.memberships.map(async (membership) => {
+      const password = generateFriendlyPassword();
+      return {
+        userId: membership.user.id,
+        displayName: membership.user.displayName,
+        username: membership.user.displayUsername,
+        password,
+        passwordHash: await hashPassword(password),
+      };
+    }),
+  );
+
+  await db.$transaction(
+    async (tx) => {
+      for (const student of prepared) {
+        await tx.account.updateMany({
+          where: { userId: student.userId, providerId: CREDENTIAL_PROVIDER },
+          data: { password: student.passwordHash },
+        });
+        // Session revocation = deleting the framework's session rows.
+        await tx.session.deleteMany({ where: { userId: student.userId } });
+      }
+    },
+    // A full class is ~30 students × 2 statements; the 5s default is tight
+    // on a cold connection and a timeout here would roll back the lot.
+    { timeout: 30_000 },
+  );
+
+  for (const student of prepared) {
+    await audit({
+      action: AUDIT.students.passwordReset,
+      actorUserId: ctx.userId,
+      actorRole: ctx.role,
       schoolId,
-      isStudent: true,
-    });
-    results.push({
-      userId: membership.user.id,
-      displayName: membership.user.displayName,
-      username: membership.user.displayUsername,
-      password,
+      targetType: "user",
+      targetId: student.userId,
     });
   }
-  return results;
+
+  // Hashes never leave this function.
+  return prepared.map((student) => ({
+    userId: student.userId,
+    displayName: student.displayName,
+    username: student.username,
+    password: student.password,
+  }));
 }
 
 // ── Classes ─────────────────────────────────────────────────────────────
@@ -246,37 +309,46 @@ export interface CreateClassInput {
 export async function createClass(ctx: SessionContext, input: CreateClassInput) {
   const schoolId = requireSchool(ctx);
 
-  const academicYearId = await db.$transaction(async (tx) => {
+  // Validate the teacher BEFORE anything is written. This used to run after
+  // the academic year had been created, so naming a teacher from another
+  // school left a brand-new year behind on a request that then failed.
+  if (input.teacherUserId) {
+    await requireStaffInSchool(schoolId, input.teacherUserId);
+  }
+
+  // Year, class and the teacher's membership commit together — a class with
+  // no teacher attached looks unassigned rather than failed, which is the
+  // sort of half-state nobody goes looking for.
+  const klass = await db.$transaction(async (tx) => {
+    let academicYearId: string;
     if (input.academicYearId) {
       const year = await tx.academicYear.findFirst({
         where: { id: input.academicYearId, schoolId },
         select: { id: true },
       });
       if (!year) throw new NotFoundError("Academic year not found in this school");
-      return year.id;
+      academicYearId = year.id;
+    } else {
+      if (!input.newAcademicYear) {
+        throw new NotFoundError("An academic year is required");
+      }
+      const year = await tx.academicYear.create({
+        data: { schoolId, ...input.newAcademicYear, isActive: true },
+      });
+      academicYearId = year.id;
     }
-    if (!input.newAcademicYear) {
-      throw new NotFoundError("An academic year is required");
+
+    const created = await tx.class.create({
+      data: { schoolId, academicYearId, name: input.name, grade: input.grade },
+    });
+
+    if (input.teacherUserId) {
+      await tx.classMembership.create({
+        data: { schoolId, classId: created.id, userId: input.teacherUserId, role: "TEACHER" },
+      });
     }
-    const year = await tx.academicYear.create({
-      data: { schoolId, ...input.newAcademicYear, isActive: true },
-    });
-    return year.id;
+    return created;
   });
-
-  if (input.teacherUserId) {
-    await requireStaffInSchool(schoolId, input.teacherUserId);
-  }
-
-  const klass = await db.class.create({
-    data: { schoolId, academicYearId, name: input.name, grade: input.grade },
-  });
-
-  if (input.teacherUserId) {
-    await db.classMembership.create({
-      data: { schoolId, classId: klass.id, userId: input.teacherUserId, role: "TEACHER" },
-    });
-  }
 
   await audit({
     action: AUDIT.classes.created,

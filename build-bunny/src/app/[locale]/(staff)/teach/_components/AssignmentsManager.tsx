@@ -17,6 +17,7 @@ import {
   formatDisplayDate,
   useToast,
   type DataTableColumn,
+  runAction,
 } from "@/ui";
 
 import { closeAssignment, createAssignment } from "@/modules/assignments/server/actions";
@@ -114,7 +115,7 @@ export function AssignmentsManager({
     setBusy(true);
     setError(null);
     try {
-      const result = await createAssignment({
+      const result = await runAction(() => createAssignment({
         classId: form.classId,
         target: form.target,
         worldId: form.worldId || undefined,
@@ -123,7 +124,7 @@ export function AssignmentsManager({
         title: form.title,
         note: form.note || undefined,
         dueAt: form.dueAt ? new Date(form.dueAt) : undefined,
-      });
+      }));
       if (!result.ok) {
         setError(errorMessage(t, result.error));
         return;
@@ -139,7 +140,7 @@ export function AssignmentsManager({
     if (!window.confirm(t("closeConfirm"))) return;
     setClosingId(id);
     try {
-      const result = await closeAssignment({ assignmentId: id });
+      const result = await runAction(() => closeAssignment({ assignmentId: id }));
       if (!result.ok) {
         toast({ title: t("closeError"), variant: "danger" });
         return;

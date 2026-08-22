@@ -52,7 +52,7 @@ export default async function NitaqUsersPage({ params, searchParams }: Props) {
       key: "actions",
       header: "",
       align: "end",
-      cell: (row) => <ImpersonateButton userId={row.id} schoolId={row.schoolId} />,
+      cell: (row) => <ImpersonateButton userId={row.id} />,
     },
   ];
 

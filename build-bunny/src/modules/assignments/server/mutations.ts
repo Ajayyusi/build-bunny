@@ -57,42 +57,59 @@ export async function createAssignmentCore(
 ): Promise<{ id: string }> {
   const schoolId = requireSchool(ctx);
   await requireOwnedClass(ctx, schoolId, input.classId);
-  const levelIds = await resolveAssignmentLevelIds(input);
-
-  const assignment = await db.assignment.create({
-    data: {
-      schoolId,
-      classId: input.classId,
-      createdById: ctx.userId,
-      target: input.target,
-      worldId: input.worldId ?? null,
-      moduleId: input.moduleId ?? null,
-      levelId: input.levelId ?? null,
-      title: input.title,
-      note: input.note ?? null,
-      dueAt: input.dueAt ?? null,
-    },
-    select: { id: true },
-  });
+  const levelIds = await resolveAssignmentLevelIds(input, schoolId);
 
   const students = await db.classMembership.findMany({
     where: { classId: input.classId, schoolId, role: "STUDENT" },
     select: { userId: true },
   });
 
-  for (const student of students) {
-    // Ordinary progression first, then force-open exactly the assigned scope.
-    await recomputeUnlocks(student.userId);
-    await db.studentProgress.createMany({
-      data: levelIds.map((levelId) => ({
+  // The assignment and the unlocks for EVERY student commit together. This
+  // was a sequential per-student loop, so a failure partway through left an
+  // assignment where some of the class could open the work and the rest
+  // could not — visible to the teacher only as children asking why they
+  // cannot start.
+  const assignment = await db.$transaction(async (tx) => {
+    const created = await tx.assignment.create({
+      data: {
         schoolId,
-        studentUserId: student.userId,
-        levelId,
-        status: "UNLOCKED" as const,
-        unlockSource: "ASSIGNMENT",
-      })),
-      skipDuplicates: true,
+        classId: input.classId,
+        createdById: ctx.userId,
+        target: input.target,
+        worldId: input.worldId ?? null,
+        moduleId: input.moduleId ?? null,
+        levelId: input.levelId ?? null,
+        title: input.title,
+        note: input.note ?? null,
+        dueAt: input.dueAt ?? null,
+      },
+      select: { id: true },
     });
+
+    if (students.length > 0 && levelIds.length > 0) {
+      await tx.studentProgress.createMany({
+        data: students.flatMap((student) =>
+          levelIds.map((levelId) => ({
+            schoolId,
+            studentUserId: student.userId,
+            levelId,
+            status: "UNLOCKED" as const,
+            unlockSource: "ASSIGNMENT" as const,
+          })),
+        ),
+        skipDuplicates: true,
+      });
+    }
+    return created;
+  });
+
+  // Ordinary progression runs after, and outside the transaction: it is
+  // idempotent, never downgrades a row, and the adventure map recomputes on
+  // load anyway — so a hiccup here costs nothing, whereas holding a
+  // per-student loop inside the transaction would hold locks across the
+  // whole class.
+  for (const student of students) {
+    await recomputeUnlocks(student.userId);
   }
 
   return assignment;

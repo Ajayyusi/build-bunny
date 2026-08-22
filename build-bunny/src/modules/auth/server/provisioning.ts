@@ -1,6 +1,7 @@
 import "server-only";
 
 import { randomInt } from "node:crypto";
+import type { Prisma } from "@prisma/client";
 import { hashPassword } from "better-auth/crypto";
 
 import { db } from "@/lib/db";
@@ -52,7 +53,7 @@ export function generateFriendlyPassword(): string {
 }
 
 /** Better Auth credential-account convention: providerId "credential". */
-const CREDENTIAL_PROVIDER = "credential";
+export const CREDENTIAL_PROVIDER = "credential";
 
 interface Actor {
   userId: string;
@@ -84,19 +85,25 @@ export interface CreatedCredentials {
 export async function createStudent(
   actor: Actor,
   input: CreateStudentInput,
+  /**
+   * Transaction client, so callers can make the seat check, the user insert
+   * and the class membership one atomic step. Defaults to the plain client
+   * for callers with nothing to join.
+   */
+  client: Prisma.TransactionClient | typeof db = db,
 ): Promise<CreatedCredentials> {
   const displayUsername = input.username.trim().toLowerCase();
   const namespaced = composeStudentUsername(input.schoolCode, input.username);
   const password = input.password ?? generateFriendlyPassword();
 
-  const existing = await db.user.findUnique({ where: { username: namespaced } });
+  const existing = await client.user.findUnique({ where: { username: namespaced } });
   if (existing) {
     throw new ConflictError(`Username "${displayUsername}" is already taken in this school`);
   }
 
   const passwordHash = await hashPassword(password);
 
-  const user = await db.user.create({
+  const user = await client.user.create({
     data: {
       name: input.displayName,
       email: syntheticStudentEmail(namespaced),

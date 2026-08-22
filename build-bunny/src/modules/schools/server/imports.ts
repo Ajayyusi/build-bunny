@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { audit, AUDIT } from "@/lib/audit";
 import type { SessionContext } from "@/modules/auth/server/session";
 import { createStudent, type CreatedCredentials } from "@/modules/auth/server/provisioning";
+import { assertSeatAvailable, effectiveSeatLimit, SeatLimitError, usedSeats } from "./seats";
 
 /**
  * The CSV student importer (plan §1.2). Column contract is STRICT and data-
@@ -263,6 +264,20 @@ export async function commitStudentImport(
   const school = await db.school.findUnique({ where: { id: schoolId }, select: { code: true } });
   if (!school) throw new Error("School not found");
 
+  // Check the WHOLE batch fits before creating anybody. The per-row check
+  // below is what makes concurrency safe, but on its own it would import
+  // the first N children of a too-large file and fail on the rest, leaving
+  // the operator to work out who got an account. A file that does not fit
+  // is rejected in full, with the numbers needed to fix it.
+  const creations = plan.rows.filter((row) => row.action === "create").length;
+  if (creations > 0) {
+    const limit = await effectiveSeatLimit(db, schoolId);
+    const used = await usedSeats(db, schoolId);
+    if (limit === null || used + creations > limit) {
+      throw new SeatLimitError(used, limit ?? 0);
+    }
+  }
+
   const created: (CreatedCredentials & { displayName: string; studentIdentifier: string })[] = [];
   let updatedCount = 0;
 
@@ -271,22 +286,30 @@ export async function commitStudentImport(
     const displayName = `${row.firstName} ${row.lastInitial}.`;
 
     if (row.action === "create") {
-      const result = await createStudent(
-        { userId: ctx.userId, role: ctx.role },
-        {
-          schoolId,
-          schoolCode: school.code,
-          username: row.username ?? row.studentIdentifier,
-          displayName,
-          studentIdentifier: row.studentIdentifier,
-          grade: row.grade ?? 0,
-        },
-      );
-      if (row.classId) {
-        await db.classMembership.create({
-          data: { schoolId, classId: row.classId, userId: result.userId, role: "STUDENT" },
-        });
-      }
+      // Same transaction + seat check as the manual add: a CSV is simply a
+      // faster way to consume seats, and was the easier of the two ways to
+      // overfill a school past what it bought.
+      const result = await db.$transaction(async (tx) => {
+        await assertSeatAvailable(tx, schoolId);
+        const student = await createStudent(
+          { userId: ctx.userId, role: ctx.role },
+          {
+            schoolId,
+            schoolCode: school.code,
+            username: row.username ?? row.studentIdentifier,
+            displayName,
+            studentIdentifier: row.studentIdentifier,
+            grade: row.grade ?? 0,
+          },
+          tx,
+        );
+        if (row.classId) {
+          await tx.classMembership.create({
+            data: { schoolId, classId: row.classId, userId: student.userId, role: "STUDENT" },
+          });
+        }
+        return student;
+      });
       created.push({ ...result, displayName, studentIdentifier: row.studentIdentifier });
     } else if (row.action === "update" && row.existingUserId) {
       await db.user.update({ where: { id: row.existingUserId }, data: { displayName } });

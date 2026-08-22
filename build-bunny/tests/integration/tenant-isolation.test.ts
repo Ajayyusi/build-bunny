@@ -168,6 +168,7 @@ let levelTwoId: string;
 
 // M4 certificates/achievements fixture — see beforeAll.
 let certAId: string;
+let feedbackAId: string;
 let certBId: string;
 
 // M4 teacher-analytics fixture (analytics/assignments modules) — a SECOND
@@ -254,6 +255,28 @@ beforeAll(async () => {
   });
   certAId = certA.id;
   certBId = certB.id;
+
+  // Teacher feedback: one message per school, each addressed to that
+  // school's own student, so the isolation cases have both sides to check.
+  const feedbackA = await db.teacherFeedback.create({
+    data: {
+      schoolId: A.school.id,
+      studentUserId: A.studentIds[0],
+      teacherUserId: A.teacherId,
+      levelId: levelOneId,
+      body: "School A feedback",
+    },
+  });
+  feedbackAId = feedbackA.id;
+  await db.teacherFeedback.create({
+    data: {
+      schoolId: B.school.id,
+      studentUserId: B.studentIds[0],
+      teacherUserId: B.teacherId,
+      levelId: levelOneId,
+      body: "School B feedback",
+    },
+  });
 
   // Achievements: the definition is platform-global (visible to both
   // schools), but the EARNED join must isolate — only school A's student
@@ -708,6 +731,33 @@ async function assertQueryIsolated(entry: RegistryEntry): Promise<void> {
         schoolId: A.school.id,
       });
       expect(asRows(await query(mismatched))).toHaveLength(0);
+      break;
+    }
+    case "getMyFeedback": {
+      // Feedback is written to ONE child. School A's student sees only what
+      // was written to them; a ctx carrying school B's user while claiming
+      // school A must see nothing at all.
+      const rowsA = asRows(await query(studentCtxA));
+      expect(rowsA.every((r) => r["id"] === feedbackAId)).toBe(true);
+      expectNoForeignIds(rowsA, name);
+      const mismatched = createCtx({
+        userId: B.studentIds[0],
+        role: "STUDENT",
+        schoolId: A.school.id,
+      });
+      expect(asRows(await query(mismatched))).toHaveLength(0);
+      break;
+    }
+    case "getMyUnreadFeedbackCount": {
+      // A count leaks less than rows, but it still must not count another
+      // school's messages.
+      expect(await query(studentCtxA)).toBe(1);
+      const mismatched = createCtx({
+        userId: B.studentIds[0],
+        role: "STUDENT",
+        schoolId: A.school.id,
+      });
+      expect(await query(mismatched)).toBe(0);
       break;
     }
     case "listSchoolCertificates": {

@@ -3,18 +3,12 @@
 import { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 
-import { Button, useToast } from "@/ui";
+import { Button, runAction, useToast } from "@/ui";
 
 import { impersonateUserAction } from "./actions";
 import { localePath } from "../../../_components/locale-path";
 
-export function ImpersonateButton({
-  userId,
-  schoolId,
-}: {
-  userId: string;
-  schoolId: string | null;
-}) {
+export function ImpersonateButton({ userId }: { userId: string }) {
   const t = useTranslations("platform.users");
   const locale = useLocale();
   const { toast } = useToast();
@@ -23,7 +17,7 @@ export function ImpersonateButton({
   async function handleClick() {
     setLoading(true);
     try {
-      const result = await impersonateUserAction({ userId, schoolId });
+      const result = await runAction(() => impersonateUserAction({ userId }));
       if (!result.ok) {
         toast({
           title: result.error === "FORBIDDEN" ? t("forbidden") : t("errorGeneric"),

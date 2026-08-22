@@ -25,7 +25,14 @@ const createInput = z
   })
   .refine((v) => v.academicYearId || (v.newYearName && v.newYearStart && v.newYearEnd), {
     message: "An academic year is required",
-  });
+  })
+  // Both dates parsing is not the same as the range being possible: an
+  // inverted or zero-length year silently produces a term nothing falls
+  // inside, and the error surfaces much later as "no data".
+  .refine(
+    (v) => !v.newYearStart || !v.newYearEnd || v.newYearStart.getTime() < v.newYearEnd.getTime(),
+    { message: "The academic year must end after it starts", path: ["newYearEnd"] },
+  );
 
 export async function createClassAction(
   input: unknown,

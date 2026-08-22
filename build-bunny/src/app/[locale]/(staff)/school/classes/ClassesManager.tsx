@@ -12,6 +12,7 @@ import {
   Input,
   Select,
   useToast,
+  runAction,
   type DataTableColumn,
 } from "@/ui";
 
@@ -114,7 +115,7 @@ export function ClassesManager({
     setAddBusy(true);
     setAddError(null);
     try {
-      const result = await createClassAction({
+      const result = await runAction(() => createClassAction({
         name: form.name,
         grade: form.grade,
         academicYearId: useNewYear ? undefined : form.academicYearId || undefined,
@@ -122,7 +123,7 @@ export function ClassesManager({
         newYearStart: useNewYear ? form.newYearStart : undefined,
         newYearEnd: useNewYear ? form.newYearEnd : undefined,
         teacherUserId: form.teacherUserId || undefined,
-      });
+      }));
       if (!result.ok) {
         setAddError(errorMessage(t, result.error));
         return;
@@ -145,11 +146,11 @@ export function ClassesManager({
     setEditBusy(true);
     setEditError(null);
     try {
-      const result = await updateClassAction({
+      const result = await runAction(() => updateClassAction({
         classId: editTarget.id,
         name: editForm.name,
         grade: editForm.grade,
-      });
+      }));
       if (!result.ok) {
         setEditError(errorMessage(t, result.error));
         return;
@@ -167,7 +168,7 @@ export function ClassesManager({
     setRosterQuery("");
     setRosterLoading(true);
     try {
-      const result = await getClassRosterAction({ classId: row.id });
+      const result = await runAction(() => getClassRosterAction({ classId: row.id }));
       if (result.ok) setRoster(result.data);
       else toast({ title: errorMessage(t, result.error), variant: "danger" });
     } finally {
@@ -177,7 +178,7 @@ export function ClassesManager({
 
   async function refreshRoster() {
     if (!rosterTarget) return;
-    const result = await getClassRosterAction({ classId: rosterTarget.id });
+    const result = await runAction(() => getClassRosterAction({ classId: rosterTarget.id }));
     if (result.ok) setRoster(result.data);
   }
 
@@ -185,7 +186,7 @@ export function ClassesManager({
     if (!rosterTarget) return;
     setRotateBusy(true);
     try {
-      const result = await rotateJoinCodeAction({ classId: rosterTarget.id });
+      const result = await runAction(() => rotateJoinCodeAction({ classId: rosterTarget.id }));
       if (result.ok) {
         router.refresh();
         await refreshRoster();
@@ -202,10 +203,10 @@ export function ClassesManager({
     if (!rosterTarget) return;
     setRosterBusy(studentUserId);
     try {
-      const result = await addStudentToClassAction({
+      const result = await runAction(() => addStudentToClassAction({
         classId: rosterTarget.id,
         studentUserId,
-      });
+      }));
       if (result.ok) {
         await refreshRoster();
         router.refresh();
@@ -221,10 +222,10 @@ export function ClassesManager({
     if (!rosterTarget) return;
     setRosterBusy(studentUserId);
     try {
-      const result = await removeStudentFromClassAction({
+      const result = await runAction(() => removeStudentFromClassAction({
         classId: rosterTarget.id,
         studentUserId,
-      });
+      }));
       if (result.ok) {
         await refreshRoster();
         router.refresh();

@@ -16,12 +16,18 @@ import styles from "./onboarding.module.css";
  * because it is a per-device UI preference, not learning progress worth a
  * migration and a write path. A student on a fresh classroom tablet seeing
  * the 20-second welcome twice is a far smaller cost than a schema change.
+ *
+ * The key is per-user, and that is not cosmetic: this product runs on shared
+ * classroom tablets, so a single global key meant the first child to dismiss
+ * the welcome silently consumed it for every child who used that tablet
+ * afterwards. Versioned too, so a reworked welcome can be shown again.
  */
 
-const STORAGE_KEY = "bb:onboarded";
+const STORAGE_VERSION = "v1";
+const storageKey = (userId: string) => `bb:onboarded:${STORAGE_VERSION}:${userId}`;
 const STEP_STATES: BunnyState[] = ["waving", "pointing", "excited", "thinking"];
 
-export function Onboarding({ show }: { show: boolean }) {
+export function Onboarding({ show, userId }: { show: boolean; userId: string }) {
   const t = useTranslations("student.home.onboarding");
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState(0);
@@ -30,17 +36,17 @@ export function Onboarding({ show }: { show: boolean }) {
   useEffect(() => {
     if (!show) return;
     try {
-      if (window.localStorage.getItem(STORAGE_KEY) === "1") return;
+      if (window.localStorage.getItem(storageKey(userId)) === "1") return;
     } catch {
       // Storage unavailable — show it; dismissing simply won't persist.
     }
     setOpen(true);
-  }, [show]);
+  }, [show, userId]);
 
   const close = () => {
     setOpen(false);
     try {
-      window.localStorage.setItem(STORAGE_KEY, "1");
+      window.localStorage.setItem(storageKey(userId), "1");
     } catch {
       // Preference won't persist; the welcome is still dismissed for now.
     }

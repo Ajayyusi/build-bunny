@@ -6,7 +6,13 @@ import { redirect } from "next/navigation";
 
 import { auth } from "@/lib/auth";
 import { hasPermission, type Permission } from "@/modules/auth/permissions";
+import { isReadOnlyPermission } from "@/modules/auth/permissions";
 import { homePathForRole, isRole, type Role } from "@/modules/auth/roles";
+import {
+  resolveEntitlement,
+  UNRESTRICTED,
+  type Entitlement,
+} from "@/modules/schools/server/entitlement";
 
 /** Absolute session TTL for students on shared classroom devices (12 h). */
 const STUDENT_ABSOLUTE_TTL_MS = 12 * 60 * 60 * 1000;
@@ -23,6 +29,12 @@ export interface SessionContext {
   /** Set when a platform admin is impersonating this user's session. */
   impersonatedBy: string | null;
   sessionId: string;
+  /**
+   * What this user's school is currently entitled to. Resolved here so every
+   * guard, action and route sees the same answer — checking it in layouts
+   * only would leave server actions and API routes wide open.
+   */
+  entitlement: Entitlement;
 }
 
 /**
@@ -52,16 +64,22 @@ export const getSessionContext = cache(async (): Promise<SessionContext | null> 
     }
   }
 
+  // Platform staff are unscoped and never gated — they have to be able to
+  // reach a suspended school in order to un-suspend it.
+  const schoolId = user.schoolId ?? null;
+  const entitlement = schoolId ? await resolveEntitlement(schoolId) : UNRESTRICTED;
+
   return {
     userId: user.id,
     role: user.role,
-    schoolId: user.schoolId ?? null,
+    schoolId,
     displayName: user.displayName ?? user.name,
     locale: user.locale ?? "en",
     avatarId: user.avatarId ?? null,
     mustChangePassword: user.mustChangePassword ?? false,
     impersonatedBy: session.session.impersonatedBy ?? null,
     sessionId: session.session.id,
+    entitlement,
   };
 });
 
@@ -76,6 +94,9 @@ export async function requireRole(
   if (!ctx) redirect("/login");
   if (!roles.includes(ctx.role)) redirect(homePathForRole(ctx.role));
   if (ctx.mustChangePassword) redirect("/change-password");
+  // A blocked school stops here, on the request itself. Doing this in a
+  // layout would have left every server action and API route reachable.
+  if (!ctx.entitlement.canAccess) redirect("/licence");
   return ctx;
 }
 
@@ -86,6 +107,13 @@ export async function requirePermission(
   const ctx = await getSessionContext();
   if (!ctx) throw new AuthError("UNAUTHENTICATED");
   if (!hasPermission(ctx.role, permission)) throw new AuthError("FORBIDDEN");
+  if (!ctx.entitlement.canAccess) throw new AuthError("FORBIDDEN");
+  // READ_ONLY may look but not change anything. Only WRITE permissions are
+  // refused — blocking every permission would also have hidden a school's
+  // own records from it, which is not what a read-only licence means.
+  if (!ctx.entitlement.canWrite && !isReadOnlyPermission(permission)) {
+    throw new AuthError("FORBIDDEN");
+  }
   return ctx;
 }
 

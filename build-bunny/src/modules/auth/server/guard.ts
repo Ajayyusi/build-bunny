@@ -9,6 +9,7 @@ import {
   type SessionContext,
 } from "@/modules/auth/server/session";
 import { generateRequestId, logger, withRequestContext } from "@/lib/logger";
+import { SeatLimitError } from "@/modules/schools/server/seats";
 
 /**
  * The uniform server-action wrapper (plan §1.2): permission check → Zod parse
@@ -33,9 +34,12 @@ export type ActionResult<T> =
         | "NOT_FOUND"
         | "CONFLICT"
         | "RATE_LIMITED"
+        | "SEAT_LIMIT_REACHED"
         | "INTERNAL";
       message?: string;
       fieldErrors?: Record<string, string[]>;
+      /** Populated for SEAT_LIMIT_REACHED so the UI can show current/maximum. */
+      seats?: { used: number; limit: number };
     };
 
 export class NotFoundError extends Error {}
@@ -100,6 +104,18 @@ export function withAuth<Schema extends z.ZodTypeAny, Result>(
           if (err instanceof RateLimitedError) {
             logger.warn("action.rate_limited", { action: permission, durationMs });
             return { ok: false, error: "RATE_LIMITED", message: err.message };
+          }
+          // Its own result code, not CONFLICT: a school admin who has run out
+          // of seats needs the numbers and a route to buying more, which a
+          // generic conflict message cannot give them.
+          if (err instanceof SeatLimitError) {
+            logger.warn("action.seat_limit", { action: permission, durationMs });
+            return {
+              ok: false,
+              error: "SEAT_LIMIT_REACHED",
+              message: err.message,
+              seats: { used: err.used, limit: err.limit },
+            };
           }
           console.error("[action] unhandled error:", err);
           logger.error("action.failed", { action: permission, durationMs });
