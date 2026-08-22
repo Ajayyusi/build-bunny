@@ -86,19 +86,20 @@ that claims more than the code does is worse than no plan.
 | 1 · Infrastructure & critical fixes | **Done** | `4c36fd3`, `d8094d4` |
 | 2 · Design system, animation, Bunny | **Done** | `c858ec3` |
 | 3 · Home, map, game-entry, onboarding | **Done** | `0601580` |
-| 4 · Player polish & success/failure | **Mostly done** | `7ba69ec`, `0c6850a` |
+| 4 · Player polish & success/failure | **Mostly done** (autosave now covers every player) | `7ba69ec`, `0c6850a`, `411f950` |
 | 5 · AI games & engines | **Started** (security fix only) | `7ba69ec` |
 | 6 · Teacher experience | **Mostly done** | `c3d1919` |
-| 7 · School & NITAQ admin + security hardening | **Partly done** | `83e6082` |
+| 7 · School & NITAQ admin + security hardening | **Mostly done** (licence enforcement + seats landed with the audit) | `83e6082`, `b46d670` |
 | 8 · Assignments, notifications, missions, cosmetics | **Started** (assignments done) | `0091c21` |
 | 9 · Performance, accessibility, tablets, offline | **Partly done** (Arabic dates, walkthroughs, tablet audit) | — |
 | 10 · Production QA & demo | Not started | — |
 
 Phase 4 remainder: AI_CLASSIFICATION / PATTERN_RECOGNITION still never emit
-PARTIAL (a near miss reads the same as a wild one); GroupPlayer, AiSimPlayer
-and AiEthicsPlayer still have no draft autosave (TeachPlayer now does); the
-AST-budget infinite loop still surfaces as a generic `runtimeError` rather
-than a kid-readable failure.
+PARTIAL (a near miss reads the same as a wild one); ~~GroupPlayer, AiSimPlayer
+and AiEthicsPlayer have no draft autosave~~ **done in `411f950`** — all three
+now save AND restore, with the restored draft validated as untrusted input;
+the AST-budget infinite loop still surfaces as a generic `runtimeError`
+rather than a kid-readable failure.
 
 Phase 8 remainder: notifications, daily missions and bunny cosmetics are all
 untouched, and each needs new tables — this is still the phase where the
@@ -107,18 +108,21 @@ StudentProgress). Note before building cosmetics: `User.avatarId` exists,
 is plumbed through auth/session/queries, and is never set or rendered by
 anything — decide what it means before building on it.
 
-Phase 7 remainder — **licences are the commercially important gap**. A
-licence is immutable after creation (no renew, extend, seat change or
-suspend) and, more seriously, **enforces nothing at runtime**: no code reads
-`Licence` outside analytics, so an expired or SUSPENDED licence has zero
-effect and students keep playing. Seat counts are reported for display but
-never checked, so a school can be provisioned past its limit. `graceDays` is
-written by its default and read nowhere. Also still open: school profile
-editing, the school-admin audit page (`listSchoolAuditLogs` exists and is
-isolation-tested but has no route), curriculum publishWorld/transitionStatus
-UI and version rollback, and the security hardening items (forced-password-
-change proof, MFA for platform roles, sudo re-auth, verified impersonation
-audit fields).
+Phase 7 — **the licence gap is closed** (`b46d670`, from the external audit).
+`resolveEntitlement` now decides ACTIVE / GRACE / READ_ONLY / SUSPENDED /
+EXPIRED / NO_LICENCE / SCHOOL_INACTIVE from school status, licence status,
+dates and `graceDays`, and is enforced in the session guard itself rather
+than a layout — so it binds server actions and API routes, not just pages.
+Seats are checked inside the same transaction as the insert, with a row lock
+so concurrent provisioning cannot overshoot. Forced-password-change proof
+and the impersonation audit fields landed in the same change.
+
+Phase 7 remainder: a licence is still immutable after creation (no renew,
+extend, seat change or suspend from the console — only the database).
+Also still open: school profile editing, the school-admin audit page
+(`listSchoolAuditLogs` exists and is isolation-tested but has no route),
+curriculum publishWorld/transitionStatus UI and version rollback, and MFA /
+sudo re-auth for platform roles.
 
 Phase 6 remainder: classroom mode is still the existing projector view with
 no launch-a-level flow or on-screen controls. Also noted while working: the
