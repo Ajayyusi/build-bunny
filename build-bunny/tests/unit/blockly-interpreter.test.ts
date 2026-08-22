@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+
+import { evaluateChecks, type BlockStats, type Check } from "@/engine";
 import type { GridVariantSpec, EngineConfig } from "@/engine";
 import { registerBunnyBlocks } from "@/modules/blockly/blocks";
 import {
@@ -77,10 +79,37 @@ describe("runProgram", () => {
       { rows: ["..G"], start: { x: 0, y: 0, dir: "E" } },
       DEFAULT_CONFIG,
     );
-    expect(run.termination).toBe("RUNTIME_ERROR");
+    // BUDGET_EXCEEDED rather than RUNTIME_ERROR, and the distinction is the
+    // whole point: checks.ts maps this termination to the "budget" feedback
+    // code — "Bunny ran out of energy! Check for loops that never stop." —
+    // while RUNTIME_ERROR fell through to "Something went wrong", which
+    // hides the commonest mistake in block coding behind a shrug.
+    expect(run.termination).toBe("BUDGET_EXCEEDED");
     expect(run.events.at(-1)?.type).toBe("budgetExceeded");
+    // Still zero commands: the loop spun without ever moving the bunny,
+    // which is what separates this from the engine's command budget.
     expect(run.commandCount).toBe(0);
     expect(INTERPRETER_STEP_BUDGET).toBe(100_000);
+  });
+
+  it("tells a child their loop never stops, not that something went wrong", () => {
+    // The contract that actually reaches an eight-year-old: an infinite loop
+    // must resolve to the "budget" feedback code, whose copy names the cause
+    // ("Check for loops that never stop"). This is asserted end-to-end
+    // through evaluateChecks rather than on the termination alone, because
+    // the termination is only useful if the mapping downstream survives.
+    const run = runProgram(
+      "while (!onGoal()) {}",
+      { rows: ["..G"], start: { x: 0, y: 0, dir: "E" } },
+      DEFAULT_CONFIG,
+    );
+    const failures = evaluateChecks(
+      [{ id: "reachedGoal", severity: "core" } satisfies Check],
+      run,
+      { totalBlocks: 1, countsByType: {} } satisfies BlockStats,
+    );
+    expect(failures.map((f) => f.code)).toContain("budget");
+    expect(failures.map((f) => f.code)).not.toContain("runtimeError");
   });
 
   it("halts as BUMPED when the program drives into a rock", () => {

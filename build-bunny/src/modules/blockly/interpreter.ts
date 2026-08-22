@@ -140,7 +140,18 @@ export function runProgram(
     while (interpreter.step()) {
       steps += 1;
       if (steps >= INTERPRETER_STEP_BUDGET) {
-        const result = sim.finish("RUNTIME_ERROR");
+        // BUDGET_EXCEEDED, not RUNTIME_ERROR. Both end the run, but only
+        // this one carries a feedback code the child can act on: "Bunny ran
+        // out of energy! Check for loops that never stop." RUNTIME_ERROR
+        // fell through to "Something went wrong while running your program",
+        // which tells an eight-year-old nothing and hides the single most
+        // common mistake in block coding behind a shrug.
+        //
+        // This budget is the AST-step one, so it is what catches a loop that
+        // spins without ever issuing a command — precisely the infinite loop
+        // the message describes. The engine's separate command budget
+        // already terminated this way.
+        const result = sim.finish("BUDGET_EXCEEDED");
         result.events.push({
           type: "budgetExceeded",
           step: result.commandCount + 1,
