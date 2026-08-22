@@ -555,7 +555,7 @@ export function ClassesManager({
               {tCommon("cancel")}
             </Button>
             <Button variant="danger" loading={rotateBusy} onClick={handleRotateJoinCode}>
-              {t("confirmCta") /* reused from create/deactivate flows */}
+              {t("confirmCta")}
             </Button>
           </>
         }

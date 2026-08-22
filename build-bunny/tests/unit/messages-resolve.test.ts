@@ -19,15 +19,31 @@ import en from "../../messages/en.json";
  * instead of the top-level `staff`, so the keys existed, parity passed, and
  * every SCHOOL_ADMIN page would have white-screened.
  *
- * This checks the namespace, not every individual key: namespaces are static
- * string literals, while `t("...")` calls include computed keys
- * (`flags.${flag.labelKey}.name`, `states.${state}`) that cannot be resolved
- * statically without lying about coverage. A wrong namespace is the failure
- * that actually happened, and it is the one that takes a whole page down.
+ * Two checks, because namespace-only was not enough. The school Activity
+ * page bound its translator to `platform.auditLog` — a namespace that DOES
+ * exist — while every key it then asked for (`time`, `action`, `actorRole`,
+ * `outcome`) lives in the sibling `platform.audit`. Namespace present, every
+ * column header broken. So static `t("literal")` keys are now resolved too.
+ *
+ * Computed keys (`flags.${flag.labelKey}.name`, `roles.${row.actorRole}`)
+ * are deliberately skipped: they cannot be resolved statically without
+ * lying about coverage. They are the residual risk this file does not cover.
  */
 
 const SRC = join(__dirname, "..", "..", "src");
 const NAMESPACE_CALL = /(?:useTranslations|getTranslations)\(\s*"([^"]+)"\s*\)/g;
+
+/**
+ * `const x = useTranslations("ns")` / `const [a, x] = await Promise.all([...
+ * getTranslations("ns")...])` — binds a local translator name to a namespace.
+ * Only the simple `const NAME = (get|use)Translations("ns")` form is matched;
+ * destructured or conditionally-assigned translators are skipped rather than
+ * guessed at.
+ */
+const BOUND_TRANSLATOR = /const\s+(\w+)\s*=\s*(?:await\s+)?(?:useTranslations|getTranslations)\(\s*"([^"]+)"\s*\)/g;
+/** A call on a bound translator with a STATIC key: t("some.key"). */
+const staticCall = (name: string) =>
+  new RegExp(`\\b${name}\\(\\s*"([^"\`$]+)"`, "g");
 
 function walk(dir: string): string[] {
   const out: string[] = [];
@@ -58,6 +74,45 @@ describe("translation namespaces", () => {
     // Guards the walker itself: a regex or path change that silently matched
     // nothing would make every assertion below vacuously pass.
     expect(files.length).toBeGreaterThan(100);
+  });
+
+  it("every static t(\"key\") a component asks for exists in en.json", () => {
+    const missing: string[] = [];
+
+    for (const file of files) {
+      const source = readFileSync(file, "utf8");
+
+      // A file often holds several components, and each may bind the SAME
+      // local name to a DIFFERENT namespace (ProgressMatrix binds `t` to
+      // staff.teach.matrix in one component and staff.teach.matrix.legend
+      // in another). Matching calls file-wide would then check every key
+      // against both namespaces and report half of them as missing. A test
+      // that cries wolf gets ignored, so an ambiguous name is skipped and
+      // left as known-uncovered rather than guessed at.
+      const bindings = new Map<string, Set<string>>();
+      for (const bind of source.matchAll(BOUND_TRANSLATOR)) {
+        const [, local, namespace] = bind;
+        if (!local || !namespace) continue;
+        bindings.set(local, (bindings.get(local) ?? new Set()).add(namespace));
+      }
+
+      for (const [local, namespaces] of bindings) {
+        if (namespaces.size !== 1) continue;
+        const namespace = [...namespaces][0]!;
+        // Only meaningful when the namespace itself resolves; a missing
+        // namespace is already reported by the test below.
+        if (typeof resolve(namespace) !== "object") continue;
+        for (const call of source.matchAll(staticCall(local))) {
+          const key = call[1]!;
+          const value = resolve(`${namespace}.${key}`);
+          if (value === undefined) {
+            missing.push(`${file.replace(SRC, "src")} → ${local}("${key}") = ${namespace}.${key}`);
+          }
+        }
+      }
+    }
+
+    expect(missing).toEqual([]);
   });
 
   it("every namespace a component requests exists in en.json", () => {

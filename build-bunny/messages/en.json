@@ -987,6 +987,7 @@
         "columnStudents": "Students",
         "empty": "No classes yet.",
         "forbidden": "You don't have permission to manage classes.",
+        "confirmCta": "Rotate code",
         "conflict": "A class with that name already exists for this year.",
         "errorGeneric": "Something went wrong. Please try again."
       },

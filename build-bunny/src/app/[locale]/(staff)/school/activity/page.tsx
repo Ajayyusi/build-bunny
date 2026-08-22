@@ -35,10 +35,13 @@ interface Props {
  * school admin sees their own school's trail and no one else's.
  */
 
+// Keys are the AuditOutcome enum exactly: SUCCESS | DENIED | ERROR. It had
+// a "FAILURE" that the enum has never contained, and omitted the ERROR that
+// it does — so a failed action rendered with the neutral fallback.
 const OUTCOME_BADGES: Record<string, BadgeVariant> = {
   SUCCESS: "positive",
-  FAILURE: "danger",
   DENIED: "warning",
+  ERROR: "danger",
 };
 
 export default async function SchoolActivityPage({ params }: Props) {
@@ -49,7 +52,9 @@ export default async function SchoolActivityPage({ params }: Props) {
   const [logs, t, tAudit, tCommon] = await Promise.all([
     listSchoolAuditLogs(ctx, 100),
     getTranslations("staff.school.activityPage"),
-    getTranslations("platform.auditLog"),
+    // platform.audit holds the column headers and outcome words; the
+    // sibling platform.auditLog holds only that page's title and filters.
+    getTranslations("platform.audit"),
     getTranslations("common"),
   ]);
 
