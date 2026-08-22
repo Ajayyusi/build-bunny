@@ -65,7 +65,10 @@ export function AiSimPlayer({
   const stepCount = beats?.length ?? 0;
 
   const [phase, setPhase] = useState<Phase>("intro");
-  const [work, setWork] = useState<unknown>(null);
+  // Seeded from the draft, not null: the widget re-reports the restored work
+  // on mount, and starting at null would make that report look like a change
+  // and write it straight back on every page load.
+  const [work, setWork] = useState<unknown>(draft ?? null);
   const [ready, setReady] = useState(false);
   const [submission, setSubmission] = useState<Submission | null>(null);
   const [submitting, setSubmitting] = useState(false);

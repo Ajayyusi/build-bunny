@@ -33,21 +33,35 @@ export function useDraftAutosave(
   active = true,
 ): void {
   const timerRef = useRef<number | null>(null);
-  // The first render is the RESTORED draft (or the empty board). Saving it
-  // straight back is a pointless write, and on a restored draft it would
-  // rewrite the child's work with itself on every page load.
-  const settledRef = useRef(false);
   const serialized = JSON.stringify(state ?? null);
 
+  /**
+   * What the draft already holds, so an unchanged board is never written.
+   *
+   * Seeded from the FIRST state this hook sees, which is the restored draft
+   * (or the empty board). Two things depend on that:
+   *  - restoring a draft and immediately saving it back would rewrite the
+   *    child's work with itself on every single page load;
+   *  - the AI-sim widgets report their work once on mount so the wrapper has
+   *    something to submit even if the child never touches the control. That
+   *    report is identical to what was restored, and without this comparison
+   *    every AI-sim level would issue a pointless write on open.
+   */
+  const lastSavedRef = useRef<string | null>(null);
+
   useEffect(() => {
-    if (!settledRef.current) {
-      settledRef.current = true;
+    if (lastSavedRef.current === null) {
+      lastSavedRef.current = serialized;
       return;
     }
     if (!active) return;
+    // Unchanged from what is already stored — nothing to do. This also
+    // absorbs a re-render that reports the same work with a new identity.
+    if (serialized === lastSavedRef.current) return;
 
     if (timerRef.current !== null) window.clearTimeout(timerRef.current);
     timerRef.current = window.setTimeout(() => {
+      lastSavedRef.current = serialized;
       // Fire-and-forget: a failed autosave must never interrupt play. The
       // work stays on screen and the next edit tries again.
       void saveDraftAction({ levelId, workspaceJson: JSON.parse(serialized) });
