@@ -22,6 +22,7 @@ import {
 
 import { FeatureFlags } from "./_components/FeatureFlags";
 import { ProgramPicker } from "./_components/ProgramPicker";
+import { LicenceEditor } from "./_components/LicenceEditor";
 import { SchoolWeekPicker } from "./_components/SchoolWeekPicker";
 
 interface Props {
@@ -88,7 +89,7 @@ export default async function SchoolDetailPage({ params }: Props) {
             school.licences.map((licence) => (
               <div
                 key={licence.id}
-                className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-border-token p-3"
+                className="flex flex-col gap-3 rounded-md border border-border-token p-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between"
               >
                 <Badge variant={LICENCE_BADGES[licence.status] ?? "neutral"}>
                   {tLicence(licence.status)}
@@ -102,6 +103,20 @@ export default async function SchoolDetailPage({ params }: Props) {
                 <span className="text-sm text-ink">
                   {t("expiresAt")}: {dateFormat.format(licence.expiresAt)}
                 </span>
+                <LicenceEditor
+                  schoolName={school.name}
+                  licence={{
+                    id: licence.id,
+                    seats: licence.seats,
+                    // Date inputs want YYYY-MM-DD; toISOString is UTC, which
+                    // is what these are stored as.
+                    startsAt: licence.startsAt.toISOString().slice(0, 10),
+                    expiresAt: licence.expiresAt.toISOString().slice(0, 10),
+                    graceDays: licence.graceDays,
+                    status: licence.status,
+                    notes: licence.notes,
+                  }}
+                />
               </div>
             ))
           )}

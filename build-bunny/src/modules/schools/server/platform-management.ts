@@ -235,6 +235,122 @@ export async function setSchoolProgram(
   });
 }
 
+export interface UpdateLicenceInput {
+  seats: number;
+  startsAt: Date;
+  expiresAt: Date;
+  graceDays: number;
+  status: "ACTIVE" | "GRACE" | "READ_ONLY" | "SUSPENDED";
+  notes: string | null;
+}
+
+/**
+ * Change an existing licence.
+ *
+ * A licence was immutable after creation — no renew, no extend, no seat
+ * change, no suspend — and that single gap produced several separate
+ * symptoms:
+ *
+ *  - `graceDays` was read by the entitlement gate on every request and
+ *    written by nobody, so every school silently got exactly 30 days
+ *    whatever their contract said;
+ *  - `status` could never leave ACTIVE, so the READ_ONLY and SUSPENDED
+ *    copy on the licence-blocked page, the matching branches of the school
+ *    admin's banner, and every non-green badge in this console were all
+ *    unreachable code;
+ *  - `notes` had no writer at all.
+ *
+ * Enforcement now depends on these values (resolveEntitlement), so this is
+ * the difference between a contract the product can honour and one an
+ * engineer has to honour with hand-written SQL against production.
+ */
+export async function updateLicence(
+  ctx: SessionContext,
+  licenceId: string,
+  input: UpdateLicenceInput,
+): Promise<void> {
+  requirePlatform(ctx);
+  const existing = await db.licence.findUnique({
+    where: { id: licenceId },
+    select: {
+      id: true,
+      schoolId: true,
+      seats: true,
+      startsAt: true,
+      expiresAt: true,
+      graceDays: true,
+      status: true,
+    },
+  });
+  if (!existing) throw new NotFoundError("Licence not found");
+
+  if (input.startsAt.getTime() >= input.expiresAt.getTime()) {
+    throw new ConflictError("The licence must expire after it starts");
+  }
+
+  // Seats cannot be cut below the roster. Storing a smaller number would not
+  // remove any child — it would just put the school permanently over its
+  // limit, blocking every future enrolment with no way back except raising
+  // it again. Refusing here says which number to use.
+  const activeStudents = await db.user.count({
+    where: { schoolId: existing.schoolId, role: "STUDENT", banned: { not: true } },
+  });
+  if (input.seats < activeStudents) {
+    throw new ConflictError(
+      `This school already has ${activeStudents} active students; seats cannot be set below that`,
+    );
+  }
+
+  await db.licence.update({
+    where: { id: licenceId },
+    data: {
+      seats: input.seats,
+      startsAt: input.startsAt,
+      expiresAt: input.expiresAt,
+      graceDays: input.graceDays,
+      status: input.status,
+      notes: input.notes,
+    },
+  });
+
+  await audit({
+    action: AUDIT.licences.updated,
+    actorUserId: ctx.userId,
+    actorRole: ctx.role,
+    schoolId: existing.schoolId,
+    targetType: "licence",
+    targetId: licenceId,
+    // Before/after in full: "who cut this school off, and when" has to be
+    // answerable from the log alone.
+    meta: {
+      from: {
+        seats: existing.seats,
+        startsAt: existing.startsAt.toISOString(),
+        expiresAt: existing.expiresAt.toISOString(),
+        graceDays: existing.graceDays,
+        status: existing.status,
+      },
+      to: {
+        seats: input.seats,
+        startsAt: input.startsAt.toISOString(),
+        expiresAt: input.expiresAt.toISOString(),
+        graceDays: input.graceDays,
+        status: input.status,
+      },
+    },
+  });
+
+  // Suspending takes effect on the next request through resolveEntitlement,
+  // but leaving live sessions open for a school that has just been cut off
+  // is not a state worth keeping — same reasoning as deactivating a school.
+  if (input.status === "SUSPENDED" && existing.status !== "SUSPENDED") {
+    const revoked = await db.session.deleteMany({
+      where: { user: { schoolId: existing.schoolId } },
+    });
+    logger.warn("licence.sessions_revoked", { schoolId: existing.schoolId, count: revoked.count });
+  }
+}
+
 /** ISO weekdays: 1 = Monday … 7 = Sunday. */
 const ISO_WEEKDAYS = [1, 2, 3, 4, 5, 6, 7];
 

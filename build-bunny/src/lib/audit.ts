@@ -79,6 +79,11 @@ export const AUDIT = {
     deactivated: "schools.deactivated",
     reactivated: "schools.reactivated",
   },
+  // Licence changes are commercial actions with an outage on the other end
+  // of them, so they get their own action rather than sharing schools.updated.
+  licences: {
+    updated: "licences.updated",
+  },
   classes: {
     created: "classes.created",
     updated: "classes.updated",

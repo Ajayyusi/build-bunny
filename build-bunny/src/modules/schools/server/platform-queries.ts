@@ -96,6 +96,7 @@ export interface SchoolDetail {
     seats: number;
     startsAt: Date;
     expiresAt: Date;
+    graceDays: number;
     status: string;
     notes: string | null;
   }[];

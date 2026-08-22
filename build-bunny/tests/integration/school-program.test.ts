@@ -3,7 +3,10 @@ import { beforeAll, describe, expect, it } from "vitest";
 import { db } from "@/lib/db";
 import { createStudent } from "@/modules/auth/server/provisioning";
 import { computeAdventureState } from "@/modules/learning/server/adventure";
-import { setSchoolProgram } from "@/modules/schools/server/platform-management";
+import {
+  setSchoolProgram,
+  updateLicence,
+} from "@/modules/schools/server/platform-management";
 import { getSchoolDetail } from "@/modules/schools/server/platform-queries";
 import type { SessionContext } from "@/modules/auth/server/session";
 import {
@@ -205,5 +208,120 @@ describe("getSchoolDetail programme reporting", () => {
     const detail = await getSchoolDetail(platformCtx, schoolId);
     expect(detail?.program).toBeNull();
     expect(detail?.programAmbiguous).toBe(false);
+  });
+});
+
+/**
+ * Licence editing. These rules decide whether a school keeps access, so the
+ * ones that could quietly take it away are pinned here rather than left to
+ * the form.
+ */
+describe("updateLicence", () => {
+  async function freshSchool(seats: number) {
+    const school = await createTestSchool("Licence", { seats });
+    const licence = await db.licence.findFirstOrThrow({ where: { schoolId: school.id } });
+    return { school, licence };
+  }
+
+  it("writes graceDays, which had no writer at all before", async () => {
+    const { licence } = await freshSchool(50);
+    expect(licence.graceDays).toBe(30); // the schema default everyone was stuck on
+
+    await updateLicence(platformCtx, licence.id, {
+      seats: licence.seats,
+      startsAt: licence.startsAt,
+      expiresAt: licence.expiresAt,
+      graceDays: 60,
+      status: "ACTIVE",
+      notes: null,
+    });
+
+    const after = await db.licence.findUniqueOrThrow({ where: { id: licence.id } });
+    expect(after.graceDays).toBe(60);
+  });
+
+  it("refuses seats below the number of active students", async () => {
+    const { school, licence } = await freshSchool(50);
+    await createStudent(SYSTEM_ACTOR, {
+      schoolId: school.id,
+      schoolCode: school.code,
+      username: "seatholder",
+      displayName: "Seat Holder",
+      studentIdentifier: "SEAT-1",
+      grade: 4,
+    });
+
+    // Cutting seats below the roster would not remove anyone — it would just
+    // put the school permanently over its limit with no way back.
+    await expect(
+      updateLicence(platformCtx, licence.id, {
+        seats: 0, // below the single enrolled student
+        startsAt: licence.startsAt,
+        expiresAt: licence.expiresAt,
+        graceDays: 30,
+        status: "ACTIVE",
+        notes: null,
+      }),
+    ).rejects.toThrow();
+  });
+
+  it("refuses a licence that expires before it starts", async () => {
+    const { licence } = await freshSchool(10);
+    await expect(
+      updateLicence(platformCtx, licence.id, {
+        seats: 10,
+        startsAt: new Date("2027-01-01"),
+        expiresAt: new Date("2026-01-01"),
+        graceDays: 30,
+        status: "ACTIVE",
+        notes: null,
+      }),
+    ).rejects.toThrow();
+  });
+
+  it("suspending ends every open session in the school", async () => {
+    const { school, licence } = await freshSchool(10);
+    const student = await createStudent(SYSTEM_ACTOR, {
+      schoolId: school.id,
+      schoolCode: school.code,
+      username: "sessionholder",
+      displayName: "Session Holder",
+      studentIdentifier: "SESS-1",
+      grade: 4,
+    });
+    await db.session.create({
+      data: {
+        userId: student.userId,
+        token: `tok-${student.userId}`,
+        expiresAt: new Date(Date.now() + 60 * 60 * 1000),
+      },
+    });
+    expect(await db.session.count({ where: { userId: student.userId } })).toBe(1);
+
+    await updateLicence(platformCtx, licence.id, {
+      seats: 10,
+      startsAt: licence.startsAt,
+      expiresAt: licence.expiresAt,
+      graceDays: 30,
+      status: "SUSPENDED",
+      notes: null,
+    });
+
+    expect(await db.session.count({ where: { userId: student.userId } })).toBe(0);
+  });
+
+  it("is platform-only", async () => {
+    const { school, licence } = await freshSchool(10);
+    const schoolAdmin = createCtx({ role: "SCHOOL_ADMIN", schoolId: school.id });
+    await expect(
+      updateLicence(schoolAdmin, licence.id, {
+        seats: 999,
+        startsAt: licence.startsAt,
+        expiresAt: licence.expiresAt,
+        graceDays: 30,
+        status: "ACTIVE",
+        notes: null,
+      }),
+    ).rejects.toThrow();
   });
 });
