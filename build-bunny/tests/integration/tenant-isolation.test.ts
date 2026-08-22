@@ -550,10 +550,19 @@ async function assertQueryIsolated(entry: RegistryEntry): Promise<void> {
       const overview = (await query(teacherCtxA)) as { classes: { id: string }[] };
       expect(overview.classes.map((c) => c.id)).toEqual([A.classId]);
       expectNoForeignIds(overview, name);
-      // A SCHOOL_ADMIN has no TEACHER memberships of their own — honest
-      // empty result, not an error and not every class in the school.
-      const viaAdmin = (await query(ctxA)) as { classes: unknown[] };
-      expect(viaAdmin.classes).toEqual([]);
+      // A SCHOOL_ADMIN now sees every class in their OWN school.
+      //
+      // This asserted an empty result, on the grounds that an admin holds no
+      // TEACHER memberships. True of the mechanism, but it left the teaching
+      // area a dead end for them: the nav offered "Teaching", requireRole
+      // admitted them, and the page then showed "no classes yet" for a school
+      // full of classes — while resolveClassAccess already grants an admin
+      // any class in their school, so the DETAIL page was built and
+      // authorised for them with nothing linking to it.
+      const viaAdmin = (await query(ctxA)) as { classes: { id: string }[] };
+      expect(viaAdmin.classes.map((c) => c.id)).toEqual([A.classId]);
+      // Still their own school only — B's classes never appear.
+      expectNoForeignIds(viaAdmin, name);
       // Same-school, different-teacher: teacherTwoB's overview shows ONLY
       // their own class (classTwoB), never B.teacherId's class.
       const overviewTwo = (await query(teacherTwoCtxB)) as { classes: { id: string }[] };
