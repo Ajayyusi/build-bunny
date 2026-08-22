@@ -11,6 +11,17 @@ interface SidebarShellProps {
   children: ReactNode;
   /** Localized label for the open/close control. */
   menuLabel: string;
+  /**
+   * Unread count to surface ON the hamburger below `lg`.
+   *
+   * The nav badge itself lives inside the drawer, which below `lg` is closed
+   * and off-canvas — so on the shared classroom tablets this product targets,
+   * a child had no way to know a message was waiting until they happened to
+   * open the menu. A badge nobody can see notifies nobody.
+   */
+  badge?: number;
+  /** Localized description of the badge, e.g. "2 unread messages". */
+  badgeLabel?: string;
 }
 
 /**
@@ -28,6 +39,8 @@ export function SidebarShell({
   sidebar,
   children,
   menuLabel,
+  badge = 0,
+  badgeLabel,
 }: SidebarShellProps) {
   const t = useTranslations("common");
   const [open, setOpen] = useState(false);
@@ -111,9 +124,12 @@ export function SidebarShell({
           <button
             type="button"
             onClick={() => setOpen(true)}
-            aria-label={menuLabel}
+            // The count goes in the BUTTON's name, not a separate element:
+            // a screen-reader user hears "Open menu, 2 unread messages"
+            // instead of reaching a lone number with no context.
+            aria-label={badge > 0 && badgeLabel ? `${menuLabel} — ${badgeLabel}` : menuLabel}
             aria-expanded={open}
-            className="grid size-11 place-items-center rounded-lg border border-border-token text-ink transition-colors hover:bg-surface-sunken"
+            className="relative grid size-11 place-items-center rounded-lg border border-border-token text-ink transition-colors hover:bg-surface-sunken"
           >
             <svg
               viewBox="0 0 24 24"
@@ -126,6 +142,17 @@ export function SidebarShell({
             >
               <path d="M4 7h16M4 12h16M4 17h16" />
             </svg>
+            {badge > 0 ? (
+              // Purely visual — the meaning is already in aria-label above,
+              // so announcing it twice would be noise. Positioned with the
+              // logical `end` so it flips with the drawer in Arabic.
+              <span
+                aria-hidden="true"
+                className="absolute -end-1 -top-1 grid min-w-5 place-items-center rounded-full bg-brand px-1 text-xs font-bold tabular-nums text-on-brand"
+              >
+                {badge}
+              </span>
+            ) : null}
           </button>
           <span className="flex items-center font-display text-base font-bold text-ink">
             <BunnyMascot size="xs" className="me-1.5" />

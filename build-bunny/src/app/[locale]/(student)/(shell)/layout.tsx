@@ -124,7 +124,15 @@ export default async function StudentShellLayout({ children, params }: Props) {
   return (
     <>
       <SkipLink label={tCommon("skipToContent")} />
-      <SidebarShell sidebar={sidebar} menuLabel={t("nav.menu")}>
+      <SidebarShell
+        sidebar={sidebar}
+        menuLabel={t("nav.menu")}
+        // Below lg the sidebar badge is inside a closed drawer, so the count
+        // is mirrored onto the hamburger — the only chrome a child on a
+        // portrait tablet can actually see.
+        badge={unreadFeedback}
+        badgeLabel={t("nav.unreadFeedback", { count: unreadFeedback })}
+      >
         {children}
       </SidebarShell>
     </>
