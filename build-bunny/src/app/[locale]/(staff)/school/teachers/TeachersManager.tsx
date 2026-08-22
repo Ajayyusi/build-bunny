@@ -12,6 +12,7 @@ import {
   Field,
   Input,
   useToast,
+  runAction,
   type DataTableColumn,
 } from "@/ui";
 
@@ -72,11 +73,11 @@ export function TeachersManager({ teachers }: { teachers: TeacherRow[] }) {
     setAddBusy(true);
     setAddError(null);
     try {
-      const result = await createTeacherAction({
+      const result = await runAction(() => createTeacherAction({
         email: addForm.email,
         displayName: addForm.displayName,
         title: addForm.title || undefined,
-      });
+      }));
       if (!result.ok) {
         setAddError(errorMessage(t, result.error));
         return;
@@ -93,7 +94,7 @@ export function TeachersManager({ teachers }: { teachers: TeacherRow[] }) {
     setRowBusy(row.id);
     setRowError(null);
     try {
-      const result = await resetTeacherPasswordAction({ userId: row.id });
+      const result = await runAction(() => resetTeacherPasswordAction({ userId: row.id }));
       if (!result.ok) {
         setRowError(errorMessage(t, result.error));
         return;
@@ -109,7 +110,7 @@ export function TeachersManager({ teachers }: { teachers: TeacherRow[] }) {
     setConfirmBusy(true);
     try {
       const disabled = !confirmTarget.banned;
-      const result = await setTeacherDisabledAction({ userId: confirmTarget.id, disabled });
+      const result = await runAction(() => setTeacherDisabledAction({ userId: confirmTarget.id, disabled }));
       if (!result.ok) {
         toast({ title: errorMessage(t, result.error), variant: "danger" });
         return;
@@ -247,12 +248,14 @@ export function TeachersManager({ teachers }: { teachers: TeacherRow[] }) {
 
       <Dialog
         open={credentials !== null}
+        // Not dismissible: this password is shown once and stored nowhere.
+        // Esc or a stray backdrop click used to destroy the only copy.
+        dismissible={false}
         onClose={() => {
           setCredentials(null);
           setCopied(false);
         }}
         title={t("resetDialogTitle")}
-        closeLabel={tCommon("close")}
         footer={<Button onClick={() => setCredentials(null)}>{tCommon("close")}</Button>}
       >
         {credentials ? (

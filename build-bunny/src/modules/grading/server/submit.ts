@@ -13,6 +13,7 @@ import { computeStars, ENGINE_VERSION } from "@/engine";
 import { getActivityEngine } from "@/modules/activities/server/registry";
 import type { ActivityGradeResult } from "@/modules/activities/types";
 import type { SessionContext } from "@/modules/auth/server/session";
+import { isLevelEntitled } from "@/modules/curriculum/server/entitlement";
 import { recomputeUnlocks } from "@/modules/learning/server/adventure";
 import {
   localizedText,
@@ -149,6 +150,11 @@ export async function submitAttempt(
 ): Promise<SubmitOutcome> {
   const schoolId = ctx.schoolId;
   if (!schoolId) return { status: 403, body: { error: "FORBIDDEN" } };
+  // Grading is a write: it awards XP, stars and certificates. A READ_ONLY,
+  // suspended or expired school may still hold an open session, and this
+  // path is an API route rather than a withAuth action, so it carries its
+  // own entitlement check rather than inheriting one.
+  if (!ctx.entitlement.canWrite) return { status: 403, body: { error: "FORBIDDEN" } };
   const now = options.now ?? new Date();
 
   // ── Published + unlocked (absence of a progress row = LOCKED) ──────────
@@ -157,6 +163,15 @@ export async function submitAttempt(
     select: { id: true, status: true, stars: true },
   });
   if (!progress) return { status: 403, body: { error: "LOCKED" } };
+
+  // A progress row is NOT authorization on its own. Assignment creation
+  // writes those rows, so treating one as proof let an unauthorized
+  // assignment mint access to content the school does not license. The
+  // school's entitlement is therefore re-checked against the curriculum
+  // itself on the grading path, which is the one that awards XP and stars.
+  if (!(await isLevelEntitled(schoolId, levelId))) {
+    return { status: 403, body: { error: "LOCKED" } };
+  }
   const published = await getPublishedLevelSnapshot(levelId);
   if (!published) return { status: 403, body: { error: "LOCKED" } };
 

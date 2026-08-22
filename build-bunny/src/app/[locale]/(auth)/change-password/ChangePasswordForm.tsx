@@ -3,8 +3,7 @@
 import { useState, type FormEvent } from "react";
 import { useLocale, useTranslations } from "next-intl";
 
-import { authClient } from "@/lib/auth-client";
-import { markPasswordChanged } from "@/modules/auth/server/actions";
+import { changePasswordAction } from "@/modules/auth/server/actions";
 import { Button, Field, Input } from "@/ui";
 
 import { localePath } from "../../_components/locale-path";
@@ -43,26 +42,17 @@ export function ChangePasswordForm({
 
     setLoading(true);
     try {
-      const { error } = await authClient.changePassword({
-        currentPassword,
-        newPassword,
-        revokeOtherSessions: true,
-      });
-      if (error) {
-        if (error.code === "INVALID_PASSWORD") {
+      // One server call: it verifies the current password AND clears the
+      // forced-change flag, so the flag can never be cleared on its own.
+      const result = await changePasswordAction({ currentPassword, newPassword });
+      if (!result.ok) {
+        if (result.code === "INVALID_PASSWORD") {
           setFormError(t("errors.wrongCurrentPassword"));
-        } else if (error.code === "PASSWORD_TOO_SHORT") {
+        } else if (result.code === "PASSWORD_TOO_SHORT") {
           setFormError(t("errors.passwordTooShort"));
         } else {
           setFormError(t("errors.generic"));
         }
-        setLoading(false);
-        return;
-      }
-
-      const result = await markPasswordChanged();
-      if (!result.ok) {
-        setFormError(t("errors.generic"));
         setLoading(false);
         return;
       }

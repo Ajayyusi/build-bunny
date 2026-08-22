@@ -11,29 +11,36 @@ import {
   type CreateSchoolResult,
 } from "@/modules/schools/server/platform-management";
 
-const createInput = z.object({
-  name: z.string().trim().min(1).max(120),
-  slug: z
-    .string()
-    .trim()
-    .toLowerCase()
-    .min(2)
-    .max(60)
-    .regex(/^[a-z0-9-]+$/, "Lowercase letters, numbers and hyphens only"),
-  code: z
-    .string()
-    .trim()
-    .toUpperCase()
-    .min(2)
-    .max(20)
-    .regex(/^[A-Z0-9]+$/, "Letters and numbers only"),
-  timezone: z.string().trim().min(1).max(60),
-  licenceSeats: z.coerce.number().int().min(1).max(100000),
-  licenceStartsAt: z.coerce.date(),
-  licenceExpiresAt: z.coerce.date(),
-  adminEmail: z.string().trim().email(),
-  adminDisplayName: z.string().trim().min(1).max(120),
-});
+const createInput = z
+  .object({
+    name: z.string().trim().min(1).max(120),
+    slug: z
+      .string()
+      .trim()
+      .toLowerCase()
+      .min(2)
+      .max(60)
+      .regex(/^[a-z0-9-]+$/, "Lowercase letters, numbers and hyphens only"),
+    code: z
+      .string()
+      .trim()
+      .toUpperCase()
+      .min(2)
+      .max(20)
+      .regex(/^[A-Z0-9]+$/, "Letters and numbers only"),
+    timezone: z.string().trim().min(1).max(60),
+    licenceSeats: z.coerce.number().int().min(1).max(100000),
+    licenceStartsAt: z.coerce.date(),
+    licenceExpiresAt: z.coerce.date(),
+    adminEmail: z.string().trim().email(),
+    adminDisplayName: z.string().trim().min(1).max(120),
+  })
+  // A licence that expires before it starts is never active for a single
+  // day, so the school it was sold to cannot use the product at all.
+  .refine((v) => v.licenceStartsAt.getTime() < v.licenceExpiresAt.getTime(), {
+    message: "The licence must expire after it starts",
+    path: ["licenceExpiresAt"],
+  });
 
 export async function createSchoolAction(
   input: unknown,

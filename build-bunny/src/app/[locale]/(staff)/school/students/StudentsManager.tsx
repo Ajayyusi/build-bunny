@@ -13,6 +13,7 @@ import {
   Input,
   Select,
   useToast,
+  runAction,
   type DataTableColumn,
 } from "@/ui";
 
@@ -46,9 +47,20 @@ export interface ClassOption {
 
 type T = ReturnType<typeof useTranslations<"staff.school.studentsPage">>;
 
-function errorMessage(t: T, code: string): string {
+function errorMessage(
+  t: T,
+  code: string,
+  seats?: { used: number; limit: number },
+): string {
   if (code === "FORBIDDEN") return t("forbidden");
   if (code === "CONFLICT") return t("conflict");
+  // The numbers matter: "you have run out" without them leaves the admin
+  // with no idea how many seats they need to buy or free up.
+  if (code === "SEAT_LIMIT_REACHED") {
+    return seats
+      ? t("seatLimit", { used: seats.used, limit: seats.limit })
+      : t("seatLimitGeneric");
+  }
   return t("errorGeneric");
 }
 
@@ -114,15 +126,15 @@ export function StudentsManager({
     setAddBusy(true);
     setAddError(null);
     try {
-      const result = await createStudentAction({
+      const result = await runAction(() => createStudentAction({
         username: addForm.username,
         displayName: addForm.displayName,
         studentIdentifier: addForm.studentIdentifier,
         grade: addForm.grade,
         classId: addForm.classId || undefined,
-      });
+      }));
       if (!result.ok) {
-        setAddError(errorMessage(t, result.error));
+        setAddError(errorMessage(t, result.error, result.seats));
         return;
       }
       setAddOpen(false);
@@ -137,9 +149,9 @@ export function StudentsManager({
     setRowBusy(row.id);
     setRowError(null);
     try {
-      const result = await resetStudentPasswordAction({ userId: row.id });
+      const result = await runAction(() => resetStudentPasswordAction({ userId: row.id }));
       if (!result.ok) {
-        setRowError(errorMessage(t, result.error));
+        setRowError(errorMessage(t, result.error, result.seats));
         return;
       }
       setCredentials({ username: row.displayUsername ?? "", password: result.data.password });
@@ -153,9 +165,9 @@ export function StudentsManager({
     setConfirmBusy(true);
     try {
       const disabled = !confirmTarget.banned;
-      const result = await setStudentDisabledAction({ userId: confirmTarget.id, disabled });
+      const result = await runAction(() => setStudentDisabledAction({ userId: confirmTarget.id, disabled }));
       if (!result.ok) {
-        toast({ title: errorMessage(t, result.error), variant: "danger" });
+        toast({ title: errorMessage(t, result.error, result.seats), variant: "danger" });
         return;
       }
       setConfirmTarget(null);
@@ -174,9 +186,9 @@ export function StudentsManager({
     if (!eraseTarget || eraseConfirmText !== eraseTarget.displayName) return;
     setEraseBusy(true);
     try {
-      const result = await eraseStudentAction({ userId: eraseTarget.id });
+      const result = await runAction(() => eraseStudentAction({ userId: eraseTarget.id }));
       if (!result.ok) {
-        toast({ title: errorMessage(t, result.error), variant: "danger" });
+        toast({ title: errorMessage(t, result.error, result.seats), variant: "danger" });
         return;
       }
       toast({ title: t("eraseDoneToast", { name: result.data.displayName }), variant: "positive" });
@@ -201,6 +213,37 @@ export function StudentsManager({
     requestAnimationFrame(() => window.print());
   }
 
+  /**
+   * Second route to a freshly reset batch.
+   *
+   * A class reset invalidates every child's password and shows the new ones
+   * once, on a print sheet. Cancelling the browser print dialog — or having
+   * no printer — used to leave a whole class unable to sign in with no copy
+   * of their credentials anywhere. Resetting again is not a fix: it just
+   * produces another batch that can be lost the same way.
+   */
+  function downloadCredentials() {
+    if (printRows.length === 0) return;
+    const header = "display_name,username,password";
+    const escape = (value: string | null) => `"${(value ?? "").replaceAll('"', '""')}"`;
+    const csv = [
+      header,
+      ...printRows.map((row) =>
+        [row.displayName, row.username ?? "", row.password].map(escape).join(","),
+      ),
+    ].join("\r\n");
+    // BOM so Excel opens the file as UTF-8 and Arabic names survive.
+    const blob = new Blob([`﻿${csv}`], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${activeClassName || "class"}-credentials.csv`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  }
+
   function handlePrintBlank() {
     setPrintRows(
       students.map((s) => ({
@@ -216,7 +259,7 @@ export function StudentsManager({
     setSheetBusy(true);
     setSheetError(null);
     try {
-      const result = await resetClassPasswordsAction({ classId: activeClassId });
+      const result = await runAction(() => resetClassPasswordsAction({ classId: activeClassId }));
       if (!result.ok) {
         setSheetError(errorMessage(t, result.error));
         return;
@@ -428,12 +471,14 @@ export function StudentsManager({
       {/* Password shown once */}
       <Dialog
         open={credentials !== null}
+        // Not dismissible: this password is shown once and stored nowhere.
+        // Esc or a stray backdrop click used to destroy the only copy.
+        dismissible={false}
         onClose={() => {
           setCredentials(null);
           setCopied(false);
         }}
         title={t("resetDialogTitle")}
-        closeLabel={tCommon("close")}
         footer={<Button onClick={() => setCredentials(null)}>{tCommon("close")}</Button>}
       >
         {credentials ? (
@@ -564,6 +609,25 @@ export function StudentsManager({
         </div>
       </Dialog>
 
+      {/* Stays until dismissed: the batch above exists only in this page's
+          memory, so the operator gets a second chance at it after the print
+          dialog closes, rather than discovering the loss at registration. */}
+      {printRows.length > 0 ? (
+        <div className="fixed inset-x-0 bottom-0 z-40 flex flex-wrap items-center justify-center gap-3 border-t border-border-token bg-surface-raised px-4 py-3 shadow-overlay print:hidden">
+          <p className="text-sm font-medium text-ink">
+            {t("credentialsPending", { count: printRows.length })}
+          </p>
+          <Button variant="secondary" size="sm" onClick={() => window.print()}>
+            {tCommon("print")}
+          </Button>
+          <Button variant="secondary" size="sm" onClick={downloadCredentials}>
+            {tCommon("download")}
+          </Button>
+          <Button size="sm" onClick={() => setPrintRows([])}>
+            {t("credentialsDone")}
+          </Button>
+        </div>
+      ) : null}
     </div>
     <CredentialSheet className={activeClassName} schoolCode={schoolCode} rows={printRows} />
     </>

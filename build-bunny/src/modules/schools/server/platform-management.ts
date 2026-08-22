@@ -4,6 +4,7 @@ import type { Prisma } from "@prisma/client";
 
 import { db } from "@/lib/db";
 import { audit, AUDIT } from "@/lib/audit";
+import { logger } from "@/lib/logger";
 import { ConflictError, NotFoundError } from "@/modules/auth/server/guard";
 import { createStaff, type CreatedCredentials } from "@/modules/auth/server/provisioning";
 import type { SessionContext } from "@/modules/auth/server/session";
@@ -48,31 +49,21 @@ export async function createSchoolWithAdmin(
 ): Promise<CreateSchoolResult> {
   requirePlatform(ctx);
 
-  const [slugClash, codeClash] = await Promise.all([
+  // Every uniqueness constraint that CAN be checked first is checked first —
+  // including the admin's email. It used to be validated only when createStaff
+  // ran, which was after the school, licence and programme link were already
+  // committed: a typo'd or reused email left an orphan school holding the slug
+  // and code, so retrying the same onboarding failed on the school itself and
+  // the operator had to go and delete it by hand.
+  const adminEmail = input.adminEmail.trim().toLowerCase();
+  const [slugClash, codeClash, emailClash] = await Promise.all([
     db.school.findUnique({ where: { slug: input.slug } }),
     db.school.findUnique({ where: { code: input.code } }),
+    db.user.findUnique({ where: { email: adminEmail } }),
   ]);
   if (slugClash) throw new ConflictError(`School slug "${input.slug}" is already in use`);
   if (codeClash) throw new ConflictError(`School code "${input.code}" is already in use`);
-
-  const school = await db.school.create({
-    data: {
-      name: input.name,
-      slug: input.slug,
-      code: input.code.toUpperCase(),
-      timezone: input.timezone,
-      status: "ACTIVE",
-    },
-  });
-  await db.licence.create({
-    data: {
-      schoolId: school.id,
-      seats: input.licenceSeats,
-      startsAt: input.licenceStartsAt,
-      expiresAt: input.licenceExpiresAt,
-      status: "ACTIVE",
-    },
-  });
+  if (emailClash) throw new ConflictError(`An account already exists for ${adminEmail}`);
   // Attach the curriculum so the school is usable the moment it exists.
   // Before this, every school created through the console had no programme
   // and no screen that could give it one, so its students sat on the empty
@@ -87,9 +78,36 @@ export async function createSchoolWithAdmin(
     take: 2,
   });
   const defaultProgramId = published.length === 1 ? published[0]!.id : null;
-  if (defaultProgramId) {
-    await db.schoolProgram.create({ data: { schoolId: school.id, programId: defaultProgramId } });
-  }
+
+  // School + licence + programme in one transaction: a school that exists
+  // without the licence it was sold, or without the curriculum that makes it
+  // usable, is not a half-finished record anyone can act on.
+  const school = await db.$transaction(async (tx) => {
+    const created = await tx.school.create({
+      data: {
+        name: input.name,
+        slug: input.slug,
+        code: input.code.toUpperCase(),
+        timezone: input.timezone,
+        status: "ACTIVE",
+      },
+    });
+    await tx.licence.create({
+      data: {
+        schoolId: created.id,
+        seats: input.licenceSeats,
+        startsAt: input.licenceStartsAt,
+        expiresAt: input.licenceExpiresAt,
+        status: "ACTIVE",
+      },
+    });
+    if (defaultProgramId) {
+      await tx.schoolProgram.create({
+        data: { schoolId: created.id, programId: defaultProgramId },
+      });
+    }
+    return created;
+  });
 
   await audit({
     action: AUDIT.schools.created,
@@ -109,7 +127,7 @@ export async function createSchoolWithAdmin(
     { userId: ctx.userId, role: ctx.role },
     {
       schoolId: school.id,
-      email: input.adminEmail,
+      email: adminEmail,
       displayName: input.adminDisplayName,
       role: "SCHOOL_ADMIN",
     },
@@ -230,6 +248,16 @@ export async function setSchoolActive(
     where: { id: schoolId },
     data: { status: active ? "ACTIVE" : "INACTIVE" },
   });
+
+  // Deactivating must take effect NOW, not whenever the last open session
+  // happens to expire. Entitlement is resolved per request, so an existing
+  // session would already be refused — but leaving live sessions lying
+  // around for a school that has been cut off is not a state worth keeping.
+  if (!active) {
+    const revoked = await db.session.deleteMany({ where: { user: { schoolId } } });
+    logger.warn("school.sessions_revoked", { schoolId, count: revoked.count });
+  }
+
   await audit({
     action: active ? AUDIT.schools.reactivated : AUDIT.schools.deactivated,
     actorUserId: ctx.userId,

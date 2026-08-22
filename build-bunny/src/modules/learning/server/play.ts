@@ -12,6 +12,7 @@ import {
   localizedText,
   type LocalizedText,
 } from "@/modules/curriculum/schemas";
+import { isLevelEntitled } from "@/modules/curriculum/server/entitlement";
 import {
   getPublishedLevelSnapshot,
   stripStudentPayload,
@@ -109,6 +110,17 @@ function requireSchool(ctx: SessionContext): string {
 }
 
 /** Progress row of an unlocked level — locked/unknown resolve to NotFound. */
+/**
+ * The gate every player mutation goes through: hints, draft autosave, and
+ * marking a level started.
+ *
+ * Requires BOTH a progress row and a live entitlement to the content. The
+ * row alone used to be enough, which quietly made it authorization — and
+ * since assignment creation is what writes those rows, an assignment for
+ * content outside the school's programme granted hint and draft access to
+ * it. Checking entitlement here covers all three callers at once, so a
+ * future fourth cannot forget it.
+ */
 async function requireProgressRow(
   ctx: SessionContext,
   levelId: string,
@@ -119,6 +131,11 @@ async function requireProgressRow(
     select: { id: true, status: true },
   });
   if (!row) throw new NotFoundError("Level is locked or does not exist");
+  if (!(await isLevelEntitled(schoolId, levelId))) {
+    // Same error as "locked": a caller probing for content the school does
+    // not license learns nothing from the distinction.
+    throw new NotFoundError("Level is locked or does not exist");
+  }
   return row;
 }
 

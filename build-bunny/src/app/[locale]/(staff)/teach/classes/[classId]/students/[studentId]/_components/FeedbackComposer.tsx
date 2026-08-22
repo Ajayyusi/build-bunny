@@ -14,6 +14,7 @@ import {
   Select,
   formatDisplayDate,
   useToast,
+  runAction,
 } from "@/ui";
 
 export interface FeedbackEntryVM {
@@ -52,7 +53,7 @@ export function FeedbackComposer({ studentUserId, levelOptions, entries }: Feedb
     setBusy(true);
     setError(null);
     try {
-      const result = await giveFeedback({ studentUserId, levelId, body: body.trim() });
+      const result = await runAction(() => giveFeedback({ studentUserId, levelId, body: body.trim() }));
       if (!result.ok) {
         setError(t("error"));
         return;

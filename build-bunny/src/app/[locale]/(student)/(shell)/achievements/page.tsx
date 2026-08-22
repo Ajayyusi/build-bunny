@@ -8,6 +8,8 @@ import {
   getMyAchievements,
   getMyClassLeaderboard,
 } from "@/modules/students/server/queries";
+import { isFeatureEnabled } from "@/modules/shared/features";
+import { getMyStudentSnapshot } from "@/modules/students/server/queries";
 import { EmptyState, PageHeader, createDateFormat } from "@/ui";
 import { NitaqLogo } from "@/ui/BrandLogo";
 
@@ -29,14 +31,20 @@ export default async function AchievementsPage({ params }: Props) {
   setRequestLocale(locale);
   const ctx = await requireRole("STUDENT");
 
-  const [badges, certificates, leaderboard, t, tCert, tCommon] = await Promise.all([
+  const [badges, certificates, snapshot, t, tCert, tCommon] = await Promise.all([
     getMyAchievements(ctx),
     listMyCertificates(ctx),
-    getMyClassLeaderboard(ctx),
+    getMyStudentSnapshot(ctx),
     getTranslations("student.achievements"),
     getTranslations("certificates"),
     getTranslations("common"),
   ]);
+
+  // Named XP ranking of children is opt-in per school (see FEATURE_FLAGS).
+  // The query only runs when the school has allowed it, so a school that
+  // declines never has its pupils ranked, not even server-side.
+  const leaderboardEnabled = isFeatureEnabled(snapshot?.school.features, "leaderboard");
+  const leaderboard = leaderboardEnabled ? await getMyClassLeaderboard(ctx) : [];
 
   const earnedCount = badges.filter((b) => b.earnedAt !== null).length;
   const badgePct =
@@ -124,14 +132,16 @@ export default async function AchievementsPage({ params }: Props) {
           </div>
         </section>
 
-        <Leaderboard
-          rows={leaderboard}
-          title={t("leaderboardTitle")}
-          hint={t("leaderboardHint")}
-          emptyText={t("leaderboardEmpty")}
-          youLabel={t("leaderboardYou")}
-          xpLabel={(value) => t("xpSuffix", { value })}
-        />
+        {leaderboardEnabled ? (
+          <Leaderboard
+            rows={leaderboard}
+            title={t("leaderboardTitle")}
+            hint={t("leaderboardHint")}
+            emptyText={t("leaderboardEmpty")}
+            youLabel={t("leaderboardYou")}
+            xpLabel={(value) => t("xpSuffix", { value })}
+          />
+        ) : null}
       </div>
 
       <section className="flex flex-col gap-3">

@@ -13,6 +13,7 @@ import {
   Input,
   useToast,
   type BadgeVariant,
+  runAction,
   type DataTableColumn,
 } from "@/ui";
 
@@ -89,7 +90,7 @@ export function SchoolsManager({ schools }: { schools: SchoolRow[] }) {
     setBusy(true);
     setError(null);
     try {
-      const result = await createSchoolAction({
+      const result = await runAction(() => createSchoolAction({
         name: form.name,
         slug: form.slug,
         code: form.code,
@@ -99,7 +100,7 @@ export function SchoolsManager({ schools }: { schools: SchoolRow[] }) {
         licenceExpiresAt: form.licenceExpiresAt,
         adminEmail: form.adminEmail,
         adminDisplayName: form.adminName,
-      });
+      }));
       if (!result.ok) {
         setError(errorMessage(t, result.error));
         return;
@@ -127,7 +128,7 @@ export function SchoolsManager({ schools }: { schools: SchoolRow[] }) {
     setConfirmBusy(true);
     try {
       const active = confirmTarget.status !== "ACTIVE";
-      const result = await setSchoolActiveAction({ schoolId: confirmTarget.id, active });
+      const result = await runAction(() => setSchoolActiveAction({ schoolId: confirmTarget.id, active }));
       if (!result.ok) {
         toast({ title: errorMessage(t, result.error), variant: "danger" });
         return;

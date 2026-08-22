@@ -71,6 +71,19 @@
       "confirm": "Confirm new password",
       "submit": "Save new password"
     },
+    "licence": {
+      "title": "This school's access is paused",
+      "studentTitle": "Just a moment!",
+      "studentBody": "Build Bunny is paused for your school right now. Your teacher knows about it — nothing you did caused this, and your work is safe.",
+      "staffContact": "Please contact NITAQ Academy to restore access. Nothing has been deleted — every student's progress, stars and certificates are kept.",
+      "states": {
+        "READ_ONLY": "This school's licence is read-only. You can still view records, but new work cannot be submitted and accounts cannot be created.",
+        "SUSPENDED": "This school's licence is suspended.",
+        "EXPIRED": "This school's licence has expired, including its grace period.",
+        "NO_LICENCE": "No licence is on file for this school.",
+        "SCHOOL_INACTIVE": "This school has been deactivated."
+      }
+    },
     "errors": {
       "invalidCredentials": "That email and password don't match. Please try again.",
       "disabled": "This account is disabled. Please contact your school.",
@@ -157,6 +170,13 @@
             "body": "Every mission has hints. Using one is not cheating — it's how you get unstuck."
           }
         }
+      },
+      "feedback": {
+        "heading": "From your teacher",
+        "from": "{teacher} sent you a message",
+        "openLevel": "Go to the level",
+        "read": "Read",
+        "unread": "New message"
       },
       "assignments": {
         "heading": "From your teacher",
@@ -914,6 +934,10 @@
         "empty": "No students match these filters.",
         "forbidden": "You don't have permission to manage students.",
         "conflict": "That username is already taken in this school.",
+        "credentialsPending": "{count, plural, one {# new password is} other {# new passwords are}} shown above — print or download them before leaving this page.",
+        "credentialsDone": "I have saved them",
+        "seatLimit": "This school has used all {limit} of its licensed seats ({used} students). Free a seat by disabling a student who has left, or contact NITAQ to add seats.",
+        "seatLimitGeneric": "This school has no seats available. Contact NITAQ to add seats to its licence.",
         "errorGeneric": "Something went wrong. Please try again."
       },
       "classesPage": {
@@ -1298,6 +1322,10 @@
           "adventure": {
             "name": "Adventure map",
             "description": "The student world map, the levels, and the player. With this off, students can sign in but have nothing to play."
+          },
+          "leaderboard": {
+            "name": "Class leaderboard",
+            "description": "Ranks classmates by XP under their names. Off unless the school has agreed to it. Badges and certificates are unaffected either way."
           }
         }
       }

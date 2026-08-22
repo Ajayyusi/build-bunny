@@ -4,7 +4,9 @@ import { headers } from "next/headers";
 
 import { auth } from "@/lib/auth";
 import { audit, AUDIT } from "@/lib/audit";
+import { db } from "@/lib/db";
 import { homePathForRole, isRole } from "@/modules/auth/roles";
+import { NotFoundError } from "@/modules/auth/server/guard";
 import type { SessionContext } from "@/modules/auth/server/session";
 
 /**
@@ -17,8 +19,19 @@ import type { SessionContext } from "@/modules/auth/server/session";
 
 export async function startImpersonation(
   ctx: SessionContext,
-  target: { userId: string; schoolId: string | null },
+  target: { userId: string },
 ): Promise<{ redirectTo: string }> {
+  // The school is loaded from the target user, never accepted from the
+  // caller. It used to be passed in from the browser and written straight to
+  // the audit log, so the one record proving "who entered which school's
+  // data" was whatever the client said it was — the field an auditor would
+  // trust most was the field easiest to forge.
+  const targetUser = await db.user.findUnique({
+    where: { id: target.userId },
+    select: { id: true, schoolId: true, role: true },
+  });
+  if (!targetUser) throw new NotFoundError("User not found");
+
   const result = await auth.api.impersonateUser({
     headers: await headers(),
     body: { userId: target.userId },
@@ -28,9 +41,12 @@ export async function startImpersonation(
     actorUserId: ctx.userId,
     actorRole: ctx.role,
     onBehalfOfUserId: target.userId,
-    schoolId: target.schoolId,
+    schoolId: targetUser.schoolId,
     targetType: "user",
     targetId: target.userId,
+    // The impersonated session id makes the audit trail joinable to the
+    // activity performed while impersonating, not just to its start.
+    meta: { targetRole: targetUser.role, sessionId: result.session?.id ?? null },
   });
   const role = isRole(result.user.role) ? result.user.role : "STUDENT";
   return { redirectTo: homePathForRole(role) };

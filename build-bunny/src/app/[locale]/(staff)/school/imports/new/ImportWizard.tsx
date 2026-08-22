@@ -5,7 +5,9 @@ import { useTranslations } from "next-intl";
 
 import { useRouter } from "@/i18n/navigation";
 import type { CommitImportResult, ImportPlan } from "@/modules/schools/server/imports";
-import { Badge, Button, Card, CardBody, CardHeader, CardTitle, DataTable, type DataTableColumn } from "@/ui";
+import { Badge, Button, Card, CardBody, CardHeader, CardTitle, DataTable, type DataTableColumn,
+  runAction,
+} from "@/ui";
 
 import { commitImportAction, dryRunImportAction } from "../actions";
 
@@ -81,7 +83,7 @@ export function ImportWizard() {
     setError(null);
     setCommitResult(null);
     try {
-      const result = await dryRunImportAction({ csvText });
+      const result = await runAction(() => dryRunImportAction({ csvText }));
       if (result.ok) {
         setPlan(result.data);
         setValidatedText(csvText);
@@ -97,7 +99,7 @@ export function ImportWizard() {
     setBusy("commit");
     setError(null);
     try {
-      const result = await commitImportAction({ csvText });
+      const result = await runAction(() => commitImportAction({ csvText }));
       if (result.ok) setCommitResult(result.data);
       else setError(errorMessage(t, result.error));
     } finally {

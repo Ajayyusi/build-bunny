@@ -260,6 +260,10 @@ export function createCtx(overrides: Partial<SessionContext>): SessionContext {
     mustChangePassword: false,
     impersonatedBy: null,
     sessionId: "test",
+    // Tests exercise the data layer directly; entitlement is enforced at the
+    // session guard and has its own suite. Override it to test a blocked
+    // school.
+    entitlement: { state: "ACTIVE", canAccess: true, canWrite: true },
     ...overrides,
   };
 }

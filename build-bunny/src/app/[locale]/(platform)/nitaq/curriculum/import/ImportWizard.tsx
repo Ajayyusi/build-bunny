@@ -4,7 +4,9 @@ import { useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 
 import type { ImportDiff } from "@/modules/curriculum/server/import";
-import { Badge, Button, Card, CardBody, CardHeader, CardTitle } from "@/ui";
+import { Badge, Button, Card, CardBody, CardHeader, CardTitle,
+  runAction,
+} from "@/ui";
 
 import {
   commitImportAction,
@@ -41,7 +43,7 @@ export function ImportWizard() {
     setBusy("load");
     setError(null);
     try {
-      const result = await loadBundledContentAction({});
+      const result = await runAction(() => loadBundledContentAction({}));
       if (result.ok) {
         setBundleJson(result.data.bundleJson);
         setDryRun(null);
@@ -66,7 +68,7 @@ export function ImportWizard() {
     setError(null);
     setCommitResult(null);
     try {
-      const result = await dryRunImportAction({ bundleJson });
+      const result = await runAction(() => dryRunImportAction({ bundleJson }));
       if (result.ok) setDryRun(result.data);
       else setError(errorMessage(result.error));
     } finally {
@@ -78,7 +80,7 @@ export function ImportWizard() {
     setBusy("commit");
     setError(null);
     try {
-      const result = await commitImportAction({ bundleJson });
+      const result = await runAction(() => commitImportAction({ bundleJson }));
       if (result.ok) setCommitResult(result.data);
       else setError(errorMessage(result.error));
     } finally {

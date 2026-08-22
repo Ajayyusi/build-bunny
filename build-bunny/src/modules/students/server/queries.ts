@@ -160,9 +160,69 @@ export async function getMyClassLeaderboard(
   }));
 }
 
+export interface MyFeedbackItem {
+  id: string;
+  body: string;
+  teacherName: string;
+  levelId: string;
+  levelTitle: LocalizedText;
+  createdAt: Date;
+  readAt: Date | null;
+}
+
+/**
+ * Feedback a teacher has written to THIS student.
+ *
+ * Teachers could write feedback and see a readAt column, but no student
+ * surface ever queried the table and nothing ever set readAt — so every
+ * message a teacher sent went nowhere and showed as unread forever. This is
+ * the read side of that loop.
+ */
+export async function getMyFeedback(
+  ctx: SessionContext,
+  limit = 20,
+): Promise<MyFeedbackItem[]> {
+  const schoolId = requireSchool(ctx);
+  const rows = await db.teacherFeedback.findMany({
+    // Compound lookup: student AND school, so a session pointing at another
+    // school's records resolves to nothing.
+    where: { studentUserId: ctx.userId, schoolId },
+    orderBy: { createdAt: "desc" },
+    take: limit,
+    select: {
+      id: true,
+      body: true,
+      levelId: true,
+      createdAt: true,
+      readAt: true,
+      teacher: { select: { displayName: true } },
+      level: { select: { slug: true, title: true } },
+    },
+  });
+  return rows.map((row) => ({
+    id: row.id,
+    body: row.body,
+    teacherName: row.teacher.displayName,
+    levelId: row.levelId,
+    levelTitle: asText(row.level.title, row.level.slug),
+    createdAt: row.createdAt,
+    readAt: row.readAt,
+  }));
+}
+
+/** Unread count for the nav badge. */
+export async function getMyUnreadFeedbackCount(ctx: SessionContext): Promise<number> {
+  const schoolId = requireSchool(ctx);
+  return db.teacherFeedback.count({
+    where: { studentUserId: ctx.userId, schoolId, readAt: null },
+  });
+}
+
 /** Registry walked by the tenant-isolation test suite — every query above must be here. */
 export const tenantScopedQueries = {
   getMyStudentSnapshot,
   getMyAchievements,
   getMyClassLeaderboard,
+  getMyFeedback,
+  getMyUnreadFeedbackCount,
 } as const;
