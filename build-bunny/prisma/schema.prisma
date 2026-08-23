@@ -494,6 +494,10 @@ model StudentProgress {
   stars         Int            @default(0)
   attemptsCount Int            @default(0)
   // ORDER | PREREQUISITE | ASSIGNMENT | SEED — how this level opened.
+  // PROVENANCE, not behaviour: written on every unlock, read by nothing.
+  // Kept so "why did this level open for this child?" is answerable after
+  // the fact (ORDER | PREREQUISITE | ASSIGNMENT | OPEN | SEED). Do not add
+  // logic that branches on it without first making it authoritative.
   unlockSource  String         @default("ORDER")
   // Autosaved Blockly workspace (classroom wifi reality, plan §0.1 amendments).
   draftWorkspace   Json?
@@ -501,6 +505,9 @@ model StudentProgress {
   firstCompletedAt DateTime?
   lastActivityAt   DateTime?
   // LevelVersion.version the completion was graded against.
+  // PROVENANCE: which published version the child actually completed.
+  // Written on completion, read by nothing today; it exists so a future
+  // curriculum change can tell who finished the old content.
   completedVersion Int?
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
@@ -538,6 +545,8 @@ model ActivityAttempt {
   level         Level   @relation(fields: [levelId], references: [id], onDelete: Cascade)
   // Grading pins the published version at submission (plan §1.2).
   levelVersion  Int
+  // PROVENANCE: stamped on every attempt, read by nothing today. It is what
+  // makes a stored attempt re-gradable after the engine changes.
   engineVersion String
   kind          AttemptKind @default(NORMAL)
 
@@ -556,6 +565,9 @@ model ActivityAttempt {
   // Client's optimistic verdict — mismatches are telemetry, never authority.
   clientVerdict    String?
   gradeMismatch    Boolean        @default(false)
+  // PROVENANCE: written on every attempt, read by nothing today. Marks work
+  // produced while a platform admin was impersonating, so support test-plays
+  // can be told apart from a child's real attempts in any later analysis.
   viaImpersonation Boolean        @default(false)
   createdAt        DateTime       @default(now())
 
@@ -785,6 +797,14 @@ model LearningEvent {
   school        School            @relation(fields: [schoolId], references: [id], onDelete: Cascade)
   studentUserId String
   student       User              @relation(fields: [studentUserId], references: [id], onDelete: Cascade)
+  // ALWAYS NULL TODAY. recordLearningEvent accepts a classId, but no caller
+  // supplies one — a learning event happens in a level, and a student can be
+  // in several classes, so there is no single correct value to record.
+  //
+  // Left in place rather than dropped because a class-scoped teacher feed is
+  // a plausible future feature. Anything built on this column must BACKFILL
+  // and start writing it first: querying it as it stands returns nothing,
+  // silently, which reads as "this class did no work".
   classId       String?
   type          LearningEventType
   levelId       String?
