@@ -793,6 +793,7 @@
         "notStarted": "Not started",
         "completed": "Completed",
         "refreshNote": "Updates every 20 seconds",
+        "staleNote": "Not updating — check the connection. Showing the last known status.",
         "emptyTitle": "No students in this class yet",
         "liveRegionLabel": "Class status, updates automatically"
       }
@@ -1132,7 +1133,15 @@
         "BLOCK_CODING": "Block coding",
         "CODE_PREDICTION": "Code prediction",
         "DEBUGGING": "Debugging",
-        "SEQUENCING": "Sequencing"
+        "SEQUENCING": "Sequencing",
+        "QUIZ": "Quiz",
+        "PATTERN_RECOGNITION": "Pattern recognition",
+        "AI_CLASSIFICATION": "Teach by example",
+        "REAL_ML": "Real ML",
+        "AI_ETHICS": "AI ethics",
+        "CREATIVE_PROJECT": "Creative project",
+        "AI_SIM": "AI simulation",
+        "CONCEPT_CARDS": "Concept cards"
       },
       "difficulty": {
         "EASY": "Easy",

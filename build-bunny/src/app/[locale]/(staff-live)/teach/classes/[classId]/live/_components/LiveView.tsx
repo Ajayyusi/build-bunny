@@ -62,6 +62,17 @@ export function LiveView({
 }) {
   const t = useTranslations("staff.teach.live");
   const [snapshot, setSnapshot] = useState(initial);
+  /**
+   * Consecutive failed polls.
+   *
+   * Keeping the last good snapshot on a hiccup is right — a board that
+   * blanked on one dropped packet would be useless in a classroom. What was
+   * wrong is that it kept promising "Updates every 20 seconds" while doing
+   * nothing of the kind, so a frozen board and a class where nobody happens
+   * to be working look identical from across the room. A teacher reads that
+   * as "they have all stopped".
+   */
+  const [failures, setFailures] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -70,11 +81,20 @@ export function LiveView({
         const response = await fetch(`/api/teach/classes/${classId}/live?locale=${locale}`, {
           cache: "no-store",
         });
-        if (!response.ok || cancelled) return;
+        if (cancelled) return;
+        // A non-OK response is a failed refresh too: it used to return
+        // quietly here, so a 500 from the API looked exactly like success.
+        if (!response.ok) {
+          setFailures((n) => n + 1);
+          return;
+        }
         const data = (await response.json()) as LiveSnapshot;
-        if (!cancelled) setSnapshot(data);
+        if (!cancelled) {
+          setSnapshot(data);
+          setFailures(0);
+        }
       } catch {
-        // Transient network hiccups just keep showing the last good snapshot.
+        if (!cancelled) setFailures((n) => n + 1);
       }
     };
     const id = window.setInterval(poll, POLL_MS);
@@ -84,6 +104,11 @@ export function LiveView({
     };
   }, [classId, locale]);
 
+  // Two consecutive misses (~40s) before saying anything: one dropped poll
+  // on classroom wifi is normal and a banner that flickers would be worse
+  // than no banner at all.
+  const stale = failures >= 2;
+
   return (
     <div className="flex min-h-dvh flex-col gap-8 px-8 py-10 sm:px-16">
       <header className="flex flex-wrap items-start justify-between gap-4">
@@ -91,7 +116,20 @@ export function LiveView({
           <h1 className="font-display text-4xl font-bold text-ink sm:text-5xl">
             {t("title", { className: snapshot.className })}
           </h1>
-          <p className="mt-1 text-lg text-ink-muted">{t("refreshNote")}</p>
+          {/* Sized for a projector read from the back of a room: if the
+              board has stopped updating, that has to be as visible as the
+              data itself. */}
+          {stale ? (
+            <p
+              role="status"
+              className="mt-1 inline-flex items-center gap-2 rounded-lg bg-warning/20 px-3 py-1 text-lg font-bold text-ink"
+            >
+              <span aria-hidden="true">⚠</span>
+              {t("staleNote")}
+            </p>
+          ) : (
+            <p className="mt-1 text-lg text-ink-muted">{t("refreshNote")}</p>
+          )}
         </div>
         <Link
           href={`/teach/classes/${classId}`}

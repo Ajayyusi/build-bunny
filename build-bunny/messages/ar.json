@@ -793,6 +793,7 @@
         "notStarted": "لم يبدأ",
         "completed": "مكتمل",
         "refreshNote": "يتحدّث كل 20 ثانية",
+        "staleNote": "التحديث متوقف — تحقّق من الاتصال. تُعرض آخر حالة معروفة.",
         "emptyTitle": "لا يوجد طلاب في هذا الصف بعد",
         "liveRegionLabel": "حالة الصف، تتحدّث تلقائيًا"
       }
@@ -1132,7 +1133,15 @@
         "BLOCK_CODING": "برمجة باللبنات",
         "CODE_PREDICTION": "توقّع النتيجة",
         "DEBUGGING": "تصحيح الأخطاء",
-        "SEQUENCING": "ترتيب الخطوات"
+        "SEQUENCING": "ترتيب الخطوات",
+        "QUIZ": "اختبار قصير",
+        "PATTERN_RECOGNITION": "اكتشاف الأنماط",
+        "AI_CLASSIFICATION": "التعليم بالأمثلة",
+        "REAL_ML": "تعلّم آلي حقيقي",
+        "AI_ETHICS": "أخلاقيات الذكاء الاصطناعي",
+        "CREATIVE_PROJECT": "مشروع إبداعي",
+        "AI_SIM": "محاكاة الذكاء الاصطناعي",
+        "CONCEPT_CARDS": "بطاقات المفاهيم"
       },
       "difficulty": {
         "EASY": "سهل",
