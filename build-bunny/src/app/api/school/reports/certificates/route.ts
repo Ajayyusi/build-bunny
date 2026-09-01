@@ -2,8 +2,7 @@ import { NextResponse } from "next/server";
 
 import { audit } from "@/lib/audit";
 import { csvHeaders, toCsvBody } from "@/lib/csv";
-import { hasPermission } from "@/modules/auth/permissions";
-import { getSessionContext } from "@/modules/auth/server/session";
+import { requireApiPermission } from "@/modules/auth/server/api-guard";
 import { resolveText } from "@/modules/curriculum/schemas";
 import { listSchoolCertificates } from "@/modules/certificates/server/queries";
 
@@ -14,13 +13,12 @@ import { listSchoolCertificates } from "@/modules/certificates/server/queries";
  * new query. Formula-injection neutralized via @/lib/csv.
  */
 export async function GET() {
-  const ctx = await getSessionContext();
-  if (!ctx) {
-    return NextResponse.json({ error: "UNAUTHENTICATED" }, { status: 401 });
-  }
-  if (!hasPermission(ctx.role, "exports:school")) {
-    return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 });
-  }
+  // Shared guard: role AND licence entitlement, the same rule server actions
+  // run under. Hand-rolling it here skipped the licence check entirely, so a
+  // suspended school could still export its roster.
+  const gate = await requireApiPermission("exports:school");
+  if (gate instanceof NextResponse) return gate;
+  const ctx = gate;
 
   const rows = await listSchoolCertificates(ctx);
 

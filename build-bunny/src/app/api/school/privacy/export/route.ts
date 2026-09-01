@@ -1,8 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 
 import { audit, AUDIT } from "@/lib/audit";
-import { hasPermission } from "@/modules/auth/permissions";
-import { getSessionContext } from "@/modules/auth/server/session";
+import { requireApiPermission } from "@/modules/auth/server/api-guard";
 import { getSchoolDataExport } from "@/modules/schools/server/queries";
 
 /**
@@ -109,11 +108,13 @@ function toCsvBundle(data: Awaited<ReturnType<typeof getSchoolDataExport>>): str
 }
 
 export async function GET(request: NextRequest) {
-  const ctx = await getSessionContext();
-  if (!ctx) {
-    return NextResponse.json({ error: "UNAUTHENTICATED" }, { status: 401 });
-  }
-  if (!hasPermission(ctx.role, "exports:school") || !ctx.schoolId) {
+  // Shared guard: role AND licence entitlement (see api-guard). The extra
+  // schoolId check stays — a platform admin holds the permission but has no
+  // school of their own to export.
+  const gate = await requireApiPermission("exports:school");
+  if (gate instanceof NextResponse) return gate;
+  const ctx = gate;
+  if (!ctx.schoolId) {
     return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 });
   }
 
