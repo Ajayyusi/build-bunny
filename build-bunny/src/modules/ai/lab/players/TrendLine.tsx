@@ -7,6 +7,7 @@ import { cn } from "@/ui";
 
 import { leastSquares } from "../math/leastSquares";
 import { sumSquaredError } from "../math/sumSquaredError";
+import { INTERCEPT_STEP_FRACTION, SLOPE_STEP_FRACTION } from "../trend-line/steps";
 import type { TrendLineConfig, TrendLineWork } from "../trend-line/types";
 import { resolveLocalized } from "./format";
 import type { AiSimWidgetPlayerProps } from "./registry";
@@ -97,8 +98,6 @@ function round1(value: number): number {
   return Math.round(value * 10) / 10;
 }
 
-const INTERCEPT_STEP_FRACTION = 1 / 40;
-const SLOPE_STEP_FRACTION = 1 / 20;
 
 export function TrendLine({
   config: rawConfig,
@@ -158,6 +157,24 @@ export function TrendLine({
   const [prediction, setPrediction] = useState<number | null>(null);
 
   const childSSE = useMemo(() => sumSquaredError(config.points, line), [config.points, line]);
+
+  /**
+   * The score the child is actually aiming for.
+   *
+   * gradeTrendLine passes when childSSE <= optimumSSE * toleranceFactor, and
+   * both of those are already here — optimumSSE is computed above and
+   * toleranceFactor is part of the student config (stripTrendLineConfig
+   * passes it through). Until now the child was shown a falling number and
+   * the words "lower is better", with no way to know when they had arrived:
+   * they could work the controls perfectly and still not know what they were
+   * aiming at. Its sibling widget has always shown "{count} out of place"
+   * and "All sorted!".
+   *
+   * This is a score threshold, not the answer — it says when a line is good
+   * enough, never where the line goes, exactly as the sibling's count does.
+   */
+  const passThreshold = optimumSSE * config.toleranceFactor;
+  const reachedTarget = childSSE <= passThreshold;
 
   const currentPrediction = prediction ?? yAt(line, config.predictAt);
 
@@ -256,17 +273,23 @@ export function TrendLine({
       <div className="flex flex-wrap items-center gap-3 text-sm font-semibold text-ink">
         <span
           aria-live="polite"
-          className="inline-flex items-center gap-1.5 rounded-full bg-surface-sunken px-3 py-1 tabular-nums"
+          className={cn(
+            "inline-flex items-center gap-1.5 rounded-full px-3 py-1 tabular-nums",
+            reachedTarget ? "bg-positive/15 text-positive" : "bg-surface-sunken",
+          )}
         >
-          {t("totalMiss", { score: round1(childSSE) })}
+          {reachedTarget
+            ? t("totalMissReached", { score: round1(childSSE) })
+            : t("totalMissTarget", {
+                score: round1(childSSE),
+                target: round1(passThreshold),
+              })}
         </span>
         {computerRevealed ? (
           <span className={cn("inline-flex items-center gap-1.5 rounded-full bg-warning/14 px-3 py-1 text-warning tabular-nums", !reducedMotion && styles.popIn)}>
             {t("computerMiss", { score: round1(optimumSSE) })}
           </span>
         ) : null}
-        {/* The scores are meaningless without knowing which way is good. */}
-        <span className="text-xs font-normal text-ink-muted">{t("lowerIsBetter")}</span>
       </div>
 
       {/* Which line is whose. Two lines were on screen with nothing naming

@@ -16,6 +16,9 @@ import {
   gateSolutionRuns,
 } from "@/modules/curriculum/server/gates";
 import type { LevelSnapshot } from "@/modules/curriculum/server/publish";
+import { leastSquares } from "@/modules/ai/lab/math/leastSquares";
+import { sumSquaredError } from "@/modules/ai/lab/math/sumSquaredError";
+import { INTERCEPT_STEP_FRACTION } from "@/modules/ai/lab/trend-line/steps";
 import { bundle } from "../../content";
 
 /**
@@ -387,6 +390,86 @@ describe("solutions survive the real publish gates (no DB needed)", () => {
         `${world.slug}/${level.slug}: ${result.issues.join("; ")}`,
       ).toBe(true);
       expect(result.skipped, `${world.slug}/${level.slug} ran for real`).toBeUndefined();
+    }
+  });
+});
+
+describe("AI Lab trend-line levels are winnable with the keyboard", () => {
+  /**
+   * The grid worlds prove their solutions run (above). The AI_SIM widgets had
+   * no equivalent proof, and one shipped that a keyboard user could not win.
+   *
+   * gradeTrendLine passes when childSSE <= optimumSSE * toleranceFactor. Hold
+   * the slope at its optimum and write the intercept as b_opt + d; because the
+   * least-squares residuals sum to zero, SSE(b_opt + d) = optimumSSE + n*d^2
+   * exactly. So the passing intercepts are a band of half-width
+   * sqrt(optimumSSE * (toleranceFactor - 1) / n) around the optimum — a closed
+   * form, no search needed.
+   *
+   * One arrow press moves the intercept by INTERCEPT_STEP_FRACTION of the
+   * plotted y-range. If that step is not comfortably smaller than the band,
+   * the child hops over the answer forever. Four steps across is the floor:
+   * fewer than that and there is no room to hunt.
+   */
+  const MIN_STEPS_ACROSS_BAND = 4;
+  const BAND_MULTIPLIER = 1.5; // matches trend-line/grade.ts and the widget
+
+  const trendLevels = playableWorlds.flatMap((world) =>
+    allLevels(world)
+      .filter(
+        (level) =>
+          level.activityType === "AI_SIM" &&
+          (level.payload as { widget?: { widgetId?: string } }).widget?.widgetId === "trend-line",
+      )
+      .map((level) => ({ world, level })),
+  );
+
+  it("finds the shipped trend-line level(s)", () => {
+    expect(trendLevels.length).toBeGreaterThan(0);
+  });
+
+  it("every trend-line level asks for a line that is worse than least squares", () => {
+    for (const { world, level } of trendLevels) {
+      const config = (level.payload as { widget: { toleranceFactor: number } }).widget;
+      // toleranceFactor <= 1 would demand the child beat the optimum itself.
+      expect(config.toleranceFactor, `${world.slug}/${level.slug}`).toBeGreaterThan(1);
+    }
+  });
+
+  it("every trend-line level's passing band is several keyboard steps wide", () => {
+    for (const { world, level } of trendLevels) {
+      const config = (
+        level.payload as {
+          widget: {
+            points: { x: number; y: number }[];
+            predictAt: number;
+            toleranceFactor: number;
+          };
+        }
+      ).widget;
+      const label = `${world.slug}/${level.slug}`;
+
+      const optimum = leastSquares(config.points);
+      const optimumSSE = sumSquaredError(config.points, optimum);
+      const n = config.points.length;
+      const bandWidth = 2 * Math.sqrt((optimumSSE * (config.toleranceFactor - 1)) / n);
+
+      // The plotted y-range, derived exactly as TrendLine.tsx derives it.
+      const residualStd = Math.sqrt(optimumSSE / n);
+      const fitted = optimum.slope * config.predictAt + optimum.intercept;
+      const ys = config.points
+        .map((point) => point.y)
+        .concat(fitted - BAND_MULTIPLIER * residualStd, fitted + BAND_MULTIPLIER * residualStd);
+      const yLow = Math.min(...ys);
+      const yHigh = Math.max(...ys);
+      const yPad = Math.max((yHigh - yLow) * 0.15, 1);
+      const yRange = yHigh + yPad - (yLow - yPad);
+
+      const step = yRange * INTERCEPT_STEP_FRACTION;
+      expect(
+        bandWidth / step,
+        `${label}: one arrow press moves ${step.toFixed(3)} but the passing band is only ${bandWidth.toFixed(3)} wide`,
+      ).toBeGreaterThanOrEqual(MIN_STEPS_ACROSS_BAND);
     }
   });
 });

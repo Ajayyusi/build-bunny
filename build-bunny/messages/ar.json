@@ -466,7 +466,8 @@
         "trendLine": {
           "instructionsFit": "اسحب الخط لتقليل مجموع الخطأ. ثم دع الحاسوب يُظهر لك أفضل خط لديه.",
           "instructionsPredict": "حدّد توقعك للنقطة المُشار إليها، ثم شاهد كيف يقارَن بمدى محتمل.",
-          "totalMiss": "مجموع الخطأ: {score}",
+          "totalMissTarget": "مجموع الخطأ: {score} — الهدف: أقل من {target}",
+          "totalMissReached": "مجموع الخطأ: {score} — ممتاز! خطك قريب بما يكفي",
           "computerMiss": "خطأ الحاسوب: {score}",
           "chartLabel": "رسم بياني مبعثر مع خط اتجاه يمكنك سحبه",
           "dragHandleLabel": "خط الاتجاه",
@@ -479,7 +480,6 @@
           "predictionValue": "تخمينك: {value}",
           "bandInsideNote": "هذا ضمن المدى الذي يتوقّعه العلماء",
           "bandOutsideNote": "هذا خارج المدى الذي يتوقّعه العلماء",
-          "lowerIsBetter": "كلما قلّ كان أفضل",
           "legendYours": "خطّك",
           "legendComputer": "خط الحاسوب",
           "legendBand": "المدى المُرجَّح"
