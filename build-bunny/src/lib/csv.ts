@@ -11,12 +11,13 @@ function csvCell(value: string): string {
   return /[",\n]/.test(guarded) ? `"${guarded.replace(/"/g, '""')}"` : guarded;
 }
 
-export function toCsvRow(cells: (string | number)[]): string {
+/** boolean is accepted so the privacy export can share this guard too. */
+export function toCsvRow(cells: (string | number | boolean)[]): string {
   return cells.map((c) => csvCell(String(c))).join(",");
 }
 
 /** CRLF-joined body, trailing newline included — matches RFC 4180 readers. */
-export function toCsvBody(rows: (string | number)[][]): string {
+export function toCsvBody(rows: (string | number | boolean)[][]): string {
   return rows.map(toCsvRow).join("\r\n") + "\r\n";
 }
 

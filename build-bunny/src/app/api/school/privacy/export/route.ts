@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 
 import { audit, AUDIT } from "@/lib/audit";
+import { toCsvRow } from "@/lib/csv";
 import { requireApiPermission } from "@/modules/auth/server/api-guard";
 import { getSchoolDataExport } from "@/modules/schools/server/queries";
 
@@ -23,14 +24,11 @@ import { getSchoolDataExport } from "@/modules/schools/server/queries";
  * docs/privacy-data-inventory.md) instead of one .csv per table.
  */
 
-function csvCell(value: string): string {
-  const guarded = /^[=+\-@]/.test(value) ? `'${value}` : value;
-  return /[",\n]/.test(guarded) ? `"${guarded.replace(/"/g, '""')}"` : guarded;
-}
-
-function row(cells: (string | number | boolean)[]): string {
-  return cells.map((c) => csvCell(String(c))).join(",");
-}
+/**
+ * Local alias for the shared, unit-tested row builder. This file used to
+ * carry its own copy of the formula-injection guard; there is now one.
+ */
+const row = toCsvRow;
 
 function toCsvBundle(data: Awaited<ReturnType<typeof getSchoolDataExport>>): string {
   const lines: string[] = [];

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { toCsvRow } from "@/lib/csv";
 import { requireApiPermission } from "@/modules/auth/server/api-guard";
 import { getSchoolProgressReport } from "@/modules/schools/server/queries";
 
@@ -9,15 +10,6 @@ import { getSchoolProgressReport } from "@/modules/schools/server/queries";
  * formula-injection neutralized: any cell starting with = + - @ gets a
  * leading apostrophe so a spreadsheet app never executes it as a formula.
  */
-
-function csvCell(value: string): string {
-  const guarded = /^[=+\-@]/.test(value) ? `'${value}` : value;
-  return /[",\n]/.test(guarded) ? `"${guarded.replace(/"/g, '""')}"` : guarded;
-}
-
-function toCsvRow(cells: (string | number)[]): string {
-  return cells.map((c) => csvCell(String(c))).join(",");
-}
 
 export async function GET() {
   // Shared guard: role AND licence entitlement, the same rule server actions
