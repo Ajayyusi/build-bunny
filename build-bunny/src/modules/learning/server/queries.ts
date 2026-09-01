@@ -1,6 +1,6 @@
 import "server-only";
 
-import { computeAdventureState, getLevelIntro } from "./adventure";
+import { computeAdventureState, getLevelIntro, getLevelIntros } from "./adventure";
 import { getPlayableLevel } from "./play";
 
 /**
@@ -11,11 +11,12 @@ import { getPlayableLevel } from "./play";
  * automatically. recomputeUnlocks and the player mutation cores take no
  * SessionContext-scoped read role and are deliberately NOT re-exported here.
  */
-export { computeAdventureState, getLevelIntro, getPlayableLevel };
+export { computeAdventureState, getLevelIntro, getLevelIntros, getPlayableLevel };
 
 /** Registry walked by the tenant-isolation test suite. */
 export const tenantScopedQueries = {
   computeAdventureState,
   getLevelIntro,
+  getLevelIntros,
   getPlayableLevel,
 } as const;

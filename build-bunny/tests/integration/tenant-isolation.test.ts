@@ -843,6 +843,36 @@ async function assertQueryIsolated(entry: RegistryEntry): Promise<void> {
       expectNoForeignIds(state, name);
       break;
     }
+    case "getLevelIntros": {
+      // Same isolation contract as getLevelIntro, asserted on the batched
+      // form because that is what the adventure map actually calls: school
+      // B's 3-star completion of the SAME global level must not colour
+      // school A's student's view of it.
+      const intros = (await query(studentCtxA, [levelOneId, levelTwoId])) as Map<
+        string,
+        Record<string, unknown>
+      >;
+      const one = intros.get(levelOneId);
+      expect(one).toBeDefined();
+      expect(one?.["state"]).toBe("UNLOCKED");
+      expect(one?.["stars"]).toBe(0);
+      expect(one && "payload" in one).toBe(false);
+      expect(one && "hints" in one).toBe(false);
+      expect(JSON.stringify([...intros.values()])).not.toContain("SECRET");
+      expectNoForeignIds([...intros.values()], name);
+
+      // A ctx claiming school A while carrying school B's user has no
+      // progress rows in A, so the batch resolves to nothing at all.
+      const mismatched = createCtx({
+        userId: B.studentIds[0],
+        role: "STUDENT",
+        schoolId: A.school.id,
+      });
+      expect((await query(mismatched, [levelOneId, levelTwoId])) as Map<string, unknown>).toEqual(
+        new Map(),
+      );
+      break;
+    }
     case "getLevelIntro": {
       const intro = (await query(studentCtxA, levelOneId)) as Record<
         string,

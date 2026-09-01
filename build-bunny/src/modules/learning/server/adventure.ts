@@ -517,6 +517,111 @@ export async function getLevelIntro(
   };
 }
 
+/**
+ * getLevelIntro for many levels at once.
+ *
+ * The adventure map asked for one intro per unlocked node, and each call
+ * re-resolved the programme, re-read the level, re-checked programme
+ * membership, re-read the progress row and re-fetched the snapshot: six
+ * queries per level, so a child with twenty levels open cost well over a
+ * hundred on the page they open most.
+ *
+ * Every rule below is the same rule getLevelIntro applies, evaluated once
+ * for the whole set instead of once per level. That equivalence is the point
+ * — these predicates are what stop a student seeing content from another
+ * school's programme, a horizon world, or a level they have not unlocked —
+ * so the two are pinned against each other by a test rather than by
+ * inspection.
+ *
+ * A level that fails ANY check is simply absent from the returned map, which
+ * is how the single-level form's null becomes a batch result.
+ */
+export async function getLevelIntros(
+  ctx: SessionContext,
+  levelIds: string[],
+): Promise<Map<string, LevelIntro>> {
+  const out = new Map<string, LevelIntro>();
+  const schoolId = requireSchool(ctx);
+  if (levelIds.length === 0) return out;
+
+  const program = await resolveProgramForStudent(ctx.userId, schoolId);
+  if (!program) return out;
+
+  const levels = await db.level.findMany({
+    where: { id: { in: levelIds }, status: "PUBLISHED", publishedVersionId: { not: null } },
+    select: {
+      id: true,
+      slug: true,
+      activityType: true,
+      difficulty: true,
+      estimatedMinutes: true,
+      maxStars: true,
+      publishedVersionId: true,
+      module: {
+        select: { world: { select: { id: true, status: true, horizon: true } } },
+      },
+    },
+  });
+  if (levels.length === 0) return out;
+
+  // Programme membership for every world involved, in one read.
+  const worldIds = [...new Set(levels.map((level) => level.module.world.id))];
+  const inProgram = new Set(
+    (
+      await db.programWorld.findMany({
+        where: { programId: program.id, worldId: { in: worldIds } },
+        select: { worldId: true },
+      })
+    ).map((row) => row.worldId),
+  );
+
+  const [rows, versions] = await Promise.all([
+    db.studentProgress.findMany({
+      where: { studentUserId: ctx.userId, schoolId, levelId: { in: levels.map((l) => l.id) } },
+      select: { levelId: true, status: true, stars: true },
+    }),
+    db.levelVersion.findMany({
+      where: { id: { in: levels.map((l) => l.publishedVersionId as string) } },
+      select: { id: true, snapshot: true },
+    }),
+  ]);
+  const progressByLevel = new Map(rows.map((row) => [row.levelId, row]));
+  const textByVersion = new Map(
+    versions.map((version) => [version.id, parseSnapshotText(version.snapshot)]),
+  );
+
+  for (const level of levels) {
+    const world = level.module.world;
+    if (world.status !== "PUBLISHED" || world.horizon) continue;
+    if (!inProgram.has(world.id)) continue;
+
+    const row = progressByLevel.get(level.id);
+    if (!row) continue;
+
+    const text = textByVersion.get(level.publishedVersionId as string);
+    if (!text) continue;
+
+    // Field-by-field, NEVER a spread of the snapshot — payload and hints must
+    // not reach the student surface. Same construction as getLevelIntro.
+    out.set(level.id, {
+      id: level.id,
+      slug: level.slug,
+      title: text.title,
+      story: text.story ?? null,
+      objective: text.objective ?? null,
+      instructions: text.instructions ?? null,
+      difficulty: level.difficulty,
+      estimatedMinutes: level.estimatedMinutes,
+      maxStars: level.maxStars,
+      stars: row.stars,
+      state: row.status,
+      activityType: level.activityType,
+    });
+  }
+
+  return out;
+}
+
 // ── Unlock recomputation (mutation — called after completions and by seed) ──
 
 export async function recomputeUnlocks(studentUserId: string): Promise<void> {

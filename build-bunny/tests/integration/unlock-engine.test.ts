@@ -6,6 +6,7 @@ import type { SessionContext } from "@/modules/auth/server/session";
 import {
   computeAdventureState,
   getLevelIntro,
+  getLevelIntros,
   recomputeUnlocks,
 } from "@/modules/learning/server/adventure";
 import type { AdventureState, AdventureWorldNode } from "@/modules/learning/server/adventure";
@@ -458,5 +459,62 @@ describe("Module.unlockRule OPEN", () => {
       expect(row.status).toBe("UNLOCKED");
       expect(row.unlockSource).toBe("OPEN");
     }
+  });
+});
+
+/**
+ * The batched intro read must apply EXACTLY the rules the single-level one
+ * applies. Those predicates are what stop a student seeing another
+ * programme's content, a horizon world, a draft or archived level, or a
+ * level they have not unlocked — so the two forms are pinned against each
+ * other here rather than trusted to stay in step by inspection.
+ */
+describe("getLevelIntros matches getLevelIntro for every level in the graph", () => {
+  const everyLevel = () => [
+    l1Id, l2Id, l3Id, l4Id, l6Id,
+    draftId, archivedId, horizonLevelId,
+    "no-such-level",
+  ];
+
+  it("agrees level by level for a student mid-progression", async () => {
+    for (const levelId of everyLevel()) {
+      const single = await getLevelIntro(ctx, levelId);
+      const batched = (await getLevelIntros(ctx, [levelId])).get(levelId) ?? null;
+      expect(batched).toEqual(single);
+    }
+  });
+
+  it("agrees for a student with no progress at all", async () => {
+    for (const levelId of everyLevel()) {
+      const single = await getLevelIntro(freshCtx, levelId);
+      const batched = (await getLevelIntros(freshCtx, [levelId])).get(levelId) ?? null;
+      expect(batched).toEqual(single);
+    }
+  });
+
+  it("returns the same set when asked for every level at once", async () => {
+    // The batch is not merely per-level correct: asking for all of them
+    // together must not admit one that individually resolves to null.
+    const ids = everyLevel();
+    const batched = await getLevelIntros(ctx, ids);
+    const expected = new Map<string, unknown>();
+    for (const id of ids) {
+      const single = await getLevelIntro(ctx, id);
+      if (single) expected.set(id, single);
+    }
+    expect([...batched.keys()].sort()).toEqual([...expected.keys()].sort());
+    for (const [id, intro] of batched) expect(intro).toEqual(expected.get(id));
+  });
+
+  it("never leaks answer-bearing fields", async () => {
+    const batched = await getLevelIntros(ctx, everyLevel());
+    const serialized = JSON.stringify([...batched.values()]);
+    expect(serialized).not.toContain("payload");
+    expect(serialized).not.toContain("hints");
+    expect(serialized).not.toContain("SECRET");
+  });
+
+  it("is empty for an empty request, without touching the database", async () => {
+    expect(await getLevelIntros(ctx, [])).toEqual(new Map());
   });
 });

@@ -4,7 +4,7 @@ import { redirect } from "@/i18n/navigation";
 import { resolveText } from "@/modules/curriculum/schemas";
 import {
   computeAdventureState,
-  getLevelIntro,
+  getLevelIntros,
   type AdventureWorldNode,
 } from "@/modules/learning/server/adventure";
 import { requireRole, type SessionContext } from "@/modules/auth/server/session";
@@ -41,27 +41,30 @@ async function loadIntros(
     .flatMap((moduleNode) => moduleNode.levels)
     .filter((level) => level.state !== "LOCKED");
 
-  const entries = await Promise.all(
-    openable.map(async (level) => {
-      const intro = await getLevelIntro(ctx, level.id);
-      if (!intro) return null;
-      return [
-        level.id,
-        {
-          title: resolveText(intro.title, locale),
-          story: resolveText(intro.story, locale),
-          objective: resolveText(intro.objective, locale),
-          instructions: resolveText(intro.instructions, locale),
-          difficulty: intro.difficulty,
-          estimatedMinutes: intro.estimatedMinutes,
-          stars: intro.stars,
-          maxStars: intro.maxStars,
-        } satisfies TrailIntroVM,
-      ] as const;
-    }),
+  // One batched read for the whole map. Per-level calls cost six queries
+  // each, so a child with twenty levels open paid over a hundred on the page
+  // they open most. Anything the student may not see is simply absent from
+  // the result, exactly as the single-level form returned null.
+  const intros = await getLevelIntros(
+    ctx,
+    openable.map((level) => level.id),
   );
 
-  return new Map(entries.filter((entry) => entry !== null));
+  return new Map(
+    [...intros].map(([levelId, intro]) => [
+      levelId,
+      {
+        title: resolveText(intro.title, locale),
+        story: resolveText(intro.story, locale),
+        objective: resolveText(intro.objective, locale),
+        instructions: resolveText(intro.instructions, locale),
+        difficulty: intro.difficulty,
+        estimatedMinutes: intro.estimatedMinutes,
+        stars: intro.stars,
+        maxStars: intro.maxStars,
+      } satisfies TrailIntroVM,
+    ]),
+  );
 }
 
 function toTrailWorld(
