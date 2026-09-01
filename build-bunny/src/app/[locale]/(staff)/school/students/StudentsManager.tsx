@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 
+import { toCsvRow } from "@/lib/csv";
 import { useRouter } from "@/i18n/navigation";
 import {
   Badge,
@@ -224,12 +225,15 @@ export function StudentsManager({
    */
   function downloadCredentials() {
     if (printRows.length === 0) return;
-    const header = "display_name,username,password";
-    const escape = (value: string | null) => `"${(value ?? "").replaceAll('"', '""')}"`;
+    // toCsvRow rather than a local quoter, because it also neutralises
+    // formula injection. Quoting alone does not: a spreadsheet still
+    // evaluates ="..." inside a quoted field. Display names are
+    // attacker-supplied through the student importer, and this particular
+    // file is the one containing passwords.
     const csv = [
-      header,
+      toCsvRow(["display_name", "username", "password"]),
       ...printRows.map((row) =>
-        [row.displayName, row.username ?? "", row.password].map(escape).join(","),
+        toCsvRow([row.displayName ?? "", row.username ?? "", row.password ?? ""]),
       ),
     ].join("\r\n");
     // BOM so Excel opens the file as UTF-8 and Arabic names survive.

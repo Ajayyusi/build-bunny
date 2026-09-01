@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 
 import { useRouter } from "@/i18n/navigation";
+import { toCsvRow } from "@/lib/csv";
 import type { CommitImportResult, ImportPlan } from "@/modules/schools/server/imports";
 import { Badge, Button, Card, CardBody, CardHeader, CardTitle, DataTable, type DataTableColumn,
   runAction,
@@ -25,13 +26,10 @@ function errorMessage(t: T, code: string): string {
 const MAX_CSV_BYTES = 2_000_000;
 
 function downloadCsv(filename: string, rows: string[][]) {
-  const csv = rows
-    .map((row) =>
-      row
-        .map((cell) => (/[",\n]/.test(cell) ? `"${cell.replace(/"/g, '""')}"` : cell))
-        .join(","),
-    )
-    .join("\r\n");
+  // The shared builder, because quoting alone leaves formula injection open
+  // — and the error report echoes cells straight back out of a file this
+  // admin was handed by someone else.
+  const csv = rows.map(toCsvRow).join("\r\n");
   const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");

