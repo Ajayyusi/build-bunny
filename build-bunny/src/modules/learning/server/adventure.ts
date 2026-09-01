@@ -336,9 +336,12 @@ export async function computeAdventureState(ctx: SessionContext): Promise<Advent
   // nothing. It is also what makes this self-healing — a student whose school
   // gained (or changed) its curriculum after they were created gets their
   // starting levels on the next page load rather than needing a backfill.
-  await recomputeUnlocks(ctx.userId);
-
   const worlds = await loadProgramContent(program.id);
+  // Reuses the content just loaded rather than resolving and re-loading it:
+  // ordering matters, since the progress rows below must see anything this
+  // materializes.
+  await recomputeUnlocksFor(ctx.userId, schoolId, worlds);
+
   const allLevels = worlds.flatMap((w) => w.modules.flatMap((m) => m.levels));
   const [progress, versions] = await Promise.all([
     loadProgressRows(ctx.userId, schoolId, allLevels.map((l) => l.id)),
@@ -527,10 +530,26 @@ export async function recomputeUnlocks(studentUserId: string): Promise<void> {
   if (!program) return;
 
   const worlds = await loadProgramContent(program.id);
+  await recomputeUnlocksFor(studentUserId, profile.schoolId, worlds);
+}
+
+/**
+ * The unlock rules themselves, over content the caller has already loaded.
+ *
+ * Split out so computeAdventureState can reuse the worlds it is about to
+ * render. Calling the resolving form there ran the whole pipeline twice on
+ * every map view — profile lookup, programme resolution, loadProgramContent
+ * and the progress rows — for data the caller already had in hand.
+ */
+async function recomputeUnlocksFor(
+  studentUserId: string,
+  schoolId: string,
+  worlds: LoadedWorld[],
+): Promise<void> {
   const allLevelIds = worlds.flatMap((w) =>
     w.modules.flatMap((m) => m.levels.map((l) => l.id)),
   );
-  const progress = await loadProgressRows(studentUserId, profile.schoolId, allLevelIds);
+  const progress = await loadProgressRows(studentUserId, schoolId, allLevelIds);
   const isCompleted = (levelId: string): boolean =>
     progress.get(levelId)?.status === "COMPLETED";
 
@@ -594,7 +613,7 @@ export async function recomputeUnlocks(studentUserId: string): Promise<void> {
   if (toCreate.length > 0) {
     await db.studentProgress.createMany({
       data: toCreate.map((entry) => ({
-        schoolId: profile.schoolId,
+        schoolId: schoolId,
         studentUserId,
         levelId: entry.levelId,
         status: "UNLOCKED" as const,
