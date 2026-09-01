@@ -263,6 +263,10 @@
         "missionHeading": "Your mission",
         "howHeading": "How to play",
         "howSceneLabel": "Three instruction blocks light up one at a time while the bunny hops along four tiles and reaches the carrot.",
+        "learnSceneLabel": "A stack of instruction blocks with one missing. The missing block drops into the gap, then each block lights up in turn.",
+        "sequenceSceneLabel": "Three steps in the wrong order. One step moves up past another until the list reads one, two, three.",
+        "predictSceneLabel": "A short program is read line by line, then one of three answers is chosen.",
+        "ethicsSceneLabel": "A question with two answers. One is chosen, and the story moves on to the next card.",
         "start": "Let's build!"
       },
       "feedback": {

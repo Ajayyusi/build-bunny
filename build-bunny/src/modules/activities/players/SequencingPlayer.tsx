@@ -7,6 +7,7 @@ import { Link } from "@/i18n/navigation";
 import { Button, cn, useReducedMotion } from "@/ui";
 
 import { HintDrawer, type HintTierState } from "./shared/HintDrawer";
+import { SequenceScene } from "./shared/SequenceScene";
 import { IntroOverlay } from "./shared/IntroOverlay";
 import { ResultBanner } from "./shared/ResultBanner";
 import { SuccessOverlay } from "./shared/SuccessOverlay";
@@ -383,6 +384,7 @@ export function SequencingPlayer({
           difficulty={intro.difficulty}
           estimatedMinutes={intro.estimatedMinutes}
           worldTheme={intro.worldTheme}
+          howScene={<SequenceScene />}
           onStart={() => {
             editStartRef.current = Date.now();
             setPhase("edit");

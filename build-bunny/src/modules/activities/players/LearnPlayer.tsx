@@ -13,6 +13,7 @@ import { Button, cn, useReducedMotion } from "@/ui";
 
 import { runForPlayback } from "./client-run";
 import { HintDrawer, type HintTierState } from "./shared/HintDrawer";
+import { LearnScene } from "./shared/LearnScene";
 import { IntroOverlay } from "./shared/IntroOverlay";
 import { LearnDoneOverlay } from "./shared/LearnDoneOverlay";
 import type {
@@ -457,6 +458,7 @@ export function LearnPlayer({
           difficulty={intro.difficulty}
           estimatedMinutes={intro.estimatedMinutes}
           worldTheme={intro.worldTheme}
+          howScene={<LearnScene />}
           onStart={() => {
             setPhase("show");
             setPlaying(true);

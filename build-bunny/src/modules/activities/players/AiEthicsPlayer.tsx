@@ -7,6 +7,7 @@ import { Link } from "@/i18n/navigation";
 import { Button, cn, useReducedMotion } from "@/ui";
 
 import { HintDrawer, type HintTierState } from "./shared/HintDrawer";
+import { EthicsScene } from "./shared/EthicsScene";
 import { IntroOverlay } from "./shared/IntroOverlay";
 import { useDraftAutosave } from "./shared/useDraftAutosave";
 import styles from "./shared/player.module.css";
@@ -410,6 +411,7 @@ export function AiEthicsPlayer({
           difficulty={intro.difficulty}
           estimatedMinutes={intro.estimatedMinutes}
           worldTheme={intro.worldTheme}
+          howScene={<EthicsScene />}
           onStart={() => {
             editStartRef.current = Date.now();
             setPhase("scene");

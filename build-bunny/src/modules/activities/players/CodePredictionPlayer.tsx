@@ -8,6 +8,7 @@ import { CodeView } from "@/modules/blockly/CodeView";
 import { Button, cn, useReducedMotion } from "@/ui";
 
 import { HintDrawer, type HintTierState } from "./shared/HintDrawer";
+import { PredictScene } from "./shared/PredictScene";
 import { IntroOverlay } from "./shared/IntroOverlay";
 import { ResultBanner } from "./shared/ResultBanner";
 import { SuccessOverlay } from "./shared/SuccessOverlay";
@@ -330,6 +331,7 @@ export function CodePredictionPlayer({
           difficulty={intro.difficulty}
           estimatedMinutes={intro.estimatedMinutes}
           worldTheme={intro.worldTheme}
+          howScene={<PredictScene />}
           onStart={() => {
             editStartRef.current = Date.now();
             setPhase("edit");
