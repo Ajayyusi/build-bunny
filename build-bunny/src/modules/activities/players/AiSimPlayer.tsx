@@ -15,6 +15,7 @@ import { IntroOverlay } from "./shared/IntroOverlay";
 import { useDraftAutosave } from "./shared/useDraftAutosave";
 import { ResultBanner } from "./shared/ResultBanner";
 import { SuccessOverlay } from "./shared/SuccessOverlay";
+import { Walkthrough } from "./shared/Walkthrough";
 import type { ActivityPlayerProps, AiSimActivityPayload, AttemptResponse } from "../types";
 import { resolveLocalized } from "../types";
 
@@ -62,7 +63,6 @@ export function AiSimPlayer({
   // default state rather than a help button nobody presses (same reasoning
   // as Teach the Bunny, which needed exactly this).
   const [step, setStep] = useState(beats === null ? 0 : 1);
-  const stepCount = beats?.length ?? 0;
 
   const [phase, setPhase] = useState<Phase>("intro");
   // Seeded from the draft, not null: the widget re-reports the restored work
@@ -369,45 +369,26 @@ export function AiSimPlayer({
         onReveal={(tier) => void handleRevealHint(tier)}
       />
 
-      {/* Walkthrough. One idea per beat, because a child meeting an abstract
-          chart for the first time cannot hold four at once. The animation
-          carries the meaning; the text only names what is already moving. */}
-      {beats !== null && step > 0 ? (
-        <div className="fixed inset-0 z-50 grid place-items-center bg-ink/50 p-4">
-          <div className="flex w-full max-w-lg flex-col gap-4 rounded-2xl bg-surface-raised p-6 shadow-overlay">
-            {widgetId === "trend-line" ? <TrendScene step={step} /> : null}
-            {widgetId === "boundary-builder" ? <BoundaryScene step={step} /> : null}
-            {widgetId === "pixel-playground" ? <PixelScene step={step} /> : null}
-            <h2 className="font-display text-xl font-bold text-ink">
-              {resolveLocalized(beats[step - 1]!.title, locale)}
-            </h2>
-            <p className="text-sm leading-relaxed text-ink-muted">
-              {resolveLocalized(beats[step - 1]!.body, locale)}
-            </p>
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-1.5" aria-label={`${step} / ${stepCount}`}>
-                {Array.from({ length: stepCount }, (_, i) => i + 1).map((n) => (
-                  <span
-                    key={n}
-                    aria-hidden="true"
-                    className={cn(
-                      "size-1.5 rounded-full transition-colors",
-                      n === step ? "bg-brand" : "bg-ink/15",
-                    )}
-                  />
-                ))}
-              </div>
-              <div className="flex items-center gap-2">
-                <Button variant="ghost" onClick={() => setStep(0)}>
-                  {tSim("walkSkip")}
-                </Button>
-                <Button onClick={() => setStep(step >= stepCount ? 0 : step + 1)}>
-                  {step >= stepCount ? tSim("walkStart") : tSim("walkNext")}
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
+      {/* One idea per beat, because a child meeting an abstract chart for
+          the first time cannot hold four at once. The animation carries the
+          meaning; the text only names what is already moving. */}
+      {beats !== null ? (
+        <Walkthrough
+          beats={beats.map((beat) => ({
+            title: resolveLocalized(beat.title, locale),
+            body: resolveLocalized(beat.body, locale),
+          }))}
+          step={step}
+          onStep={setStep}
+          onDone={() => setStep(0)}
+          renderScene={(beatStep) => (
+            <>
+              {widgetId === "trend-line" ? <TrendScene step={beatStep} /> : null}
+              {widgetId === "boundary-builder" ? <BoundaryScene step={beatStep} /> : null}
+              {widgetId === "pixel-playground" ? <PixelScene step={beatStep} /> : null}
+            </>
+          )}
+        />
       ) : null}
     </div>
   );

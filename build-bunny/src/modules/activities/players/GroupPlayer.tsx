@@ -15,11 +15,19 @@ import { assign, lloydStep, tightness } from "@/modules/ai/grouping";
 import { BunnyMascot, Button, cn, useReducedMotion } from "@/ui";
 
 import { GroupScene } from "./GroupScene";
+import { Walkthrough } from "./shared/Walkthrough";
 import { HintDrawer } from "./shared/HintDrawer";
 import { SuccessOverlay } from "./shared/SuccessOverlay";
 import { useDraftAutosave } from "./shared/useDraftAutosave";
 import { useHints } from "./shared/useHints";
 import styles from "./teach.module.css";
+
+/**
+ * The four beats this activity ships with when a level authors none. They
+ * live in messages under walk1Title..walk4Body; a level that wants its own
+ * script sets `walkthrough` in its payload and overrides all four.
+ */
+const BUILT_IN_BEATS = [1, 2, 3, 4] as const;
 
 import type { ActivityPlayerProps, AttemptResponse } from "../types";
 import { resolveLocalized, type GroupActivityPayload } from "../types";
@@ -104,8 +112,10 @@ export function GroupPlayer({
   const locale = useLocale();
 
   const glyph = data.theme?.glyph ?? DEFAULT_GLYPH_THEME;
-  const beats = data.walkthrough ?? null;
-  const stepCount = beats?.length ?? 4;
+  const beats = data.walkthrough ?? BUILT_IN_BEATS.map((n) => ({
+    title: t(`walk${n}Title`),
+    body: t(`walk${n}Body`),
+  }));
 
   const restored = useMemo(() => restoreDraft(draft, data), [draft, data]);
 
@@ -649,42 +659,14 @@ export function GroupPlayer({
         </div>
       </div>
 
-      {/* Walkthrough — same anatomy as Teach the Bunny's, with the grouping scenes. */}
-      {step > 0 ? (
-        <div className="fixed inset-0 z-50 grid place-items-center bg-ink/50 p-4">
-          <div className="flex w-full max-w-lg flex-col gap-4 rounded-2xl bg-surface-raised p-6 shadow-overlay">
-            <GroupScene step={step} glyph={glyph} training={Boolean(data.training)} />
-            <h2 className="font-display text-xl font-bold text-ink">
-              {beats ? beats[step - 1]!.title : t(`walk${step}Title`)}
-            </h2>
-            <p className="text-sm leading-relaxed text-ink-muted">
-              {beats ? beats[step - 1]!.body : t(`walk${step}Body`)}
-            </p>
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-1.5" aria-label={`${step} / ${stepCount}`}>
-                {Array.from({ length: stepCount }, (_, i) => i + 1).map((n) => (
-                  <span
-                    key={n}
-                    aria-hidden="true"
-                    className={cn(
-                      "size-2 rounded-full transition-colors",
-                      n === step ? "bg-brand" : "bg-ink/15",
-                    )}
-                  />
-                ))}
-              </div>
-              <div className="flex gap-2">
-                <Button variant="secondary" onClick={() => setStep(0)}>
-                  {t("walkSkip")}
-                </Button>
-                <Button onClick={() => setStep(step >= stepCount ? 0 : step + 1)}>
-                  {step >= stepCount ? t("walkStart") : t("walkNext")}
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      ) : null}
+      {/* Same anatomy as Teach the Bunny's, with the grouping scenes. */}
+      <Walkthrough
+        beats={beats}
+        step={step}
+        onStep={setStep}
+        onDone={() => setStep(0)}
+        renderScene={(beatStep) => <GroupScene step={beatStep} glyph={glyph} training={Boolean(data.training)} />}
+      />
 
       {result?.verdict === "PASS" && server ? (
         <SuccessOverlay

@@ -251,6 +251,12 @@
         "blocks": "Blocks",
         "code": "Code"
       },
+      "walkthrough": {
+        "skip": "Skip",
+        "next": "Next",
+        "start": "Let's go",
+        "stepLabel": "Step {step} of {total}"
+      },
       "intro": {
         "next": "Next",
         "skip": "Skip",
@@ -378,9 +384,6 @@
         "walk3Body": "The ? berries are ones it has never seen. To guess, it finds the berry YOU taught it that looks most like the new one, and copies that answer.",
         "walk4Title": "So your choice decides",
         "walk4Body": "If you only ever show it small berries, a big one will look most like the wrong thing — and it will be confidently wrong. Pick examples that cover every kind.",
-        "walkNext": "Next",
-        "walkSkip": "Skip",
-        "walkStart": "Let's teach it",
         "bucketsHeading": "The bunny's two baskets",
         "bucketsHelp": "Everything you teach it lands here. Click a berry to take it back out.",
         "tooManyExamples": "That is {used} examples, and you may only use {max}. Take some back out and pick the ones that teach it the most.",
@@ -433,10 +436,7 @@
         "walk3Title": "The meter tells you how tight",
         "walk3Body": "Tight piles — everything close to its own flag — score high. A flag stuck between two piles scores low. Watch it move as you work.",
         "walk4Title": "Find the real piles",
-        "walk4Body": "Place your flags so every pile keeps to itself, then test. If the meter will not budge, maybe the problem is not your flags — look closely at the dots.",
-        "walkSkip": "Skip",
-        "walkNext": "Next",
-        "walkStart": "Let's go"
+        "walk4Body": "Place your flags so every pile keeps to itself, then test. If the meter will not budge, maybe the problem is not your flags — look closely at the dots."
       },
       "aiEthics": {
         "continueStory": "Continue",
@@ -502,10 +502,7 @@
           "loadingImage": "Loading picture…",
           "loadError": "This picture couldn't load.",
           "mysteryImageLabel": "A mystery picture shown at {resolution} by {resolution} pixels"
-        },
-        "walkNext": "Next",
-        "walkSkip": "Skip",
-        "walkStart": "Let's go"
+        }
       }
     },
     "profile": {
