@@ -32,3 +32,6 @@ prisma/seed-output/
 
 # Local Claude Code dev-server config
 .claude/
+
+# Embedded PostgreSQL data dir (tests/global-setup.ts)
+.embedded-postgres/
