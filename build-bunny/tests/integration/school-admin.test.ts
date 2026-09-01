@@ -340,6 +340,62 @@ describe("CSV student importer", () => {
     expect(dry.rows[1]?.errors.some((e) => e.includes("duplicate"))).toBe(true);
   });
 
+  /**
+   * The bulk path is the one schools actually onboard with, and it used to
+   * validate less than the add-student form: any non-negative integer for
+   * grade, and no charset or length rule on usernames at all. A CSV could
+   * therefore enrol children in grade 0 or 2024, which then flowed into
+   * every grade-keyed rollup in teacher and school analytics.
+   */
+  it("rejects a grade outside 1-12, which the manual form always refused", async () => {
+    const csv =
+      "student_identifier,first_name,last_initial,grade,class_name\n" +
+      "CSV-500,Zero,Z,0,Grade 3A\n" +
+      "CSV-501,Big,B,2024,Grade 3A\n" +
+      "CSV-502,Fine,F,5,Grade 3A\n";
+    const dry = await dryRunStudentImport(A.adminCtx, csv);
+    expect(dry.ok).toBe(true);
+    if (!dry.ok) return;
+    expect(dry.rows[0]?.action).toBe("error");
+    expect(dry.rows[1]?.action).toBe("error");
+    // The valid row still imports — one bad row must not fail its neighbours.
+    expect(dry.rows[2]?.action).toBe("create");
+    // The message names the value AND the rule, so an admin can fix the file.
+    expect(dry.rows[0]?.errors.join(" ")).toContain("0");
+    expect(dry.rows[0]?.errors.join(" ").toLowerCase()).toContain("grade");
+  });
+
+  it("rejects a username the add-student form would reject", async () => {
+    const csv =
+      "student_identifier,first_name,last_initial,grade,class_name,username\n" +
+      "CSV-600,Bad,B,4,Grade 3A,has spaces\n" +
+      "CSV-601,Sym,S,4,Grade 3A,drop$table\n" +
+      "CSV-602,Ok,O,4,Grade 3A,noor.k\n";
+    const dry = await dryRunStudentImport(A.adminCtx, csv);
+    expect(dry.ok).toBe(true);
+    if (!dry.ok) return;
+    expect(dry.rows[0]?.action).toBe("error");
+    expect(dry.rows[1]?.action).toBe("error");
+    expect(dry.rows[2]?.action).toBe("create");
+  });
+
+  it("derives a username that satisfies the same rules", async () => {
+    // A one-letter first name, and a name with no Latin characters at all,
+    // both previously derived a username the manual form would have refused.
+    const csv =
+      "student_identifier,first_name,last_initial,grade,class_name\n" +
+      "CSV-700,A,B,4,Grade 3A\n" +
+      "CSV-701,محمد,K,4,Grade 3A\n";
+    const dry = await dryRunStudentImport(A.adminCtx, csv);
+    expect(dry.ok).toBe(true);
+    if (!dry.ok) return;
+    for (const row of dry.rows) {
+      expect(row.action).toBe("create");
+      expect(row.username && row.username.length >= 2).toBe(true);
+      expect(row.username).toMatch(/^[a-z0-9._-]+$/);
+    }
+  });
+
   it("flags an unknown class_name as a row error", async () => {
     const csv =
       "student_identifier,first_name,last_initial,grade,class_name\n" +

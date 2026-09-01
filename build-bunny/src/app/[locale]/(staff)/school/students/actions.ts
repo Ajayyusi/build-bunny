@@ -3,6 +3,7 @@
 import { z } from "zod";
 
 import { withAuth, type ActionResult } from "@/modules/auth/server/guard";
+import { studentFields } from "@/modules/schools/student-fields";
 import {
   createStudentAccount,
   eraseStudent,
@@ -12,17 +13,8 @@ import {
 } from "@/modules/schools/server/management";
 import type { CreatedCredentials } from "@/modules/auth/server/provisioning";
 
-const createInput = z.object({
-  username: z
-    .string()
-    .trim()
-    .toLowerCase()
-    .min(2)
-    .max(40)
-    .regex(/^[a-z0-9._-]+$/, "Lowercase letters, numbers, dots, hyphens and underscores only"),
-  displayName: z.string().trim().min(1).max(120),
-  studentIdentifier: z.string().trim().min(1).max(60),
-  grade: z.coerce.number().int().min(1).max(12),
+// The shared rules, so this form and the CSV importer cannot drift apart.
+const createInput = studentFields.extend({
   classId: z.string().trim().min(1).optional(),
 });
 

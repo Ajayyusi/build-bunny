@@ -4,6 +4,14 @@ import { db } from "@/lib/db";
 import { audit, AUDIT } from "@/lib/audit";
 import type { SessionContext } from "@/modules/auth/server/session";
 import { createStudent, type CreatedCredentials } from "@/modules/auth/server/provisioning";
+import {
+  fieldError,
+  USERNAME_MIN,
+  studentDisplayName,
+  studentGrade,
+  studentIdentifier as studentIdentifierField,
+  studentUsername,
+} from "@/modules/schools/student-fields";
 import { assertSeatAvailable, effectiveSeatLimit, SeatLimitError, usedSeats } from "./seats";
 
 /**
@@ -109,7 +117,11 @@ function usernameFromFirstName(firstName: string): string {
     .normalize("NFKD")
     .replace(/[\u0300-\u036f]/g, "") // strip Latin accents (NFKD combining marks)
     .replace(/[^a-z0-9]/g, "");
-  return base.length > 0 ? base : "student";
+  // Must satisfy the same rules as a supplied username: a first name of "A",
+  // or one that strips to nothing (an Arabic name has no Latin characters
+  // left after NFKD), would otherwise derive a username the add-student form
+  // would have rejected.
+  return base.length >= USERNAME_MIN ? base : `student${base}`;
 }
 
 async function buildImportPlan(ctx: SessionContext, csvText: string): Promise<ImportPlan> {
@@ -184,9 +196,34 @@ async function buildImportPlan(ctx: SessionContext, csvText: string): Promise<Im
     if (!lastInitial) errors.push("missing last_initial");
     if (!className) errors.push("missing class_name");
 
-    const grade = /^\d+$/.test(gradeRaw) ? Number(gradeRaw) : null;
-    if (gradeRaw && grade === null) errors.push(`invalid grade "${gradeRaw}"`);
-    if (!gradeRaw) errors.push("missing grade");
+    // Same rules as the add-student form (see student-fields). This path used
+    // to accept any non-negative integer, so a CSV could enrol children in
+    // grade 0 or 2024 and quietly skew every grade-keyed analytic.
+    let grade: number | null = null;
+    if (!gradeRaw) {
+      errors.push("missing grade");
+    } else {
+      const gradeIssue = fieldError(studentGrade, gradeRaw);
+      if (gradeIssue) errors.push(`grade "${gradeRaw}": ${gradeIssue}`);
+      else grade = Number(gradeRaw);
+    }
+
+    // An explicit username column gets the charset and length rules the form
+    // applies; an omitted one is derived below and is valid by construction.
+    if (usernameRaw) {
+      const usernameIssue = fieldError(studentUsername, usernameRaw);
+      if (usernameIssue) errors.push(`username "${usernameRaw}": ${usernameIssue}`);
+    }
+
+    const nameIssue = firstName || lastInitial
+      ? fieldError(studentDisplayName, `${firstName} ${lastInitial}.`)
+      : null;
+    if (nameIssue) errors.push(nameIssue);
+
+    const identifierIssue = studentIdentifier
+      ? fieldError(studentIdentifierField, studentIdentifier)
+      : null;
+    if (identifierIssue) errors.push(`student_identifier: ${identifierIssue}`);
 
     if (studentIdentifier) {
       if (seenInFile.has(studentIdentifier)) {
