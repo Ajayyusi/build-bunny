@@ -125,11 +125,13 @@ describe("content bundle shape", () => {
     }
   });
 
-  it("horizon worlds carry no modules; playable worlds carry the 33 levels", () => {
+  it("horizon worlds carry no modules; playable worlds carry the 38 levels", () => {
     for (const world of horizonWorlds) {
       expect(world.modules, `horizon ${world.slug}`).toHaveLength(0);
     }
-    // 15 grid levels (m3) + 2 m4 activity-engine levels: loop-detective
+    // 16 grid levels (m3, plus first-cell — Robot Lab had no EASY playable
+    // level, so its rule change landed on a MEDIUM corridor) + 2 m4
+    // activity-engine levels: loop-detective
     // (CODE_PREDICTION, logic-forest) and sensor-sequence (SEQUENCING,
     // robot-lab) + 5 Learn steps (CONCEPT_CARDS), one per concept that
     // debuts a new block: learn-repeat (bunny-meadow); learn-loop-body,
@@ -145,9 +147,9 @@ describe("content bundle shape", () => {
     // you-be-the-classifier (AI_SIM boundary-builder) and fortune-teller
     // (AI_SIM trend-line) in data-desert's lines-in-the-sand.
     const levelCount = playableWorlds.reduce((n, w) => n + allLevels(w).length, 0);
-    expect(levelCount).toBe(37);
+    expect(levelCount).toBe(38);
     const robotLab = playableWorlds.find((w) => w.slug === "robot-lab");
-    expect(allLevels(robotLab as WorldFixture)).toHaveLength(7);
+    expect(allLevels(robotLab as WorldFixture)).toHaveLength(8);
     const aiIsland = playableWorlds.find((w) => w.slug === "ai-island");
     expect(allLevels(aiIsland as WorldFixture)).toHaveLength(6);
     const dataDesert = playableWorlds.find((w) => w.slug === "data-desert");

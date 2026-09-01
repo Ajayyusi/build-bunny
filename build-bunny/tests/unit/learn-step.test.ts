@@ -290,7 +290,7 @@ describe("shipped Learn steps are internally coherent", () => {
     {
       world: "robot-lab",
       module: "power-and-sensors",
-      expected: ["power-up", "sensor-check", "learn-if-else", "smart-turns"],
+      expected: ["first-cell", "power-up", "sensor-check", "learn-if-else", "smart-turns"],
     },
   ])("$world orders its Learn step before the puzzle that needs it", ({ world, module, expected }) => {
     const w = bundle.worlds.find((x) => x.slug === world);

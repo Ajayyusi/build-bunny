@@ -64,10 +64,130 @@ export const robotLab: WorldFixture = {
         ar: "لا شيء يحدث من تلقاء نفسه في المختبر. الروبوتات تلتقط الأشياء عن قصد، وتتحقق قبل أن تتحرك، وتختار بين خطتين.",
       },
       levels: [
-        // ── Level 1 — POWER UP: explicit collect (autoCollect OFF) ────────
+        // ── Level 1 — THE FIRST CELL: the new rule, one cell at a time ───
+        // Robot Lab's whole adjudication change is autoCollect OFF, and
+        // power-up used to be where children met it — while also walking a
+        // six-tile corridor and collecting twice, at MEDIUM. This world had
+        // no EASY playable level at all: every other world opens with a win.
+        // One cell, one Collect, nothing to navigate.
+        {
+          slug: "first-cell",
+          order: 1,
+          activityType: "BLOCK_CODING",
+          track: "PROGRAMMING",
+          title: { en: "The First Cell", ar: "الخلية الأولى" },
+          story: {
+            en: "The lab's front bay is quiet. One power cell sits on the floor a single step ahead, and the charging dock is right behind it. Back in the meadow, hopping over a carrot was enough to pick it up. Not in here.",
+            ar: "ردهة المختبر الأمامية هادئة. خلية طاقة واحدة على الأرض تبعد خطوة واحدة، ومحطة الشحن خلفها مباشرة. في المرج، كان القفز فوق الجزرة كافيًا لالتقاطها. أما هنا فلا.",
+          },
+          objective: {
+            en: "Pick up a single power cell with the Collect block, then reach the dock.",
+            ar: "التقط خلية طاقة واحدة بلبنة «التقط»، ثم صِل إلى محطة الشحن.",
+          },
+          instructions: {
+            en: "Move forward onto the power cell, press Collect to pick it up, then move forward again to the dock. Three blocks, in that order.",
+            ar: "تقدّم للأمام حتى تقف على خلية الطاقة، ثم استخدم «التقط» لالتقاطها، ثم تقدّم للأمام مرة أخرى إلى محطة الشحن. ثلاث لبنات بهذا الترتيب.",
+          },
+          explanation: {
+            en: "In the lab, standing on something is not the same as having it. Move Forward changed where Robo Bunny was standing; Collect is what actually picked the cell up. Every world before this one collected things for you — from here on, if you want it, you have to say so. Next: a corridor with two cells on it.",
+            ar: "في المختبر، الوقوف على الشيء لا يعني امتلاكه. «تقدّم للأمام» غيّر مكان وقوف الأرنب الآلي، أما «التقط» فهو ما التقط الخلية فعلًا. كانت العوالم السابقة تلتقط الأشياء نيابة عنك، أما من الآن فإن أردت شيئًا فعليك أن تطلبه صراحة. وفي المرة القادمة: ممرّ عليه خليتان.",
+          },
+          teacherNotes: {
+            en: "This is Robot Lab's ramp — one cell, one Collect, nothing to navigate. Children arriving from Worlds 1–2 will press Run after two Move Forwards and be surprised the cell is still on the floor; that surprise IS the lesson, and power-up is where they apply it twice.",
+          },
+          difficulty: "EASY",
+          recommendedGradeMin: 3,
+          recommendedGradeMax: 7,
+          estimatedMinutes: 4,
+          xpReward: 30,
+          tags: ["robot", "sequencing"],
+          requires: [],
+          hints: [
+            {
+              tier: 1,
+              text: {
+                en: "Robo Bunny is standing one step away from the power cell. Which block gets the bunny onto it?",
+                ar: "يقف الأرنب الآلي على بُعد خطوة واحدة من خلية الطاقة. أي لبنة تنقله إليها؟",
+              },
+            },
+            {
+              tier: 2,
+              text: {
+                en: "Move Forward puts the bunny on the cell — but the cell is still on the floor. There is a second block whose job is picking things up.",
+                ar: "«تقدّم للأمام» يضع الأرنب على الخلية، لكن الخلية تبقى على الأرض. هناك لبنة ثانية مهمتها التقاط الأشياء.",
+              },
+            },
+            {
+              tier: 3,
+              text: {
+                en: "Order matters here: you have to be standing ON the cell before Collect can pick it up. Move first, then Collect.",
+                ar: "الترتيب مهمّ هنا: عليك أن تقف فوق الخلية قبل أن تستطيع «التقط» التقاطها. تحرّك أولًا ثم التقط.",
+              },
+            },
+            {
+              tier: 4,
+              text: {
+                en: "Move Forward, then Collect, then Move Forward again to reach the dock. Three blocks under When Start, then press Run.",
+                ar: "«تقدّم للأمام» ثم «التقط» ثم «تقدّم للأمام» مرة أخرى للوصول إلى محطة الشحن. ثلاث لبنات تحت «عند البدء»، ثم اضغط تشغيل.",
+              },
+            },
+          ],
+          payload: {
+            toolbox: [{ type: "bb_moveForward" }, { type: "bb_collect" }],
+            variants: [
+              {
+                rows: ["....", ".CG."],
+                start: { x: 0, y: 1, dir: "E" },
+              },
+            ],
+            // Robot Lab adjudication: explicit collect everywhere in W3.
+            autoCollect: false,
+            nonFatalBumps: false,
+            checks: [
+              { id: "reachedGoal", severity: "core" },
+              { id: "collectedAll", severity: "secondary", params: { item: "powerCell" } },
+              { id: "maxBlocks", severity: "quality", params: { count: 3 } },
+            ],
+            starCriteria: { threeStarMaxBlocks: 3 },
+            startWorkspace,
+            solution: {
+              blocks: {
+                languageVersion: 0,
+                blocks: [
+                  {
+                    type: "bb_whenStart",
+                    id: "start",
+                    x: 24,
+                    y: 24,
+                    next: {
+                      block: {
+                        type: "bb_moveForward",
+                        id: "m1",
+                        next: {
+                          block: {
+                            type: "bb_collect",
+                            id: "c1",
+                            next: {
+                              block: {
+                                type: "bb_moveForward",
+                                id: "m2",
+                              },
+                            },
+                          },
+                        },
+                      },
+                    },
+                  },
+                ],
+              },
+            },
+          } satisfies BlockCodingDraft,
+        },
+
+        // ── Level 2 — POWER UP: two cells on a corridor ──────────────────
         {
           slug: "power-up",
-          order: 1,
+          order: 2,
           activityType: "BLOCK_CODING",
           track: "PROGRAMMING",
           title: { en: "Power Up", ar: "شحن الطاقة" },
@@ -200,7 +320,7 @@ export const robotLab: WorldFixture = {
         // ── Level 2 — SENSOR CHECK: If + pathAhead, 2 variants ────────────
         {
           slug: "sensor-check",
-          order: 2,
+          order: 3,
           activityType: "BLOCK_CODING",
           track: "PROGRAMMING",
           title: { en: "Sensor Check", ar: "فحص المستشعر" },
@@ -342,7 +462,7 @@ export const robotLab: WorldFixture = {
         // Else is the branch you take when the answer is no.
         {
           slug: "learn-if-else",
-          order: 3,
+          order: 4,
           activityType: "CONCEPT_CARDS",
           track: "PROGRAMMING",
           title: { en: "Meet If / Else", ar: "تعرّف على «إذا / وإلّا»" },
@@ -532,7 +652,7 @@ export const robotLab: WorldFixture = {
         // ── Level 3 — SMART TURNS: If/Else, 2 variants ────────────────────
         {
           slug: "smart-turns",
-          order: 4,
+          order: 5,
           activityType: "BLOCK_CODING",
           track: "PROGRAMMING",
           title: { en: "Smart Turns", ar: "انعطافات ذكية" },
