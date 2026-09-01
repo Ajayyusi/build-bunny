@@ -262,6 +262,7 @@
         "skip": "Skip",
         "missionHeading": "Your mission",
         "howHeading": "How to play",
+        "howSceneLabel": "Three instruction blocks light up one at a time while the bunny hops along four tiles and reaches the carrot.",
         "start": "Let's build!"
       },
       "feedback": {

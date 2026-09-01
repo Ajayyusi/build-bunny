@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 
 import { Badge, BunnyMascot, Button, useFocusTrap, type BadgeVariant } from "@/ui";
@@ -20,6 +20,16 @@ interface IntroOverlayProps {
    * player that has no world context still renders the briefing.
    */
   worldTheme?: string;
+  /**
+   * An animation of the mechanic, shown above the "How to play" text.
+   *
+   * The briefing has always described how to play in a paragraph. For a
+   * Grade 3 reader meeting a Blockly workspace, prose is the one format
+   * that cannot land — so each engine passes a scene showing its mechanic
+   * happening, and the words underneath name what is already moving.
+   * Optional: an engine without a scene renders the briefing as before.
+   */
+  howScene?: ReactNode;
   onStart: () => void;
 }
 
@@ -43,6 +53,7 @@ export function IntroOverlay({
   difficulty,
   estimatedMinutes,
   worldTheme,
+  howScene,
   onStart,
 }: IntroOverlayProps) {
   const t = useTranslations("student.play.intro");
@@ -124,14 +135,17 @@ export function IntroOverlay({
                 {objective}
               </p>
             </div>
-            {instructions ? (
-              <div className="flex flex-col gap-1">
+            {instructions || howScene ? (
+              <div className="flex flex-col gap-2">
                 <h2 className="font-display text-sm font-bold text-ink">
                   {t("howHeading")}
                 </h2>
-                <p className="text-sm leading-relaxed text-ink-muted">
-                  {instructions}
-                </p>
+                {howScene}
+                {instructions ? (
+                  <p className="text-sm leading-relaxed text-ink-muted">
+                    {instructions}
+                  </p>
+                ) : null}
               </div>
             ) : null}
             <div className="flex justify-end pt-1">

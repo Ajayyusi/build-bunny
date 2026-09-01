@@ -12,6 +12,7 @@ import SimulationCanvas from "@/modules/simulation/SimulationCanvas";
 import { Button, cn, useReducedMotion } from "@/ui";
 
 import { generateDisplayCode, runLocally, type LocalRunOutcome } from "./client-run";
+import { GridScene } from "./shared/GridScene";
 import { HintDrawer, type HintTierState } from "./shared/HintDrawer";
 import { IntroOverlay } from "./shared/IntroOverlay";
 import { ResultBanner, useFeedbackText } from "./shared/ResultBanner";
@@ -537,6 +538,7 @@ export function GridPlayer({
           difficulty={intro.difficulty}
           estimatedMinutes={intro.estimatedMinutes}
           worldTheme={intro.worldTheme}
+          howScene={<GridScene />}
           onStart={() => {
             editStartRef.current = Date.now();
             setPhase("edit");
