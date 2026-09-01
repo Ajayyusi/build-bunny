@@ -355,8 +355,8 @@ export const robotLab: WorldFixture = {
             ar: "شاهد «إذا / وإلّا» وهي تسلك أحد مسارين، ثم أكملها، مع فهم أن فرعًا واحدًا فقط ينفَّذ في كل مرة.",
           },
           instructions: {
-            en: "First watch Robo Bunny drive down the corridor and turn at the corner. Then put the missing block back inside the Else and press Check.",
-            ar: "أولًا شاهد الأرنب الآلي يسير في الممرّ وينعطف عند الزاوية. ثم أعد اللبنة الناقصة إلى داخل «وإلّا» واضغط «تحقّق».",
+            en: "First watch Robo Bunny drive down the corridor and turn at the corner. Then put the missing block back into the FIRST mouth — the one that runs when the path IS blocked — and press Check.",
+            ar: "أولًا شاهد الأرنب الآلي يسير في الممرّ وينعطف عند الزاوية. ثم أعد اللبنة الناقصة إلى الفم الأول — الذي ينفَّذ عندما يكون الطريق مسدودًا — واضغط «تحقّق».",
           },
           explanation: {
             en: "If/Else { path ahead is blocked } { Turn Left } else { Move Forward } means: ask the question, then run the FIRST branch when the answer is yes and the SECOND when it is no. Exactly one of them runs — never both, never neither. Read the sensor carefully: it asks whether the way is BLOCKED, so driving on is the Else. The corridor answered no, no, no, then yes — which is why Robo Bunny drove straight three times and turned exactly once, at the corner.",
@@ -376,15 +376,15 @@ export const robotLab: WorldFixture = {
             {
               tier: 1,
               text: {
-                en: "Look at the second mouth of the block — the one after the word Else. It is empty.",
-                ar: "انظر إلى الفم الثاني في اللبنة — الذي يأتي بعد كلمة «وإلّا». إنه فارغ.",
+                en: "Look at the FIRST mouth of the block — the one right after the question. It is empty.",
+                ar: "انظر إلى الفم الأول في اللبنة — الذي يأتي مباشرة بعد السؤال. إنه فارغ.",
               },
             },
             {
               tier: 2,
               text: {
-                en: "The Else branch runs only when the path ahead is NOT clear. Robo Bunny cannot drive through a wall — so what else could it do?",
-                ar: "لا ينفَّذ فرع «وإلّا» إلا عندما يكون المسار أمامه غير خالٍ. لا يستطيع الأرنب الآلي اختراق الجدار — فماذا يمكنه أن يفعل بدلًا من ذلك؟",
+                en: "The sensor asks whether the path is BLOCKED, so that first branch is the blocked one. Robo Bunny cannot drive through a wall — so what else could it do?",
+                ar: "يسأل المستشعر إن كان الطريق مسدودًا، لذا فالفرع الأول هو فرع الطريق المسدود. لا يستطيع الأرنب الآلي اختراق الجدار — فماذا يمكنه أن يفعل بدلًا من ذلك؟",
               },
             },
             {
@@ -397,8 +397,8 @@ export const robotLab: WorldFixture = {
             {
               tier: 4,
               text: {
-                en: "Drag Turn Left from the toolbox into the empty space after Else, so it clicks into the mouth, then press Check.",
-                ar: "اسحب «استدر يسارًا» من صندوق الأدوات إلى الفراغ بعد «وإلّا» حتى تلتصق في الفم، ثم اضغط «تحقّق».",
+                en: "Drag Turn Left from the toolbox into the empty first mouth, right under the question, so it clicks in — then press Check.",
+                ar: "اسحب «استدر يسارًا» من صندوق الأدوات إلى الفم الأول الفارغ، أسفل السؤال مباشرة، حتى تلتصق — ثم اضغط «تحقّق».",
               },
             },
           ],
