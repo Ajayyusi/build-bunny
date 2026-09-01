@@ -153,13 +153,13 @@ export const STUDENTS: StudentSeed[] = [
     firstName: "Aisha", lastInitial: "K", username: "aisha", studentIdentifier: "DEMO-1001",
     className: "Grade 3A", grade: 3, password: "star-bunny-31",
     // Three worlds plus most of AI Island: 6 Bunny Meadow + 9 Logic Forest +
-    // 7 Robot Lab + 3 AI Island = 25. She has to reach this far or the AI
+    // 8 Robot Lab + 3 AI Island = 26. She has to reach this far or the AI
     // world is invisible in a demo — worlds unlock in order, so one student
     // must clear three worlds before anyone can even see the fourth. Every
     // scored level is ≥2 stars (a genuine PASS, never just PARTIAL) because
     // the certificate issuance path gates on that. The 0s are Learn steps,
     // which have no stars to earn: index 4 learn-repeat, 6 learn-loop-body,
-    // 9 learn-if, 11 learn-repeat-until, 17 learn-if-else.
+    // 9 learn-if, 11 learn-repeat-until, 18 learn-if-else.
     //
     // This array is POSITIONAL along the flattened trail (world → module →
     // level order), so inserting a level anywhere before the end silently
@@ -168,7 +168,7 @@ export const STUDENTS: StudentSeed[] = [
       completedStars: [
         3, 3, 3, 3, 0, 3, // Bunny Meadow
         0, 3, 3, 0, 2, 0, 3, 3, 3, // Logic Forest
-        3, 3, 0, 3, 3, 3, 3, // Robot Lab
+        3, 3, 3, 0, 3, 3, 3, 3, // Robot Lab
         // AI Island, deliberately one short: nothing-rules-alone stays her
         // live frontier so a demo always has an unplayed level to open.
         3, 3, 2,
@@ -180,19 +180,19 @@ export const STUDENTS: StudentSeed[] = [
   {
     firstName: "Mohammed", lastInitial: "R", username: "mohammed", studentIdentifier: "DEMO-1002",
     className: "Grade 3A", grade: 3, password: "mango-kite-52",
-    progress: { completedStars: [3, 3, 2, 3, 0, 3, 2, 3, 3], streakCurrent: 4, streakBest: 7, lastActiveDaysAgo: 1 },
+    progress: { completedStars: [3, 3, 2, 3, 0, 3, 0, 3, 3], streakCurrent: 4, streakBest: 7, lastActiveDaysAgo: 1 },
     loginTrailDays: 4,
   },
   {
     firstName: "Layla", lastInitial: "H", username: "layla", studentIdentifier: "DEMO-1003",
     className: "Grade 3A", grade: 3, password: "coral-frog-18",
-    progress: { completedStars: [3, 2, 3, 2, 0, 3, 2], streakCurrent: 3, streakBest: 5, lastActiveDaysAgo: 1 },
+    progress: { completedStars: [3, 2, 3, 2, 0, 3, 0], streakCurrent: 3, streakBest: 5, lastActiveDaysAgo: 1 },
     loginTrailDays: 3,
   },
   {
     firstName: "Yousef", lastInitial: "A", username: "yousef", studentIdentifier: "DEMO-1004",
     className: "Grade 3A", grade: 3, password: "tiger-cloud-74",
-    progress: { completedStars: [2, 2, 3, 2, 0, 3, 2], streakCurrent: 2, streakBest: 4, lastActiveDaysAgo: 2 },
+    progress: { completedStars: [2, 2, 3, 2, 0, 3, 0], streakCurrent: 2, streakBest: 4, lastActiveDaysAgo: 2 },
   },
   {
     firstName: "Fatima", lastInitial: "S", username: "fatima", studentIdentifier: "DEMO-1005",
@@ -219,19 +219,19 @@ export const STUDENTS: StudentSeed[] = [
   {
     firstName: "Noor", lastInitial: "E", username: "noor", studentIdentifier: "DEMO-1009",
     className: "Grade 4A", grade: 4, password: "violet-nest-37",
-    progress: { completedStars: [3, 3, 3, 3, 0, 2, 3, 3, 2, 3], streakCurrent: 7, streakBest: 8, lastActiveDaysAgo: 0 },
+    progress: { completedStars: [3, 3, 3, 3, 0, 2, 0, 3, 2, 0], streakCurrent: 7, streakBest: 8, lastActiveDaysAgo: 0 },
     loginTrailDays: 5,
   },
   {
     firstName: "Hamdan", lastInitial: "S", username: "hamdan", studentIdentifier: "DEMO-1010",
     className: "Grade 4A", grade: 4, password: "breeze-lemon-91",
-    progress: { completedStars: [3, 2, 3, 3, 0, 2, 3, 2], streakCurrent: 5, streakBest: 5, lastActiveDaysAgo: 1 },
+    progress: { completedStars: [3, 2, 3, 3, 0, 2, 0, 2], streakCurrent: 5, streakBest: 5, lastActiveDaysAgo: 1 },
     loginTrailDays: 4,
   },
   {
     firstName: "Hessa", lastInitial: "A", username: "hessa", studentIdentifier: "DEMO-1011",
     className: "Grade 4A", grade: 4, password: "olive-quest-24",
-    progress: { completedStars: [2, 3, 2, 3, 0, 2, 3], streakCurrent: 2, streakBest: 6, lastActiveDaysAgo: 2 },
+    progress: { completedStars: [2, 3, 2, 3, 0, 2, 0], streakCurrent: 2, streakBest: 6, lastActiveDaysAgo: 2 },
   },
   {
     firstName: "Rashid", lastInitial: "K", username: "rashid", studentIdentifier: "DEMO-1012",
