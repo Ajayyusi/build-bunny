@@ -59,6 +59,7 @@ export default async function StaffLayout({ children, params }: Props) {
             </span>
             <nav aria-label={t("nav.label")} className="flex items-center gap-1">
               <NavLink href="/teach" exact>{t("nav.teach")}</NavLink>
+              <NavLink href="/teach/curriculum">{t("nav.curriculum")}</NavLink>
               {ctx.role === "TEACHER" ? (
                 <NavLink href="/teach/assignments">{t("nav.assignments")}</NavLink>
               ) : null}

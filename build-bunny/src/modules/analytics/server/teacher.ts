@@ -3,7 +3,13 @@ import "server-only";
 import type { AttemptVerdict } from "@prisma/client";
 
 import { db } from "@/lib/db";
+import { z } from "zod";
 import { suggestInterventions, type SuggestedIntervention } from "./intervention";
+import {
+  summarizeMisconceptions,
+  type MisconceptionAttemptRow,
+  type MisconceptionId,
+} from "../misconceptions";
 import { computeLevelActivityStats, rankMostFailed } from "./level-activity";
 import type { SessionContext } from "@/modules/auth/server/session";
 import { localizedText, type LocalizedText } from "@/modules/curriculum/schemas";
@@ -1248,4 +1254,102 @@ export async function giveFeedbackCore(
     select: { id: true, createdAt: true },
   });
   return created;
+}
+
+// ── Misconception report (brief §6) ────────────────────────────────────────
+
+export interface ClassMisconceptionLevel {
+  levelId: string;
+  title: LocalizedText;
+  worldName: LocalizedText;
+  attempts: number;
+}
+
+export interface ClassMisconception {
+  id: MisconceptionId;
+  attempts: number;
+  students: number;
+  levels: ClassMisconceptionLevel[];
+}
+
+/** Runs older than this no longer describe what the class needs today. */
+const MISCONCEPTION_WINDOW_DAYS = 30;
+
+const attemptSummarySchema = z
+  .object({
+    primaryFeedback: z.object({ code: z.string() }).nullish(),
+    qualityPassed: z.boolean().optional(),
+  })
+  .passthrough();
+
+/**
+ * What THIS class keeps getting wrong, as ideas to reteach: every graded
+ * run in the last thirty days, grouped by the idea behind its located
+ * feedback code. Same access rule as the matrix (a foreign class is
+ * unreachable, and an empty list is the only safe answer). Aggregates only —
+ * it names ideas and levels, never children.
+ */
+export async function getClassMisconceptions(
+  ctx: SessionContext,
+  classId: string,
+): Promise<ClassMisconception[]> {
+  const schoolId = requireSchool(ctx);
+  const cls = await resolveClassAccess(ctx, classId);
+  if (!cls) return [];
+  const roster = await db.classMembership.findMany({
+    where: { schoolId, classId, role: "STUDENT" },
+    select: { userId: true },
+  });
+  if (roster.length === 0) return [];
+  const since = new Date(Date.now() - MISCONCEPTION_WINDOW_DAYS * 24 * 60 * 60 * 1000);
+  const attempts = await db.activityAttempt.findMany({
+    where: {
+      schoolId,
+      studentUserId: { in: roster.map((r) => r.userId) },
+      kind: "NORMAL",
+      createdAt: { gte: since },
+    },
+    select: { studentUserId: true, levelId: true, verdict: true, resultSummary: true },
+  });
+  const rows: MisconceptionAttemptRow[] = attempts.map((attempt) => {
+    const summary = attemptSummarySchema.safeParse(attempt.resultSummary);
+    return {
+      studentUserId: attempt.studentUserId,
+      levelId: attempt.levelId,
+      verdict: attempt.verdict,
+      qualityPassed: summary.success ? (summary.data.qualityPassed ?? null) : null,
+      feedbackCode: summary.success ? (summary.data.primaryFeedback?.code ?? null) : null,
+    };
+  });
+  const grouped = summarizeMisconceptions(rows);
+  if (grouped.length === 0) return [];
+  const levelRows = await loadSchoolLevels(schoolId);
+  const byId = new Map(levelRows.map((row) => [row.matrix.id, { ...row.matrix }]));
+  // Level titles from the PUBLISHED snapshot: the report describes what the
+  // class actually played, not a draft someone is editing.
+  const namedIds = [...new Set(grouped.flatMap((g) => g.levels.map((l) => l.levelId)))];
+  const published = await db.level.findMany({
+    where: { id: { in: namedIds }, publishedVersionId: { not: null } },
+    select: { id: true, publishedVersionId: true },
+  });
+  const versions = await db.levelVersion.findMany({
+    where: { id: { in: published.map((l) => l.publishedVersionId as string) } },
+    select: { levelId: true, snapshot: true },
+  });
+  for (const version of versions) {
+    const title = localizedText.safeParse((version.snapshot as { title?: unknown } | null)?.title);
+    const known = byId.get(version.levelId);
+    if (known && title.success) known.title = title.data;
+  }
+  return grouped.map((group) => ({
+    id: group.id,
+    attempts: group.attempts,
+    students: group.students,
+    levels: group.levels.flatMap((level) => {
+      const known = byId.get(level.levelId);
+      return known
+        ? [{ levelId: level.levelId, title: known.title, worldName: known.worldName, attempts: level.attempts }]
+        : [];
+    }),
+  }));
 }

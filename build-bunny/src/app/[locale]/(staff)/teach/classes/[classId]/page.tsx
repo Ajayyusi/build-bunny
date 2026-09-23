@@ -4,7 +4,11 @@ import { Link } from "@/i18n/navigation";
 import { hasPermission } from "@/modules/auth/permissions";
 import { resolveText } from "@/modules/curriculum/schemas";
 import { requireRole } from "@/modules/auth/server/session";
-import { getClassHardestLevels, getClassMatrix } from "@/modules/analytics/server/queries";
+import {
+  getClassHardestLevels,
+  getClassMatrix,
+  getClassMisconceptions,
+} from "@/modules/analytics/server/queries";
 import {
   getClassAssignmentProgress,
   listAssignableContent,
@@ -25,9 +29,10 @@ export default async function ClassPage({ params, searchParams }: Props) {
   const { tab } = await searchParams;
   setRequestLocale(locale);
   const ctx = await requireRole("TEACHER", "SCHOOL_ADMIN");
-  const [matrix, hardestLevels, t, tCommon] = await Promise.all([
+  const [matrix, hardestLevels, misconceptions, t, tCommon] = await Promise.all([
     getClassMatrix(ctx, classId),
     getClassHardestLevels(ctx, classId),
+    getClassMisconceptions(ctx, classId),
     getTranslations("staff.teach.matrix"),
     getTranslations("common"),
   ]);
@@ -104,6 +109,47 @@ export default async function ClassPage({ params, searchParams }: Props) {
                     <Badge variant={level.failRatePct >= 50 ? "danger" : "warning"}>
                       {t("hardest.failRate", { pct: level.failRatePct })}
                     </Badge>
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </CardBody>
+        </Card>
+      ) : null}
+
+      {/* What the class keeps getting wrong, as ideas to reteach: the located
+          feedback of every graded run in the last month, grouped. Aggregates
+          only — it names ideas and levels, never children. */}
+      {misconceptions.length > 0 ? (
+        <Card>
+          <CardBody className="flex flex-col gap-3">
+            <div className="flex flex-col gap-0.5">
+              <h2 className="font-display text-base font-semibold text-ink">
+                {t("misconceptions.heading")}
+              </h2>
+              <p className="text-sm text-ink-muted">{t("misconceptions.caveat")}</p>
+            </div>
+            <ul className="grid gap-2 md:grid-cols-2">
+              {misconceptions.map((item) => (
+                <li
+                  key={item.id}
+                  className="flex flex-col gap-1 rounded-lg bg-surface-sunken px-3 py-2"
+                >
+                  <span className="flex flex-wrap items-center justify-between gap-2">
+                    <span className="text-sm font-semibold text-ink">
+                      {t(`misconceptions.kind.${item.id}.label`)}
+                    </span>
+                    <span className="text-xs text-ink-muted tabular-nums">
+                      {t("misconceptions.meta", { attempts: item.attempts, students: item.students })}
+                    </span>
+                  </span>
+                  {item.levels.length > 0 ? (
+                    <span className="text-xs text-ink-muted">
+                      {item.levels.map((level) => resolveText(level.title, locale)).join(" · ")}
+                    </span>
+                  ) : null}
+                  <span className="text-sm text-ink">
+                    {t(`misconceptions.kind.${item.id}.reteach`)}
                   </span>
                 </li>
               ))}

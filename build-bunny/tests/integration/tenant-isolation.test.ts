@@ -585,6 +585,25 @@ async function assertQueryIsolated(entry: RegistryEntry): Promise<void> {
       expectNoForeignIds(analytics, name);
       break;
     }
+    case "getFamilyLinkStatus": {
+      // Cross-school: a teacher never sees whether another school's child
+      // has a family link; a student never sees one at all.
+      expect(await query(teacherCtxA, B.studentIds[0])).toBeNull();
+      expect(await query(studentCtxA, A.studentIds[0])).toBeNull();
+      const own = await query(ctxA, A.studentIds[0]);
+      expect(own).toMatchObject({ active: false });
+      expectNoForeignIds(own, name);
+      break;
+    }
+    case "getClassMisconceptions": {
+      // Same access rule as the hardest-levels list beside it: a foreign
+      // class is unreachable and an empty list is the only safe answer.
+      expect(await query(teacherCtxA, B.classId)).toEqual([]);
+      expect(await query(teacherCtxB, classTwoBId)).toEqual([]);
+      const own = await query(teacherCtxA, A.classId);
+      expectNoForeignIds(own, name);
+      break;
+    }
     case "getAttemptReplay": {
       expect(await query(teacherCtxA, "no-such-attempt")).toBeNull();
       const own = (await query(teacherCtxA, attemptAId)) as { attempt: { studentUserId: string } } | null;
@@ -927,6 +946,15 @@ async function assertQueryIsolated(entry: RegistryEntry): Promise<void> {
       await expect(query(studentCtxA)).rejects.toThrow();
       const rows = await query(nitaqCtx);
       expect(Array.isArray(rows)).toBe(true);
+      break;
+    }
+    case "getTeacherCurriculumGuide": {
+      // A teacher sees their own school's programme and nothing else; a
+      // student (or a school with no programme) gets an empty guide.
+      const guideA = (await query(teacherCtxA)) as { id: string }[];
+      expect(Array.isArray(guideA)).toBe(true);
+      expectNoForeignIds(guideA, name);
+      expect(await query(studentCtxA)).toEqual([]);
       break;
     }
     case "getCurriculumLevelDetail": {
