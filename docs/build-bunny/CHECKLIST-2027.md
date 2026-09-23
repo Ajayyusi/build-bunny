@@ -22,6 +22,7 @@ Status legend: **✅ implemented & tested** · **🟡 partial** · **⛔ blocked
 | `feat/curriculum-expansion` | §4 variables/functions, build-your-own maze, age bands, 71 levels | ready for review |
 | `feat/classroom-parent` | §6 misconception report, curriculum guide, projector challenge, family view | ready for review |
 | `feat/offline-perf-polish` | §7 offline outbox, accessibility scan, privacy review | ready for review |
+| `feat/more-levels` | §4 29 more levels → 100 | ready for review |
 
 Nothing is merged or deployed. Each branch is based on the previous one, so
 they should be reviewed and merged in the order above.
@@ -104,7 +105,7 @@ they should be reviewed and merged in the order above.
 | Creative coding, build-your-own maze, final projects | ✅ | CREATIVE_PROJECT engine end to end: designer (tap/keyboard, live checklist, same rule server-side), grader, publish gates on the author sample, teacher replay on the child's map; Inventor Island "The Fair" (3 mazes, last one needs a trick); unit `maze.test.ts`, integration `maze.test.ts`, e2e `maze.spec.ts` (laptop + tablet portrait) |
 | Age bands 7–8 / 9–10 / 11–13 | ✅ | band chip from `recommendedGradeMin` on the map sheet and briefing (`src/modules/learning/age-band.ts`); support by the child's grade: Robo Bunny's example opens after 2 failed runs for grade ≤ 3, a stretch idea after a clean pass for grade ≥ 6, warm-up offered sooner for grade ≤ 3 — never shown as a label |
 | Adaptive hints/recommendations from observable signals | ✅ | warm-up recommendation (§5) + support level above; signals are failed runs, hint tier, grade — no labels |
-| ~100 tested bilingual levels | 🟡 | **71** real levels, every one through the publish gates (solution runs, reachability, EN complete) and the playthrough integration test; Arabic authored for all, flagged for native review. 29 short of the brief — not inflated |
+| ~100 tested bilingual levels | ✅ | **100** real levels (`feat/more-levels` added 29: 9 practice levels across the first three worlds, AI Island Online Life — kindness online, passwords, adverts/in-app purchases, Seed Sorter; Data Desert More Readings — close clusters, four camps, an outlier to strike out, an off-centre boundary; ML Lab Deciding Well — who should decide, three examples only; Code City City Workshop — countdown, double count, two code-reading levels, a function bug, zigzag trick, ordering code lines; three more build-your-own mazes incl. a 7–8 starter). Every level passes the publish gates and the playthrough integration test plays all 100 in order with full stars; every AI classification level is proven losable. Arabic authored for all, flagged for native review |
 
 ## §5 Robo Bunny help
 
@@ -139,6 +140,14 @@ they should be reviewed and merged in the order above.
 ---
 
 ## Checkpoint log
+
+### Checkpoint 9 — 2026-09-24 (100 levels)
+
+- **Live:** nothing new; nothing merged or deployed. Branches are ready to push once this machine is signed in to GitHub.
+- **On branches:** `feat/more-levels` (stacked on `feat/offline-perf-polish`).
+- **Tested:** unit 518, integration 264 (playthrough of all 100 levels), full e2e 30 passing; lint and type-check clean; new levels spot-checked in the player in EN and AR.
+- **Found and fixed:** a new teach-by-example level (Seed Sorter) could not be lost, so it taught nothing — the repo's AI-level tests caught it; it now has a real trap.
+- **Polish noted, not done:** the teach-by-example walkthrough says "berries" in English on non-berry levels (shared player copy).
 
 ### Checkpoint 8 — 2026-09-24 (offline, accessibility, privacy)
 

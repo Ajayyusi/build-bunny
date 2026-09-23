@@ -5,6 +5,7 @@ import type {
   aiSimPayload,
   patternRecognitionPayload,
 } from "@/modules/curriculum/schemas";
+import { moreReadings } from "./more-ai";
 import { threeOases } from "./data-desert-oases";
 
 /**
@@ -942,5 +943,6 @@ export const dataDesert: WorldFixture = {
       ],
     },
     threeOases,
+    moreReadings,
   ],
 };
