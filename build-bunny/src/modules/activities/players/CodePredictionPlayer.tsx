@@ -9,6 +9,7 @@ import { Button, cn, useReducedMotion } from "@/ui";
 
 import { PlayerSoundControls } from "@/modules/audio/AudioControls";
 import { HintDrawer, type HintTierState } from "./shared/HintDrawer";
+import { RoboHelp, type HelpTopic } from "./shared/RoboHelp";
 import { postAttempt } from "./shared/attempt-outbox";
 import { PredictScene } from "./shared/PredictScene";
 import { IntroOverlay } from "./shared/IntroOverlay";
@@ -60,6 +61,14 @@ export function CodePredictionPlayer({
   const [submitting, setSubmitting] = useState(false);
   const [starsBest, setStarsBest] = useState(intro.starsBest);
   const [hintOpen, setHintOpen] = useState(false);
+  // "Ask Robo Bunny": why an answer was wrong, the smallest hint, and what
+  // the level's idea is. Opens on a topic from the failure banner.
+  const [roboOpen, setRoboOpen] = useState(false);
+  const [roboTopic, setRoboTopic] = useState<HelpTopic | null>(null);
+  const openRobo = (topic: HelpTopic | null) => {
+    setRoboTopic(topic);
+    setRoboOpen(true);
+  };
   const [revealingTier, setRevealingTier] = useState<number | null>(null);
   const [lastSubmitAt, setLastSubmitAt] = useState<number | null>(null);
   const reducedMotion = useReducedMotion();
@@ -296,6 +305,8 @@ export function CodePredictionPlayer({
               onTryAgain={handleTryAgain}
               showHintNudge
               onOpenHints={() => setHintOpen(true)}
+              onWhy={() => openRobo("why")}
+              whyLabel={t("help.whyWrong")}
             />
           ) : null}
 
@@ -327,11 +338,12 @@ export function CodePredictionPlayer({
         <Button
           variant="secondary"
           size="lg"
-          onClick={() => setHintOpen(true)}
+          onClick={() => openRobo(null)}
+          aria-haspopup="dialog"
           disabled={phase === "result"}
         >
           <span aria-hidden="true">💡</span>
-          {t("hint")}
+          {t("help.open")}
         </Button>
       </div>
 
@@ -377,6 +389,26 @@ export function CodePredictionPlayer({
           reducedMotion={reducedMotion}
         />
       ) : null}
+
+      <RoboHelp
+        open={roboOpen}
+        onClose={() => setRoboOpen(false)}
+        topics={["why", "hint", "concept"]}
+        tags={intro.tags}
+        lastFailure={
+          showFailure && submission?.server?.feedback
+            ? { feedback: submission.server.feedback, step: null, block: null }
+            : null
+        }
+        hints={hints}
+        revealingTier={revealingTier}
+        onRevealTier1={() => void handleRevealHint(1)}
+        onOpenHints={() => {
+          setRoboOpen(false);
+          setHintOpen(true);
+        }}
+        initialTopic={roboTopic}
+      />
 
       <HintDrawer
         open={hintOpen}

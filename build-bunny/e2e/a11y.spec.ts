@@ -86,6 +86,44 @@ test("child-facing screens have no serious or critical axe findings", async ({ p
     await briefing.getByRole("button").last().click();
     await page.waitForTimeout(800);
     findings.push(...(await scan(page, `${locale}/play (editor)`)));
+
+    // Robo Bunny's help panel, open over the editor.
+    await page.getByRole("button", { name: locale === "en" ? "Ask Robo Bunny" : /اسأل/ }).first().click();
+    await expect(page.getByRole("dialog")).toBeVisible();
+    findings.push(...(await scan(page, `${locale}/play (help panel)`)));
+    await page.keyboard.press("Escape");
+  }
+
+  expect(findings, findings.join("\n")).toEqual([]);
+});
+
+test("teacher planning screens have no serious or critical axe findings", async ({ page, baseURL }, testInfo) => {
+  test.skip(testInfo.project.name !== "laptop", "one viewport is enough for a structural scan");
+  test.setTimeout(180_000);
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  // The seeded demo teacher (prisma/seed-data/demo-school.ts).
+  const signedIn = await page.request.post("/api/auth/sign-in/email", {
+    data: { email: "sara@nitaqdemo.school", password: "TeachDemo-2026" },
+    headers: { Origin: baseURL! },
+  });
+  expect(signedIn.ok(), `teacher sign-in ${signedIn.status()}`).toBe(true);
+  const findings: string[] = [];
+
+  for (const locale of ["en", "ar"]) {
+    await page.goto(`/${locale}/teach/curriculum`);
+    await page.waitForLoadState("networkidle");
+    findings.push(...(await scan(page, `${locale}/teach/curriculum`)));
+
+    const worksheet = await page.locator('a[href*="/teach/curriculum/worksheet/"]').first().getAttribute("href");
+    await page.goto(`${worksheet}?answers=1`);
+    await page.waitForLoadState("networkidle");
+    findings.push(...(await scan(page, `${locale}/worksheet`)));
+
+    await page.goto(`/${locale}/teach`);
+    const classHref = await page.locator('a[href*="/teach/classes/"]').first().getAttribute("href");
+    await page.goto(classHref!);
+    await page.waitForLoadState("networkidle");
+    findings.push(...(await scan(page, `${locale}/teach/class`)));
   }
 
   expect(findings, findings.join("\n")).toEqual([]);

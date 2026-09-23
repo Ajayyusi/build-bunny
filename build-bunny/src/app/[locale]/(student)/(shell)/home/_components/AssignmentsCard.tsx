@@ -62,7 +62,7 @@ export async function AssignmentsCard({ assignments, locale }: Props) {
                       {assignment.title}
                     </span>
                     {assignment.done ? (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-positive/15 px-2 py-0.5 text-xs font-bold text-positive">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-positive/15 px-2 py-0.5 text-xs font-bold text-positive-strong">
                         <span aria-hidden="true">✓</span>
                         {t("done")}
                       </span>

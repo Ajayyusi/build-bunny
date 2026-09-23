@@ -124,6 +124,7 @@ export const dataDesert: WorldFixture = {
           },
           teacherNotes: {
             en: "First unsupervised level, and the contrast with AI Island is the point: ask the class what is MISSING from this board (answers/labels) before anyone places a flag. The two clumps are far apart and the passing region is generous — nobody should lose on precision. The reveal (jerboas and fennec foxes) prints only after a pass; let students discover that the machine never knew the names either. Discussion: what would the camera have to record for the two piles to overlap?",
+            ar: "أول مستوى للتعلّم غير الموجَّه، والمقارنة مع جزيرة الذكاء الاصطناعي هي بيت القصيد: اسأل الصف عمّا هو مفقود في هذه اللوحة (الإجابات/الأسماء) قبل أن يضع أحد أي علم. الحشدان متباعدان كثيرًا ومنطقة النجاح واسعة — لا ينبغي أن يخسر أحد بسبب الدقة. الكشف (يرابيع وثعالب فنك) لا يظهر إلا بعد النجاح؛ دع الطلاب يكتشفون أن الآلة لم تعرف الأسماء هي أيضًا. للنقاش: ماذا كان على الكاميرا أن تسجّل حتى تتداخل الكومتان؟",
           },
           difficulty: "EASY",
           recommendedGradeMin: 4,
@@ -262,6 +263,7 @@ export const dataDesert: WorldFixture = {
           },
           teacherNotes: {
             en: "The first level in the product where doing MORE is penalised. Let students discover the plateau themselves: ask everyone to try their best two-flag answer first and report the highest meter reading anyone found (~53%). Then three flags (~97%). Then ask a volunteer to add a fourth and read the meter (~98%, higher!) while the class looks at the board and says what went wrong. The star loss for four flags is the graded form of that discussion. Vocabulary if wanted: this is why 'K' in K-means is a human decision.",
+            ar: "أول مستوى في المنتج يُعاقَب فيه فعل المزيد. دع الطلاب يكتشفون الثبات بأنفسهم: اطلب من الجميع تجربة أفضل إجابة بعلمين أولًا والإبلاغ عن أعلى قراءة للعداد وجدها أي منهم (~53%). ثم ثلاثة أعلام (~97%). ثم اطلب من متطوّع إضافة علم رابع وقراءة العداد (~98%، أعلى!) بينما ينظر الصف إلى اللوحة ويقول ما الخطأ الذي حدث. خسارة النجمة عند استخدام أربعة أعلام هي الصورة المقيَّمة لذلك النقاش. مفردات إن رغبت: لهذا السبب يكون «K» في خوارزمية K-means قرارًا بشريًا.",
           },
           difficulty: "MEDIUM",
           recommendedGradeMin: 4,
@@ -396,6 +398,7 @@ export const dataDesert: WorldFixture = {
           },
           teacherNotes: {
             en: "The first data-cleaning act in the curriculum. The trap is REMOTE damage: with the outlier kept, the best three-flag answer strands a flag near the corner and forces two real clumps to share — students will try placement and counting first and both fail, which is the intended path. Ask afterwards WHY the reading had to be fake (enormous + freezing has no desert animal) — the justification matters, because striking out data you merely dislike is the opposite lesson. Contrast with the-berry-that-lied if the class played AI Island: there the bad record had a wrong ANSWER on it; here it has an impossible VALUE and no answer at all.",
+            ar: "أول عملية تنظيف بيانات في المنهج. الفخ هو الضرر البعيد: عند إبقاء القراءة الشاذة، تترك أفضل إجابة بثلاثة أعلام علمًا عالقًا قرب الزاوية وتُجبر حشدين حقيقيين على التقاسم — سيجرّب الطلاب الوضع والعدّ أولًا ويفشل كلاهما، وهذا هو المسار المقصود. اسأل بعد ذلك لماذا كان لا بد أن تكون القراءة زائفة (لا يوجد حيوان صحراوي ضخم ومتجمد معًا) — فالتبرير مهم، لأن شطب بيانات لمجرد أنها لا تعجبك هو الدرس المعاكس تمامًا. قارن بمستوى «الحبة الكاذبة» إن كان الصف قد لعب جزيرة الذكاء الاصطناعي: هناك كان السجل السيئ يحمل إجابة خاطئة؛ أما هنا فيحمل قيمة مستحيلة ولا إجابة على الإطلاق.",
           },
           difficulty: "MEDIUM",
           recommendedGradeMin: 5,
@@ -531,6 +534,7 @@ export const dataDesert: WorldFixture = {
           },
           teacherNotes: {
             en: "The capstone of the world and the only level here that cannot be solved by coverage: a representative sample of the confounded core IS well-spread and still fails (the pinned lazy set scores 2 of 4). The winning insight is to spot that the diagonal is suspicious and to seek out the correlation-breakers (s9-s12), which sit off it. The board makes the empty corners visible — point students at the emptiness itself. This is the closest a Grade 5-7 class gets to real scientific method: two hypotheses, one experiment that separates them. The 5-slot cap blocks teach-everything.",
+            ar: "ذروة هذا العالم والمستوى الوحيد هنا الذي لا يُحلّ بالتغطية: العينة الممثِّلة من العينات المتلازمة في المركز موزّعة جيدًا ومع ذلك تفشل (المجموعة الكسولة المثبّتة تحقق 2 من 4). الفكرة الرابحة هي ملاحظة أن القطر مثير للريبة، والبحث عن العينات الكاسرة للارتباط (s9-s12) الواقعة خارجه. تُظهر اللوحة الزوايا الفارغة — وجّه أنظار الطلاب إلى الفراغ نفسه. هذا أقرب ما يصل إليه صف من الصفوف 5-7 إلى المنهج العلمي الحقيقي: فرضيتان، وتجربة واحدة تفصل بينهما. الحد الأقصى البالغ 5 مقاعد يمنع تعليم كل شيء.",
           },
           difficulty: "HARD",
           recommendedGradeMin: 5,
@@ -698,6 +702,7 @@ export const dataDesert: WorldFixture = {
           },
           teacherNotes: {
             en: "The 'computer's turn' centroid-rule line is a genuinely computed result, not an animation — it will differ from a student's line whenever their line isn't optimal, which is the honest teaching moment (invite them to compare). One tart fruit (4,4) and the nearest sweet fruit (6,6) sit closer together than the rest of each group — that gap is where a careless line usually goes wrong, and maxErrors:1 gives a genuine attempt near that gap a pass even before a student finds the fully clean line. A careful, well-angled line CAN classify every point correctly (0 wobbles) — worth celebrating as a distinct, harder goal from just passing.",
+            ar: "خط «دور الحاسوب» المبني على قاعدة المراكز نتيجة محسوبة فعليًا، لا رسم متحرك — وسيختلف عن خط الطالب كلما لم يكن خطه مثاليًا، وهذه هي لحظة التعلّم الصادقة (ادعهم إلى المقارنة). فاكهة حامضة واحدة (4,4) وأقرب فاكهة حلوة إليها (6,6) أقرب إلى بعضهما من بقية مجموعتيهما — تلك الفجوة هي حيث يخطئ الخط المتسرّع عادةً، و maxErrors:1 تمنح المحاولة الجادة قرب تلك الفجوة نجاحًا حتى قبل أن يجد الطالب الخط النظيف تمامًا. الخط الدقيق المائل جيدًا يستطيع تصنيف كل النقاط تصنيفًا صحيحًا (0 نقاط مهتزّة) — وهذا يستحق الاحتفاء بوصفه هدفًا مستقلًا أصعب من مجرد النجاح.",
           },
           difficulty: "MEDIUM",
           recommendedGradeMin: 4,
@@ -839,6 +844,7 @@ export const dataDesert: WorldFixture = {
           },
           teacherNotes: {
             en: "The dataset has small deliberate noise (real measurements never sit on a perfect line) — do not let a student 'fix' this by insisting their line should touch every point. predictAt (12 hours) sits beyond the dataset's max (10 hours) on purpose, so the error band widens honestly. Good discussion prompt: 'why can't the computer be 100% sure about 12 hours, when it was so close for the points it already measured?'",
+            ar: "تحتوي البيانات على تشويش صغير مقصود (القياسات الحقيقية لا تقع أبدًا على خط مثالي) — لا تدع الطالب «يصلح» ذلك بالإصرار على أن خطه يجب أن يلمس كل نقطة. تقع predictAt (12 ساعة) عمدًا خارج الحد الأقصى للبيانات (10 ساعات)، فيتسع مدى الخطأ بصدق. سؤال جيد للنقاش: «لماذا لا يستطيع الحاسوب أن يكون متأكدًا 100% بشأن 12 ساعة، مع أنه كان قريبًا جدًا من النقاط التي قاسها بالفعل؟»",
           },
           difficulty: "MEDIUM",
           recommendedGradeMin: 4,

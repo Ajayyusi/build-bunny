@@ -1,5 +1,6 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
 
+import { Link } from "@/i18n/navigation";
 import { requireRole } from "@/modules/auth/server/session";
 import { resolveText } from "@/modules/curriculum/schemas";
 import { getTeacherCurriculumGuide, LESSON_MINUTES, lessonsFor } from "@/modules/curriculum/server/guide";
@@ -35,6 +36,7 @@ export default async function CurriculumGuidePage({ params }: Props) {
     getTranslations("student.adventure.intro"),
   ]);
 
+  const tagList = new Intl.ListFormat(locale, { style: "short", type: "unit" });
   const totalLevels = worlds.reduce((sum, w) => sum + w.levelCount, 0);
   const totalMinutes = worlds.reduce((sum, w) => sum + w.totalMinutes, 0);
 
@@ -92,6 +94,13 @@ export default async function CurriculumGuidePage({ params }: Props) {
                         minutes: LESSON_MINUTES,
                       })}
                     </span>
+                    <Link
+                      href={`/teach/curriculum/worksheet/${mod.id}`}
+                      className="inline-flex h-8 items-center gap-1.5 rounded-sm border border-border-token bg-surface-raised px-3 text-sm font-semibold text-ink hover:bg-surface-sunken print:hidden"
+                    >
+                      <span aria-hidden="true">📝</span>
+                      {t("worksheetLink")}
+                    </Link>
                     <AssignModuleButton
                       worldId={world.id}
                       moduleId={mod.id}
@@ -157,7 +166,13 @@ export default async function CurriculumGuidePage({ params }: Props) {
                                   : level.activityType}
                               </Badge>
                             </td>
-                            <td className="py-2 pe-3 text-ink-muted">{level.tags.join(", ")}</td>
+                            <td className="py-2 pe-3 text-ink-muted">
+                              {tagList.format(
+                                level.tags.map((tag) =>
+                                  t.has(`tagLabel.${tag}`) ? t(`tagLabel.${tag}`) : tag,
+                                ),
+                              )}
+                            </td>
                             <td className="py-2 pe-3 whitespace-nowrap text-ink-muted">
                               {band ? tIntro(`ageBand.${band}`) : "—"}
                             </td>

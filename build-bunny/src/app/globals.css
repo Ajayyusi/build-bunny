@@ -175,6 +175,9 @@
   --color-on-accent: var(--bb-ink-900);
   --color-positive: var(--bb-meadow-600);
   --color-warning: var(--bb-star-700);
+  /* Same-hue text on a /14 tint of itself needs the next step down for 4.5:1. */
+  --color-positive-strong: var(--bb-meadow-700);
+  --color-warning-strong: var(--bb-star-800);
   --color-danger: var(--bb-coral-600);
   --color-info: var(--bb-sky-600);
   --color-focus: var(--bb-sky-500);
@@ -223,6 +226,9 @@
   --color-on-accent: #ffffff;
   --color-positive: var(--bb-meadow-600);
   --color-warning: var(--bb-star-700);
+  /* Same-hue text on a /14 tint of itself needs the next step down for 4.5:1. */
+  --color-positive-strong: var(--bb-meadow-700);
+  --color-warning-strong: var(--bb-star-800);
   --color-danger: var(--bb-coral-600);
   --color-info: var(--bb-sky-600);
   --color-focus: var(--bb-sky-500);
@@ -251,6 +257,8 @@
   --color-on-accent: var(--color-on-accent);
   --color-positive: var(--color-positive);
   --color-warning: var(--color-warning);
+  --color-positive-strong: var(--color-positive-strong);
+  --color-warning-strong: var(--color-warning-strong);
   --color-danger: var(--color-danger);
   --color-info: var(--color-info);
   --color-focus: var(--color-focus);

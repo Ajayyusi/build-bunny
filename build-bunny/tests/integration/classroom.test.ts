@@ -6,6 +6,7 @@ import { getClassMisconceptions, getClassReflections } from "@/modules/analytics
 import { createStaff, createStudent } from "@/modules/auth/server/provisioning";
 import type { SessionContext } from "@/modules/auth/server/session";
 import { getTeacherCurriculumGuide } from "@/modules/curriculum/server/guide";
+import { getModuleWorksheet } from "@/modules/curriculum/server/worksheet";
 import {
   createFamilyLinkCore,
   getFamilyLinkStatus,
@@ -247,5 +248,25 @@ describe("one-tap reflections", () => {
     await expect(
       saveReflectionCore(studentCtxs[0]!, { levelId: randomUUID(), feeling: "EASY" }),
     ).rejects.toThrow();
+  });
+});
+
+describe("printable worksheet", () => {
+  it("lays out the published board for staff, and nothing for a child", async () => {
+    const { moduleId } = await db.level.findUniqueOrThrow({ where: { id: levelId }, select: { moduleId: true } });
+    const sheet = await getModuleWorksheet(teacherCtx, moduleId);
+    expect(sheet).not.toBeNull();
+    expect(sheet!.items).toEqual([
+      expect.objectContaining({
+        kind: "grid",
+        levelId,
+        title: { en: "Two Hops" },
+        rows: ["..G", "#.."],
+        start: { x: 0, y: 0, dir: "E" },
+        blocks: ["bb_moveForward", "bb_turnRight"],
+      }),
+    ]);
+    expect(await getModuleWorksheet(studentCtxs[0]!, moduleId)).toBeNull();
+    expect(await getModuleWorksheet(teacherCtx, randomUUID())).toBeNull();
   });
 });

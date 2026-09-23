@@ -86,6 +86,7 @@ export const labPractice: ModuleFixture = {
       },
       teacherNotes: {
         en: "autoCollect is off for the whole of Robot Lab. Reaching the charger without the cell is PARTIAL with 'missed something on the way' feedback; a Collect on the wrong tile is a collectFail event. Budget 4: move, collect, move, move.",
+        ar: "خاصية autoCollect معطّلة في «مختبر الروبوتات» كله. الوصول إلى الشاحن دون الخلية يُعدّ PARTIAL (جزئيًا) مع ملاحظة «فاتك شيء في الطريق»؛ واستخدام «التقط» على المربع الخطأ يُسجَّل حدثًا من نوع collectFail. الميزانية 4 لبنات: move، collect، move، move.",
       },
       difficulty: "EASY",
       recommendedGradeMin: 4,
@@ -141,6 +142,7 @@ export const labPractice: ModuleFixture = {
       },
       teacherNotes: {
         en: "Two variants: rock ahead (side route) and clear (straight). A plain If with the detour and a trailing hop also works here — the usedBlock check nudges toward If-Else (PARTIAL without it). Budget 4: ifElse, turnRight, move, move.",
+        ar: "خريطتان: صخرة في الأمام (المسار الجانبي) وطريق مفتوح (مباشرة). تنجح هنا أيضًا «إذا» البسيطة مع الالتفاف وقفزة بعدها — لكن فحص usedBlock يدفع نحو «إذا-وإلا» (النتيجة PARTIAL بدونها). الميزانية 4 لبنات: ifElse، turnRight، move، move.",
       },
       difficulty: "MEDIUM",
       recommendedGradeMin: 4,

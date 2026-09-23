@@ -56,6 +56,7 @@ export const threeOases: ModuleFixture = {
       },
       teacherNotes: {
         en: "Three well-separated clumps of five; markers fixed at three. The reference placement scores well above the pass bar (see tests/unit/pattern-recognition.test.ts). Discussion: what if only two flags were allowed — which two crowds would get merged, and what would the meter say?",
+        ar: "ثلاثة تجمّعات متباعدة جيدًا في كل منها خمس قراءات؛ وعدد العلامات مثبّت على ثلاث. يحقق الوضع المرجعي درجة أعلى بكثير من حدّ النجاح (انظر tests/unit/pattern-recognition.test.ts). للنقاش: ماذا لو سُمح بعلمين فقط — أي حشدين سيُدمجان، وماذا سيُظهر العداد؟",
       },
       difficulty: "MEDIUM",
       recommendedGradeMin: 4,

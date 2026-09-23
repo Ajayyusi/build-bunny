@@ -34,6 +34,7 @@ const BUILT_IN_BEATS = [1, 2, 3, 4] as const;
 import { Walkthrough } from "./shared/Walkthrough";
 import { postAttempt } from "./shared/attempt-outbox";
 import { HintDrawer } from "./shared/HintDrawer";
+import { RoboHelp, type HelpTopic } from "./shared/RoboHelp";
 import { SuccessOverlay } from "./shared/SuccessOverlay";
 import { useHints } from "./shared/useHints";
 import styles from "./teach.module.css";
@@ -167,6 +168,14 @@ export function TeachPlayer({
   // Hints authored on AI_CLASSIFICATION levels used to be unreachable: this
   // player rendered no drawer at all.
   const hints = useHints(intro.levelId, intro.hintsUsedTiers, revealHintAction);
+  // "Ask Robo Bunny": why an answer was wrong, the smallest hint, and what
+  // the level's idea is. Opens on a topic from the failure banner.
+  const [roboOpen, setRoboOpen] = useState(false);
+  const [roboTopic, setRoboTopic] = useState<HelpTopic | null>(null);
+  const openRobo = (topic: HelpTopic | null) => {
+    setRoboTopic(topic);
+    setRoboOpen(true);
+  };
   const t = useTranslations("student.play.teach");
   const tPlay = useTranslations("student.play");
   const locale = useLocale();
@@ -459,18 +468,19 @@ export function TeachPlayer({
         <button
           type="button"
           onClick={() => setStep(1)}
-          className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-lg border border-border-token bg-surface-raised px-3 text-sm font-bold text-ink-muted transition-colors hover:bg-surface-sunken hover:text-ink"
+          className="inline-flex h-11 shrink-0 items-center gap-1.5 rounded-lg border border-border-token bg-surface-raised px-3 text-sm font-bold text-ink-muted transition-colors hover:bg-surface-sunken hover:text-ink"
         >
           <span aria-hidden="true">💡</span>
           {t("howItWorks")}
         </button>
         <button
           type="button"
-          onClick={() => hints.setOpen(true)}
-          className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-lg border border-border-token bg-surface-raised px-3 text-sm font-bold text-ink-muted transition-colors hover:bg-surface-sunken hover:text-ink"
+          onClick={() => openRobo(null)}
+          aria-haspopup="dialog"
+          className="inline-flex h-11 shrink-0 items-center gap-1.5 rounded-lg border border-border-token bg-surface-raised px-3 text-sm font-bold text-ink-muted transition-colors hover:bg-surface-sunken hover:text-ink"
         >
           <span aria-hidden="true">🧭</span>
-          {tPlay("hint")}
+          {tPlay("help.open")}
         </button>
       </header>
 
@@ -886,6 +896,26 @@ export function TeachPlayer({
           }
         />
       ) : null}
+
+      <RoboHelp
+        open={roboOpen}
+        onClose={() => setRoboOpen(false)}
+        topics={["why", "hint", "concept"]}
+        tags={intro.tags}
+        lastFailure={
+          result && result.verdict !== "PASS" && result.code
+            ? { feedback: { code: result.code, data: result.data }, step: null, block: null }
+            : null
+        }
+        hints={hints.hints}
+        revealingTier={hints.revealingTier}
+        onRevealTier1={() => void hints.reveal(1)}
+        onOpenHints={() => {
+          setRoboOpen(false);
+          hints.setOpen(true);
+        }}
+        initialTopic={roboTopic}
+      />
 
       <HintDrawer
         open={hints.open}

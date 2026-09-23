@@ -85,6 +85,7 @@ export const practicePaddock: ModuleFixture = {
       },
       teacherNotes: {
         en: "Practice level for the youngest players (Grade 3 and below). Only Move Forward is offered, so the only possible mistakes are too few or too many hops — both give located feedback. Good as a first assignment for a child who found First Hop and Two Steps hard.",
+        ar: "مستوى تدريبي لأصغر اللاعبين (الصف 3 وما دونه). لا تتوفر إلا لبنة «تقدّم للأمام»، فالأخطاء الوحيدة الممكنة هي قفزات أقل أو أكثر من اللازم — وكلاهما يعطي تغذية راجعة تحدّد موضع الخطأ. مناسب كأول مهمة لطفل وجد مستويَي «القفزة الأولى» و«خطوتان» صعبين.",
       },
       difficulty: "EASY",
       recommendedGradeMin: 3,
@@ -137,6 +138,7 @@ export const practicePaddock: ModuleFixture = {
       },
       teacherNotes: {
         en: "Facing East, a left turn faces North (up the screen). Children who pick Turn Right end up facing South and hop off the map — a located 'bump' explains it. Left/right from the bunny's viewpoint is the whole lesson; have children turn their own bodies.",
+        ar: "عندما يتّجه الأرنب نحو الشرق، فإن الاستدارة يسارًا تجعله يتّجه نحو الشمال (إلى أعلى الشاشة). الأطفال الذين يختارون «استدر يمينًا» ينتهي بهم الأمر متّجهين نحو الجنوب فيقفزون خارج الخريطة — ورسالة «اصطدام» التي تحدّد موضع الخطأ تشرح ذلك. اليمين واليسار من وجهة نظر الأرنب هما الدرس كله؛ اطلب من الأطفال أن يديروا أجسادهم بأنفسهم.",
       },
       difficulty: "EASY",
       recommendedGradeMin: 3,
@@ -189,6 +191,7 @@ export const practicePaddock: ModuleFixture = {
       },
       teacherNotes: {
         en: "Practice for Repeat after the Learn step. Five plain hops pass with 2 stars (over the two-block budget); the loop earns 3. Tap the number in the Repeat block to change it — young children sometimes miss that the 4 can be edited.",
+        ar: "تدريب على «كرّر» بعد خطوة التعلّم. خمس قفزات عادية تنجح بنجمتين (لأنها تتجاوز حدّ اللبنتين)؛ أما الحلقة فتنال 3 نجوم. انقر على الرقم في لبنة «كرّر» لتغييره — فالأطفال الصغار لا ينتبهون أحيانًا إلى أن الرقم 4 قابل للتعديل.",
       },
       difficulty: "EASY",
       recommendedGradeMin: 3,

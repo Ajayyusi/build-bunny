@@ -46,3 +46,16 @@ describe("CSTA suggested alignment", () => {
     expect(standardsForTags(["learn"])).toEqual([]);
   });
 });
+
+describe("concept labels in the curriculum guide", () => {
+  it("every content tag has a readable label in English and Arabic", () => {
+    const labels = (locale: string) =>
+      (JSON.parse(readFileSync(path.resolve(__dirname, `../../messages/${locale}.json`), "utf8")) as {
+        staff: { teach: { curriculum: { tagLabel: Record<string, string> } } };
+      }).staff.teach.curriculum.tagLabel;
+    const en = labels("en");
+    const ar = labels("ar");
+    const missing = [...contentTags()].filter((tag) => !en[tag] || !ar[tag]);
+    expect(missing).toEqual([]);
+  });
+});

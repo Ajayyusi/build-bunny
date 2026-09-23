@@ -17,8 +17,8 @@ import { forestPractice } from "./logic-forest-practice";
  * adjudicated bb_repeatUntilGoal block, so levels 9–10 teach "loop until the
  * burrow" rather than the doc's original repeat-until-blocked phrasing.
  * Every student-facing field carries real Arabic (m5-contracts §1,
- * content/i18n-glossary.md governs terminology); teacherNotes stays
- * English-only (staff-facing).
+ * content/i18n-glossary.md governs terminology). teacherNotes carries Arabic
+ * too, for the Arabic curriculum guide (staff-facing; flagged for review).
  */
 
 type BlockCodingDraft = z.input<typeof blockCodingPayload>;
@@ -128,6 +128,7 @@ export const logicForest: WorldFixture = {
           },
           teacherNotes: {
             en: "The rung between Meet Repeat (one block in the mouth) and Loop Trail (three). Ask the class to say the pattern out loud before anyone drags anything — 'hop, turn, hop, turn' — because naming the pattern is the transferable skill, not filling the gap. Students who want to unroll all eight blocks are not wrong; Loop Trail's star budget is where that conversation belongs.",
+            ar: "الدرجة الوسطى بين «تعرّف على «كرّر»» (لبنة واحدة في الفم) و«درب الحلقات» (ثلاث لبنات). اطلب من الصف أن ينطق النمط بصوت عالٍ قبل أن يسحب أحد أي شيء — «قفزة، استدارة، قفزة، استدارة» — لأن تسمية النمط هي المهارة القابلة للنقل، لا ملء الفراغ. الطلاب الذين يريدون فكّ الحلقة إلى ثماني لبنات ليسوا مخطئين؛ ومكان هذا النقاش هو حدّ النجوم في «درب الحلقات».",
           },
           difficulty: "EASY",
           recommendedGradeMin: 4,
@@ -289,6 +290,7 @@ export const logicForest: WorldFixture = {
           },
           teacherNotes: {
             en: "Students who unroll all 12 blocks still pass — celebrate, then point at the 3-star criterion and ask what repeats. Never frame the unrolled version as wrong; frame the loop as stronger. Challenge extension: solve it turning LEFT instead — where must Robo Bunny face at the start? (One extra turn before the loop is allowed.)",
+            ar: "الطلاب الذين يفكّون الحلقة إلى 12 لبنة ينجحون مع ذلك — احتفِ بهم، ثم أشر إلى معيار النجوم الثلاث واسأل: ما الذي يتكرر؟ لا تقدّم النسخة المفكوكة على أنها خاطئة أبدًا؛ بل قدّم الحلقة على أنها أقوى. نشاط إثرائي: حُلّها بالاستدارة يسارًا بدلًا من ذلك — إلى أين يجب أن ينظر الأرنب الآلي في البداية؟ (يُسمح باستدارة إضافية واحدة قبل الحلقة.)",
           },
           difficulty: "EASY",
           recommendedGradeMin: 4,
@@ -420,6 +422,7 @@ export const logicForest: WorldFixture = {
           },
           teacherNotes: {
             en: "Let students crash on purpose once — seeing the step-numbered failure teaches more than avoiding it. The step counter in the sim maps 1:1 to executed blocks. Challenge extension: find a different route to the burrow that also takes exactly 6 blocks — there's more than one way around a rock.",
+            ar: "دع الطلاب يصطدمون عمدًا مرة واحدة — فرؤية رسالة الفشل المرقّمة بالخطوة تعلّم أكثر من تجنّبها. عدّاد الخطوات في المحاكي يطابق اللبنات المنفَّذة واحدًا لواحد (1:1). نشاط إثرائي: اعثر على مسار مختلف إلى الجُحر يستغرق أيضًا 6 لبنات بالضبط — فهناك أكثر من طريقة للالتفاف حول الصخرة.",
           },
           difficulty: "MEDIUM",
           recommendedGradeMin: 4,
@@ -578,6 +581,7 @@ export const logicForest: WorldFixture = {
           },
           teacherNotes: {
             en: "The worked-example step for conditionals, placed before Choose the Path where If and the sensor first appear together. Watch for the commonest misread: students assume the sensor asks whether the path is CLEAR. It asks whether it is BLOCKED, and the block says so on its face — this lesson is the cheapest place to correct that before Choose the Path depends on it. Move Forward deliberately sits outside the If so the class can see that a one-branch If either fires or is skipped, and the program carries on regardless.",
+            ar: "خطوة المثال المحلول للجمل الشرطية، وُضعت قبل «اختر الطريق» حيث تظهر «إذا» والمستشعر معًا لأول مرة. انتبه لأشيع سوء فهم: يفترض الطلاب أن المستشعر يسأل إن كان الطريق مفتوحًا، بينما هو يسأل إن كان مسدودًا، واللبنة تقول ذلك صراحة على وجهها — وهذا الدرس هو أسهل موضع لتصحيح ذلك قبل أن يعتمد عليه مستوى «اختر الطريق». وُضعت «تقدّم للأمام» خارج «إذا» عمدًا ليرى الصف أن «إذا» ذات الفرع الواحد إما أن تُنفَّذ أو تُتخطّى، ثم يواصل البرنامج عمله في الحالتين.",
           },
           difficulty: "EASY",
           recommendedGradeMin: 3,
@@ -764,6 +768,7 @@ export const logicForest: WorldFixture = {
           },
           teacherNotes: {
             en: "The two variant chips above the sim are the teaching device — insist students run both before submitting. Common bug: turning left before reaching the junction. The step-through playback shows the sensor check as a thought bubble ('blocked? YES'). Challenge extension: rebuild the solution checking the SOUTH door first instead — same block count?",
+            ar: "زرّا الخريطتين فوق المحاكي هما أداة التعليم هنا — أصرّ على أن يشغّل الطلاب الخريطتين كلتيهما قبل التسليم. خطأ شائع: الاستدارة يسارًا قبل الوصول إلى المفترق. يعرض التشغيل خطوة بخطوة فحص المستشعر في فقاعة تفكير («مسدود؟ نعم»). نشاط إثرائي: أعد بناء الحل بحيث يتحقق من الباب الجنوبي أولًا بدلًا من ذلك — هل يبقى عدد اللبنات نفسه؟",
           },
           difficulty: "MEDIUM",
           recommendedGradeMin: 4,
@@ -936,6 +941,7 @@ export const logicForest: WorldFixture = {
           },
           teacherNotes: {
             en: "Placed before Hidden Carrot, whose toolbox ships a decoy plain Repeat precisely to catch pattern-matching from Repeat After Me. That trap only teaches if the student has already met Repeat Until — otherwise it punishes not knowing rather than correcting a belief. Good question to ask here: how many hops was that? Nobody counted, and the program still worked.",
+            ar: "وُضعت قبل «الجزرة المخفية»، التي يتضمن صندوق أدواتها لبنة «كرّر» عادية كطُعم، تحديدًا لكشف من يقلّد النمط من «كرّر بعدي». هذا الفخ لا يعلّم إلا إذا كان الطالب قد تعرّف على «كرّر حتى» من قبل — وإلا فإنه يعاقب على عدم المعرفة بدل أن يصحّح اعتقادًا خاطئًا. سؤال جيد لطرحه هنا: كم قفزة كانت تلك؟ لم يعدّها أحد، ومع ذلك نجح البرنامج.",
           },
           difficulty: "EASY",
           recommendedGradeMin: 4,
@@ -1083,6 +1089,7 @@ export const logicForest: WorldFixture = {
           },
           teacherNotes: {
             en: "Contrast Repeat 4 vs Repeat Until on the board. The decoy Repeat block in the toolbox will catch students who pattern-match from Repeat After Me — variant B corrects them. Challenge extension: predict what plain Repeat 4 does on EACH map before running it, then discuss why one number can't fit two trails.",
+            ar: "قارن على السبورة بين «كرّر 4» و«كرّر حتى». لبنة «كرّر» الطُّعم في صندوق الأدوات ستكشف الطلاب الذين يقلّدون النمط من «كرّر بعدي» — والخريطة B تصحّح لهم ذلك. نشاط إثرائي: توقّع ما تفعله «كرّر 4» العادية في كل خريطة قبل تشغيلها، ثم ناقش لماذا لا يناسب رقم واحد دربين.",
           },
           difficulty: "MEDIUM",
           recommendedGradeMin: 4,
@@ -1208,6 +1215,7 @@ export const logicForest: WorldFixture = {
           },
           teacherNotes: {
             en: "This is the level to project on the big screen in demos. Students who unroll it: pass them, then run their ~20 blocks and the 4-block version side by side — the class will gasp; that gasp is the lesson. Expected help hotspot: leaving out the If (Robo Bunny bumps the wall at the first corner — the located failure message is a great debugging moment).",
+            ar: "هذا هو المستوى الذي يُعرض على الشاشة الكبيرة في العروض التوضيحية. الطلاب الذين يفكّون الحلقة: دعهم ينجحون، ثم شغّل برنامجهم المكوّن من نحو 20 لبنة جنبًا إلى جنب مع نسخة اللبنات الأربع — سيشهق الصف دهشة؛ وتلك الدهشة هي الدرس. موضع متوقَّع لطلب المساعدة: إغفال «إذا» (يصطدم الأرنب الآلي بالجدار عند أول زاوية — ورسالة الفشل محددة الموقع لحظة رائعة لتصحيح الأخطاء).",
           },
           difficulty: "MEDIUM",
           recommendedGradeMin: 5,
@@ -1354,6 +1362,7 @@ export const logicForest: WorldFixture = {
           },
           teacherNotes: {
             en: "The classic trap is counting loop ITERATIONS (3) instead of total statement executions (6) — if a student answers 3, ask them to physically act out one full lap of the loop and count their own hops, then do it three times. This level never runs on a grid; it's pure code reading, placed as the forest's closing checkpoint so the mental model ('a loop repeats a PATTERN, not a step') gets tested once more before Robot Lab raises the stakes. Challenge extension: ask students to write the equivalent program with plain Move/Turn blocks (no loop) and count the blocks — 9 total (6 moves + 3 turns) versus this program's 4 lines.",
+            ar: "الفخ الكلاسيكي هو عدّ تكرارات الحلقة (3) بدلًا من إجمالي مرات تنفيذ التعليمات (6) — إذا أجاب طالب بـ3، فاطلب منه أن يمثّل حركيًا دورة كاملة واحدة من الحلقة ويعدّ قفزاته بنفسه، ثم يكرر ذلك ثلاث مرات. هذا المستوى لا يعمل على شبكة إطلاقًا؛ إنه قراءة شيفرة خالصة، وُضع نقطةَ تحقق ختامية للغابة ليُختبر النموذج الذهني («الحلقة تكرّر نمطًا، لا خطوة») مرة أخرى قبل أن يرفع مختبر الروبوتات مستوى التحدي. نشاط إثرائي: اطلب من الطلاب كتابة البرنامج المكافئ بلبنات «تقدّم» و«استدر» العادية (دون حلقة) وعدّ اللبنات — 9 لبنات إجمالًا (6 تقدّم + 3 استدارات) مقابل 4 أسطر في هذا البرنامج.",
           },
           difficulty: "EASY",
           recommendedGradeMin: 4,

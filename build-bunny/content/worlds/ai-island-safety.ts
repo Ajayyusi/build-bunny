@@ -54,6 +54,7 @@ export const safetyAndFairness: ModuleFixture = {
       },
       teacherNotes: {
         en: "Completion-based: every finished path passes; 3 stars only when the safe option was chosen at every scene, which is a discussion signal rather than a judgement. The password scene is deliberately the last: it is the one children most often get wrong, and 'nobody real needs your password' is the sentence to send home. Pair with the school's own online-safety policy and name the trusted adults explicitly.",
+        ar: "التقييم قائم على الإكمال: كل مسار مكتمل ينجح؛ ولا تُمنح 3 نجوم إلا إذا اختير الخيار الآمن في كل مشهد، وهذا مؤشر للنقاش لا حكم. مشهد كلمة المرور هو الأخير عن قصد: فهو المشهد الذي يخطئ فيه الأطفال أكثر من غيره، وعبارة «لا أحد حقيقي يحتاج إلى كلمة مرورك» هي الجملة التي نريد أن يحملها الطفل معه إلى البيت. اربط هذا المستوى بسياسة الأمان على الإنترنت الخاصة بمدرستك، وسمِّ البالغين الموثوقين بأسمائهم صراحةً.",
       },
       difficulty: "MEDIUM",
       recommendedGradeMin: 3,
@@ -254,6 +255,7 @@ export const safetyAndFairness: ModuleFixture = {
       },
       teacherNotes: {
         en: "Completion-based, like the other AI_ETHICS levels. The chatbot scene states the honest fact the whole product relies on: a language model predicts words and can be confidently wrong — Build Bunny itself never sends children's words to an external model. The homework scene is about integrity, not prohibition; frame AI help as a tutor, not a ghost-writer.",
+        ar: "التقييم قائم على الإكمال، مثل مستويات AI_ETHICS الأخرى. يعرض مشهد روبوت الدردشة الحقيقة الصادقة التي يقوم عليها المنتج كله: النموذج اللغوي يتنبأ بالكلمات وقد يخطئ بثقة — أما Build Bunny نفسه فلا يرسل كلمات الأطفال إلى أي نموذج خارجي أبدًا. ومشهد الواجب المنزلي يتناول النزاهة لا المنع؛ قدّم مساعدة الذكاء الاصطناعي على أنها معلّم يشرح، لا كاتب خفي يكتب بالنيابة عن الطالب.",
       },
       difficulty: "MEDIUM",
       recommendedGradeMin: 4,
@@ -453,6 +455,7 @@ export const safetyAndFairness: ModuleFixture = {
       },
       teacherNotes: {
         en: "The pool is deliberately skewed: four small-pale safe berries and one big-pale; four big-dark unsafe and one small-dark. The two held-out berries are the rare kinds. With the four-example cap, teaching 'typical' berries (two small-pale, two big-dark) misreads the big pale test berry — verified in the unit tests. Including the two rare berries passes. This is the product's one explicit bias lesson: keep the discussion concrete (which examples were missing?) before generalising to people and fairness.",
+        ar: "مجموعة الحبات منحازة عن قصد: أربع حبات آمنة صغيرة فاتحة وحبة واحدة كبيرة فاتحة؛ وأربع حبات غير آمنة كبيرة غامقة وحبة واحدة صغيرة غامقة. الحبتان المحجوزتان للاختبار (held-out) هما من النوعين النادرين. ومع الحد الأقصى البالغ أربعة أمثلة، فإن تعليم الحبات «النموذجية» (حبتان صغيرتان فاتحتان وحبتان كبيرتان غامقتان) يؤدي إلى خطأ في قراءة حبة الاختبار الكبيرة الفاتحة — وقد جرى التحقق من ذلك في اختبارات الوحدة. أما إدراج الحبتين النادرتين فيحقق النجاح. هذا هو الدرس الصريح الوحيد عن التحيّز في المنتج: أبقِ النقاش ملموسًا (أيّ الأمثلة كانت مفقودة؟) قبل تعميمه على الناس والإنصاف.",
       },
       difficulty: "MEDIUM",
       recommendedGradeMin: 5,

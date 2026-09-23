@@ -21,8 +21,8 @@ import { labPractice } from "./robot-lab-practice";
  * grid solution here survives the REAL solutionRuns publish gate: regenerated
  * through server codegen, run on every variant, must PASS with 3 stars.
  * Every student-facing field carries real Arabic (m5-contracts §1,
- * content/i18n-glossary.md governs terminology); teacherNotes stays
- * English-only (staff-facing).
+ * content/i18n-glossary.md governs terminology). teacherNotes carries Arabic
+ * too, for the Arabic curriculum guide (staff-facing; flagged for review).
  */
 
 type BlockCodingDraft = z.input<typeof blockCodingPayload>;
@@ -135,6 +135,7 @@ export const robotLab: WorldFixture = {
           },
           teacherNotes: {
             en: "This is Robot Lab's ramp — one cell, one Collect, nothing to navigate. Children arriving from Worlds 1–2 will press Run after two Move Forwards and be surprised the cell is still on the floor; that surprise IS the lesson, and power-up is where they apply it twice.",
+            ar: "هذا هو المدخل التمهيدي لمختبر الروبوتات — خلية واحدة، و«التقط» واحدة، ولا شيء للتنقل. الأطفال القادمون من العالمين 1 و2 سيضغطون «تشغيل» بعد لبنتَي «تقدّم للأمام» ويتفاجؤون بأن الخلية ما زالت على الأرض؛ وهذه المفاجأة هي الدرس بعينه، و«شحن الطاقة» هو المستوى الذي يطبّقونه فيه مرتين.",
           },
           difficulty: "EASY",
           recommendedGradeMin: 3,
@@ -254,6 +255,7 @@ export const robotLab: WorldFixture = {
           },
           teacherNotes: {
             en: "The rule change from Worlds 1–2 (auto-collect off) is the whole lesson — say it out loud before anyone runs. Expect PARTIAL results from students who walk the corridor without collecting; the feedback message names how many cells were missed. Challenge extension: what happens if you Collect twice on the same cell? Predict, then try.",
+            ar: "تغيّر القاعدة عن العالمين 1 و2 (إيقاف الالتقاط التلقائي) هو الدرس كله — قُله بصوت عالٍ قبل أن يشغّل أحد برنامجه. توقّع نتائج PARTIAL (جزئية) من الطلاب الذين يعبرون الممر دون التقاط؛ إذ تذكر رسالة الملاحظات عدد الخلايا التي فاتتهم. نشاط إثرائي: ماذا يحدث إذا استخدمت «التقط» مرتين على الخلية نفسها؟ توقّع، ثم جرّب.",
           },
           difficulty: "MEDIUM",
           recommendedGradeMin: 4,
@@ -391,6 +393,7 @@ export const robotLab: WorldFixture = {
           },
           teacherNotes: {
             en: "Same teaching device as Choose the Path, now in robot clothing: insist students run BOTH variants before submitting. Common bug: placing the If before reaching the junction, so the sensor checks the wrong tile. The playback thought bubble shows what the sensor answered at each check. Challenge extension: what would the program do in a hall where BOTH ways are open? Which door wins, and why?",
+            ar: "أداة التعليم نفسها المستخدمة في «اختر الطريق»، لكن بثوب روبوتي هذه المرة: أصرّ على أن يشغّل الطلاب الخريطتين كلتيهما قبل التسليم. خطأ شائع: وضع «إذا» قبل الوصول إلى المفترق، فيفحص المستشعر المربّع الخطأ. تعرض فقاعة التفكير أثناء التشغيل ما أجاب به المستشعر عند كل فحص. نشاط إثرائي: ماذا سيفعل البرنامج في ممر يكون فيه الطريقان مفتوحين؟ أي باب يُختار، ولماذا؟",
           },
           difficulty: "MEDIUM",
           recommendedGradeMin: 4,
@@ -537,6 +540,7 @@ export const robotLab: WorldFixture = {
           },
           teacherNotes: {
             en: "The worked-example step for If/Else, placed before Smart Turns. Deliberately the first lesson whose condition changes mid-run: Meet If ran on a clear trail to teach the shape, and this one needs a real 'no' or Else has nothing to demonstrate. If a student asks why not just use two Ifs, that is the right question — Smart Turns is where two Ifs stops being equivalent.",
+            ar: "خطوة المثال المحلول لـ«إذا / وإلّا»، وُضعت قبل «انعطافات ذكية». وهي عمدًا أول درس يتغيّر شرطه أثناء التشغيل: فقد عمل «تعرّف على «إذا»» على درب خالٍ لتعليم الشكل، أما هذا الدرس فيحتاج إلى إجابة «لا» حقيقية وإلا فلن يكون لدى «وإلّا» ما تُظهره. إذا سأل طالب: لماذا لا نستخدم لبنتَي «إذا» فحسب؟ فهذا هو السؤال الصحيح — و«انعطافات ذكية» هو المستوى الذي تتوقف فيه لبنتا «إذا» عن أن تكونا مكافئتين.",
           },
           difficulty: "EASY",
           recommendedGradeMin: 4,
@@ -731,6 +735,7 @@ export const robotLab: WorldFixture = {
           },
           teacherNotes: {
             en: "Contrast with Sensor Check on the board: If has one branch and an invisible 'do nothing' case; If/Else makes both cases explicit. Ask the class which levels COULD be solved with plain If plus clever geometry — this one cannot, because both answers demand a different turn. Challenge extension: swap the two branches AND flip which turn goes where — does it still work? Why?",
+            ar: "قارن على السبورة مع «فحص المستشعر»: لـ«إذا» فرع واحد وحالة خفية هي «لا تفعل شيئًا»؛ أما «إذا / وإلّا» فتجعل الحالتين صريحتين. اسأل الصف: أي المستويات يمكن حلّها بـ«إذا» العادية مع تخطيط هندسي ذكي للمسار؟ — هذا المستوى لا يمكن، لأن كل إجابة تتطلب استدارة مختلفة. نشاط إثرائي: بدّل الفرعين واقلب أيضًا موضع كل استدارة — هل ما زال البرنامج يعمل؟ لماذا؟",
           },
           difficulty: "MEDIUM",
           recommendedGradeMin: 4,
@@ -891,6 +896,7 @@ export const robotLab: WorldFixture = {
           },
           teacherNotes: {
             en: "The two bugs are deliberately different species: the wrong turn CRASHES (loud, located, step-numbered), the missing Collect merely leaves the job unfinished (quiet, PARTIAL verdict). Let students discover the second bug by re-running after the first fix — do not reveal there are two upfront beyond what the instructions say. Vocabulary to land: 'bug' and 'debugging'. Challenge extension: can the repaired program be rearranged to collect the cell on the way back instead? Why not, here?",
+            ar: "الخطآن من نوعين مختلفين عمدًا: الاستدارة الخاطئة تسبّب اصطدامًا (صاخبًا، محدد الموقع، مرقّمًا بالخطوة)، أما «التقط» الناقصة فتترك المهمة غير مكتملة فحسب (خطأ هادئ، بنتيجة PARTIAL أي جزئية). دع الطلاب يكتشفون الخطأ الثاني بإعادة التشغيل بعد الإصلاح الأول — ولا تكشف مسبقًا أن هناك خطأين أكثر مما تقوله التعليمات. مفردات ينبغي ترسيخها: «خطأ برمجي» (bug) و«تصحيح الأخطاء» (debugging). نشاط إثرائي: هل يمكن إعادة ترتيب البرنامج المُصلَح ليلتقط الخلية في طريق العودة بدلًا من ذلك؟ ولماذا لا يمكن هنا؟",
           },
           difficulty: "MEDIUM",
           recommendedGradeMin: 4,
@@ -1060,6 +1066,7 @@ export const robotLab: WorldFixture = {
           },
           teacherNotes: {
             en: "Capstone and demo piece. Students who unroll 20+ blocks can pass on one track but will almost never beat BOTH — the second variant is the honest examiner, and 'why does your long program fail track B?' is the best discussion this world offers. The Collect-on-every-tile trick (collecting on empty floor does nothing) surprises students who expect an error — that tolerance is worth naming. Watch the playback thought bubbles during the corner checks. Challenge extension: predict the robot's total hop count on each track BEFORE running; closest guess wins.",
+            ar: "المستوى الختامي وقطعة العرض. الطلاب الذين يفكّون الحل إلى أكثر من 20 لبنة قد ينجحون في مضمار واحد لكنهم لن يجتازوا المضمارين معًا تقريبًا أبدًا — فالخريطة الثانية هي الممتحن النزيه، وسؤال «لماذا يفشل برنامجك الطويل في المضمار B؟» هو أفضل نقاش يقدّمه هذا العالم. أسلوب «التقط» على كل مربّع (الالتقاط على أرض فارغة لا يفعل شيئًا) يفاجئ الطلاب الذين يتوقعون رسالة خطأ — وهذا التسامح يستحق أن يُسمّى صراحة. راقب فقاعات التفكير أثناء التشغيل عند فحوص الزوايا. نشاط إثرائي: توقّع إجمالي عدد قفزات الروبوت في كل مضمار قبل التشغيل؛ والتوقع الأقرب يفوز.",
           },
           difficulty: "HARD",
           recommendedGradeMin: 5,
@@ -1217,6 +1224,7 @@ export const robotLab: WorldFixture = {
           },
           teacherNotes: {
             en: "This level runs no code and touches no grid — it's a pure sequencing/synthesis check, placed as the lab's closing checkpoint so students reconstruct the pattern from memory (collect from Power Up, sense+decide from Sensor Check and Smart Turns) rather than reading it fresh. If a group finishes fast, ask them to explain OUT LOUD why 'collect' can't come before 'move forward through the door' — the answer (the cell isn't on this tile yet) is the whole lesson. Challenge extension: ask students to invent one MORE valid step that could be inserted between two existing ones without breaking the routine (e.g., a second sensor check before turning back).",
+            ar: "هذا المستوى لا يشغّل أي شيفرة ولا يستخدم أي شبكة — إنه فحص خالص للترتيب والدمج، وُضع نقطةَ تحقق ختامية للمختبر ليعيد الطلاب بناء النمط من الذاكرة (الالتقاط من «شحن الطاقة»، والاستشعار والقرار من «فحص المستشعر» و«انعطافات ذكية») بدلًا من قراءته من جديد. إذا أنهت مجموعة بسرعة، فاطلب منها أن تشرح بصوت عالٍ لماذا لا يمكن أن تأتي خطوة «التقط» قبل «تقدّم للأمام عبر الباب» — فالإجابة (الخلية ليست على هذا المربّع بعد) هي الدرس كله. نشاط إثرائي: اطلب من الطلاب ابتكار خطوة صحيحة إضافية واحدة يمكن إدراجها بين خطوتين موجودتين دون أن يختلّ الروتين (مثل فحص ثانٍ للمستشعر قبل الاستدارة للعودة).",
           },
           difficulty: "MEDIUM",
           recommendedGradeMin: 4,

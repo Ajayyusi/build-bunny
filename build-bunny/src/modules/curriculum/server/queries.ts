@@ -1,6 +1,7 @@
 import "server-only";
 
 import { getTeacherCurriculumGuide } from "./guide";
+import { getModuleWorksheet } from "./worksheet";
 
 import type { ContentStatus, Prisma } from "@prisma/client";
 
@@ -433,7 +434,8 @@ export function stripStudentPayload(activityType: string, payload: unknown): unk
  * school-scoped sessions — asserted in the isolation suite) and the
  * published readers/strip helper never touch tenant data at all.
  */
-export { getTeacherCurriculumGuide };
+export { getModuleWorksheet, getTeacherCurriculumGuide };
+export type { Worksheet, WorksheetItem } from "./worksheet";
 
 export const tenantScopedQueries = {
   listCurriculumPrograms,
@@ -442,4 +444,5 @@ export const tenantScopedQueries = {
   getPublishedLevelSnapshot,
   stripStudentPayload,
   getTeacherCurriculumGuide,
+  getModuleWorksheet,
 } as const;

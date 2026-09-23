@@ -116,6 +116,7 @@ export const mlLab: WorldFixture = {
           },
           teacherNotes: {
             en: "The one level whose signature failure is passing your own test and losing anyway — let it happen before explaining it. The pinned trap: holding back the three obvious extremes {k1,k2,k10} self-scores 3/3 and fails the hidden set (k2 is the ONLY large cool cell; reserved, the model calls big cells hot). The diagnostic split {k2,k4,k8} self-scores 1/3 and the self-misses tell the student exactly what the model does not know. Vocabulary: train/test split, overfitting to your own test. Ask: why do real exams keep questions secret?",
+            ar: "هذا هو المستوى الوحيد الذي يتمثّل إخفاقه المميّز في أن تنجح في اختبارك أنت ثم تخسر رغم ذلك — دع ذلك يحدث قبل أن تشرحه. الفخ المثبّت: حجز الحالات المتطرفة الثلاث الواضحة {k1,k2,k10} يعطي علامة ذاتية 3/3 لكنه يرسب في المجموعة الخفية (k2 هي الخلية الكبيرة الباردة الوحيدة؛ وحين تُحجز، يصف النموذج الخلايا الكبيرة بأنها ساخنة). أما التقسيم التشخيصي {k2,k4,k8} فيعطي علامة ذاتية 1/3، والأخطاء في الاختبار الذاتي تخبر الطالب بدقة بما لا يعرفه النموذج. المصطلحات: تقسيم البيانات إلى تدريب واختبار (train/test split)، وفرط التخصيص لاختبارك أنت (overfitting). اسأل: لماذا تبقى أسئلة الامتحانات الحقيقية سرية؟",
           },
           difficulty: "MEDIUM",
           recommendedGradeMin: 5,
@@ -257,6 +258,7 @@ export const mlLab: WorldFixture = {
           },
           teacherNotes: {
             en: "The first level where the OBJECTIVE changes rather than the controls, and the only genuinely ethical judgement in the curriculum reached by counting rather than lecture. The pinned arithmetic: the sensible balanced set {p1,p3,p5,p6|n1,n2,n3,n4} scores 9/10 and FAILS (one dangerous miss); the cautious set {p1,p2,p3,p4|n1,n2,n3,n5} scores 8/10 and PASSES. Open by acting out the call-everything-good robot (7/10, lab on fire). Discussion gold afterwards: name three real systems where the two mistake directions cost differently, and one where a false alarm is actually the expensive direction.",
+            ar: "أول مستوى يتغيّر فيه الهدف لا أدوات التحكم، والحكم الأخلاقي الحقيقي الوحيد في المنهج الذي يُتوصَّل إليه بالعدّ لا بالمحاضرة. الحساب المثبّت: المجموعة المتوازنة المعقولة {p1,p3,p5,p6|n1,n2,n3,n4} تسجّل 9/10 وترسب (إخفاق خطير واحد)؛ والمجموعة الحذرة {p1,p2,p3,p4|n1,n2,n3,n5} تسجّل 8/10 وتنجح. ابدأ بتمثيل دور الروبوت الذي يصف كل خلية بأنها سليمة (7/10، والمختبر يحترق). ونقاش ثمين بعد ذلك: سمِّ ثلاثة أنظمة حقيقية تختلف فيها كلفة اتجاهَي الخطأ، ونظامًا واحدًا يكون فيه الإنذار الكاذب هو الاتجاه الأغلى كلفةً فعلًا.",
           },
           difficulty: "HARD",
           recommendedGradeMin: 5,
@@ -406,6 +408,7 @@ export const mlLab: WorldFixture = {
           },
           teacherNotes: {
             en: "The only training loop in the product, and the submission is a SEED, not an answer — say that out loud, twice. The pinned kicker to demonstrate on the projector: seed (0.05,0.05)/(0.60,0.62)/(0.95,0.35) reads 46% BEFORE running and finishes at 95%; seed (0.18,0.24)/(0.26,0.32)/(0.75,0.60) reads 88% before and finishes at 89% — FAIL. The worse-looking start wins. The bad seed's fixed point (big clump split, two far clumps merged) is genuinely stable: every step improved it. Vocabulary for older students: local optimum, initialisation. This is Lloyd's algorithm — the real one.",
+            ar: "حلقة التدريب الوحيدة في المنتج، وما يسلّمه الطالب هو نقطة بداية (بذرة) لا إجابة — قل ذلك بصوت عالٍ، مرتين. المفاجأة المثبّتة التي تُعرض على جهاز العرض: البذرة (0.05,0.05)/(0.60,0.62)/(0.95,0.35) تُظهر 46% قبل التشغيل وتنتهي عند 95%؛ والبذرة (0.18,0.24)/(0.26,0.32)/(0.75,0.60) تُظهر 88% قبل التشغيل وتنتهي عند 89% — رسوب (FAIL). البداية التي تبدو أسوأ هي التي تفوز. والنقطة الثابتة للبذرة السيئة (تقسيم التجمّع الكبير ودمج التجمّعين البعيدين) مستقرة فعلًا: كل خطوة حسّنتها. مصطلحات للطلاب الأكبر سنًّا: القيمة المثلى المحلية (local optimum)، والتهيئة الابتدائية (initialisation). هذه هي خوارزمية Lloyd — الخوارزمية الحقيقية نفسها.",
           },
           difficulty: "HARD",
           recommendedGradeMin: 5,

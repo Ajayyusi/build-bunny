@@ -92,6 +92,7 @@ export const forestPractice: ModuleFixture = {
       },
       teacherNotes: {
         en: "Two variants graded together: a program that hard-codes the detour fails the clear map (it hops down and misses the burrow); one that never turns bumps the rock. Ask which blocks belong inside the If and which outside.",
+        ar: "تُقيَّم الخريطتان معًا: البرنامج الذي يثبّت الالتفاف دائمًا يفشل في الخريطة المفتوحة (يقفز إلى الأسفل ويفوّت الجحر)؛ والبرنامج الذي لا يستدير أبدًا يصطدم بالصخرة. اسأل أي اللبنات مكانها داخل «إذا» وأيها خارجها.",
       },
       difficulty: "MEDIUM",
       recommendedGradeMin: 4,
@@ -158,7 +159,8 @@ export const forestPractice: ModuleFixture = {
         ar: "الحلقة المعدودة تحتاج إلى معرفة الرقم. أما حلقة «حتى» فلا — تسأل «هل وصلت؟» قبل كل قفزة وتتوقف لحظة تصبح الإجابة نعم. عندما لا تعرف كم مرة، اسأل «حتى ماذا؟» بدلًا من ذلك.",
       },
       teacherNotes: {
-        en: "Repeat 4 passes the long trail and overshoots the short one (a located bump off the map). The until-loop with a single hop passes both with 3 stars. Discussion: what would happen if the burrow were unreachable? (The energy budget stops the loop — see Loop Detective.)",
+        en: "Repeat 5 passes the long trail and overshoots the short one (a located bump off the map). The until-loop with a single hop passes both with 3 stars. Discussion: what would happen if the burrow were unreachable? (The energy budget stops the loop — see Loop Detective.)",
+        ar: "«كرّر 5» تنجح في الدرب الطويل وتتجاوز الدرب القصير (اصطدام محدَّد الموضع خارج الخريطة). حلقة «حتى» مع قفزة واحدة تنجح في الدربين بـ 3 نجوم. للنقاش: ماذا سيحدث لو تعذّر الوصول إلى الجحر؟ (ميزانية الطاقة توقف الحلقة — انظر مستوى «محقق الحلقات».)",
       },
       difficulty: "MEDIUM",
       recommendedGradeMin: 4,

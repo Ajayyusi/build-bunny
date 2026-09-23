@@ -66,6 +66,7 @@ export const theFair: ModuleFixture = {
       },
       teacherNotes: {
         en: "The first creative level. The designer refuses unwinnable mazes (walled-off burrow) with a checklist rather than an error, so there is no stuck state. Ask students to trade mazes on paper and solve each other's; the three-star budget (6 blocks) rewards a loop for a long straight run.",
+        ar: "أول مستوى إبداعي. ترفض أداة التصميم المتاهات التي لا يمكن حلّها (جحر محاصر بالعوائق) عبر قائمة فحص لا عبر رسالة خطأ، فلا يعلق الطالب أبدًا. اطلب من الطلاب تبادل متاهاتهم على الورق وحلّ متاهات بعضهم؛ وحدّ النجوم الثلاث (6 لبنات) يكافئ استخدام حلقة في المقطع المستقيم الطويل.",
       },
       difficulty: "MEDIUM",
       recommendedGradeMin: 4,
@@ -193,6 +194,7 @@ export const theFair: ModuleFixture = {
       },
       teacherNotes: {
         en: "Reaching the burrow without both carrots is PARTIAL (1 star), which is the teaching moment: the program worked, the plan was incomplete. Water is fatal like rocks; the checklist treats both as obstacles. Seven-block budget rewards two Repeats.",
+        ar: "الوصول إلى الجحر دون الجزرتين كلتيهما نتيجته «جزئي» (PARTIAL، نجمة واحدة)، وهذه هي اللحظة التعليمية: البرنامج عمل، لكن الخطة كانت ناقصة. الماء مميت مثل الصخور، وقائمة الفحص تعامل كليهما على أنهما عوائق. وحدّ اللبنات السبع يكافئ استخدام لبنتَي «كرّر».",
       },
       difficulty: "MEDIUM",
       recommendedGradeMin: 4,
@@ -317,6 +319,7 @@ export const theFair: ModuleFixture = {
       },
       teacherNotes: {
         en: "Capstone. 'my trick' (bb_defineTrick, limit 1) is a top-level block like 'when start'; its body runs only where 'do my trick' is placed. A staircase design + trick(hop, turn right, hop, turn left) + Repeat 5 + one hop is 8 blocks. Students who solve it without the trick can still pass with 2 stars if over ten blocks — ask what repeats.",
+        ar: "المستوى الختامي. لبنة «حيلتي» (bb_defineTrick، الحد الأقصى 1) لبنة قائمة بذاتها في أعلى البرنامج مثل «عند البدء»؛ ولا يُنفَّذ ما بداخلها إلا حيث توضع لبنة «نفّذ حيلتي». تصميم على شكل درج + حيلة (قفزة، استدر يمينًا، قفزة، استدر يسارًا) + «كرّر» 5 + قفزة واحدة = 8 لبنات. الطلاب الذين يحلّونه دون الحيلة يمكنهم النجاح مع ذلك بنجمتين إذا تجاوز برنامجهم عشر لبنات — اسألهم: ما الذي يتكرر؟",
       },
       difficulty: "HARD",
       recommendedGradeMin: 5,
