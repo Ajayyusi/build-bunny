@@ -3,6 +3,8 @@
 import { useState, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 
+import { ReadAloudButton } from "@/modules/audio/AudioControls";
+import { useNarrateOnShow } from "@/modules/audio/scene";
 import { Badge, BunnyMascot, Button, useFocusTrap, type BadgeVariant } from "@/ui";
 
 import { MissionIntro } from "./MissionIntro";
@@ -79,6 +81,10 @@ export function IntroOverlay({
   // component: this overlay can't use <dialog> (it's absolutely positioned
   // inside the immersive player, not top-layer), so the trap is manual.
   const dialogRef = useFocusTrap<HTMLDivElement>(true, arriving);
+  // With narration on, Robo Bunny reads the story and the mission as the
+  // briefing appears — the part a seven-year-old most needs to hear.
+  const spoken = [story, objective].filter((part) => part.trim()).join(" ");
+  useNarrateOnShow(arriving ? null : spoken);
 
   const difficultyLabel =
     difficulty in DIFFICULTY_VARIANT
@@ -129,6 +135,7 @@ export function IntroOverlay({
               {story}
             </p>
           ) : null}
+          <ReadAloudButton text={spoken} />
         </div>
 
         {objective ? (

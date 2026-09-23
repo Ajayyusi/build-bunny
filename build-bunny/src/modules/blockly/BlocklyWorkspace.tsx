@@ -38,6 +38,11 @@ export interface BlocklyWorkspaceProps {
   onChange: (workspaceJson: Record<string, unknown>) => void;
   /** Block to light up during playback; null clears the highlight. */
   highlightBlockId?: string | null;
+  /**
+   * A block snapped into a program ("place") or was deleted ("remove") —
+   * the student's own gestures only, for sound effects.
+   */
+  onBlockGesture?: (kind: "place" | "remove") => void;
   ref?: Ref<BlocklyWorkspaceHandle>;
 }
 
@@ -66,6 +71,7 @@ export default function BlocklyWorkspace({
   readOnly = false,
   onChange,
   highlightBlockId = null,
+  onBlockGesture,
   ref,
 }: BlocklyWorkspaceProps) {
   const hostRef = useRef<HTMLDivElement | null>(null);
@@ -73,6 +79,8 @@ export default function BlocklyWorkspace({
   // Latest-callback ref so a new inline onChange never forces a re-inject.
   const onChangeRef = useRef(onChange);
   onChangeRef.current = onChange;
+  const onGestureRef = useRef(onBlockGesture);
+  onGestureRef.current = onBlockGesture;
 
   useImperativeHandle(ref, () => ({
     getWorkspaceJson() {
@@ -136,9 +144,19 @@ export default function BlocklyWorkspace({
       Blockly.Events.enable();
     }
 
-    const listener = (event: { isUiEvent: boolean; type: string }) => {
+    const listener = (event: {
+      isUiEvent: boolean;
+      type: string;
+      newParentId?: string;
+      oldParentId?: string;
+    }) => {
       if (event.isUiEvent) return;
       if (event.type === Blockly.Events.FINISHED_LOADING) return;
+      if (event.type === Blockly.Events.BLOCK_MOVE && event.newParentId) {
+        onGestureRef.current?.("place");
+      } else if (event.type === Blockly.Events.BLOCK_DELETE) {
+        onGestureRef.current?.("remove");
+      }
       onChangeRef.current(workspaceToJson(workspace));
     };
     workspace.addChangeListener(listener);

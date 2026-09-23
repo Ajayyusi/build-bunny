@@ -6,6 +6,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { Button, cn, useReducedMotion } from "@/ui";
 
+import { PlayerSoundControls } from "@/modules/audio/AudioControls";
 import { HintDrawer, type HintTierState } from "./shared/HintDrawer";
 import { SequenceScene } from "./shared/SequenceScene";
 import { IntroOverlay } from "./shared/IntroOverlay";
@@ -250,6 +251,8 @@ export function SequencingPlayer({
         <h1 className="min-w-0 flex-1 truncate font-display text-base font-bold text-ink sm:text-lg">
           {intro.title}
         </h1>
+        {/* Instant mute + sound settings, in every level. */}
+        <PlayerSoundControls />
         <span
           role="img"
           aria-label={t("starsBest", { stars: starsBest, maxStars: intro.maxStars })}

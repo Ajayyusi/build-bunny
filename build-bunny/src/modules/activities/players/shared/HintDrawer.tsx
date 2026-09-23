@@ -3,7 +3,9 @@
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 
-import { Button, Dialog, Spinner, cn } from "@/ui";
+import { ReadAloudButton } from "@/modules/audio/AudioControls";
+import { useNarrateOnShow } from "@/modules/audio/scene";
+import { Button, Dialog, Spinner, cn, useSound } from "@/ui";
 
 /**
  * Progressive hint tiers (m3 contract): tier 1 is free; each next tier
@@ -71,6 +73,19 @@ export function HintDrawer({
 }: HintDrawerProps) {
   const t = useTranslations("student.play.hints");
   const [now, setNow] = useState(() => Date.now());
+  const { play } = useSound();
+
+  // The hint revealed most recently THIS session is the one to chime for
+  // and (with narration on) read aloud — not the ones from earlier visits.
+  const newest = hints
+    .filter((hint) => hint.revealed && hint.text && hint.revealedAt > 0)
+    .sort((a, b) => b.revealedAt - a.revealedAt)[0];
+  const newestKey = newest ? `${newest.tier}:${newest.revealedAt}` : null;
+  useEffect(() => {
+    if (newestKey && open) play("hint");
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- per reveal
+  }, [newestKey]);
+  useNarrateOnShow(open ? (newest?.text ?? null) : null);
 
   // Tick only while a countdown is actually visible.
   const hasCooldown = hints.some(
@@ -115,7 +130,10 @@ export function HintDrawer({
               </div>
 
               {hint.revealed && hint.text ? (
-                <p className="text-sm leading-relaxed text-ink">{hint.text}</p>
+                <div className="flex items-start gap-2">
+                  <p className="flex-1 text-sm leading-relaxed text-ink">{hint.text}</p>
+                  <ReadAloudButton text={hint.text} />
+                </div>
               ) : hint.revealed && revealing ? (
                 <p className="flex items-center gap-2 text-sm text-ink-muted">
                   <Spinner size="sm" /> {t("loading")}

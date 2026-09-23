@@ -1,6 +1,11 @@
 "use client";
 
+import { useEffect } from "react";
 import { useTranslations } from "next-intl";
+
+import { ReadAloudButton } from "@/modules/audio/AudioControls";
+import { useNarrateOnShow } from "@/modules/audio/scene";
+import { useSound } from "@/ui";
 
 import { Button } from "@/ui";
 
@@ -140,6 +145,13 @@ export function ResultBanner({
   const t = useTranslations("student.play.feedback");
   const feedbackText = useFeedbackText();
   const code = feedback && KNOWN_CODES.has(feedback.code) ? feedback.code : "generic";
+  const message = overrideMessage ?? feedbackText(feedback);
+  const { play } = useSound();
+  useEffect(() => {
+    if (tone === "fail" && code !== "bumped" && code !== "splashed") play("oops");
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- once per banner
+  }, []);
+  useNarrateOnShow(message);
 
   return (
     <div
@@ -151,9 +163,12 @@ export function ResultBanner({
           {CODE_ICON[code]}
         </span>
         <div className="flex min-w-0 flex-1 flex-col gap-3">
-          <p className="text-sm font-semibold leading-relaxed text-ink">
-            {overrideMessage ?? feedbackText(feedback)}
-          </p>
+          <div className="flex items-start gap-2">
+            <p className="flex-1 text-sm font-semibold leading-relaxed text-ink">
+              {message}
+            </p>
+            <ReadAloudButton text={message} />
+          </div>
           <div className="flex flex-wrap items-center gap-2">
             <Button size="lg" onClick={onTryAgain}>
               {tone === "coach" ? t("gotIt") : t("tryAgain")}

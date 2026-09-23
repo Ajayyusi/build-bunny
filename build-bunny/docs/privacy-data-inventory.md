@@ -155,6 +155,21 @@ see the route's code comment for why this ships as one bundled file rather
 than a `.zip`: avoiding a new dependency for a file-format nicety, the same
 call the certificate QR encoder already made).
 
+## 8a. Audio and narration — nothing leaves the device
+
+The student area's sound system (`docs/audio.md`) stores one preference
+object in the browser's `localStorage` (`bb:audio:v2`: which of sound
+effects / music / narration are on, their volumes, master mute). It is never
+sent to the server and is not tied to the child's account — it belongs to
+the device, so a shared classroom tablet keeps its own setting.
+
+Narration uses the browser's built-in speech synthesis with **local voices
+only** (`localService === true`); browser "network" voices, which upload the
+text to be spoken, are never selected. The text spoken is always our own
+authored level copy, never anything a child typed. No audio is recorded (the
+microphone stays denied by the Permissions-Policy header), and no audio file
+is downloaded — effects and music are synthesized in the page.
+
 ## 9. Where this is enforced in code (for an auditor who wants to verify, not just read)
 
 - Tenant scoping: every data-layer query lives in `src/modules/*/server/**`,

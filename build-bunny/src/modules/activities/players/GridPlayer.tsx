@@ -12,6 +12,7 @@ import { programShape } from "@/modules/blockly/serialization";
 import SimulationCanvas from "@/modules/simulation/SimulationCanvas";
 import { Button, cn, useReducedMotion } from "@/ui";
 
+import { PlayerSoundControls } from "@/modules/audio/AudioControls";
 import { generateDisplayCode, runLocally, type LocalRunOutcome } from "./client-run";
 import { GridScene } from "./shared/GridScene";
 import { HintDrawer, type HintTierState } from "./shared/HintDrawer";
@@ -19,6 +20,7 @@ import { IntroOverlay } from "./shared/IntroOverlay";
 import { MissionStrip } from "./shared/MissionStrip";
 import { ResultBanner, useFeedbackText } from "./shared/ResultBanner";
 import { SuccessOverlay } from "./shared/SuccessOverlay";
+import { useGridSounds } from "./shared/useGridSounds";
 import type {
   ActivityFeedback,
   ActivityPlayerProps,
@@ -82,6 +84,7 @@ export function GridPlayer({
   const [coach, setCoach] = useState<ActivityFeedback | null>(null);
   const [briefingOpen, setBriefingOpen] = useState(false);
   const reducedMotion = useReducedMotion();
+  const sounds = useGridSounds();
   const [hints, setHints] = useState<HintTierState[]>(() =>
     [1, 2, 3, 4].map((tier) => ({
       tier,
@@ -206,9 +209,11 @@ export function GridPlayer({
       setAttempt(null);
       setPhase("edit");
       setCoach({ code: shape.loose > 0 ? "looseBlocks" : "emptyProgram" });
+      sounds.play("hint");
       return;
     }
     setCoach(null);
+    sounds.play("run");
     const maxHintTier = hints.reduce(
       (max, hint) => (hint.revealed ? Math.max(max, hint.tier) : max),
       0,
@@ -406,6 +411,8 @@ export function GridPlayer({
         <h1 className="min-w-0 flex-1 truncate font-display text-base font-bold text-ink sm:text-lg">
           {intro.title}
         </h1>
+        {/* Instant mute + sound settings, in every level. */}
+        <PlayerSoundControls />
         <span
           role="img"
           aria-label={t("starsBest", { stars: starsBest, maxStars: intro.maxStars })}
@@ -491,6 +498,7 @@ export function GridPlayer({
               playing={phase === "running"}
               onPlaybackEnd={handlePlaybackEnd}
               onStepChange={(_, blockId) => setHighlightId(blockId)}
+              onEvent={sounds.onEvent}
               reducedMotion={reducedMotion}
               ariaLabel={t("simLabel")}
             />
@@ -515,6 +523,7 @@ export function GridPlayer({
               locale={blockLocale}
               rtl={locale === "ar"}
               onChange={handleWorkspaceChange}
+              onBlockGesture={sounds.onBlockGesture}
               highlightBlockId={highlightId}
               ref={workspaceHandleRef}
             />

@@ -29,7 +29,7 @@ export default async function StudentLayout({ children, params }: Props) {
       className="flex min-h-dvh flex-col bg-surface text-ink"
     >
       {ctx.impersonatedBy ? <ImpersonationBanner /> : null}
-      <SoundProvider>{children}</SoundProvider>
+      <SoundProvider locale={locale}>{children}</SoundProvider>
     </div>
   );
 }

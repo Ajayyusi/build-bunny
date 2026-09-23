@@ -4,6 +4,8 @@ import { useEffect, useState, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 
 import { Link } from "@/i18n/navigation";
+import { ReadAloudButton } from "@/modules/audio/AudioControls";
+import { useNarrateOnShow } from "@/modules/audio/scene";
 import {
   BunnyMascot,
   Button,
@@ -86,12 +88,31 @@ export function SuccessOverlay({
     return () => window.clearTimeout(timer);
   }, [stage]);
 
-  // One quiet chime as the celebration appears (no-op unless the student
-  // turned sound on). Deliberately once per overlay, not per star.
+  // The celebration's sound, timed to the animation (all no-ops unless the
+  // child turned effects on): a chime, then one sparkle per EARNED star as
+  // each pops in, then a badge cue if a badge was won.
   useEffect(() => {
     play("success");
+    for (let index = 0; index < stars; index += 1) {
+      play("star", { delayMs: 200 + index * 380 + (reducedMotion ? 0 : 150) });
+    }
+    if (achievements.length > 0) {
+      play("achievement", { delayMs: 400 + stars * 380 });
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- mount-only beat
   }, []);
+
+  // When the card appears with a next level to go to, a small "opened" cue.
+  useEffect(() => {
+    if (stage === "card" && nextHref) play("unlock", { delayMs: 250 });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- once per card
+  }, [stage]);
+
+  // Narration (when on): the result first, then the child can ask for the
+  // explanation with the read-aloud button beside it.
+  useNarrateOnShow(
+    stage === "card" ? `${t("title")} ${t("starsSr", { stars, maxStars })}` : null,
+  );
 
   // Same manual trap as IntroOverlay (this overlay can't use the native
   // <dialog>-based Dialog component — see its comment). resetKey=stage
@@ -202,9 +223,12 @@ export function SuccessOverlay({
 
         {explanation ? (
           <div className="flex flex-col gap-1 rounded-lg bg-surface-sunken p-4">
-            <h2 className="font-display text-sm font-bold text-ink">
-              {t("explanationHeading")}
-            </h2>
+            <div className="flex items-center justify-between gap-2">
+              <h2 className="font-display text-sm font-bold text-ink">
+                {t("explanationHeading")}
+              </h2>
+              <ReadAloudButton text={explanation} />
+            </div>
             <p className="text-sm leading-relaxed text-ink-muted">
               {explanation}
             </p>

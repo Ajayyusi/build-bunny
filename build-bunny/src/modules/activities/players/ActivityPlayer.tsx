@@ -1,5 +1,7 @@
 "use client";
 
+import { WorldMusic } from "@/modules/audio/scene";
+
 import type { ActivityPlayerProps } from "../types";
 import { getActivityPlayer } from "./registry";
 
@@ -20,5 +22,11 @@ interface Props extends ActivityPlayerProps {
 export function ActivityPlayer({ activityType, ...props }: Props) {
   const Player = getActivityPlayer(activityType);
   if (!Player) return null;
-  return <Player {...props} />;
+  return (
+    <>
+      {/* Each world has its own tune while its levels are being played. */}
+      <WorldMusic theme={props.intro.worldTheme} />
+      <Player {...props} />
+    </>
+  );
 }
