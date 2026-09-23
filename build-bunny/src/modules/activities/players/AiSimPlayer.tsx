@@ -12,6 +12,7 @@ import { Badge, Button, cn, useReducedMotion } from "@/ui";
 
 import { HintDrawer, type HintTierState } from "./shared/HintDrawer";
 import { IntroOverlay } from "./shared/IntroOverlay";
+import { MissionStrip } from "./shared/MissionStrip";
 import { useDraftAutosave } from "./shared/useDraftAutosave";
 import { ResultBanner } from "./shared/ResultBanner";
 import { SuccessOverlay } from "./shared/SuccessOverlay";
@@ -65,6 +66,8 @@ export function AiSimPlayer({
   const [step, setStep] = useState(beats === null ? 0 : 1);
 
   const [phase, setPhase] = useState<Phase>("intro");
+  // The briefing reopened from the mission strip, mid-level.
+  const [briefingOpen, setBriefingOpen] = useState(false);
   // Seeded from the draft, not null: the widget re-reports the restored work
   // on mount, and starting at null would make that report look like a change
   // and write it straight back on every page load.
@@ -260,6 +263,13 @@ export function AiSimPlayer({
         </span>
       </header>
 
+      {phase !== "intro" ? (
+        <MissionStrip
+          objective={intro.objective}
+          onShow={() => setBriefingOpen(true)}
+        />
+      ) : null}
+
       {/* ── Content ── */}
       <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6">
         <div className="mx-auto flex max-w-3xl flex-col gap-4">
@@ -325,8 +335,9 @@ export function AiSimPlayer({
       </div>
 
       {/* ── Overlays ── */}
-      {phase === "intro" ? (
+      {phase === "intro" || briefingOpen ? (
         <IntroOverlay
+          reopened={phase !== "intro"}
           title={intro.title}
           story={intro.story}
           objective={intro.objective}
@@ -335,6 +346,10 @@ export function AiSimPlayer({
           estimatedMinutes={intro.estimatedMinutes}
           worldTheme={intro.worldTheme}
           onStart={() => {
+            if (phase !== "intro") {
+              setBriefingOpen(false);
+              return;
+            }
             editStartRef.current = Date.now();
             setPhase("edit");
           }}

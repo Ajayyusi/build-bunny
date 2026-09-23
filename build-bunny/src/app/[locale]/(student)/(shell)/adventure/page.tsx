@@ -56,7 +56,9 @@ async function loadIntros(
       {
         title: resolveText(intro.title, locale),
         story: resolveText(intro.story, locale),
-        objective: resolveText(intro.objective, locale),
+        // The child-facing mission when authored; the teacher-facing
+        // objective otherwise.
+        objective: resolveText(intro.mission ?? intro.objective, locale),
         instructions: resolveText(intro.instructions, locale),
         difficulty: intro.difficulty,
         estimatedMinutes: intro.estimatedMinutes,

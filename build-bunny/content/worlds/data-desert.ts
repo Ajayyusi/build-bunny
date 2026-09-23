@@ -72,6 +72,10 @@ export const dataDesert: WorldFixture = {
             en: "Discover that a machine can find groups in data with no labels at all — a group simply means the readings nearest one flag.",
             ar: "اكتشف أن الآلة تستطيع إيجاد مجموعات في بيانات بلا أسماء إطلاقًا — فالمجموعة ببساطة هي القراءات الأقرب إلى علم واحد.",
           },
+          mission: {
+            en: "Plant two flags to sort the night-camera readings into two groups.",
+            ar: "اغرس علمين لتفرز قراءات كاميرا الليل إلى مجموعتين.",
+          },
           instructions: {
             en: "Plant two flags on the board. Every reading joins its nearest flag. Make your piles tight enough and you will find out what visited the waterhole.",
             ar: "اغرس علمين على اللوحة. كل قراءة تنضم إلى أقرب علم إليها. اجعل كومتيك متراصّتين بما يكفي وستعرف ما الذي زار مورد الماء.",
@@ -206,6 +210,10 @@ export const dataDesert: WorldFixture = {
             en: "Choose the NUMBER of groups yourself, and discover why the machine's own score can never make that choice for you.",
             ar: "اختر عدد المجموعات بنفسك، واكتشف لماذا لا تستطيع نتيجة الآلة اتخاذ هذا القرار عنك أبدًا.",
           },
+          mission: {
+            en: "Decide how many kinds of animals came to drink — 2, 3 or 4?",
+            ar: "قرّر كم نوعًا من الحيوانات جاء ليشرب — 2 أم 3 أم 4؟",
+          },
           instructions: {
             en: "Use 2, 3 or 4 flags — your choice. Two cannot reach the bar. Four scores higher than three but chops a real crowd in half, and costs a star. Find the number that matches the data.",
             ar: "استخدم 2 أو 3 أو 4 أعلام — القرار قرارك. علمان لا يبلغان الحد. وأربعة تسجّل أعلى من ثلاثة لكنها تشطر حشدًا حقيقيًا نصفين، وتكلفك نجمة. جِد العدد الذي يطابق البيانات.",
@@ -335,6 +343,10 @@ export const dataDesert: WorldFixture = {
           objective: {
             en: "Meet leverage: one impossible value drags the whole answer, and the damage shows up in a group the bad reading is nowhere near.",
             ar: "تعرّف على قوة الجذب: قيمة واحدة مستحيلة تجرّ الإجابة كلها، ويظهر الضرر في مجموعة ليست القراءة السيئة قريبة منها أصلًا.",
+          },
+          mission: {
+            en: "One reading is impossible. Find it, strike it out, and fix the groups.",
+            ar: "إحدى القراءات مستحيلة. اعثر عليها واشطبها، ثم أصلح المجموعات.",
           },
           instructions: {
             en: "Three flags, and for the first time you may strike ONE reading out. Placing and counting will not save you here — look at the data itself.",
@@ -466,6 +478,10 @@ export const dataDesert: WorldFixture = {
           objective: {
             en: "Meet spurious correlation: a training set can be fair, spread out and honest, and still teach the wrong pattern — because two patterns fit it equally well.",
             ar: "تعرّف على الارتباط الزائف: قد تكون مجموعة التدريب عادلة وموزعة وصادقة، وتعلّم النمط الخطأ مع ذلك — لأن نمطين يطابقانها بالتساوي.",
+          },
+          mission: {
+            en: "Two patterns fit the data. Teach the machine the real one: grain, not colour.",
+            ar: "نمطان يطابقان البيانات. علّم الآلة النمط الحقيقي: حجم الحبيبات لا اللون.",
           },
           instructions: {
             en: "Five slots. The ? probes sit in the empty corners where the two explanations disagree. Teach the machine which explanation is the real one — grain, not colour.",
@@ -630,6 +646,10 @@ export const dataDesert: WorldFixture = {
             en: "Draw a dividing line on a size-vs-sweetness scatter to separate tart fruit from sweet fruit, then compare it to a computer's own simple rule.",
             ar: "ارسم خطًا فاصلًا على رسم يوضّح الحجم مقابل الحلاوة لتفصل الفاكهة الحامضة عن الحلوة، ثم قارنه بقاعدة بسيطة يضعها الحاسوب بنفسه.",
           },
+          mission: {
+            en: "Draw a line that puts tart fruit on one side and sweet fruit on the other.",
+            ar: "ارسم خطًا يضع الفاكهة الحامضة في جهة والحلوة في الجهة الأخرى.",
+          },
           instructions: {
             en: "Each dot is one piece of fruit, placed by its size and its sweetness. Drag the line so tart fruit ends up on one side and sweet fruit on the other. A wobbling dot is on the wrong side of your line — try to leave at most one wobbling.",
             ar: "كل نقطة تمثل قطعة فاكهة واحدة، موضوعة حسب حجمها وحلاوتها. اسحب الخط بحيث تقع الفاكهة الحامضة في جهة والحلوة في الجهة الأخرى. النقطة المهتزّة تقع في الجهة الخطأ من خطك — حاول ألا تترك أكثر من نقطة واحدة مهتزّة.",
@@ -766,6 +786,10 @@ export const dataDesert: WorldFixture = {
           objective: {
             en: "Fit a trend line to real, honestly noisy data by eye, compare it to the computer's least-squares line, then predict a value beyond the measured data with an honest error range.",
             ar: "اضبط خط اتجاه على بيانات حقيقية بها تشويش صادق بالعين، قارنه بخط الحاسوب الأدق حسابيًا، ثم توقّع قيمة خارج البيانات المُقاسة مع مدى خطأ صادق.",
+          },
+          mission: {
+            en: "Draw the best line through the seedlings, then predict how tall a sunnier one grows.",
+            ar: "ارسم أفضل خط بين الشتلات، ثم توقّع طول شتلة تحصل على شمس أكثر.",
           },
           instructions: {
             en: "Drag your line to make the 'total miss' score as small as you can — that number is how far every dot sits from your line, added up. Then let the computer take its turn, and predict how tall a seedling would grow with even MORE sunlight than any in the data.",

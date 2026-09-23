@@ -34,6 +34,10 @@ const KNOWN_CODES = new Set([
   "classifierErrors",
   "trendMissTooHigh",
   "mysteryRoundsWrong",
+  // Pre-run coaching (client-only, nothing is graded or posted): the program
+  // is empty, or its blocks are not snapped under "when start".
+  "emptyProgram",
+  "looseBlocks",
 ]);
 
 const CODE_ICON: Record<string, string> = {
@@ -53,6 +57,8 @@ const CODE_ICON: Record<string, string> = {
   classifierErrors: "📈",
   trendMissTooHigh: "📉",
   mysteryRoundsWrong: "🖼️",
+  emptyProgram: "🧩",
+  looseBlocks: "🔗",
   generic: "🔍",
 };
 
@@ -115,6 +121,12 @@ interface ResultBannerProps {
    * level provides it.
    */
   overrideMessage?: string | null;
+  /**
+   * "fail" — a run that did not reach the goal (assertive, retry action).
+   * "coach" — Robo Bunny pointing something out BEFORE anything ran (an
+   * empty or unsnapped program): polite, calmer border, "Got it".
+   */
+  tone?: "fail" | "coach";
 }
 
 export function ResultBanner({
@@ -123,6 +135,7 @@ export function ResultBanner({
   showHintNudge,
   onOpenHints,
   overrideMessage,
+  tone = "fail",
 }: ResultBannerProps) {
   const t = useTranslations("student.play.feedback");
   const feedbackText = useFeedbackText();
@@ -130,8 +143,8 @@ export function ResultBanner({
 
   return (
     <div
-      role="alert"
-      className={`${styles.banner} rounded-lg border border-danger/35 bg-surface-raised p-4 shadow-raised`}
+      role={tone === "coach" ? "status" : "alert"}
+      className={`${styles.banner} rounded-lg border ${tone === "coach" ? "border-info/50" : "border-danger/35"} bg-surface-raised p-4 shadow-raised`}
     >
       <div className="flex items-start gap-3">
         <span aria-hidden="true" className="text-2xl leading-none">
@@ -143,7 +156,7 @@ export function ResultBanner({
           </p>
           <div className="flex flex-wrap items-center gap-2">
             <Button size="lg" onClick={onTryAgain}>
-              {t("tryAgain")}
+              {tone === "coach" ? t("gotIt") : t("tryAgain")}
             </Button>
             {showHintNudge ? (
               <Button

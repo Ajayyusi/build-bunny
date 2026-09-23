@@ -21,9 +21,11 @@ const DIFFICULTY_VARIANT: Record<string, BadgeVariant> = {
 const KNOWN_DIFFICULTIES = new Set(Object.keys(DIFFICULTY_VARIANT));
 
 /**
- * Level intro dialog — story, mission and how-to from the published snapshot.
- * Start hands off to the immersive player at /play/[levelId] (M3); Close
- * returns to the map.
+ * Level preview on the map — title, difficulty, stars and the one-line
+ * mission, then Start. The story and the how-to-play animation are told ONCE,
+ * by the player's own briefing: this sheet used to repeat the story and the
+ * instructions, so a child read the same paragraph twice before touching a
+ * block. Close returns to the map.
  */
 export function LevelIntroSheet({ level, onClose }: LevelIntroSheetProps) {
   const t = useTranslations("student.adventure");
@@ -87,28 +89,13 @@ export function LevelIntroSheet({ level, onClose }: LevelIntroSheetProps) {
           </span>
         </div>
 
-        {intro.story ? (
-          <p className="text-sm leading-relaxed text-ink">{intro.story}</p>
-        ) : null}
-
         {intro.objective ? (
           <div className="flex flex-col gap-1">
             <h3 className="font-display text-sm font-bold text-ink">
               {t("intro.objectiveHeading")}
             </h3>
-            <p className="text-sm leading-relaxed text-ink-muted">
+            <p className="text-base leading-relaxed text-ink">
               {intro.objective}
-            </p>
-          </div>
-        ) : null}
-
-        {intro.instructions ? (
-          <div className="flex flex-col gap-1">
-            <h3 className="font-display text-sm font-bold text-ink">
-              {t("intro.instructionsHeading")}
-            </h3>
-            <p className="line-clamp-3 text-sm leading-relaxed text-ink-muted">
-              {intro.instructions}
             </p>
           </div>
         ) : null}

@@ -170,6 +170,31 @@ export function blockTypeAt(workspaceJson: unknown, path: GapPath): string | nul
 const STATEMENT_TYPES = new Set<string>(BUNNY_STATEMENT_BLOCKS);
 
 /**
+ * How a program is wired, before anything runs: statement blocks reachable
+ * from a "when start" hat versus statement blocks sitting loose on the
+ * canvas. The player uses it to catch the two commonest first-time mistakes
+ * — pressing Run on an empty program, and dropping a block NEAR the hat
+ * without snapping it on — and explain them in words, instead of running a
+ * program that does nothing and reporting where the bunny ended up.
+ */
+export function programShape(workspaceJson: unknown): {
+  attached: number;
+  loose: number;
+} {
+  let attached = 0;
+  let loose = 0;
+  for (const top of topBlocksOf(workspaceJson)) {
+    let count = 0;
+    visitBlocks(top, (type) => {
+      if (STATEMENT_TYPES.has(type)) count += 1;
+    });
+    if (top.type === BUNNY_HAT_BLOCK) attached += count;
+    else loose += count;
+  }
+  return { attached, loose };
+}
+
+/**
  * Statement blocks only — the hat and sensor value blocks are excluded
  * (engine contract). Disconnected stacks still count: stray blocks in the
  * workspace are part of the student's program size.

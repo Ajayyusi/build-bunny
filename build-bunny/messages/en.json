@@ -132,10 +132,10 @@
       "adventureCardCta": "Open your adventure map",
       "kicker": "CONTINUE LEARNING",
       "heroTitle": "Pick up where you left off",
-      "heroBody": "Jump back into {world} and keep your streak going.",
+      "heroBody": "Jump back into {world} — your next mission is ready.",
       "heroBodyFresh": "Your very first mission is ready. Let's hop to it!",
-      "heroCta": "Continue",
-      "heroCtaFresh": "Start learning",
+      "heroCta": "Continue: {title}",
+      "heroCtaFresh": "Start my first mission",
       "heroMinutes": "{minutes} mins",
       "xpPanelTitle": "XP Progress",
       "xpPanelBody": "Total XP earned across your worlds",
@@ -149,28 +149,25 @@
       "activityLevels": "Levels played",
       "activityStars": "Stars earned",
       "onboarding": {
-        "title": "Welcome to Build Bunny",
+        "title": "Meet Robo Bunny",
         "skip": "Skip",
         "next": "Next",
-        "done": "Let's go!",
+        "done": "Start my first mission",
         "steps": {
           "0": {
-            "title": "Hi! I'm Bunny.",
-            "body": "We're going to learn coding and AI together. I'll be with you the whole way."
+            "title": "Hi! I'm Robo Bunny.",
+            "body": "I just woke up in Bunny Meadow, and I can't do anything on my own. I need a coder to tell me what to do. That's you!"
           },
           "1": {
-            "title": "Worlds to explore",
-            "body": "Your adventure map has six worlds. Finish the levels in one and the next one opens up."
+            "title": "You give the instructions",
+            "body": "Snap blocks together to make a program. Press Run, and I'll follow your blocks one by one."
           },
           "2": {
-            "title": "Stars and XP",
-            "body": "Every mission you finish earns XP. Solve it neatly and you earn up to three stars."
-          },
-          "3": {
-            "title": "Stuck? Ask me.",
-            "body": "Every mission has hints. Using one is not cheating — it's how you get unstuck."
+            "title": "Stuck? Tap Hint.",
+            "body": "I'll give you a small clue first, then a bigger one. Every coder gets stuck — hints are how we get unstuck."
           }
-        }
+        },
+        "later": "Look around first"
       },
       "feedback": {
         "heading": "From your teacher",
@@ -188,7 +185,11 @@
         "start": "Start",
         "continue": "Continue",
         "progress": "{done} of {total}"
-      }
+      },
+      "heroCtaDone": "Open the map",
+      "openMap": "See the map",
+      "levelsDone": "Levels done",
+      "worldLocked": "Opens later"
     },
     "adventure": {
       "title": "Adventure map",
@@ -232,7 +233,8 @@
       "startModule": "Start world",
       "requiresPrefix": "Requires: {name}",
       "worldProgressPct": "{pct}%",
-      "reviewModule": "Review world"
+      "reviewModule": "Review world",
+      "lockedHintWorldPartial": "Some levels here are already open — the rest open after the previous world"
     },
     "play": {
       "backToMap": "Back to map",
@@ -267,7 +269,8 @@
         "sequenceSceneLabel": "Three steps in the wrong order. One step moves up past another until the list reads one, two, three.",
         "predictSceneLabel": "A short program is read line by line, then one of three answers is chosen.",
         "ethicsSceneLabel": "A question with two answers. One is chosen, and the story moves on to the next card.",
-        "start": "Let's build!"
+        "start": "Let's build!",
+        "resume": "Back to building"
       },
       "feedback": {
         "tryAgain": "Try again",
@@ -290,7 +293,10 @@
         "modelGuessedWrong": "The bunny got {correct} of {total} right — teach it a berry near the ones it missed.",
         "classifierErrors": "{errors, plural, one {One point is} other {# points are}} on the wrong side of your line — this level allows {maxErrors}. Try adjusting it.",
         "trendMissTooHigh": "Your total miss score is {childScore} — aim for {targetScore} or lower. Try adjusting your line.",
-        "mysteryRoundsWrong": "You matched {correct} of {total} mystery pictures. Take another look at the blocky ones!"
+        "mysteryRoundsWrong": "You matched {correct} of {total} mystery pictures. Take another look at the blocky ones!",
+        "emptyProgram": "Your program is empty! Drag a block and snap it under “when start”, then press Run.",
+        "looseBlocks": "So close! Your blocks aren't connected yet. Snap them under “when start” so they click together.",
+        "gotIt": "Got it"
       },
       "learn": {
         "stepWatch": "Step 1 of 2 · Watch",
@@ -325,7 +331,7 @@
         "saving": "Saving your progress…",
         "saveFailed": "We couldn't save your run.",
         "saveRetry": "Retry",
-        "xp": "+{xp} XP",
+        "xp": "+<count>{xp}</count> XP",
         "gradeMismatchNote": "We double-checked this run on our side and updated the result.",
         "explanationHeading": "What you learned",
         "improveHeading": "For more stars",
@@ -508,6 +514,10 @@
           "loadError": "This picture couldn't load.",
           "mysteryImageLabel": "A mystery picture shown at {resolution} by {resolution} pixels"
         }
+      },
+      "mission": {
+        "label": "Mission",
+        "show": "Show the whole mission"
       }
     },
     "profile": {
@@ -1192,10 +1202,11 @@
         "fields": {
           "title": "Title",
           "story": "Story",
-          "objective": "Objective",
+          "objective": "Learning objective (teacher-facing)",
           "instructions": "Instructions",
           "explanation": "Explanation",
-          "teacherNotes": "Teacher notes"
+          "teacherNotes": "Teacher notes",
+          "mission": "Mission (child-facing)"
         },
         "payloadHeading": "Payload summary",
         "variants": "{count, plural, one {# variant} other {# variants}}",

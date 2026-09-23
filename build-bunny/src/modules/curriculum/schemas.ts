@@ -776,6 +776,13 @@ export const levelFixtureSchema = z.object({
   title: localizedText,
   story: localizedTextOptional,
   objective: localizedText,
+  /**
+   * Child-facing mission line ("Get Robo Bunny into the burrow!"). The
+   * objective above is written for teachers — "sequence multiple
+   * instructions and observe top-to-bottom execution" — and used to be what
+   * the player showed a seven-year-old as "Your mission".
+   */
+  mission: localizedTextOptional,
   instructions: localizedText,
   explanation: localizedText,
   teacherNotes: localizedTextOptional,

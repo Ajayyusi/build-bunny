@@ -60,6 +60,12 @@ export default async function StudentHomePage({ params }: Props) {
       .flatMap((m) => m.levels)
       .find((l) => l.current) ?? null;
   const fresh = doneLevels === 0;
+  // The hero's main action is the NEXT LEVEL itself, not the map: a child
+  // who has to find their place on a trail before they can play is a child
+  // waiting for a teacher. The map stays one tap away as the second action.
+  const currentLevelHref = state?.currentLevelId
+    ? `/play/${state.currentLevelId}`
+    : null;
 
   const worldCards: WorldCardVM[] = playableWorlds.map(
     (w: AdventureWorldNode) => ({
@@ -77,7 +83,11 @@ export default async function StudentHomePage({ params }: Props) {
     <div className="flex flex-col gap-6">
       {/* A student who has never earned XP has never finished a level, so
           this is their first visit — Bunny introduces the place. */}
-      <Onboarding show={(snapshot?.xpTotal ?? 0) === 0} userId={ctx.userId} />
+      <Onboarding
+        show={(snapshot?.xpTotal ?? 0) === 0}
+        userId={ctx.userId}
+        firstMissionHref={currentLevelHref}
+      />
 
       <AssignmentsCard assignments={assignments} locale={locale} />
 
@@ -124,12 +134,30 @@ export default async function StudentHomePage({ params }: Props) {
             {adventureEnabled ? (
               <div className="mt-1 flex flex-wrap items-center gap-3">
                 <Link
-                  href="/adventure"
-                  className="bb-pop inline-flex h-11 items-center gap-2 rounded-lg bg-ink px-5 text-sm font-bold text-surface-raised shadow-soft"
+                  href={currentLevelHref ?? "/adventure"}
+                  className="bb-pop inline-flex h-12 max-w-full items-center gap-2 rounded-lg bg-ink px-5 text-base font-bold text-surface-raised shadow-soft"
                 >
                   <span aria-hidden="true">▶</span>
-                  {fresh ? t("heroCtaFresh") : t("heroCta")}
+                  <span className="truncate">
+                    {!currentLevelHref
+                      ? t("heroCtaDone")
+                      : fresh
+                        ? t("heroCtaFresh")
+                        : t("heroCta", {
+                            title: currentLevel
+                              ? resolveText(currentLevel.title, locale)
+                              : "",
+                          })}
+                  </span>
                 </Link>
+                {currentLevelHref ? (
+                  <Link
+                    href="/adventure"
+                    className="inline-flex h-12 items-center rounded-lg px-3 text-sm font-semibold text-ink-muted underline-offset-4 hover:text-ink hover:underline"
+                  >
+                    {t("openMap")}
+                  </Link>
+                ) : null}
                 {currentLevel ? (
                   <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-ink-muted">
                     <span aria-hidden="true">🕒</span>
@@ -180,16 +208,19 @@ export default async function StudentHomePage({ params }: Props) {
               className="bb-cascade flex flex-col justify-between rounded-2xl border border-border-token bg-surface-raised p-4 shadow-soft"
               style={{ "--i": 3 } as React.CSSProperties}
             >
+              {/* Levels finished, not a day streak: a streak counter on a
+                  child's home screen is pressure to show up, and it resets
+                  to zero over a school holiday. What they have built stays. */}
               <span
                 aria-hidden="true"
-                className="bb-flame grid size-9 place-items-center rounded-xl bg-accent/20 text-lg"
+                className="grid size-9 place-items-center rounded-xl bg-brand/15 text-lg"
               >
-                🔥
+                🏁
               </span>
               <p className="mt-3 font-display text-2xl font-bold tabular-nums text-ink">
-                <CountUp value={snapshot?.streakCurrent ?? 0} />
+                <CountUp value={doneLevels} />
               </p>
-              <p className="text-xs text-ink-muted">{t("streak")}</p>
+              <p className="text-xs text-ink-muted">{t("levelsDone")}</p>
             </section>
           </div>
         </div>
@@ -218,6 +249,7 @@ export default async function StudentHomePage({ params }: Props) {
                 world={world}
                 index={i}
                 levelsLabel={t("worldChapters", { count: world.totalLevels })}
+                lockedLabel={t("worldLocked")}
                 progressSr={t("worldProgressSr", {
                   done: world.completedLevels,
                   total: world.totalLevels,

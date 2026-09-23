@@ -87,10 +87,13 @@ export default async function PlayLevelPage({ params }: Props) {
     redirect({ href: "/home", locale });
   }
 
-  const [playable, adventure] = await Promise.all([
-    getPlayableLevel(ctx, levelId),
-    computeAdventureState(ctx),
-  ]);
+  // Sequential on purpose: computeAdventureState is also what materializes a
+  // brand-new student's first UNLOCKED row. Run in parallel, a child whose
+  // first click is a direct level link (an assignment, "Start my first
+  // mission") raced the unlock, found no progress row, and was bounced to
+  // the map.
+  const adventure = await computeAdventureState(ctx);
+  const playable = await getPlayableLevel(ctx, levelId);
 
   // The registry is the single source of truth for "is this playable" (m4
   // task 4) — a level whose activityType has no registered engine (locked,
@@ -113,7 +116,9 @@ export default async function PlayLevelPage({ params }: Props) {
     activityType: playable.activityType,
     title: resolveText(playable.title, locale),
     story: resolveText(playable.story, locale),
-    objective: resolveText(playable.objective, locale),
+    // "Your mission" shows the child-facing mission line; the objective is
+    // written for teachers and is only the fallback.
+    objective: resolveText(playable.mission ?? playable.objective, locale),
     instructions: resolveText(playable.instructions, locale),
     explanation: resolveText(playable.explanation, locale),
     difficulty: playable.difficulty,

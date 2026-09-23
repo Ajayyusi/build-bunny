@@ -169,7 +169,13 @@ export function WorldSegment({ world, index, onOpenLevel }: WorldSegmentProps) {
           {locked ? (
             <p className="flex items-center gap-1.5 text-xs font-semibold text-ink-muted">
               <span aria-hidden="true">🔒</span>
-              {t("lockedHintWorld")}
+              {/* Modules with an OPEN unlock rule (the AI-concept ones) can
+                  have playable levels inside a still-locked world. Saying
+                  "finish the previous world first" above a level the child
+                  can tap right now read as a contradiction. */}
+              {world.levels.some((level) => level.state !== "LOCKED")
+                ? t("lockedHintWorldPartial")
+                : t("lockedHintWorld")}
             </p>
           ) : (
             <>

@@ -167,7 +167,11 @@ export default function BlocklyWorkspace({
     <div
       ref={hostRef}
       // Blockly measures its host: the parent panel owns the actual size.
-      className="h-full min-h-64 w-full overflow-hidden rounded-[var(--radius-lg)] border border-[var(--color-border)]"
+      // `isolate` gives Blockly its own stacking context: its flyout and
+      // scrollbars carry z-index 20–30, which otherwise escaped into the
+      // player and painted OVER the failure banner — on a portrait tablet
+      // the flyout scrollbar sat on "Try again" and swallowed the tap.
+      className="isolate h-full min-h-40 w-full overflow-hidden rounded-[var(--radius-lg)] border border-[var(--color-border)]"
     />
   );
 }

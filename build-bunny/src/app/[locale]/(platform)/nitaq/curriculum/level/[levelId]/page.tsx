@@ -125,6 +125,7 @@ export default async function CurriculumLevelPage({ params }: Props) {
     { key: "title", label: t("fields.title"), value: detail.title },
     { key: "story", label: t("fields.story"), value: detail.story },
     { key: "objective", label: t("fields.objective"), value: detail.objective },
+    { key: "mission", label: t("fields.mission"), value: detail.mission },
     { key: "instructions", label: t("fields.instructions"), value: detail.instructions },
     { key: "explanation", label: t("fields.explanation"), value: detail.explanation },
     { key: "teacherNotes", label: t("fields.teacherNotes"), value: detail.teacherNotes },

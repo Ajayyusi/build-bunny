@@ -104,6 +104,7 @@ function computeArComplete(level: ParsedLevel): boolean {
     hasArabic(level.title) &&
     hasArabic(level.story) &&
     hasArabic(level.objective) &&
+    hasArabic(level.mission) &&
     hasArabic(level.instructions) &&
     hasArabic(level.explanation) &&
     hintsArabic
@@ -332,6 +333,7 @@ async function runImport(
             title: existingLevel.title,
             story: existingLevel.story,
             objective: existingLevel.objective,
+            mission: existingLevel.mission,
             instructions: existingLevel.instructions,
             explanation: existingLevel.explanation,
             teacherNotes: existingLevel.teacherNotes,
@@ -353,6 +355,7 @@ async function runImport(
             title: levelFx.title,
             story: levelFx.story ?? null,
             objective: levelFx.objective,
+            mission: levelFx.mission ?? null,
             instructions: levelFx.instructions,
             explanation: levelFx.explanation,
             teacherNotes: levelFx.teacherNotes ?? null,
@@ -413,6 +416,7 @@ async function runImport(
             title: fx.title as Prisma.InputJsonValue,
             story: toJson(fx.story),
             objective: fx.objective as Prisma.InputJsonValue,
+            mission: toJson(fx.mission),
             instructions: fx.instructions as Prisma.InputJsonValue,
             explanation: fx.explanation as Prisma.InputJsonValue,
             teacherNotes: toJson(fx.teacherNotes),

@@ -162,6 +162,24 @@ describe("level payloads and hints", () => {
     allLevels(world).map((level) => ({ world, level })),
   );
 
+  it("every level has a short, bilingual, child-facing mission line", () => {
+    // The player shows `mission` as "Your mission"; `objective` is written
+    // for teachers. A missing mission silently falls back to teacher jargon
+    // ("sequence multiple instructions and observe top-to-bottom execution")
+    // on a seven-year-old's screen, so every level must author one — and
+    // keep it to one line a young reader can take in at a glance.
+    for (const { world, level } of levels) {
+      const label = `${world.slug}/${level.slug}`;
+      expect(level.mission, `${label}: mission missing`).toBeDefined();
+      expect(level.mission!.en.trim().length, `${label}: mission.en empty`).toBeGreaterThan(0);
+      expect((level.mission!.ar ?? "").trim().length, `${label}: mission.ar empty`).toBeGreaterThan(0);
+      expect(level.mission!.en.length, `${label}: mission.en too long`).toBeLessThanOrEqual(100);
+      expect(level.mission!.en, `${label}: mission copies the objective`).not.toBe(
+        level.objective.en,
+      );
+    }
+  });
+
   it("every level payload passes validatePayload for its activity type", () => {
     for (const { world, level } of levels) {
       const result = validatePayload(level.activityType, level.payload);
@@ -351,6 +369,7 @@ describe("solutions survive the real publish gates (no DB needed)", () => {
       title: level.title,
       story: level.story ?? null,
       objective: level.objective,
+      mission: level.mission ?? null,
       instructions: level.instructions,
       explanation: level.explanation,
       teacherNotes: level.teacherNotes ?? null,

@@ -15,6 +15,8 @@ interface WorldCardProps {
   world: WorldCardVM;
   levelsLabel: string;
   progressSr: string;
+  /** Shown on a locked world in place of a link — "Opens later". */
+  lockedLabel: string;
   /** 0-based position, drives the entrance stagger. */
   index: number;
 }
@@ -40,6 +42,7 @@ export function WorldCard({
   world,
   levelsLabel,
   progressSr,
+  lockedLabel,
   index,
 }: WorldCardProps) {
   const pct =
@@ -49,14 +52,23 @@ export function WorldCard({
 
   const inner = (
     <>
-      <span
-        aria-hidden="true"
-        className={cn(
-          "grid size-11 place-items-center rounded-xl text-2xl",
-          tileTint(world.theme),
-        )}
-      >
-        {world.emoji}
+      <span className="flex items-start justify-between gap-2">
+        <span
+          aria-hidden="true"
+          className={cn(
+            "grid size-11 place-items-center rounded-xl text-2xl",
+            tileTint(world.theme),
+            world.locked && "grayscale",
+          )}
+        >
+          {world.emoji}
+        </span>
+        {world.locked ? (
+          <span className="inline-flex items-center gap-1 rounded-full bg-surface-sunken px-2 py-1 text-[11px] font-bold text-ink-muted">
+            <span aria-hidden="true">🔒</span>
+            {lockedLabel}
+          </span>
+        ) : null}
       </span>
       <span className="mt-3 line-clamp-2 font-display text-sm font-bold text-ink">
         {world.name}
@@ -76,9 +88,15 @@ export function WorldCard({
     </>
   );
 
+  // Locked worlds are dimmed with a sunken surface, grayscale icon and a
+  // lock badge — NOT opacity: the bb-cascade entrance animation ends at
+  // opacity 1 with fill-mode both, which silently overrode `opacity-60` and
+  // made every locked world look exactly as open as the first one.
   const shared = cn(
-    "bb-cascade flex flex-col rounded-xl border border-border-token bg-surface-raised p-4 shadow-soft",
-    world.locked && "opacity-60",
+    "bb-cascade flex flex-col rounded-xl border border-border-token p-4",
+    world.locked
+      ? "border-dashed bg-surface-sunken text-ink-muted"
+      : "bg-surface-raised shadow-soft",
   );
 
   if (world.locked) {
