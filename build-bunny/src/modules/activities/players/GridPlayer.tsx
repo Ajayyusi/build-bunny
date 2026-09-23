@@ -6,14 +6,19 @@ import { useLocale, useTranslations } from "next-intl";
 
 import { Link } from "@/i18n/navigation";
 import type { BlockLocale } from "@/modules/blockly/blocks";
-import type { BlocklyWorkspaceHandle } from "@/modules/blockly/BlocklyWorkspace";
+import type {
+  BlocklyWorkspaceHandle,
+  WorkspaceEditState,
+} from "@/modules/blockly/BlocklyWorkspace";
 import { CodeView } from "@/modules/blockly/CodeView";
 import { programShape } from "@/modules/blockly/serialization";
 import SimulationCanvas from "@/modules/simulation/SimulationCanvas";
-import { Button, cn, useReducedMotion } from "@/ui";
+import { Button, Dialog, cn, useReducedMotion } from "@/ui";
 
 import { PlayerSoundControls } from "@/modules/audio/AudioControls";
 import { generateDisplayCode, runLocally, type LocalRunOutcome } from "./client-run";
+import { BlockPalette } from "./shared/BlockPalette";
+import { clearLocalDraft, readLocalDraft, writeLocalDraft } from "./shared/local-draft";
 import { GridScene } from "./shared/GridScene";
 import { HintDrawer, type HintTierState } from "./shared/HintDrawer";
 import { IntroOverlay } from "./shared/IntroOverlay";
@@ -74,7 +79,21 @@ export function GridPlayer({
   const [failStreak, setFailStreak] = useState(0);
   const [view, setView] = useState<"blocks" | "code">("blocks");
   const [codeSnapshot, setCodeSnapshot] = useState("");
-  const [wsKey, setWsKey] = useState(0);
+  // The workspace is (re)injected from `seed`: a new key with new JSON on
+  // reset, or when a newer local draft is restored on mount.
+  const [seed, setSeed] = useState<{ key: number; json: unknown }>({
+    key: 0,
+    json: payload.initialWorkspace,
+  });
+  const [editState, setEditState] = useState<WorkspaceEditState | null>(null);
+  const [paletteOpen, setPaletteOpen] = useState(false);
+  const [resetConfirmOpen, setResetConfirmOpen] = useState(false);
+  // Blocks were restored (server draft or this device's mirror).
+  const [resumeDraft, setResumeDraft] = useState(
+    () =>
+      payload.initialWorkspace != null &&
+      JSON.stringify(payload.initialWorkspace) !== JSON.stringify(payload.resetWorkspace ?? null),
+  );
   const [highlightId, setHighlightId] = useState<string | null>(null);
   const [starsBest, setStarsBest] = useState(intro.starsBest);
   const [hintOpen, setHintOpen] = useState(false);
@@ -98,15 +117,53 @@ export function GridPlayer({
   const workspaceHandleRef = useRef<BlocklyWorkspaceHandle | null>(null);
   const jsonRef = useRef<unknown>(payload.initialWorkspace);
   const saveTimerRef = useRef<number | null>(null);
+  // JSON edited since the last server save — what a pagehide flush sends.
+  const unsavedRef = useRef<unknown>(null);
   const editStartRef = useRef<number>(Date.now());
+  const draftKey = { playerKey: intro.playerKey, levelId: intro.levelId };
 
-  useEffect(
-    () => () => {
-      if (saveTimerRef.current !== null)
-        window.clearTimeout(saveTimerRef.current);
-    },
-    [],
-  );
+  // Exact resume: this device keeps a mirror of every edit (written on
+  // change, no debounce). If it differs from what the server sent, the
+  // mirror is newer — the server copy is at best two seconds behind, and
+  // an interrupted tablet may never have sent it at all.
+  useEffect(() => {
+    const local = readLocalDraft(draftKey);
+    if (local === null) return;
+    if (JSON.stringify(local) === JSON.stringify(payload.initialWorkspace ?? null)) return;
+    jsonRef.current = local;
+    setSeed((current) => ({ key: current.key + 1, json: local }));
+    setResumeDraft(true);
+    void saveDraftAction({ levelId: intro.levelId, workspaceJson: local });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- mount only
+  }, []);
+
+  // Leaving mid-debounce (tab closed, app switched, screen off) used to lose
+  // the last edits: flush them with a keep-alive request the browser
+  // finishes even as the page goes away.
+  useEffect(() => {
+    const flush = () => {
+      if (unsavedRef.current === null) return;
+      const body = JSON.stringify({ workspaceJson: unsavedRef.current });
+      unsavedRef.current = null;
+      if (saveTimerRef.current !== null) window.clearTimeout(saveTimerRef.current);
+      void fetch(`/api/levels/${intro.levelId}/draft`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body,
+        keepalive: true,
+      }).catch(() => {});
+    };
+    const onVisibility = () => {
+      if (document.visibilityState === "hidden") flush();
+    };
+    window.addEventListener("pagehide", flush);
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      window.removeEventListener("pagehide", flush);
+      document.removeEventListener("visibilitychange", onVisibility);
+      if (saveTimerRef.current !== null) window.clearTimeout(saveTimerRef.current);
+    };
+  }, [intro.levelId]);
 
   // ── Workspace plumbing ─────────────────────────────────────────────────
 
@@ -121,9 +178,12 @@ export function GridPlayer({
   const handleWorkspaceChange = (json: Record<string, unknown>) => {
     jsonRef.current = json;
     setCoach(null);
+    writeLocalDraft(draftKey, json);
+    unsavedRef.current = json;
     // Autosave contract: 2s debounce after the last edit.
     if (saveTimerRef.current !== null) window.clearTimeout(saveTimerRef.current);
     saveTimerRef.current = window.setTimeout(() => {
+      unsavedRef.current = null;
       void saveDraftAction({ levelId: intro.levelId, workspaceJson: json });
     }, 2000);
   };
@@ -134,11 +194,15 @@ export function GridPlayer({
     payload.initialWorkspace ??
     {};
 
-  const handleReset = () => {
+  const doReset = () => {
+    setResetConfirmOpen(false);
     jsonRef.current = payload.resetWorkspace;
-    setWsKey((key) => key + 1);
+    setSeed((current) => ({ key: current.key + 1, json: payload.resetWorkspace }));
     setAttempt(null);
     setHighlightId(null);
+    setCoach(null);
+    clearLocalDraft(draftKey);
+    unsavedRef.current = null;
     if (phase === "result") setPhase("edit");
     if (payload.resetWorkspace != null) {
       void saveDraftAction({
@@ -146,6 +210,14 @@ export function GridPlayer({
         workspaceJson: payload.resetWorkspace,
       });
     }
+  };
+
+  // Reset throws away work, so it asks first — unless there is no work to
+  // throw away, when asking would just be a speed bump.
+  const handleReset = () => {
+    const shape = programShape(currentJson());
+    if (shape.attached + shape.loose === 0) doReset();
+    else setResetConfirmOpen(true);
   };
 
   const showCodeView = () => {
@@ -503,7 +575,7 @@ export function GridPlayer({
               ariaLabel={t("simLabel")}
             />
           </div>
-          <div className="hidden shrink-0 items-center gap-2 px-3 pb-3 split:flex">
+          <div className="hidden shrink-0 flex-wrap items-center gap-2 px-3 pb-3 split:flex">
             {actionButtons}
           </div>
         </section>
@@ -512,21 +584,67 @@ export function GridPlayer({
           aria-label={t("workspaceRegion")}
           className="relative min-h-0 flex-1 bg-surface"
         >
-          <div className={view === "blocks" ? "h-full p-2 sm:p-3" : "hidden"}>
-            <BlocklyWorkspace
-              key={wsKey}
-              payload={workspacePayload}
-              initialWorkspaceJson={
-                (wsKey === 0 ? payload.initialWorkspace : payload.resetWorkspace) ??
-                undefined
-              }
-              locale={blockLocale}
-              rtl={locale === "ar"}
-              onChange={handleWorkspaceChange}
-              onBlockGesture={sounds.onBlockGesture}
-              highlightBlockId={highlightId}
-              ref={workspaceHandleRef}
-            />
+          <div
+            className={
+              view === "blocks" ? "flex h-full flex-col gap-2 p-2 sm:p-3" : "hidden"
+            }
+          >
+            {/* Build tools: tap-to-add (the no-drag path), undo, redo, delete.
+                A strip in normal flow above the canvas — never floating over
+                it, where it covered the "when start" block. */}
+            <div
+              role="toolbar"
+              aria-label={t("tools.addBlock")}
+              className="flex shrink-0 flex-wrap items-center justify-end gap-1"
+            >
+              <button
+                type="button"
+                onClick={() => setPaletteOpen(true)}
+                aria-haspopup="dialog"
+                className="inline-flex h-11 items-center gap-1 rounded-lg bg-brand px-3 text-sm font-bold text-on-brand hover:bg-brand-strong"
+              >
+                <span aria-hidden="true" className="text-lg leading-none">
+                  +
+                </span>
+                {t("tools.addBlock")}
+              </button>
+              <ToolButton
+                label={t("tools.undo")}
+                disabled={!editState?.canUndo}
+                onClick={() => workspaceHandleRef.current?.undo()}
+                icon={<path d="M9 14 4 9l5-5" />}
+                extra={<path d="M4 9h10a6 6 0 0 1 0 12h-3" />}
+              />
+              <ToolButton
+                label={t("tools.redo")}
+                disabled={!editState?.canRedo}
+                onClick={() => workspaceHandleRef.current?.redo()}
+                icon={<path d="m15 14 5-5-5-5" />}
+                extra={<path d="M20 9H10a6 6 0 0 0 0 12h3" />}
+              />
+              <ToolButton
+                label={t("tools.deleteBlock")}
+                disabled={!editState?.selected}
+                onClick={() => {
+                  if (workspaceHandleRef.current?.deleteSelected()) sounds.play("remove");
+                }}
+                icon={<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3" />}
+              />
+            </div>
+            <div className="min-h-0 flex-1">
+              <BlocklyWorkspace
+                key={seed.key}
+                payload={workspacePayload}
+                initialWorkspaceJson={seed.json ?? undefined}
+                locale={blockLocale}
+                rtl={locale === "ar"}
+                onChange={handleWorkspaceChange}
+                onBlockGesture={sounds.onBlockGesture}
+                onEditState={setEditState}
+                highlightBlockId={highlightId}
+                ref={workspaceHandleRef}
+              />
+            </div>
           </div>
           {view === "code" ? (
             <div className="h-full overflow-y-auto p-3 sm:p-4">
@@ -586,11 +704,45 @@ export function GridPlayer({
           estimatedMinutes={intro.estimatedMinutes}
           worldTheme={intro.worldTheme}
           howScene={<GridScene />}
+          resumeDraft={resumeDraft}
           onStart={() => {
             editStartRef.current = Date.now();
             setPhase("edit");
           }}
         />
+      ) : null}
+
+      <BlockPalette
+        open={paletteOpen}
+        onClose={() => setPaletteOpen(false)}
+        toolbox={payload.toolbox}
+        editState={editState}
+        onAdd={(type) => {
+          const added = workspaceHandleRef.current?.addBlock(type) ?? false;
+          if (added) sounds.play("place");
+          return added;
+        }}
+      />
+
+      {resetConfirmOpen ? (
+        <Dialog
+          open
+          onClose={() => setResetConfirmOpen(false)}
+          title={t("tools.resetTitle")}
+          closeLabel={t("tools.close")}
+          footer={
+            <>
+              <Button variant="secondary" size="lg" onClick={() => setResetConfirmOpen(false)}>
+                {t("tools.resetCancel")}
+              </Button>
+              <Button variant="danger" size="lg" onClick={doReset}>
+                {t("tools.resetConfirm")}
+              </Button>
+            </>
+          }
+        >
+          <p className="text-base text-ink">{t("tools.resetBody")}</p>
+        </Dialog>
       ) : null}
 
       {briefingOpen ? (
@@ -639,5 +791,45 @@ export function GridPlayer({
         onReveal={(tier) => void handleRevealHint(tier)}
       />
     </div>
+  );
+}
+
+/** 44px icon button for the build toolbar; the label is the accessible name. */
+function ToolButton({
+  label,
+  disabled,
+  onClick,
+  icon,
+  extra,
+}: {
+  label: string;
+  disabled: boolean;
+  onClick: () => void;
+  icon: React.ReactNode;
+  extra?: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      aria-label={label}
+      title={label}
+      className="grid size-11 place-items-center rounded-lg text-ink transition-colors hover:bg-surface-sunken disabled:opacity-40"
+    >
+      <svg
+        aria-hidden="true"
+        viewBox="0 0 24 24"
+        className="size-5 rtl:-scale-x-100"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        {icon}
+        {extra}
+      </svg>
+    </button>
   );
 }

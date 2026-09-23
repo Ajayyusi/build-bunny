@@ -258,7 +258,7 @@ function SettingsDialog({ open, onClose }: { open: boolean; onClose: () => void 
       open
       onClose={onClose}
       title={t("title")}
-      closeLabel={t("done")}
+      closeLabel={t("close")}
       footer={
         <Button size="lg" onClick={onClose}>
           {t("done")}

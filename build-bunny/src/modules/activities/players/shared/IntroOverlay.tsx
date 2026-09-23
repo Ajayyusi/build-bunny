@@ -37,6 +37,8 @@ interface IntroOverlayProps {
    * button returns to the blocks instead of "starting".
    */
   reopened?: boolean;
+  /** Saved blocks were restored: the button says "Continue building". */
+  resumeDraft?: boolean;
   onStart: () => void;
 }
 
@@ -66,6 +68,7 @@ export function IntroOverlay({
   worldTheme,
   howScene,
   reopened = false,
+  resumeDraft = false,
   onStart,
 }: IntroOverlayProps) {
   const t = useTranslations("student.play.intro");
@@ -164,9 +167,14 @@ export function IntroOverlay({
           </div>
         ) : null}
 
+        {resumeDraft && !reopened ? (
+          <p role="status" className="rounded-lg bg-info/10 px-3 py-2 text-sm font-semibold text-ink">
+            {t("draftRestored")}
+          </p>
+        ) : null}
         <div className="flex justify-end pt-1">
           <Button size="lg" onClick={onStart} className="w-full sm:w-auto">
-            {reopened ? t("resume") : t("start")}
+            {reopened ? t("resume") : resumeDraft ? t("continueBuilding") : t("start")}
           </Button>
         </div>
       </div>

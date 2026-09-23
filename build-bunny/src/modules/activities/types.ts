@@ -26,6 +26,11 @@ export interface ActivityNextLevel {
 /** Fields every activity type's player needs, regardless of engine. */
 export interface ActivityIntro {
   levelId: string;
+  /**
+   * The signed-in child's id, for this device's draft mirror key — a shared
+   * classroom tablet must never restore one child's blocks for another.
+   */
+  playerKey: string;
   activityType: string;
   title: string;
   story: string;

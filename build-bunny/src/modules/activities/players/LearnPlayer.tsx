@@ -379,7 +379,7 @@ export function LearnPlayer({
               ariaLabel={t("simLabel")}
             />
           </div>
-          <div className="hidden shrink-0 items-center gap-2 px-3 pb-3 split:flex">
+          <div className="hidden shrink-0 flex-wrap items-center gap-2 px-3 pb-3 split:flex">
             {actionButtons}
           </div>
         </section>

@@ -131,7 +131,8 @@
       "unmute": "تشغيل الصوت",
       "settings": "إعدادات الصوت",
       "readAloud": "اقرأ بصوت عالٍ",
-      "everythingOnScreen": "كل ما هو مهم مكتوب دائمًا على الشاشة أيضًا."
+      "everythingOnScreen": "كل ما هو مهم مكتوب دائمًا على الشاشة أيضًا.",
+      "close": "إغلاق"
     },
     "header": {
       "xpChip": "{value} XP",
@@ -291,7 +292,9 @@
         "predictSceneLabel": "تُقرأ الأوامر سطراً سطراً، ثم يُختار واحد من ثلاثة أجوبة.",
         "ethicsSceneLabel": "سؤال له جوابان. يُختار أحدهما، وتتابع القصة إلى البطاقة التالية.",
         "start": "هيا نبني!",
-        "resume": "العودة إلى البناء"
+        "resume": "العودة إلى البناء",
+        "continueBuilding": "تابع البناء",
+        "draftRestored": "حفظنا لبناتك — تابع من حيث توقفت."
       },
       "feedback": {
         "tryAgain": "حاول مرة أخرى",
@@ -539,6 +542,25 @@
       "mission": {
         "label": "المهمة",
         "show": "اعرض المهمة كاملة"
+      },
+      "tools": {
+        "undo": "تراجع",
+        "redo": "إعادة",
+        "deleteBlock": "احذف اللبنة",
+        "addBlock": "أضف لبنة",
+        "paletteTitle": "أضف لبنة",
+        "paletteHint": "اضغط على لبنة لتضيفها إلى برنامجك. يمكنك أيضًا سحب اللبنات من صندوق الأدوات.",
+        "paletteAfter": "اللبنة التالية ستأتي بعد «{block}».",
+        "paletteInside": "اللبنة التالية ستُوضع داخل «{block}».",
+        "paletteEnd": "اللبنة التالية ستأتي في نهاية برنامجك.",
+        "remaining": "متبقٍّ {count}",
+        "limitReached": "استُخدمت كلها",
+        "added": "أُضيفت «{block}»",
+        "close": "إغلاق",
+        "resetTitle": "هل تبدأ هذا المستوى من جديد؟",
+        "resetBody": "سيؤدي هذا إلى مسح كل لبناتك. لا يمكن التراجع عن ذلك.",
+        "resetConfirm": "نعم، امسح لبناتي",
+        "resetCancel": "احتفظ بلبناتي"
       }
     },
     "profile": {
@@ -577,6 +599,20 @@
       "leaderboardEmpty": "يظهر ترتيب صفك عندما يبدأ زملاؤك اللعب.",
       "leaderboardYou": "أنت",
       "xpSuffix": "{value} نقطة"
+    },
+    "display": {
+      "title": "العرض",
+      "intro": "تبقى هذه الإعدادات على هذا الجهاز.",
+      "textSize": "حجم النص",
+      "textSize_normal": "عادي",
+      "textSize_large": "كبير",
+      "textSize_xl": "كبير جدًا",
+      "contrast": "تباين عالٍ",
+      "contrastHint": "نص أغمق وحدود أوضح",
+      "motion": "تقليل الحركة",
+      "motionHint": "رسوم متحركة أقل ودون قفز",
+      "done": "تم",
+      "close": "إغلاق"
     }
   },
   "staff": {
