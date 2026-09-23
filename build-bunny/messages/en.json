@@ -211,7 +211,11 @@
       "heroCtaDone": "Open the map",
       "openMap": "See the map",
       "levelsDone": "Levels done",
-      "worldLocked": "Opens later"
+      "worldLocked": "Opens later",
+      "warmUpTitle": "Stuck on {level}?",
+      "warmUpBody": "Robo Bunny suggests a quick warm-up first — it teaches the same idea.",
+      "warmUpCta": "Warm up: {level}",
+      "warmUpSkip": "Or keep going"
     },
     "adventure": {
       "title": "Adventure map",
@@ -573,6 +577,50 @@
         "resetBody": "This clears all your blocks. You can't undo it.",
         "resetConfirm": "Yes, clear my blocks",
         "resetCancel": "Keep my blocks"
+      },
+      "help": {
+        "title": "Ask Robo Bunny",
+        "open": "Ask Robo Bunny",
+        "close": "Close",
+        "explainBlock": "Explain this block",
+        "explainBlockNone": "Tap a block in your program first, then I'll explain it.",
+        "whyFailed": "Why did that fail?",
+        "whyFailedNone": "Nothing has failed yet — press Run and I'll watch what happens.",
+        "smallerHint": "Give me a smaller hint",
+        "biggerHint": "I need a bigger hint",
+        "similar": "Show a similar example",
+        "similarNone": "I don't have a smaller example for this one yet — try the hint instead.",
+        "similarIntro": "Here's a smaller puzzle that uses the same idea. Watch it run, then try yours again.",
+        "watch": "Watch it run",
+        "watching": "Watching…",
+        "backToMine": "Back to my puzzle",
+        "blockAt": "Block {number}: “{block}”",
+        "failStep": "The run stopped at step {step}, while block {number} (“{block}”) was running.",
+        "failNoStep": "The program ran all the way to the end, but the goal wasn't reached.",
+        "why": {
+          "bumped": "Robo Bunny hopped into a rock (or off the map). Just before that step it was facing the wrong way — a turn is missing, or points the wrong way.",
+          "splashed": "Robo Bunny hopped into water. The path needed a turn before that tile, or one hop fewer.",
+          "notOnGoal": "Every block ran, but Robo Bunny stopped somewhere else. Count the tiles to the goal and compare with your hops.",
+          "carrotsLeft": "Robo Bunny reached the end but missed something on the way. Which tile did it skip?",
+          "budget": "The program never stopped — a loop kept going with no way to end. Does it need a count, or a goal to stop at?",
+          "tooManyBlocks": "It worked, but with more blocks than the three-star limit. Look for a stretch that repeats — a Repeat block can say it once.",
+          "missingBlock": "This level is about a particular block, and the program didn't use it.",
+          "forbiddenBlock": "The program used a block this level asks you to do without.",
+          "generic": "The run didn't reach the goal. Watch it again and find the first step where Robo Bunny goes somewhere you didn't expect."
+        },
+        "blocks": {
+          "bb_whenStart": "The start. Everything snapped under this block runs when you press Run — from the top, one block at a time.",
+          "bb_moveForward": "One hop in the direction Robo Bunny is facing. It never turns by itself — if there's a rock ahead, it bumps.",
+          "bb_turnLeft": "Turns Robo Bunny a quarter turn to its left, on the spot. It doesn't move to a new tile.",
+          "bb_turnRight": "Turns Robo Bunny a quarter turn to its right, on the spot. It doesn't move to a new tile.",
+          "bb_collect": "Picks up whatever is on the tile Robo Bunny is standing on. It only works while standing ON the item.",
+          "bb_say": "Robo Bunny says the words you typed. Useful for messages — it doesn't move anything.",
+          "bb_repeat": "Runs everything inside its mouth that many times, in order, before moving on to the block below.",
+          "bb_repeatUntilGoal": "Keeps running what's inside until Robo Bunny is standing on the goal — no counting needed. Make sure it can actually get there!",
+          "bb_if": "Asks a question first. If the answer is yes, the blocks inside run; if no, they're skipped and the program carries on below.",
+          "bb_ifElse": "Asks a question, then does ONE of two things: the first mouth if yes, the second mouth if no. Exactly one of them always runs.",
+          "bb_pathAhead": "A sensor question: is the tile in front of Robo Bunny blocked? It answers yes or no — it doesn't move or turn."
+        }
       }
     },
     "profile": {

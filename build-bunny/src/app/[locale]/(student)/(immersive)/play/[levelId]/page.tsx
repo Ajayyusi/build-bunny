@@ -128,6 +128,7 @@ export default async function PlayLevelPage({ params }: Props) {
     starsBest: playable.starsBest,
     hintsUsedTiers: playable.hintsUsedTiers,
     worldTheme: theme,
+    tags: playable.tags,
     nextLevel: next,
   };
 

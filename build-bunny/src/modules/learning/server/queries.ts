@@ -2,6 +2,7 @@ import "server-only";
 
 import { computeAdventureState, getLevelIntro, getLevelIntros } from "./adventure";
 import { getPlayableLevel } from "./play";
+import { recommendWarmUp } from "./recommend";
 
 /**
  * Learning-domain tenant-scoped queries (hard rule 1). The implementations
@@ -11,7 +12,13 @@ import { getPlayableLevel } from "./play";
  * automatically. recomputeUnlocks and the player mutation cores take no
  * SessionContext-scoped read role and are deliberately NOT re-exported here.
  */
-export { computeAdventureState, getLevelIntro, getLevelIntros, getPlayableLevel };
+export {
+  computeAdventureState,
+  getLevelIntro,
+  getLevelIntros,
+  getPlayableLevel,
+  recommendWarmUp,
+};
 
 /** Registry walked by the tenant-isolation test suite. */
 export const tenantScopedQueries = {
@@ -19,4 +26,5 @@ export const tenantScopedQueries = {
   getLevelIntro,
   getLevelIntros,
   getPlayableLevel,
+  recommendWarmUp,
 } as const;

@@ -45,6 +45,8 @@ export interface ActivityIntro {
   hintsUsedTiers: number[];
   /** World theme string driving grid tile tinting (unused by non-grid types). */
   worldTheme: string;
+  /** Concept tags ("loops", "logic", …) — pick Robo Bunny's similar example. */
+  tags: string[];
   nextLevel: ActivityNextLevel | null;
 }
 

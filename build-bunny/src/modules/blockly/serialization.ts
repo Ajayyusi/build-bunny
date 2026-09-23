@@ -39,6 +39,7 @@ export function jsonToWorkspace(json: unknown, target?: Workspace): Workspace {
 // ── Serialized-JSON walking (no Blockly involved) ────────────────────────
 
 interface SerializedBlock {
+  id?: unknown;
   type?: unknown;
   next?: { block?: SerializedBlock; shadow?: SerializedBlock };
   inputs?: Record<
@@ -177,6 +178,36 @@ const STATEMENT_TYPES = new Set<string>(BUNNY_STATEMENT_BLOCKS);
  * without snapping it on — and explain them in words, instead of running a
  * program that does nothing and reporting where the bunny ended up.
  */
+/**
+ * The statement blocks of the program in the order they are reached —
+ * top to bottom, loop and if bodies before the block below them — with a
+ * 1-based ordinal a child can count on screen. "Why did that fail?" maps
+ * the engine's highlighted block id back to "block 3, turn left".
+ */
+export function programBlocks(
+  workspaceJson: unknown,
+): { id: string; type: string; index: number }[] {
+  const out: { id: string; type: string; index: number }[] = [];
+  const walk = (block: SerializedBlock | undefined) => {
+    if (!block || typeof block !== "object") return;
+    if (typeof block.type === "string" && STATEMENT_TYPES.has(block.type)) {
+      out.push({
+        id: typeof block.id === "string" ? block.id : "",
+        type: block.type,
+        index: out.length + 1,
+      });
+    }
+    if (block.inputs && typeof block.inputs === "object") {
+      for (const input of Object.values(block.inputs)) walk(input?.block);
+    }
+    walk(block.next?.block);
+  };
+  for (const top of topBlocksOf(workspaceJson)) {
+    if (top.type === BUNNY_HAT_BLOCK) walk(top);
+  }
+  return out;
+}
+
 export function programShape(workspaceJson: unknown): {
   attached: number;
   loose: number;
