@@ -38,6 +38,7 @@ export const CHECK_IDS = [
   "notUsedBlock",
   "maxBlocks",
   "usedTrick",
+  "ranBlock",
   "variableEquals",
   "expectedOutput",
   "expectedSequence",
@@ -64,6 +65,15 @@ export const checkSchema = z
     }
     if (check.id === "variableEquals" && (!isText(params["name"]) || typeof params["value"] !== "number")) {
       ctx.addIssue({ code: "custom", message: "variableEquals needs params.name and a numeric params.value", path: ["params"] });
+    }
+    if (check.id === "ranBlock" && (!isText(params["block"]) || typeof params["atLeast"] !== "number" || params["atLeast"] < 1)) {
+      ctx.addIssue({ code: "custom", message: "ranBlock needs params.block and params.atLeast ≥ 1", path: ["params"] });
+    }
+    if (check.id === "maxBlocks" && typeof (params["count"] ?? params["max"]) !== "number") {
+      ctx.addIssue({ code: "custom", message: "maxBlocks needs a numeric params.count (or max)", path: ["params"] });
+    }
+    if (check.id === "expectedOutput" && !(Array.isArray(params["expected"]) && params["expected"].every((v) => typeof v === "string"))) {
+      ctx.addIssue({ code: "custom", message: "expectedOutput needs params.expected (a list of strings)", path: ["params"] });
     }
   });
 export type Check = z.infer<typeof checkSchema>;

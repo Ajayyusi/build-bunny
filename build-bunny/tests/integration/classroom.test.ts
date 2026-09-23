@@ -256,6 +256,14 @@ describe("one-tap reflections", () => {
       await saveReflectionCore(ctx, { levelId, feeling: feelings[i]! });
     }
 
+    // Today's answers don't show until tomorrow (no watching one child move
+    // a band); move them to yesterday to see the settled report.
+    expect(await getClassReflections(teacherCtx, classId)).toEqual([]);
+    await db.levelReflection.updateMany({
+      where: { levelId },
+      data: { updatedAt: new Date(Date.now() - 36 * 60 * 60 * 1000) },
+    });
+
     // 3 of 5 tricky → "most"; no counts, no child ids.
     const report = await getClassReflections(teacherCtx, classId);
     expect(report).toEqual([{ levelId, title: { en: "Two Hops" }, worldName: expect.anything(), band: "most" }]);

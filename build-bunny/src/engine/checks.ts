@@ -18,6 +18,14 @@ export interface BlockStats {
   countsByType: Record<string, number>;
   /** Statement blocks inside "my trick" (0 when no trick is taught). */
   trickBodyBlocks?: number;
+  /** "do my trick" blocks OUTSIDE the trick's own body (real calls). */
+  trickCalls?: number;
+  /**
+   * Block id → type for statement blocks, so a run's highlights can be
+   * counted by type. Blocks that change nothing when they run (Add 0) are
+   * left out: running them is not counting.
+   */
+  typeById?: Record<string, string>;
 }
 
 export interface CheckFailure {
@@ -86,10 +94,22 @@ function evaluateCheck(
     case "usedTrick": {
       // The trick must be taught (a non-empty body) AND called. An empty
       // trick called once would otherwise tick "used a trick".
-      const called = (blockStats.countsByType["bb_doTrick"] ?? 0) > 0;
+      const called = (blockStats.trickCalls ?? blockStats.countsByType["bb_doTrick"] ?? 0) > 0;
       if (called && (blockStats.trickBodyBlocks ?? 0) > 0) return null;
       if (!called) return { ...failureBase(check), code: "missingBlock", data: { blockType: "bb_doTrick" } };
       return { ...failureBase(check), code: "emptyTrick" };
+    }
+
+    case "ranBlock": {
+      // { block, atLeast }: the block must actually RUN that many times in
+      // this run (e.g. Add ran once per hop), not merely sit in the program.
+      const block = str(params.block);
+      const atLeast = num(params.atLeast);
+      if (!block || atLeast === null) return null; // publish gates own validation
+      const typeById = blockStats.typeById ?? {};
+      const ran = (result.highlights ?? []).filter((h) => typeById[h.blockId] === block).length;
+      if (ran >= atLeast) return null;
+      return { ...failureBase(check), code: "didNotRunEnough", data: { blockType: block, ran, need: atLeast } };
     }
 
     case "notUsedBlock": {

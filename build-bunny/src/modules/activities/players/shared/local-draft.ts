@@ -13,7 +13,8 @@
  * draftSavedAt, or null when there was none). On reopen the mirror is used
  * only if the server still holds that same version — i.e. nothing newer
  * was saved from another tablet, and the level was not passed (a pass
- * clears the server draft) — and the mirror has edits the server lacks.
+ * clears the server draft AND moves its version) — and the mirror has
+ * edits the server lacks.
  *
  * Pure functions over localStorage; every call survives a private-mode or
  * quota failure by doing nothing.
@@ -71,6 +72,69 @@ export function writeLocalDraft(draft: DraftKey, json: unknown, base: string | n
 export function setLocalDraftBase(draft: DraftKey, base: string): void {
   const current = readLocalDraft(draft);
   if (current) writeLocalDraft(draft, current.json, base);
+  const design = readLocalDesign(draft);
+  if (design) writeLocalDesign(draft, design.design, base);
+}
+
+// ── The server version this page knows about ──────────────────────────────
+//
+// Starts as the version the page was rendered with, and moves forward with
+// every save this page makes (autosave, maze design save, the hidden-tab
+// flush when it answers). A grid player remounted inside the same page (the
+// maze's Build) keeps the latest one; a fresh server render — a reload, or
+// opening the level again — starts from what the server now says.
+
+const known = new Map<string, { rendered: string | null; current: string | null }>();
+
+export function currentDraftVersion(draft: DraftKey, rendered: string | null | undefined): string | null {
+  const k = key(draft);
+  const entry = known.get(k);
+  const renderedVersion = rendered ?? null;
+  if (!entry || entry.rendered !== renderedVersion) {
+    known.set(k, { rendered: renderedVersion, current: renderedVersion });
+    return renderedVersion;
+  }
+  return entry.current;
+}
+
+/** A save from this page succeeded: remember the server's new version. */
+export function recordDraftVersion(draft: DraftKey, version: string): void {
+  const k = key(draft);
+  const entry = known.get(k);
+  known.set(k, { rendered: entry?.rendered ?? null, current: version });
+  setLocalDraftBase(draft, version);
+}
+
+// ── The maze design mirror (same versioning as the blocks) ────────────────
+
+const designStorageKey = ({ playerKey, levelId }: DraftKey) => `bb:maze:v2:${playerKey}:${levelId}`;
+
+export function readLocalDesign<T = unknown>(draft: DraftKey): { design: T; base: string | null } | null {
+  try {
+    const raw = window.localStorage.getItem(designStorageKey(draft));
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as { design?: T; base?: unknown };
+    if (!parsed || typeof parsed !== "object" || parsed.design === undefined) return null;
+    return { design: parsed.design, base: typeof parsed.base === "string" ? parsed.base : null };
+  } catch {
+    return null;
+  }
+}
+
+export function writeLocalDesign(draft: DraftKey, design: unknown, base: string | null): void {
+  try {
+    window.localStorage.setItem(designStorageKey(draft), JSON.stringify({ design, base, at: Date.now() }));
+  } catch {
+    // Storage unavailable: the server draft still has it.
+  }
+}
+
+export function clearLocalDesign(draft: DraftKey): void {
+  try {
+    window.localStorage.removeItem(designStorageKey(draft));
+  } catch {
+    // Nothing to do.
+  }
 }
 
 export function clearLocalDraft(draft: DraftKey): void {

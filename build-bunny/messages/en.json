@@ -354,7 +354,8 @@
         "noValue": "nothing",
         "noTrick": "“Do my trick” needs a trick to do — add a “my trick” block and put some blocks inside it.",
         "mazeInvalid": "Your maze can't be solved yet. Tap “Change my maze” and fix the line without a tick.",
-        "emptyTrick": "Your trick has no blocks inside yet. Put the steps in “my trick”, then use “do my trick”."
+        "emptyTrick": "Your trick has no blocks inside yet. Put the steps in “my trick”, then use “do my trick”.",
+        "didNotRunEnough": "The counter has to count each one as it happens. Put the “add” block inside the loop, so it runs every time."
       },
       "learn": {
         "stepWatch": "Step 1 of 2 · Watch",
@@ -647,7 +648,8 @@
           "mysteryRoundsWrong": "A computer only sees a picture as tiny squares of colour. Look at the pattern of squares, not at what you think the picture shows.",
           "pilesNotTight": "Things in the same group should be close together. If a group is spread out, it is probably really two groups, or its centre is in the wrong place.",
           "tooManyExamples": "This level is about teaching well with only a few examples. Choose the ones that cover every kind, and leave the rest out.",
-          "emptyTrick": "A trick is a set of steps with a name. Calling an empty trick does nothing, so fill “my trick” with the steps you want to repeat."
+          "emptyTrick": "A trick is a set of steps with a name. Calling an empty trick does nothing, so fill “my trick” with the steps you want to repeat.",
+          "didNotRunEnough": "A counter only counts when its “add” block runs. If “add” runs once, the counter changes once, even if Robo Bunny hops many times. Put “add” where it runs once for each thing you count."
         },
         "blocks": {
           "bb_whenStart": "The start. Everything snapped under this block runs when you press Run — from the top, one block at a time.",
@@ -983,7 +985,7 @@
         },
         "reflections": {
           "heading": "How the class felt",
-          "caveat": "From the one-tap question after each level: the levels this class most often called tricky, once at least 5 children have answered. Shown as a rough share so no child's answer can be worked out.",
+          "caveat": "From the one-tap question after each level: the levels this class most often called tricky, once at least 5 children have answered. Shown as a rough share and updated once a day, so no child's answer can be worked out.",
           "most": "😣 Most found it tricky",
           "some": "🙂 Some found it tricky"
         }

@@ -77,8 +77,14 @@ function removeRun(runId: string): void {
   write(outbox);
 }
 
-/** Runs with a request on the wire right now — never sent twice at once. */
-const inFlight = new Set<string>();
+/**
+ * Runs with a request on the wire right now. A second send of the same run
+ * (the success card's retry racing the reconnect resend) shares the first
+ * request's answer instead of sending again: two copies at once made the
+ * server answer the later one with a conservative "already stored" reply
+ * (no XP shown), which could overwrite the real result on screen.
+ */
+const inFlight = new Map<string, Promise<Response>>();
 /** A hung request must not block every later resend. */
 const SEND_TIMEOUT_MS = 20_000;
 
@@ -99,19 +105,25 @@ export async function postAttempt(
   init: RequestInit & { body: string },
 ): Promise<Response> {
   const runId = runIdOf(init.body);
-  if (runId) {
-    const outbox = read();
-    outbox[runId] = { playerKey, url, body: init.body, queuedAt: Date.now() };
-    write(outbox);
-    inFlight.add(runId);
-  }
-  try {
-    const response = await send(url, init, playerKey);
-    if (runId && settled(response.status)) removeRun(runId);
-    return response;
-  } finally {
-    if (runId) inFlight.delete(runId);
-  }
+  if (!runId) return send(url, init, playerKey);
+  const pending = inFlight.get(runId);
+  if (pending) return (await pending).clone();
+  const outbox = read();
+  outbox[runId] = { playerKey, url, body: init.body, queuedAt: Date.now() };
+  write(outbox);
+  return (await track(runId, send(url, init, playerKey))).clone();
+}
+
+/** Register a send for this run; settle the outbox entry when it answers. */
+function track(runId: string, request: Promise<Response>): Promise<Response> {
+  const settledRequest = request
+    .then((response) => {
+      if (settled(response.status)) removeRun(runId);
+      return response;
+    })
+    .finally(() => inFlight.delete(runId));
+  inFlight.set(runId, settledRequest);
+  return settledRequest;
 }
 
 let flushing = false;
@@ -131,21 +143,18 @@ export async function flushOutbox(playerKey: string): Promise<number> {
         continue;
       }
       if (entry.playerKey !== playerKey || inFlight.has(runId)) continue;
-      inFlight.add(runId);
       try {
-        const response = await send(
-          entry.url,
-          { method: "POST", headers: { "Content-Type": "application/json" }, body: entry.body },
-          playerKey,
+        const response = await track(
+          runId,
+          send(
+            entry.url,
+            { method: "POST", headers: { "Content-Type": "application/json" }, body: entry.body },
+            playerKey,
+          ),
         );
-        if (settled(response.status)) {
-          removeRun(runId);
-          sent += 1;
-        }
+        if (settled(response.status)) sent += 1;
       } catch {
         break; // still offline (or timed out) — try again on the next "online"
-      } finally {
-        inFlight.delete(runId);
       }
     }
   } finally {

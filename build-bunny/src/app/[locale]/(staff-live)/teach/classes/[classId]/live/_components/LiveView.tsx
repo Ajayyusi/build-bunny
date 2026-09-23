@@ -187,6 +187,8 @@ export function LiveView({
           type="button"
           role="switch"
           aria-checked={showNames}
+          // A switch keeps one name; aria-checked carries on/off.
+          aria-label={t("showNames")}
           onClick={toggleNames}
           className="h-12 rounded-md border border-border-token px-4 text-base font-semibold text-ink hover:bg-surface-sunken"
         >

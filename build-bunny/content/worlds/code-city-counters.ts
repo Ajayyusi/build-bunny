@@ -214,7 +214,7 @@ export const countersAndTricks: ModuleFixture = {
         checks: [
           { id: "reachedGoal", severity: "core" },
           { id: "variableEquals", severity: "core", params: { name: "counter", value: 4 } },
-          { id: "usedBlock", severity: "core", params: { block: "bb_changeCounter" } },
+          { id: "ranBlock", severity: "core", params: { block: "bb_changeCounter", atLeast: 4 } },
           { id: "expectedOutput", severity: "secondary", params: { expected: ["4"] } },
         ],
         starCriteria: { threeStarMaxBlocks: 5 },
@@ -281,7 +281,7 @@ export const countersAndTricks: ModuleFixture = {
         checks: [
           { id: "reachedGoal", severity: "core" },
           { id: "variableEquals", severity: "core", params: { name: "counter", value: 4 } },
-          { id: "usedBlock", severity: "core", params: { block: "bb_changeCounter" } },
+          { id: "ranBlock", severity: "core", params: { block: "bb_changeCounter", atLeast: 4 } },
           { id: "expectedOutput", severity: "secondary", params: { expected: ["4"] } },
         ],
         starCriteria: { threeStarMaxBlocks: 5 },
@@ -347,7 +347,7 @@ export const countersAndTricks: ModuleFixture = {
         checks: [
           { id: "reachedGoal", severity: "core" },
           { id: "variableEquals", severity: "core", params: { name: "counter", value: 2 } },
-          { id: "usedBlock", severity: "core", params: { block: "bb_changeCounter" } },
+          { id: "ranBlock", severity: "core", params: { block: "bb_changeCounter", atLeast: 2 } },
           { id: "collectedAll", severity: "secondary" },
           { id: "expectedOutput", severity: "secondary", params: { expected: ["2"] } },
         ],
@@ -560,7 +560,7 @@ export const countersAndTricks: ModuleFixture = {
         checks: [
           { id: "reachedGoal", severity: "core" },
           { id: "variableEquals", severity: "core", params: { name: "counter", value: 3 } },
-          { id: "usedBlock", severity: "core", params: { block: "bb_changeCounter" } },
+          { id: "ranBlock", severity: "core", params: { block: "bb_changeCounter", atLeast: 3 } },
           { id: "usedTrick", severity: "secondary" },
           { id: "collectedAll", severity: "secondary" },
           { id: "expectedOutput", severity: "secondary", params: { expected: ["3"] } },

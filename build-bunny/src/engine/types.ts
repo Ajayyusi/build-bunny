@@ -69,6 +69,11 @@ export interface RunResult {
    * primitives — what the `variableEquals` check compares.
    */
   variables?: Record<string, number | string | boolean>;
+  /**
+   * Every statement block as it ran, in order (the interpreter host fills
+   * this). The ranBlock check counts executions from it.
+   */
+  highlights?: { step: number; blockId: string }[];
 }
 
 // ── Check contracts ──────────────────────────────────────────────────────
@@ -85,6 +90,7 @@ export const CHECK_IDS = [
   "notUsedBlock",
   "maxBlocks",
   "usedTrick",
+  "ranBlock",
   "variableEquals",
   "expectedOutput",
   "expectedSequence",

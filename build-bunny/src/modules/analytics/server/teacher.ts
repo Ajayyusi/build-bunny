@@ -1416,9 +1416,14 @@ export async function getClassReflections(
     select: { userId: true },
   });
   if (roster.length === 0) return [];
+  // Only answers from before today (UTC): the card then changes at most
+  // once a day, so a teacher watching one child finish cannot see that
+  // child's answer move a band.
+  const today = new Date();
+  today.setUTCHours(0, 0, 0, 0);
   const rows = await db.levelReflection.groupBy({
     by: ["levelId", "feeling"],
-    where: { schoolId, studentUserId: { in: roster.map((r) => r.userId) } },
+    where: { schoolId, studentUserId: { in: roster.map((r) => r.userId) }, updatedAt: { lt: today } },
     _count: { _all: true },
   });
   const byLevel = new Map<string, { easy: number; justRight: number; tricky: number }>();

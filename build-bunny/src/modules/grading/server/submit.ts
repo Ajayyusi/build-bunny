@@ -438,9 +438,11 @@ export async function submitAttempt(
         ...(firstCompletion ? { firstCompletedAt: now } : {}),
         ...(completed ? { completedVersion: published.version } : {}),
         // Draft cleared only on full PASS — a PARTIAL learner keeps their
-        // work to try for the missing star.
+        // work to try for the missing star. draftSavedAt still moves: it is
+        // the draft's VERSION, and a tablet holding an older unsynced copy
+        // must see that the draft changed (it was cleared by a pass).
         ...(grade.verdict === "PASS"
-          ? { draftWorkspace: Prisma.DbNull, draftSavedAt: null }
+          ? { draftWorkspace: Prisma.DbNull, draftSavedAt: now }
           : {}),
       },
     });

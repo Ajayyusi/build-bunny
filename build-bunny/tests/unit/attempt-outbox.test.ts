@@ -128,4 +128,17 @@ describe("attempt outbox", () => {
     expect(runIdFor({ ...failed, saveFailed: false }, { optionId: "a" })).not.toBe("run-1");
     expect(runIdFor(null, { optionId: "a" })).toMatch(/^[0-9a-f-]{36}$/);
   });
+
+  it("two sends of the same run at once share one request and its answer", async () => {
+    const spy = vi.fn(async () => new Response(JSON.stringify({ xpAwarded: 30 }), { status: 200 }));
+    vi.stubGlobal("fetch", spy);
+    const [a, b] = await Promise.all([
+      postAttempt("kid-a", URL_A, init("r-same")),
+      postAttempt("kid-a", URL_A, init("r-same")),
+    ]);
+    expect(spy).toHaveBeenCalledTimes(1);
+    expect(await a.json()).toEqual({ xpAwarded: 30 });
+    expect(await b.json()).toEqual({ xpAwarded: 30 });
+    expect(pendingCount("kid-a")).toBe(0);
+  });
 });

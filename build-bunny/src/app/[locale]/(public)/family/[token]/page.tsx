@@ -164,6 +164,9 @@ function Stat({ label, value }: { label: string; value: number }) {
 
 async function loadSummary(token: string) {
   const forwarded = (await headers()).get("x-forwarded-for");
-  const clientKey = forwarded?.split(",")[0]?.trim() || "local";
-  return allowFamilyView(clientKey) ? getFamilySummary(token) : null;
+  const clientKey = forwarded?.split(",")[0]?.trim();
+  // Without a proxy header there is no per-visitor key; limiting one shared
+  // bucket would lock every family out together, so don't.
+  if (clientKey && !allowFamilyView(clientKey)) return null;
+  return getFamilySummary(token);
 }

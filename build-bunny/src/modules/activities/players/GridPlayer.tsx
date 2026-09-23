@@ -21,9 +21,10 @@ import { BlockPalette } from "./shared/BlockPalette";
 import { postAttempt as sendAttempt } from "./shared/attempt-outbox";
 import {
   clearLocalDraft,
+  currentDraftVersion,
   pruneLocalDrafts,
   readLocalDraft,
-  setLocalDraftBase,
+  recordDraftVersion,
   stableStringify,
   writeLocalDraft,
 } from "./shared/local-draft";
@@ -106,15 +107,21 @@ export function GridPlayer({
   // unhandled error. The next edit or reconnect saves it again.
   // The server draft version this device's mirror is based on; advanced by
   // every successful save from this page.
-  const draftBaseRef = useRef<string | null>(intro.draftVersion ?? null);
+  // (Kept per page, so a grid remounted by the maze's Build keeps the
+  // latest version rather than the one the page was rendered with.)
+  const draftBaseRef = useRef<string | null>(
+    currentDraftVersion({ playerKey: intro.playerKey, levelId: intro.levelId }, intro.draftVersion),
+  );
+  const noteSaved = (savedAt: unknown) => {
+    if (savedAt === undefined || savedAt === null) return;
+    const version = new Date(savedAt as string | Date).toISOString();
+    draftBaseRef.current = version;
+    recordDraftVersion({ playerKey: intro.playerKey, levelId: intro.levelId }, version);
+  };
   const saveDraftQuietly = (input: { levelId: string; workspaceJson: unknown }) => {
     saveDraftAction(input)
       .then((result) => {
-        const savedAt = result.ok ? (result.data as { savedAt?: unknown } | null)?.savedAt : undefined;
-        if (savedAt === undefined || savedAt === null) return;
-        const version = new Date(savedAt as string | Date).toISOString();
-        draftBaseRef.current = version;
-        setLocalDraftBase({ playerKey: intro.playerKey, levelId: intro.levelId }, version);
+        if (result.ok) noteSaved((result.data as { savedAt?: unknown } | null)?.savedAt);
       })
       .catch(() => {});
   };
@@ -199,7 +206,7 @@ export function GridPlayer({
     pruneLocalDrafts();
     const local = readLocalDraft(draftKey);
     if (local === null) return;
-    if (local.base !== (intro.draftVersion ?? null)) {
+    if (local.base !== draftBaseRef.current) {
       clearLocalDraft(draftKey);
       return;
     }
@@ -228,7 +235,12 @@ export function GridPlayer({
         headers: { "Content-Type": "application/json" },
         body,
         keepalive: true,
-      }).catch(() => {});
+      })
+        // A hidden tab usually lives on: record the new version, or offline
+        // edits made after it would later look older than the server's copy.
+        .then((response) => (response.ok ? (response.json() as Promise<{ savedAt?: unknown }>) : null))
+        .then((data) => noteSaved(data?.savedAt))
+        .catch(() => {});
     };
     const onVisibility = () => {
       if (document.visibilityState === "hidden") flush();

@@ -139,16 +139,16 @@ export async function POST(
         return NextResponse.json({ error: "UNAUTHENTICATED" }, { status: 401 });
       }
       setRequestContext({ userId: ctx.userId, schoolId: ctx.schoolId });
-      if (ctx.role !== "STUDENT" || !hasPermission(ctx.role, "attempts:submit")) {
-        return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 });
-      }
       // A run queued on a shared tablet names the child who made it. Sent
-      // under someone else's session (another child signed in meanwhile),
-      // it is refused with a status the device keeps the run for, rather
+      // under someone else's session (another child, or a teacher, signed in meanwhile),
+      // checked BEFORE the role check — it is refused with a status the device keeps the run for, rather
       // than being credited to the wrong child.
       const claimed = request.headers.get("x-bb-player");
       if (claimed && claimed !== ctx.userId) {
         return NextResponse.json({ error: "PLAYER_MISMATCH" }, { status: 412 });
+      }
+      if (ctx.role !== "STUDENT" || !hasPermission(ctx.role, "attempts:submit")) {
+        return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 });
       }
 
       if (!limiter.allow(ctx.userId)) {

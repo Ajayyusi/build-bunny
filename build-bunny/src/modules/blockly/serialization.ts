@@ -260,13 +260,29 @@ export function computeBlockStats(workspaceJson: unknown): BlockStats {
     totalBlocks += count;
   }
   let trickBodyBlocks = 0;
+  let callsInsideTrick = 0;
   for (const top of topBlocksOf(workspaceJson)) {
     if (top.type !== BUNNY_DEFINE_BLOCK) continue;
     visitBlocks(top.inputs?.["DO"]?.block, (type) => {
       if (STATEMENT_TYPES.has(type)) trickBodyBlocks += 1;
+      if (type === "bb_doTrick") callsInsideTrick += 1;
     });
   }
-  return { totalBlocks, countsByType, trickBodyBlocks };
+  // A trick that only calls itself is not a call from the program.
+  const trickCalls = (countsByType["bb_doTrick"] ?? 0) - callsInsideTrick;
+  const typeById: Record<string, string> = {};
+  const record = (value: unknown) => {
+    if (Array.isArray(value)) return value.forEach(record);
+    if (!value || typeof value !== "object") return;
+    const block = value as { id?: unknown; type?: unknown; fields?: Record<string, unknown> };
+    if (typeof block.id === "string" && typeof block.type === "string" && STATEMENT_TYPES.has(block.type)) {
+      const noChange = block.type === "bb_changeCounter" && Number(block.fields?.["DELTA"] ?? 1) === 0;
+      if (!noChange) typeById[block.id] = block.type;
+    }
+    for (const child of Object.values(value as Record<string, unknown>)) record(child);
+  };
+  record(workspaceJson);
+  return { totalBlocks, countsByType, trickBodyBlocks, trickCalls, typeById };
 }
 
 /**

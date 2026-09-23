@@ -15,6 +15,14 @@ import {
 import { gridVariantSchema } from "@/modules/curriculum/schemas";
 import { BunnyMascot, Button } from "@/ui";
 
+import {
+  clearLocalDesign,
+  currentDraftVersion,
+  readLocalDesign,
+  recordDraftVersion,
+  stableStringify,
+  writeLocalDesign,
+} from "./shared/local-draft";
 import { GridPlayer } from "./GridPlayer";
 import { GridScene } from "./shared/GridScene";
 import { IntroOverlay } from "./shared/IntroOverlay";
@@ -34,27 +42,17 @@ import type { ActivityPlayerProps, GridActivityPayload, MazeActivityPayload } fr
 
 type Phase = "intro" | "design" | "build";
 
-const STORAGE_VERSION = "v1";
-const designKey = (playerKey: string, levelId: string) =>
-  `bb:maze:${STORAGE_VERSION}:${playerKey}:${levelId}`;
-
-function readLocalDesign(key: string): GridVariantSpec | null {
-  try {
-    const raw = window.localStorage.getItem(key);
-    if (!raw) return null;
-    const parsed = gridVariantSchema.safeParse(JSON.parse(raw));
-    return parsed.success ? parsed.data : null;
-  } catch {
-    return null;
-  }
-}
-
-function writeLocalDesign(key: string, design: GridVariantSpec): void {
-  try {
-    window.localStorage.setItem(key, JSON.stringify(design));
-  } catch {
-    // Storage unavailable (private mode, full): the server draft still has it.
-  }
+/** This device's copy of the design, if it is valid for this board. */
+function localDesignFor(
+  draft: { playerKey: string; levelId: string },
+  board: { width: number; height: number },
+): { design: GridVariantSpec; base: string | null } | null {
+  const local = readLocalDesign(draft);
+  if (!local) return null;
+  const parsed = gridVariantSchema.safeParse(local.design);
+  if (!parsed.success) return null;
+  if (parsed.data.rows.length !== board.height || parsed.data.rows[0]?.length !== board.width) return null;
+  return { design: parsed.data, base: local.base };
 }
 
 export function MazePlayer({
@@ -90,16 +88,20 @@ export function MazePlayer({
   const [phase, setPhase] = useState<Phase>("intro");
   const resumeDraft = payload.initialDesign !== null;
 
-  // Exact resume: this device's mirror of the design wins over the server
-  // copy when they differ (it is written on every tap, the server two
-  // seconds later at best).
+  const draftKey = { playerKey: intro.playerKey, levelId: intro.levelId };
+
+  // Exact resume: this device's copy of the design wins only while the
+  // server still holds the draft version it was based on (same rule as the
+  // blocks — see local-draft.ts); a design changed on another tablet, or a
+  // passed level, wins over it.
   useEffect(() => {
-    const local = readLocalDesign(designKey(intro.playerKey, intro.levelId));
-    if (local && JSON.stringify(local) !== JSON.stringify(payload.initialDesign)) {
-      if (local.rows.length === payload.board.height && local.rows[0]?.length === payload.board.width) {
-        setDesign(local);
-      }
+    const local = localDesignFor(draftKey, payload.board);
+    if (!local) return;
+    if (local.base !== currentDraftVersion(draftKey, intro.draftVersion)) {
+      clearLocalDesign(draftKey);
+      return;
     }
+    if (stableStringify(local.design) !== stableStringify(payload.initialDesign)) setDesign(local.design);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- mount only
   }, []);
 
@@ -110,12 +112,17 @@ export function MazePlayer({
     const parsed = mazeDraftSchema.safeParse({ design: next, workspaceJson: workspaceRef.current ?? null });
     if (!parsed.success) return;
     // Offline, the save rejects; the design is already mirrored on this device.
-    saveDraftAction({ levelId: intro.levelId, workspaceJson: parsed.data }).catch(() => {});
+    saveDraftAction({ levelId: intro.levelId, workspaceJson: parsed.data })
+      .then((result) => {
+        const savedAt = result.ok ? (result.data as { savedAt?: unknown } | null)?.savedAt : undefined;
+        if (savedAt) recordDraftVersion(draftKey, new Date(savedAt as string | Date).toISOString());
+      })
+      .catch(() => {});
   };
 
   const onDesignChange = (next: GridVariantSpec) => {
     setDesign(next);
-    writeLocalDesign(designKey(intro.playerKey, intro.levelId), next);
+    writeLocalDesign(draftKey, next, currentDraftVersion(draftKey, intro.draftVersion));
   };
 
   const startBuilding = () => {

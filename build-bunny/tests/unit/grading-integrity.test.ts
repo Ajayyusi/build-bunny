@@ -51,7 +51,26 @@ describe("counter levels need counting", () => {
   it("countdown: hopping and saying the untouched counter no longer passes", () => {
     const outcome = gradeWorkspace(snapshotOf("countdown"), hat(repeat(3, move()), sayCounter()));
     expect(outcome.verdict).toBe("FAIL");
-    expect(outcome.primaryFeedback?.code).toBe("missingBlock");
+    expect(outcome.primaryFeedback?.code).toBe("didNotRunEnough");
+  });
+
+  it("count-the-hops: one 'add 4' instead of counting each hop fails", () => {
+    const outcome = gradeWorkspace(snapshotOf("count-the-hops"), hat(repeat(4, move()), addCounter(4), sayCounter()));
+    expect(outcome.verdict).toBe("FAIL");
+    expect(outcome.primaryFeedback?.code).toBe("didNotRunEnough");
+  });
+
+  it("countdown: 'add 0' each hop is not counting", () => {
+    const outcome = gradeWorkspace(
+      snapshotOf("countdown"),
+      hat(setCounter(0), repeat(3, move(), addCounter(0)), sayCounter()),
+    );
+    expect(outcome.verdict).toBe("FAIL");
+  });
+
+  it("count-the-hops: counting each hop still passes", () => {
+    const outcome = gradeWorkspace(snapshotOf("count-the-hops"), hat(repeat(4, move(), addCounter(1)), sayCounter()));
+    expect(outcome.verdict).toBe("PASS");
   });
 
   it("countdown: the counting solution still passes", () => {
@@ -70,6 +89,14 @@ describe("trick levels need a real trick", () => {
       withTops([trick()], repeat(3, move(), right(), move(), left()), doTrick()),
     );
     expect(outcome.verdict).toBe("PARTIAL");
+  });
+});
+
+describe("trick levels: a trick that only calls itself is not a call", () => {
+  it("trick-or-loop: plain blocks plus a self-calling trick stay PARTIAL", () => {
+    const plain = [move(), right(), move(), left(), move(), right(), move(), left(), move(), right(), move(), left()];
+    const outcome = gradeWorkspace(snapshotOf("trick-or-loop"), withTops([trick(doTrick())], ...plain));
+    expect(outcome.verdict).not.toBe("PASS");
   });
 });
 

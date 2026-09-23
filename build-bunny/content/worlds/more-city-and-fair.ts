@@ -107,7 +107,7 @@ export const cityWorkshop: ModuleFixture = {
         checks: [
           { id: "reachedGoal", severity: "core" },
           { id: "variableEquals", severity: "core", params: { name: "counter", value: 0 } },
-          { id: "usedBlock", severity: "core", params: { block: "bb_changeCounter" } },
+          { id: "ranBlock", severity: "core", params: { block: "bb_changeCounter", atLeast: 3 } },
           { id: "expectedOutput", severity: "secondary", params: { expected: ["0"] } },
         ],
         starCriteria: { threeStarMaxBlocks: 5 },
@@ -161,7 +161,7 @@ export const cityWorkshop: ModuleFixture = {
         checks: [
           { id: "reachedGoal", severity: "core" },
           { id: "variableEquals", severity: "core", params: { name: "counter", value: 8 } },
-          { id: "usedBlock", severity: "core", params: { block: "bb_changeCounter" } },
+          { id: "ranBlock", severity: "core", params: { block: "bb_changeCounter", atLeast: 4 } },
           { id: "expectedOutput", severity: "secondary", params: { expected: ["8"] } },
         ],
         starCriteria: { threeStarMaxBlocks: 4 },
