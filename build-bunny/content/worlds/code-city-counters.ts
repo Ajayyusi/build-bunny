@@ -185,8 +185,8 @@ export const countersAndTricks: ModuleFixture = {
         ar: "العدّاد الذي يكبر داخل الحلقة يسمى مُراكمًا — يجمع مع كل دورة. قوله مرة بعد الحلقة يبلّغ عن المجموع؛ أما قوله داخلها فيبلّغ 1 و2 و3 و4. مكان اللبنة (داخل الحلقة أم بعدها) يغيّر ما يفعله البرنامج، لا شكله فقط.",
       },
       teacherNotes: {
-        en: "Graded on the counter's final value (variableEquals 4) and on what is said (expectedOutput ['4'], secondary). A 'say' inside the loop gives PARTIAL with the feedback naming the words said — a good class discussion. Set counter to 0 is optional (the counter starts at 0) but harmless.",
-        ar: "يُقيَّم بحسب القيمة النهائية للعدّاد (variableEquals 4) وبحسب ما يُقال (expectedOutput ['4']، ثانوي). وضع «قل» داخل الحلقة يعطي نتيجة PARTIAL مع ملاحظة تذكر الكلمات التي قيلت — وهذا موضوع جيد لنقاش صفّي. لبنة «اجعل العدّاد 0» اختيارية (فالعدّاد يبدأ من 0) لكنها غير ضارة.",
+        en: "Graded on the counter's final value (variableEquals 4) and on what is said (expectedOutput ['4'], secondary). A 'say' inside the loop gives PARTIAL with the feedback naming the words said — a good class discussion. There is no Set block here: the counter starts at 0, so the only way to reach 4 is to count (Add is a core check).",
+        ar: "يُقيَّم بحسب القيمة النهائية للعدّاد (variableEquals 4) وبحسب ما يُقال (expectedOutput ['4']، ثانوي). وضع «قل» داخل الحلقة يعطي نتيجة PARTIAL مع ملاحظة تذكر الكلمات التي قيلت — وهذا موضوع جيد لنقاش صفّي. لا توجد هنا لبنة «اجعل العدّاد»: يبدأ العدّاد من 0، فالطريقة الوحيدة للوصول إلى 4 هي العدّ (لبنة «أضف» فحص أساسي).",
       },
       difficulty: "EASY",
       recommendedGradeMin: 5,
@@ -205,7 +205,6 @@ export const countersAndTricks: ModuleFixture = {
         toolbox: [
           { type: "bb_moveForward" },
           { type: "bb_repeat" },
-          { type: "bb_setCounter" },
           { type: "bb_changeCounter" },
           { type: "bb_sayCounter" },
         ],
@@ -215,6 +214,7 @@ export const countersAndTricks: ModuleFixture = {
         checks: [
           { id: "reachedGoal", severity: "core" },
           { id: "variableEquals", severity: "core", params: { name: "counter", value: 4 } },
+          { id: "usedBlock", severity: "core", params: { block: "bb_changeCounter" } },
           { id: "expectedOutput", severity: "secondary", params: { expected: ["4"] } },
         ],
         starCriteria: { threeStarMaxBlocks: 5 },
@@ -271,7 +271,7 @@ export const countersAndTricks: ModuleFixture = {
         toolbox: [
           { type: "bb_moveForward" },
           { type: "bb_repeat" },
-          { type: "bb_setCounter" },
+          { type: "bb_setCounter", limit: 1 },
           { type: "bb_changeCounter" },
           { type: "bb_sayCounter" },
         ],
@@ -281,6 +281,7 @@ export const countersAndTricks: ModuleFixture = {
         checks: [
           { id: "reachedGoal", severity: "core" },
           { id: "variableEquals", severity: "core", params: { name: "counter", value: 4 } },
+          { id: "usedBlock", severity: "core", params: { block: "bb_changeCounter" } },
           { id: "expectedOutput", severity: "secondary", params: { expected: ["4"] } },
         ],
         starCriteria: { threeStarMaxBlocks: 5 },
@@ -337,7 +338,6 @@ export const countersAndTricks: ModuleFixture = {
         toolbox: [
           { type: "bb_moveForward" },
           { type: "bb_repeat" },
-          { type: "bb_setCounter" },
           { type: "bb_changeCounter" },
           { type: "bb_sayCounter" },
         ],
@@ -347,6 +347,7 @@ export const countersAndTricks: ModuleFixture = {
         checks: [
           { id: "reachedGoal", severity: "core" },
           { id: "variableEquals", severity: "core", params: { name: "counter", value: 2 } },
+          { id: "usedBlock", severity: "core", params: { block: "bb_changeCounter" } },
           { id: "collectedAll", severity: "secondary" },
           { id: "expectedOutput", severity: "secondary", params: { expected: ["2"] } },
         ],
@@ -458,8 +459,8 @@ export const countersAndTricks: ModuleFixture = {
         ar: "حيلة داخل حلقة: الحلقة تقول كم مرة، والحيلة تقول ما هي الدرجة الواحدة. غيّر الدرج إلى خمس درجات فلا يتغير إلا رقم الحلقة؛ وغيّر شكل الدرجة فلا تتغير إلا الحيلة. تقسيم البرنامج إلى أجزاء باسم هو ما يجعل البرامج الكبيرة ممكنة.",
       },
       teacherNotes: {
-        en: "Solvable with twelve plain blocks (2 stars — over the seven-block budget) or with the trick (3 stars). usedBlock bb_doTrick is secondary: a program that reaches the depot without a trick is PARTIAL with the feedback 'This level needs the do my trick block'. Rocks make the staircase the only route.",
-        ar: "يمكن حلّه باثنتي عشرة لبنة عادية (نجمتان — فوق ميزانية السبع لبنات) أو بالحيلة (3 نجوم). فحص usedBlock للبنة bb_doTrick ثانوي: البرنامج الذي يصل إلى المستودع دون حيلة ينال نتيجة PARTIAL مع الملاحظة «هذا المستوى يحتاج إلى لبنة نفّذ حيلتي». الصخور تجعل الدرج المسار الوحيد.",
+        en: "Solvable with twelve plain blocks, but that is PARTIAL (1 star); the trick earns 3 stars within the seven-block budget. usedTrick is secondary: a program that reaches the depot without calling a taught trick is PARTIAL with the feedback 'This level needs the do my trick block', and an empty trick does not count. Rocks make the staircase the only route.",
+        ar: "يمكن حلّه باثنتي عشرة لبنة عادية، لكن النتيجة PARTIAL (نجمة واحدة)؛ أما الحيلة فتنال 3 نجوم ضمن ميزانية السبع لبنات. فحص usedTrick ثانوي: البرنامج الذي يصل إلى المستودع دون استدعاء حيلة مُعلَّمة ينال PARTIAL مع الملاحظة «هذا المستوى يحتاج إلى لبنة نفّذ حيلتي»، والحيلة الفارغة لا تُحتسب. الصخور تجعل الدرج المسار الوحيد.",
       },
       difficulty: "MEDIUM",
       recommendedGradeMin: 5,
@@ -488,7 +489,7 @@ export const countersAndTricks: ModuleFixture = {
         nonFatalBumps: false,
         checks: [
           { id: "reachedGoal", severity: "core" },
-          { id: "usedBlock", severity: "secondary", params: { block: "bb_doTrick" } },
+          { id: "usedTrick", severity: "secondary" },
         ],
         starCriteria: { threeStarMaxBlocks: 7 },
         startWorkspace,
@@ -526,8 +527,8 @@ export const countersAndTricks: ModuleFixture = {
         ar: "كل ما علّمته مدينة الشيفرة في برنامج واحد: حيلة تسمّي ضلع الساحة، وحلقة تكرّرها، وعدّاد يكبر داخل الحيلة لينتهي عند 3. عندما تفتح تبويب «الكود» سترى دالّة حقيقية وحلقة for حقيقية ومتغيّرًا حقيقيًا — الأفكار الثلاث نفسها التي تُبنى منها كل لغة برمجة.",
       },
       teacherNotes: {
-        en: "Finale of the module. The counter is incremented INSIDE the trick (once per side), which surprises students who expect the loop to do the counting — either placement gives 3 here; ask them why. Nine-block budget requires the trick. Carrots on three corners are collected on entry.",
-        ar: "ختام الوحدة. يُزاد العدّاد داخل الحيلة (مرة لكل ضلع)، وهذا يفاجئ الطلاب الذين يتوقعون أن تتولى الحلقة العدّ — كلا الموضعين يعطي 3 هنا؛ اسألهم لماذا. ميزانية التسع لبنات تتطلب استخدام الحيلة. الجزر في الزوايا الثلاث يُلتقط عند الدخول إلى مربعه.",
+        en: "Finale of the module. The counter is incremented INSIDE the trick (once per side), which surprises students who expect the loop to do the counting — either placement gives 3 here; ask them why. Using the trick is a secondary check: a correct route without it is PARTIAL. Carrots on three corners are collected on entry.",
+        ar: "ختام الوحدة. يُزاد العدّاد داخل الحيلة (مرة لكل ضلع)، وهذا يفاجئ الطلاب الذين يتوقعون أن تتولى الحلقة العدّ — كلا الموضعين يعطي 3 هنا؛ اسألهم لماذا. استخدام الحيلة فحص ثانوي: المسار الصحيح دونها يُعدّ PARTIAL (جزئيًا). الجزر في الزوايا الثلاث يُلتقط عند الدخول إلى مربعه.",
       },
       difficulty: "HARD",
       recommendedGradeMin: 5,
@@ -550,7 +551,6 @@ export const countersAndTricks: ModuleFixture = {
           { type: "bb_repeat" },
           { type: "bb_defineTrick", limit: 1 },
           { type: "bb_doTrick" },
-          { type: "bb_setCounter" },
           { type: "bb_changeCounter" },
           { type: "bb_sayCounter" },
         ],
@@ -560,6 +560,8 @@ export const countersAndTricks: ModuleFixture = {
         checks: [
           { id: "reachedGoal", severity: "core" },
           { id: "variableEquals", severity: "core", params: { name: "counter", value: 3 } },
+          { id: "usedBlock", severity: "core", params: { block: "bb_changeCounter" } },
+          { id: "usedTrick", severity: "secondary" },
           { id: "collectedAll", severity: "secondary" },
           { id: "expectedOutput", severity: "secondary", params: { expected: ["3"] } },
         ],

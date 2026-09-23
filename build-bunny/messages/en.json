@@ -207,8 +207,9 @@
         "start": "Start",
         "continue": "Continue",
         "progress": "{done} of {total}",
-        "mission": "Class mission: {done} of {total} in your class have finished",
-        "missionNone": "Class mission: be one of the first in your class to finish"
+        "missionTogether": "Class mission: your class is working on this together",
+        "missionDone": "You finished! {done} of {total} in your class have finished this mission.",
+        "missionDoneSmall": "You finished! You're helping your class mission."
       },
       "heroCtaDone": "Open the map",
       "openMap": "See the map",
@@ -345,7 +346,8 @@
         "wrongVariable": "The counter ended on {actual}, but it should be {expected}. Follow the counter blocks one by one.",
         "noValue": "nothing",
         "noTrick": "“Do my trick” needs a trick to do — add a “my trick” block and put some blocks inside it.",
-        "mazeInvalid": "Your maze can't be solved yet — open the maze checklist and fix what's missing."
+        "mazeInvalid": "Your maze can't be solved yet — open the maze checklist and fix what's missing.",
+        "emptyTrick": "Your trick has no blocks inside yet. Put the steps in “my trick”, then use “do my trick”."
       },
       "learn": {
         "stepWatch": "Step 1 of 2 · Watch",
@@ -637,7 +639,8 @@
           "trendMissTooHigh": "The miss score adds up how far each point is from your line. A line that runs through the middle of the points, not above or below them, misses less.",
           "mysteryRoundsWrong": "A computer only sees a picture as tiny squares of colour. Look at the pattern of squares, not at what you think the picture shows.",
           "pilesNotTight": "Things in the same group should be close together. If a group is spread out, it is probably really two groups, or its centre is in the wrong place.",
-          "tooManyExamples": "This level is about teaching well with only a few examples. Choose the ones that cover every kind, and leave the rest out."
+          "tooManyExamples": "This level is about teaching well with only a few examples. Choose the ones that cover every kind, and leave the rest out.",
+          "emptyTrick": "A trick is a set of steps with a name. Calling an empty trick does nothing, so fill “my trick” with the steps you want to repeat."
         },
         "blocks": {
           "bb_whenStart": "The start. Everything snapped under this block runs when you press Run — from the top, one block at a time.",
@@ -730,11 +733,12 @@
           "done": "Done:",
           "todo": "Still to do:",
           "oneGoal": "Exactly one burrow to reach",
-          "obstacles": "At least {need} rocks or water ({have} so far)",
-          "carrots": "At least {need} carrots ({have} so far)",
+          "obstacles": "At least {need, plural, one {# rock or water tile} other {# rocks or water tiles}} ({have} so far)",
+          "carrots": "At least {need, plural, one {# carrot} other {# carrots}} ({have} so far)",
           "startFree": "Robo Bunny is standing on a clear square",
           "reachGoal": "Robo Bunny can reach the burrow",
-          "reachCarrots": "Every carrot can be reached"
+          "reachCarrots": "Every carrot can be reached",
+          "farEnough": "The burrow is at least {need} hops from the bunny"
         },
         "ready": "Your maze is ready — now program Robo Bunny through it!",
         "notReady": "Finish the checklist, then build your program.",
@@ -971,10 +975,9 @@
         },
         "reflections": {
           "heading": "How the class felt",
-          "caveat": "From the one-tap question after each level. The levels most often called tricky, with at least 3 answers. Counts only — no child is named.",
-          "easy": "😀 {count} easy",
-          "justRight": "🙂 {count} just right",
-          "tricky": "😣 {count} tricky"
+          "caveat": "From the one-tap question after each level: the levels this class most often called tricky, once at least 5 children have answered. Shown as a rough share so no child's answer can be worked out.",
+          "most": "😣 Most found it tricky",
+          "some": "🙂 Some found it tricky"
         }
       },
       "student": {
@@ -1157,8 +1160,9 @@
         "challengeNone": "No challenge",
         "challengeHeading": "Today's challenge",
         "challengeCount": "{finished} of {total} finished",
-        "hideNames": "Hide names",
-        "showNames": "Show names"
+        "showNames": "Show names",
+        "on": "on",
+        "off": "off"
       },
       "curriculum": {
         "title": "Curriculum guide",
@@ -1301,7 +1305,8 @@
         "givenBroken": "This program has mistakes. Circle them:",
         "givenStarter": "Your program starts with these blocks:",
         "writeFixed": "Write the fixed program, one block per line:",
-        "elseLine": "else"
+        "elseLine": "else",
+        "allBoards": "One program must work on all {count} boards."
       }
     },
     "school": {

@@ -59,6 +59,7 @@ export const FEEDBACK_MISCONCEPTION: Record<string, MisconceptionId> = {
   wrongOutput: "sayPlacement",
   wrongVariable: "counterTrace",
   missingBlock: "requiredBlock",
+  emptyTrick: "requiredBlock",
   wrongOption: "readingCode",
   wrongOrder: "sequencing",
   mazeInvalid: "mazeDesign",

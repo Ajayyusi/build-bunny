@@ -30,9 +30,11 @@ export type WorksheetItem =
       order: number;
       title: LocalizedText;
       mission: LocalizedText | null;
-      rows: string[];
-      start: { x: number; y: number; dir: "N" | "E" | "S" | "W" };
+      /** Every board (variant): one program must work on all of them. */
+      boards: { rows: string[]; start: { x: number; y: number; dir: "N" | "E" | "S" | "W" } }[];
       blocks: string[];
+      /** Lines to print: room for the author's solution plus a margin. */
+      lines: number;
       /** Debugging: the broken program to fix. Otherwise any starter blocks. */
       given: OutlineLine[];
       debugging: boolean;
@@ -168,15 +170,24 @@ const orderPayload = z
   .passthrough();
 
 /**
- * A fixed scramble that is never the answer order (rotating by one when the
- * sort happens to land on it), so the same sheet prints every time.
+ * A fixed scramble in which NO step sits in its answer position (a
+ * derangement), so the printed order gives nothing away and the same sheet
+ * prints every time. Each swap below removes a step from its answer
+ * position without putting another one into its own, so the loop ends.
  */
 export function scramble<T extends { id: string }>(items: T[], answer: string[]): T[] {
   const key = (id: string) => [...id].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7);
   const out = [...items].sort((a, b) => key(a.id) - key(b.id) || a.id.localeCompare(b.id));
-  const isAnswer = out.every((item, i) => item.id === answer[i]);
-  return isAnswer && out.length > 1 ? [...out.slice(1), out[0]!] : out;
+  if (out.length < 2) return out;
+  for (;;) {
+    const i = out.findIndex((item, index) => item.id === answer[index]);
+    if (i < 0) return out;
+    const j = (i + 1) % out.length;
+    [out[i], out[j]] = [out[j]!, out[i]!];
+  }
 }
+
+const MIN_PROGRAM_LINES = 8;
 
 export async function getModuleWorksheet(
   ctx: SessionContext,
@@ -225,17 +236,21 @@ export async function getModuleWorksheet(
     if (level.activityType === "BLOCK_CODING" || level.activityType === "DEBUGGING") {
       const grid = gridPayload.safeParse(base.data.payload);
       if (grid.success) {
-        const variant = grid.data.variants[0]!;
         const debugging = level.activityType === "DEBUGGING";
-        const payload = base.data.payload as { brokenWorkspace?: unknown; startWorkspace?: unknown };
+        const payload = base.data.payload as {
+          brokenWorkspace?: unknown;
+          startWorkspace?: unknown;
+          solution?: unknown;
+        };
         return [
           {
             kind: "grid",
             ...common,
             mission,
-            rows: variant.rows,
-            start: variant.start,
+            boards: grid.data.variants.map((v) => ({ rows: v.rows, start: v.start })),
             blocks: [...new Set(grid.data.toolbox.map((b) => b.type))],
+            // Only the solution's LENGTH is used — never its blocks.
+            lines: Math.max(MIN_PROGRAM_LINES, outlineProgram(payload.solution).length + 2),
             given: outlineProgram(debugging ? payload.brokenWorkspace : payload.startWorkspace),
             debugging,
           },

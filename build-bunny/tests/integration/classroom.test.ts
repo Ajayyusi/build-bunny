@@ -212,35 +212,42 @@ describe("family link", () => {
 });
 
 describe("one-tap reflections", () => {
-  it("say nothing until three children have answered, then show counts only", async () => {
+  it("say nothing until five children have answered, then show only a rough band", async () => {
     await saveReflectionCore(studentCtxs[0]!, { levelId, feeling: "EASY" });
     // Changing your mind replaces the answer; it never counts twice.
     await saveReflectionCore(studentCtxs[0]!, { levelId, feeling: "TRICKY" });
     await saveReflectionCore(studentCtxs[1]!, { levelId, feeling: "TRICKY" });
     expect(await db.levelReflection.count({ where: { levelId } })).toBe(2);
-    expect(await getClassReflections(teacherCtx, classId)).toEqual([]);
 
     const schoolId = studentCtxs[0]!.schoolId!;
     const school = await db.school.findUniqueOrThrow({ where: { id: schoolId } });
-    const cam = await createStudent(SYSTEM_ACTOR, {
-      schoolId,
-      schoolCode: school.code,
-      username: "camcls",
-      displayName: "CAM K.",
-      studentIdentifier: "CL-2",
-      grade: 5,
-    });
-    await db.classMembership.create({ data: { schoolId, classId, userId: cam.userId, role: "STUDENT" } });
-    await recomputeUnlocks(cam.userId);
-    const camCtx = createCtx({ userId: cam.userId, role: "STUDENT", schoolId });
-    await saveReflectionCore(camCtx, { levelId, feeling: "JUST_RIGHT" });
+    const extra: string[] = [];
+    const feelings = ["JUST_RIGHT", "EASY", "TRICKY"] as const;
+    for (const [i, name] of ["cam", "dan", "eva"].entries()) {
+      const kid = await createStudent(SYSTEM_ACTOR, {
+        schoolId,
+        schoolCode: school.code,
+        username: `${name}cls`,
+        displayName: `${name.toUpperCase()} K.`,
+        studentIdentifier: `CL-${i + 2}`,
+        grade: 5,
+      });
+      await db.classMembership.create({ data: { schoolId, classId, userId: kid.userId, role: "STUDENT" } });
+      await recomputeUnlocks(kid.userId);
+      extra.push(kid.userId);
+      const ctx = createCtx({ userId: kid.userId, role: "STUDENT", schoolId });
+      if (i === 2) {
+        // Four answers: still nothing to show.
+        expect(await getClassReflections(teacherCtx, classId)).toEqual([]);
+      }
+      await saveReflectionCore(ctx, { levelId, feeling: feelings[i]! });
+    }
 
+    // 3 of 5 tricky → "most"; no counts, no child ids.
     const report = await getClassReflections(teacherCtx, classId);
-    expect(report).toEqual([
-      expect.objectContaining({ levelId, title: { en: "Two Hops" }, easy: 0, justRight: 1, tricky: 2 }),
-    ]);
+    expect(report).toEqual([{ levelId, title: { en: "Two Hops" }, worldName: expect.anything(), band: "most" }]);
     const serialized = JSON.stringify(report);
-    for (const id of [...studentIds, cam.userId]) expect(serialized).not.toContain(id);
+    for (const id of [...studentIds, ...extra]) expect(serialized).not.toContain(id);
     expect(await getClassReflections(otherTeacherCtx, classId)).toEqual([]);
   });
 
@@ -261,9 +268,9 @@ describe("printable worksheet", () => {
         kind: "grid",
         levelId,
         title: { en: "Two Hops" },
-        rows: ["..G", "#.."],
-        start: { x: 0, y: 0, dir: "E" },
+        boards: [{ rows: ["..G", "#.."], start: { x: 0, y: 0, dir: "E" } }],
         blocks: ["bb_moveForward", "bb_turnRight"],
+        lines: 8,
       }),
     ]);
     expect(await getModuleWorksheet(studentCtxs[0]!, moduleId)).toBeNull();

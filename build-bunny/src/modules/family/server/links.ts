@@ -6,6 +6,7 @@ import { audit } from "@/lib/audit";
 import { db } from "@/lib/db";
 import type { SessionContext } from "@/modules/auth/server/session";
 import { NotFoundError } from "@/modules/auth/server/guard";
+import { AuthError } from "@/modules/auth/server/session";
 
 /**
  * Family links (brief §6): a teacher shares a private, read-only view of one
@@ -87,6 +88,9 @@ export async function createFamilyLinkCore(
   ctx: SessionContext,
   input: { studentUserId: string },
 ): Promise<{ token: string; expiresAt: Date }> {
+  // A link outlives the session that made it; one made while a platform
+  // admin is viewing as a teacher would be attributed to the teacher.
+  if (ctx.impersonatedBy) throw new AuthError("FORBIDDEN");
   const schoolId = await assertStudentAccess(ctx, input.studentUserId);
   const token = randomBytes(32).toString("base64url");
   const now = new Date();

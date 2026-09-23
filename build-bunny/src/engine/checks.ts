@@ -16,6 +16,8 @@ import type {
 export interface BlockStats {
   totalBlocks: number;
   countsByType: Record<string, number>;
+  /** Statement blocks inside "my trick" (0 when no trick is taught). */
+  trickBodyBlocks?: number;
 }
 
 export interface CheckFailure {
@@ -79,6 +81,15 @@ function evaluateCheck(
       if (!block) return null; // malformed params: publish gates own validation
       if ((blockStats.countsByType[block] ?? 0) > 0) return null;
       return { ...failureBase(check), code: "missingBlock", data: { blockType: block } };
+    }
+
+    case "usedTrick": {
+      // The trick must be taught (a non-empty body) AND called. An empty
+      // trick called once would otherwise tick "used a trick".
+      const called = (blockStats.countsByType["bb_doTrick"] ?? 0) > 0;
+      if (called && (blockStats.trickBodyBlocks ?? 0) > 0) return null;
+      if (!called) return { ...failureBase(check), code: "missingBlock", data: { blockType: "bb_doTrick" } };
+      return { ...failureBase(check), code: "emptyTrick" };
     }
 
     case "notUsedBlock": {

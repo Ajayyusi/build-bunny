@@ -8,14 +8,14 @@ const { scramble } = await import("@/modules/curriculum/server/worksheet");
 const steps = (ids: string[]) => ids.map((id) => ({ id }));
 
 describe("worksheet scramble", () => {
-  it("never prints the steps in the answer order, and is stable", () => {
+  it("never prints any step in its answer position, and is stable", () => {
     for (const ids of [
       ["a", "b", "c"],
       ["wake", "wash", "dress", "eat"],
       ["s1", "s2", "s3", "s4", "s5", "s6", "s7", "s8"],
     ]) {
       const once = scramble(steps(ids), ids).map((s) => s.id);
-      expect(once).not.toEqual(ids);
+      once.forEach((id, index) => expect(id).not.toBe(ids[index]));
       expect([...once].sort()).toEqual([...ids].sort());
       expect(scramble(steps(ids), ids).map((s) => s.id)).toEqual(once);
     }

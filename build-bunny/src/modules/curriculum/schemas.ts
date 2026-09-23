@@ -37,6 +37,7 @@ export const CHECK_IDS = [
   "usedBlock",
   "notUsedBlock",
   "maxBlocks",
+  "usedTrick",
   "variableEquals",
   "expectedOutput",
   "expectedSequence",
@@ -46,11 +47,25 @@ export type CheckId = (typeof CHECK_IDS)[number];
 
 // core = the goal itself (fail ⇒ FAIL) · secondary = required constraints
 // (fail ⇒ PARTIAL) · quality = elegance, affects stars only (plan §1.2).
-export const checkSchema = z.object({
-  id: z.enum(CHECK_IDS),
-  severity: z.enum(["core", "secondary", "quality"]),
-  params: z.record(z.string(), z.unknown()).optional(),
-});
+export const checkSchema = z
+  .object({
+    id: z.enum(CHECK_IDS),
+    severity: z.enum(["core", "secondary", "quality"]),
+    params: z.record(z.string(), z.unknown()).optional(),
+  })
+  .superRefine((check, ctx) => {
+    // The engine treats a malformed check as "nothing to check" (it passes),
+    // so a typo in params would silently turn a core requirement off.
+    // Refuse it at authoring time instead.
+    const params = check.params ?? {};
+    const isText = (v: unknown) => typeof v === "string" && v.length > 0;
+    if ((check.id === "usedBlock" || check.id === "notUsedBlock") && !isText(params["block"] ?? params["blockType"])) {
+      ctx.addIssue({ code: "custom", message: `${check.id} needs params.block`, path: ["params"] });
+    }
+    if (check.id === "variableEquals" && (!isText(params["name"]) || typeof params["value"] !== "number")) {
+      ctx.addIssue({ code: "custom", message: "variableEquals needs params.name and a numeric params.value", path: ["params"] });
+    }
+  });
 export type Check = z.infer<typeof checkSchema>;
 
 export const starCriteriaSchema = z.object({
@@ -728,6 +743,10 @@ const creativeProjectCore = z.object({
       carrots: z.number().int().min(0).max(10).default(0),
     })
     .default({ obstacles: 0, carrots: 0 }),
+  /** Shortest route from the bunny to the burrow, in hops, at least. */
+  minGoalHops: z.number().int().min(1).max(40).default(3),
+  /** Blocks the child's program must use (secondary: PARTIAL without). */
+  requiredBlocks: z.array(z.string().min(1)).max(4).default([]),
   toolbox: z.array(blockRefSchema).min(1),
   budgets: z
     .object({ maxCommands: z.number().int().positive().max(10_000).default(1000) })

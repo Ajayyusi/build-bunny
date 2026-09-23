@@ -331,6 +331,7 @@ async function loadSchoolLevels(schoolId: string): Promise<LoadedLevelRow[]> {
                   title: true,
                   estimatedMinutes: true,
                   maxStars: true,
+                  publishedVersionId: true,
                 },
               },
             },
@@ -339,6 +340,19 @@ async function loadSchoolLevels(schoolId: string): Promise<LoadedLevelRow[]> {
       },
     },
   });
+
+  // Titles come from the PUBLISHED snapshot: every class report (matrix,
+  // projector, hardest levels) describes what children played, never a
+  // draft someone is editing. Only the title is read, not whole snapshots.
+  const versionIds = programWorlds.flatMap(({ world }) =>
+    world.modules.flatMap((m) => m.levels.map((l) => l.publishedVersionId as string)),
+  );
+  const titleRows =
+    versionIds.length === 0
+      ? []
+      : await db.$queryRaw<{ id: string; title: unknown }[]>`
+          SELECT id, snapshot->'title' AS title FROM "LevelVersion" WHERE id = ANY(${versionIds})`;
+  const publishedTitle = new Map(titleRows.map((row) => [row.id, row.title]));
 
   const seen = new Set<string>();
   const rows: LoadedLevelRow[] = [];
@@ -352,7 +366,7 @@ async function loadSchoolLevels(schoolId: string): Promise<LoadedLevelRow[]> {
           matrix: {
             id: level.id,
             slug: level.slug,
-            title: asText(level.title, level.slug),
+            title: asText(publishedTitle.get(level.publishedVersionId as string) ?? level.title, level.slug),
             order: level.order,
             worldSlug: world.slug,
             worldName,
@@ -1371,13 +1385,19 @@ export interface ClassReflectionLevel {
   levelId: string;
   title: LocalizedText;
   worldName: LocalizedText;
-  easy: number;
-  justRight: number;
-  tricky: number;
+  /** "most": half or more said tricky; "some": at least a fifth did. */
+  band: "most" | "some";
 }
 
-/** Fewer answers than this say nothing about a class. */
-const MIN_REFLECTIONS = 3;
+/**
+ * Fewer answers than this say nothing about a class, and exact counts from
+ * a handful of children would let a teacher work out who said what (three
+ * finished, three "tricky"). So the report needs five answers and shows a
+ * band, never counts.
+ */
+const MIN_REFLECTIONS = 5;
+const SOME_TRICKY = 0.2;
+const MOST_TRICKY = 0.5;
 
 /**
  * The levels this class most often called "tricky" in the one-tap
@@ -1410,17 +1430,19 @@ export async function getClassReflections(
     byLevel.set(row.levelId, entry);
   }
   const known = await publishedLevelNames(schoolId, [...byLevel.keys()]);
+  const share = (c: { easy: number; justRight: number; tricky: number }) =>
+    c.tricky / (c.easy + c.justRight + c.tricky);
   return [...byLevel]
-    .filter(([levelId, c]) => known.has(levelId) && c.easy + c.justRight + c.tricky >= MIN_REFLECTIONS && c.tricky > 0)
-    .map(([levelId, c]) => ({
+    .filter(
+      ([levelId, c]) =>
+        known.has(levelId) && c.easy + c.justRight + c.tricky >= MIN_REFLECTIONS && share(c) >= SOME_TRICKY,
+    )
+    .sort(([, a], [, b]) => share(b) - share(a))
+    .slice(0, 5)
+    .map(([levelId, c]): ClassReflectionLevel => ({
       levelId,
       title: known.get(levelId)!.title,
       worldName: known.get(levelId)!.worldName,
-      ...c,
-    }))
-    .sort((a, b) => {
-      const share = (x: ClassReflectionLevel) => x.tricky / (x.easy + x.justRight + x.tricky);
-      return share(b) - share(a) || b.tricky - a.tricky;
-    })
-    .slice(0, 5);
+      band: share(c) >= MOST_TRICKY ? "most" : "some",
+    }));
 }

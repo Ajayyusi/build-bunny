@@ -231,6 +231,24 @@ describe("validateWhitelist", () => {
     expect(validateWhitelist(solution, toolbox)).toEqual([]);
   });
 
+  it("refuses a block id that could break out of the generated highlight() call", () => {
+    const attack = "x');moveForward();moveForward();//";
+    const workspace = (id: string) => ({
+      blocks: {
+        languageVersion: 0,
+        blocks: [{ type: "bb_whenStart", id: "start", next: { block: { type: "bb_moveForward", id } } }],
+      },
+    });
+    expect(validateWhitelist(workspace(attack), toolbox)).toContain("invalid block id");
+    // Double quote, backslash, a line feed and U+2028, each inside an id.
+    for (const code of [34, 92, 10, 0x2028]) {
+      const bad = `a${String.fromCharCode(code)}b`;
+      expect(validateWhitelist(workspace(bad), toolbox)).toContain("invalid block id");
+    }
+    // Blockly's own generated ids (any of its id characters) stay valid.
+    expect(validateWhitelist(workspace("A1b2!#$%()*+,-./:;=?@[]^_`{|}~"), toolbox)).toEqual([]);
+  });
+
   it("catches a forbidden block", () => {
     const violations = validateWhitelist(
       {

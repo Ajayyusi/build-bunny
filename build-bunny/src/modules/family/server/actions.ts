@@ -27,5 +27,7 @@ export async function createFamilyLink(
 }
 
 export async function revokeFamilyLink(input: unknown): Promise<ActionResult<{ revoked: number }>> {
-  return withAuth("students:write", studentSchema, (ctx, data) => revokeFamilyLinksCore(ctx, data))(input);
+  // Its own permission so a school on a read-only licence can still switch
+  // a link off (a link sent to the wrong person must always be stoppable).
+  return withAuth("family:revoke", studentSchema, (ctx, data) => revokeFamilyLinksCore(ctx, data))(input);
 }

@@ -99,14 +99,18 @@ export async function AssignmentsCard({ assignments, locale }: Props) {
                 )}
               </div>
 
-              {/* Class mission: together, not a race. Shown once a second
-                  child is in the class, and never names anyone. */}
+              {/* Class mission: together, not a race. A child still working
+                  never sees how many classmates are ahead of them; a child who
+                  has finished sees the class total (never names, and only in
+                  classes big enough that a count can't point at anyone). */}
               {assignment.classSize > 1 ? (
                 <p className="mt-2 flex items-center gap-1.5 text-xs font-semibold text-ink-muted">
                   <span aria-hidden="true">🤝</span>
-                  {assignment.classFinished === 0
-                    ? t("missionNone")
-                    : t("mission", { done: assignment.classFinished, total: assignment.classSize })}
+                  {!assignment.done
+                    ? t("missionTogether")
+                    : assignment.classFinished !== null
+                      ? t("missionDone", { done: assignment.classFinished, total: assignment.classSize })
+                      : t("missionDoneSmall")}
                 </p>
               ) : null}
 

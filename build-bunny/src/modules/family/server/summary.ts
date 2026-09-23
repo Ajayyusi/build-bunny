@@ -5,6 +5,8 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { localizedText, worldPowerSchema, type LocalizedText } from "@/modules/curriculum/schemas";
 
+import { resolveEntitlement } from "@/modules/schools/server/entitlement";
+
 import { hashFamilyToken } from "./links";
 
 /**
@@ -65,13 +67,16 @@ export async function getFamilySummary(token: string, now = new Date()): Promise
   });
   if (!link || link.revokedAt || link.expiresAt <= now) return null;
   if (link.school.status !== "ACTIVE") return null;
+  // A suspended or expired licence closes the family view too.
+  if (!(await resolveEntitlement(link.schoolId)).canAccess) return null;
 
   const { schoolId, studentUserId } = link;
   const weekStart = new Date(now.getTime() - WEEK_MS);
 
   const [student, progress, activeDays] = await Promise.all([
     db.user.findFirst({
-      where: { id: studentUserId, schoolId, role: "STUDENT" },
+      // A disabled child's progress is no longer shared.
+      where: { id: studentUserId, schoolId, role: "STUDENT", banned: { not: true } },
       select: { displayName: true, studentProfile: { select: { programId: true } } },
     }),
     db.studentProgress.findMany({

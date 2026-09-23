@@ -99,13 +99,15 @@ export const cityWorkshop: ModuleFixture = {
         ["Set counter to 3. Repeat 3 { Move Forward, add -1 to counter }. Say the counter.", "اجعل العدّاد 3. كرّر 3 { تقدّم للأمام، أضف -1 إلى العدّاد }. قل قيمة العدّاد."],
       ),
       payload: {
-        toolbox: counterToolbox,
+        // Counting down needs a starting value: one Set block only.
+        toolbox: counterToolbox.map((block) => (block.type === "bb_setCounter" ? { ...block, limit: 1 } : block)),
         variants: [{ rows: ["...G", "...."], start: { x: 0, y: 0, dir: "E" } }],
         autoCollect: true,
         nonFatalBumps: false,
         checks: [
           { id: "reachedGoal", severity: "core" },
           { id: "variableEquals", severity: "core", params: { name: "counter", value: 0 } },
+          { id: "usedBlock", severity: "core", params: { block: "bb_changeCounter" } },
           { id: "expectedOutput", severity: "secondary", params: { expected: ["0"] } },
         ],
         starCriteria: { threeStarMaxBlocks: 5 },
@@ -151,13 +153,15 @@ export const cityWorkshop: ModuleFixture = {
         ["Repeat 4 { Move Forward, add 2 to counter }. Say the counter.", "كرّر 4 { تقدّم للأمام، أضف 2 إلى العدّاد }. قل قيمة العدّاد."],
       ),
       payload: {
-        toolbox: counterToolbox,
+        // No Set block: the counter starts at 0, so 8 can only come from counting.
+        toolbox: counterToolbox.filter((block) => block.type !== "bb_setCounter"),
         variants: [{ rows: ["....G", "....."], start: { x: 0, y: 0, dir: "E" } }],
         autoCollect: true,
         nonFatalBumps: false,
         checks: [
           { id: "reachedGoal", severity: "core" },
           { id: "variableEquals", severity: "core", params: { name: "counter", value: 8 } },
+          { id: "usedBlock", severity: "core", params: { block: "bb_changeCounter" } },
           { id: "expectedOutput", severity: "secondary", params: { expected: ["8"] } },
         ],
         starCriteria: { threeStarMaxBlocks: 4 },
@@ -307,7 +311,7 @@ export const cityWorkshop: ModuleFixture = {
         "The turns inside the trick were swapped. Because both calls use the same trick, fixing it in one place fixed both steps — the big advantage of a function.",
         "كانت الاستدارتان داخل الحيلة مبدَّلتين. ولأن الاستدعاءين يستخدمان الحيلة نفسها، أصلح التعديل في مكان واحد الدرجتين — وهذه الميزة الكبرى للدالّة.",
       ),
-      teacherNotes: { en: "Only the trick body is wrong. Children who rewrite the whole program without the trick can still pass with two stars.", ar: "الخطأ في جسم الحيلة فقط. الأطفال الذين يعيدون كتابة البرنامج كله دون الحيلة يمكنهم مع ذلك النجاح بنجمتين." },
+      teacherNotes: { en: "Only the trick body is wrong. Children who rewrite the whole program without the trick reach the goal but get PARTIAL (usedTrick is secondary): the point is to fix the trick.", ar: "الخطأ في جسم الحيلة فقط. الأطفال الذين يعيدون كتابة البرنامج كله دون الحيلة يصلون إلى الهدف لكنهم ينالون PARTIAL (فحص usedTrick ثانوي): المقصود هو إصلاح الحيلة." },
       difficulty: "MEDIUM",
       recommendedGradeMin: 5,
       recommendedGradeMax: 7,
@@ -326,7 +330,10 @@ export const cityWorkshop: ModuleFixture = {
         variants: [{ rows: ["..##", "#..#", "##.G"], start: { x: 0, y: 0, dir: "E" } }],
         autoCollect: true,
         nonFatalBumps: false,
-        checks: [{ id: "reachedGoal", severity: "core" }],
+        checks: [
+          { id: "reachedGoal", severity: "core" },
+          { id: "usedTrick", severity: "secondary" },
+        ],
         starCriteria: { threeStarMaxBlocks: 8 },
         brokenWorkspace: withTops([trick(move(), left(), move(), right())], repeat(2, doTrick()), move()),
         solution: withTops([trick(move(), right(), move(), left())], repeat(2, doTrick()), move()),
@@ -355,7 +362,7 @@ export const cityWorkshop: ModuleFixture = {
         "A trick holds a shape; a loop repeats it. Zigzag Street is two of the same shape plus one step, so the program says exactly that.",
         "الحيلة تحمل شكلًا؛ والحلقة تكرّره. الشارع المتعرّج شكلان متماثلان وخطوة، والبرنامج يقول ذلك تمامًا.",
       ),
-      teacherNotes: { en: "Eight blocks with the trick. usedBlock doTrick is secondary: plain solutions are PARTIAL.", ar: "ثماني لبنات مع الحيلة. فحص usedBlock للبنة doTrick ثانوي: الحلول العادية التي لا تستخدم الحيلة تُعدّ PARTIAL (جزئية)." },
+      teacherNotes: { en: "Eight blocks with the trick. usedTrick is secondary: plain solutions, or an empty trick, are PARTIAL.", ar: "ثماني لبنات مع الحيلة. فحص usedTrick ثانوي: الحلول العادية التي لا تستخدم الحيلة، أو الحيلة الفارغة، تُعدّ PARTIAL (جزئية)." },
       difficulty: "MEDIUM",
       recommendedGradeMin: 5,
       recommendedGradeMax: 7,
@@ -376,7 +383,7 @@ export const cityWorkshop: ModuleFixture = {
         nonFatalBumps: false,
         checks: [
           { id: "reachedGoal", severity: "core" },
-          { id: "usedBlock", severity: "secondary", params: { block: "bb_doTrick" } },
+          { id: "usedTrick", severity: "secondary" },
         ],
         starCriteria: { threeStarMaxBlocks: 8 },
         startWorkspace,
@@ -513,7 +520,7 @@ export const fairMore: LevelFixture[] = [
       "A good maze has a hazard, a reward and a way through. Long straight runs became Repeats, so even a big river maze needed only a few blocks.",
       "المتاهة الجيدة فيها خطر ومكافأة وطريق للعبور. صارت المسافات المستقيمة الطويلة حلقات «كرّر»، لذا لم تحتج حتى متاهة النهر الكبيرة إلا إلى بضع لبنات.",
     ),
-    teacherNotes: { en: "Water is fatal like rocks; both count as obstacles. Six blocks with two Repeats is the three-star line.", ar: "الماء مميت مثل الصخور؛ وكلاهما يُحسب عائقًا. ست لبنات مع حلقتي «كرّر» هي حدّ النجوم الثلاث." },
+    teacherNotes: { en: "Only water is on the palette, so the three obstacles form the river. The burrow must be at least 5 hops away, and using Repeat is a secondary check (PARTIAL without it). Six blocks with two Repeats is the three-star line.", ar: "لا يوجد على اللوحة سوى الماء، فالعوائق الثلاثة تشكّل النهر. يجب أن يبعد الجحر 5 قفزات على الأقل، واستخدام «كرّر» فحص ثانوي (PARTIAL من دونه). ست لبنات مع حلقتي «كرّر» هي حدّ النجوم الثلاث." },
     difficulty: "MEDIUM",
     recommendedGradeMin: 4,
     recommendedGradeMax: 7,
@@ -530,8 +537,11 @@ export const fairMore: LevelFixture[] = [
     payload: {
       kind: "MAZE",
       board: { width: 6, height: 5 },
-      palette: ["W", "#", "C"],
+      // Water only: the three obstacles ARE the river the mission asks for.
+      palette: ["W", "C"],
       mustInclude: { obstacles: 3, carrots: 1 },
+      minGoalHops: 5,
+      requiredBlocks: ["bb_repeat"],
       toolbox: [{ type: "bb_moveForward" }, { type: "bb_turnLeft" }, { type: "bb_turnRight" }, { type: "bb_repeat" }],
       starCriteria: { threeStarMaxBlocks: 6 },
       startWorkspace,
@@ -583,6 +593,8 @@ export const fairMore: LevelFixture[] = [
       board: { width: 8, height: 6 },
       palette: ["#", "W", "C"],
       mustInclude: { obstacles: 5, carrots: 2 },
+      // The biggest board: a real journey, not a hop next door.
+      minGoalHops: 8,
       toolbox: trickToolbox,
       starCriteria: { threeStarMaxBlocks: 10 },
       startWorkspace,

@@ -84,6 +84,7 @@ export const CHECK_IDS = [
   "usedBlock",
   "notUsedBlock",
   "maxBlocks",
+  "usedTrick",
   "variableEquals",
   "expectedOutput",
   "expectedSequence",

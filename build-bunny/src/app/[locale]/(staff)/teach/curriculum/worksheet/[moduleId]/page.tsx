@@ -15,7 +15,13 @@ interface Props {
 
 const TILE: Record<string, string> = { "#": "🪨", C: "🥕", G: "🏠", W: "💧", ".": "" };
 const ARROW: Record<string, string> = { N: "↑", E: "→", S: "↓", W: "←" };
-const PROGRAM_LINES = 8;
+/** Step labels: A, B, C… in English; أ، ب، ج… on Arabic sheets. */
+const STEP_LETTERS: Record<string, string[]> = {
+  en: "ABCDEFGH".split(""),
+  ar: ["أ", "ب", "ج", "د", "هـ", "و", "ز", "ح"],
+};
+const stepLetter = (locale: string, index: number) =>
+  (STEP_LETTERS[locale] ?? STEP_LETTERS["en"]!)[index] ?? String(index + 1);
 
 /**
  * Printable, unplugged worksheet for one module (brief §6): boards to
@@ -46,7 +52,7 @@ export default async function WorksheetPage({ params, searchParams }: Props) {
     <div className="flex flex-col gap-6 text-ink print:gap-4">
       <div className="flex flex-wrap items-center gap-2 print:hidden">
         <Link href="/teach/curriculum" className="text-sm font-semibold text-brand hover:underline">
-          ← {t("back")}
+          <span aria-hidden="true" className="inline-block rtl:-scale-x-100">←</span> {t("back")}
         </Link>
         <span className="ms-auto flex flex-wrap items-center gap-2">
           <Link
@@ -81,7 +87,7 @@ export default async function WorksheetPage({ params, searchParams }: Props) {
             <h2 className="font-display text-lg font-bold">
               {index + 1}. {text(item.title)}
             </h2>
-            <SheetItem item={item} text={text} blockName={blockName} list={list} t={t} />
+            <SheetItem item={item} text={text} blockName={blockName} list={list} t={t} locale={locale} />
           </li>
         ))}
       </ol>
@@ -111,8 +117,8 @@ export default async function WorksheetPage({ params, searchParams }: Props) {
                   : item.kind === "order"
                     ? item.answer
                         .map((id) => item.items.findIndex((step) => step.id === id))
-                        .map((position) => String.fromCharCode(65 + position))
-                        .join(" → ")
+                        .map((position) => stepLetter(locale, position))
+                        .join(locale === "ar" ? " ← " : " → ")
                     : t("gridAnswer")}
               </li>
             ))}
@@ -131,45 +137,57 @@ function SheetItem({
   blockName,
   list,
   t,
+  locale,
 }: {
   item: WorksheetItem;
   text: (value: Parameters<typeof resolveText>[0]) => string;
   blockName: (type: string) => string;
   list: Intl.ListFormat;
   t: Translate;
+  locale: string;
 }) {
   if (item.kind === "grid") {
     return (
       <>
         {item.mission ? <p className="text-sm">{text(item.mission)}</p> : null}
         <div className="flex flex-wrap items-start gap-6">
-          {/* The board is a map: East is always to the right, in both languages. */}
-          <div
-            dir="ltr"
-            role="img"
-            aria-label={t("boardLabel", { cols: item.rows[0]?.length ?? 0, rows: item.rows.length })}
-            className="inline-grid border-2 border-ink"
-            style={{ gridTemplateColumns: `repeat(${item.rows[0]?.length ?? 1}, 2.75rem)` }}
-          >
-            {item.rows.flatMap((row, y) =>
-              [...row].map((tile, x) => {
-                const isStart = item.start.x === x && item.start.y === y;
-                return (
-                  <span
-                    key={`${x}-${y}`}
-                    className="grid size-11 place-items-center border border-ink/40 text-lg leading-none"
-                  >
-                    {isStart ? (
-                      <span className="whitespace-nowrap text-xs font-bold">
-                        🐰{ARROW[item.start.dir]}
-                      </span>
-                    ) : (
-                      TILE[tile] ?? ""
-                    )}
-                  </span>
-                );
-              }),
-            )}
+          <div className="flex flex-col gap-2">
+            {item.boards.length > 1 ? (
+              <p className="text-xs font-semibold">{t("allBoards", { count: item.boards.length })}</p>
+            ) : null}
+            <div className="flex flex-wrap gap-3">
+              {item.boards.map((board, boardIndex) => (
+                // The board is a map: East is always to the right, in both languages.
+                <div
+                  key={boardIndex}
+                  dir="ltr"
+                  role="img"
+                  aria-label={t("boardLabel", { cols: board.rows[0]?.length ?? 0, rows: board.rows.length })}
+                  className="inline-grid self-start border-2 border-ink"
+                  style={{ gridTemplateColumns: `repeat(${board.rows[0]?.length ?? 1}, 2.75rem)` }}
+                >
+                  {board.rows.flatMap((row, y) =>
+                    [...row].map((tile, x) => {
+                      const isStart = board.start.x === x && board.start.y === y;
+                      return (
+                        <span
+                          key={`${x}-${y}`}
+                          className="grid size-11 place-items-center border border-ink/40 text-lg leading-none"
+                        >
+                          {isStart ? (
+                            <span className="whitespace-nowrap text-xs font-bold">
+                              🐰{ARROW[board.start.dir]}
+                            </span>
+                          ) : (
+                            TILE[tile] ?? ""
+                          )}
+                        </span>
+                      );
+                    }),
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
           <div className="flex min-w-56 flex-1 flex-col gap-1">
             {item.given.length > 0 ? (
@@ -191,7 +209,7 @@ function SheetItem({
               {t("blocksYouCanUse")}: {list.format(item.blocks.filter((b) => b !== "bb_whenStart").map(blockName))}
             </p>
             <ol className="mt-1 flex flex-col">
-              {Array.from({ length: PROGRAM_LINES }, (_, i) => (
+              {Array.from({ length: item.lines }, (_, i) => (
                 <li key={i} className="flex h-8 items-end gap-2 border-b border-ink/40 text-xs text-ink-muted">
                   {i + 1}.
                 </li>
@@ -229,7 +247,7 @@ function SheetItem({
           {item.items.map((step, i) => (
             <li key={step.id} className="flex items-center gap-3">
               <span aria-hidden="true" className="inline-block h-7 w-9 shrink-0 border-2 border-ink" />
-              <span className="font-semibold">{String.fromCharCode(65 + i)}.</span>
+              <span className="font-semibold">{stepLetter(locale, i)}.</span>
               {text(step.text)}
             </li>
           ))}

@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 
 import type { Direction, GridVariantSpec } from "@/engine";
 import {
+  MIN_GOAL_HOPS,
   nextDirection,
   tileAt,
   withTile,
@@ -114,6 +115,11 @@ export function MazeDesigner({ rules, design, onChange, issues }: MazeDesignerPr
       text: t("check.startFree"),
     },
     { id: "reach", ok: !issues.some((i) => i.code === "unreachableGoal"), text: t("check.reachGoal") },
+    {
+      id: "far",
+      ok: counts.goals === 1 && !issues.some((i) => i.code === "goalTooClose" || i.code === "unreachableGoal"),
+      text: t("check.farEnough", { need: rules.minGoalHops ?? MIN_GOAL_HOPS }),
+    },
     ...(counts.carrots > 0
       ? [{ id: "reachCarrots", ok: !issues.some((i) => i.code === "unreachableCarrot"), text: t("check.reachCarrots") }]
       : []),

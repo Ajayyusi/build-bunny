@@ -11,7 +11,8 @@ interface Props {
 }
 
 // A private link: never indexed, never cached for anyone else.
-export const metadata: Metadata = { robots: { index: false, follow: false } };
+// The token is in the path: never send it on as a referrer, never index it.
+export const metadata: Metadata = { robots: { index: false, follow: false }, referrer: "no-referrer" };
 export const dynamic = "force-dynamic";
 
 /**

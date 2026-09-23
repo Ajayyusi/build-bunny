@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { requireApiPermission } from "@/modules/auth/server/api-guard";
 import { getSessionContext } from "@/modules/auth/server/session";
 import { buildLiveSnapshot } from "@/modules/analytics/live";
 import { getClassMatrix } from "@/modules/analytics/server/queries";
@@ -15,10 +16,17 @@ export async function GET(
   request: Request,
   { params }: { params: Promise<{ classId: string }> },
 ) {
-  const ctx = await getSessionContext();
-  if (!ctx || (ctx.role !== "TEACHER" && ctx.role !== "SCHOOL_ADMIN")) {
+  // Same licence rules as every other staff read (a suspended school's
+  // projector stops polling names and progress).
+  const session = await getSessionContext();
+  if (!session || (session.role !== "TEACHER" && session.role !== "SCHOOL_ADMIN")) {
     return NextResponse.json({ error: "UNAUTHENTICATED" }, { status: 401 });
   }
+  const gate = await requireApiPermission(
+    session.role === "SCHOOL_ADMIN" ? "analytics:school" : "analytics:classes",
+  );
+  if (gate instanceof NextResponse) return gate;
+  const ctx = gate;
   const { classId } = await params;
   const search = new URL(request.url).searchParams;
   const locale = search.get("locale") === "ar" ? "ar" : "en";

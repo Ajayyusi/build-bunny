@@ -272,9 +272,11 @@ export interface MyAssignment {
   teacherName: string;
   /**
    * Class mission: how many children in the class have finished the whole
-   * assignment, out of how many. Counts only — never which children.
+   * assignment, out of how many. Counts only — never which children — and
+   * null in classes under MIN_MISSION_CLASS, where "1 of 2" would single a
+   * classmate out.
    */
-  classFinished: number;
+  classFinished: number | null;
   classSize: number;
 }
 
@@ -376,11 +378,14 @@ export async function listMyStudentAssignments(ctx: SessionContext): Promise<MyA
   });
 }
 
+const MIN_MISSION_CLASS = 5;
+
 function classMission(
   levelIds: string[],
   roster: string[],
   doneByStudent: Map<string, Set<string>>,
-): { classFinished: number; classSize: number } {
+): { classFinished: number | null; classSize: number } {
+  if (roster.length < MIN_MISSION_CLASS) return { classFinished: null, classSize: roster.length };
   if (levelIds.length === 0) return { classFinished: 0, classSize: roster.length };
   const classFinished = roster.filter((userId) => {
     const done = doneByStudent.get(userId);
