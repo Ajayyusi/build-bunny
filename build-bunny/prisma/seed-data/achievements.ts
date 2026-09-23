@@ -106,14 +106,17 @@ export const ACHIEVEMENTS: AchievementSeed[] = [
     order: 8,
   },
   {
+    // Slug kept for rows already awarded; the badge itself is now "days
+    // played", never "days in a row" — nothing to protect, nothing that
+    // resets over a holiday (no streak pressure on children).
     slug: "seven-day-streak",
-    name: { en: "Seven-Day Streak", ar: "سلسلة سبعة أيام" },
+    name: { en: "Seven Days of Coding", ar: "سبعة أيام من البرمجة" },
     description: {
-      en: "Play on 7 school days in a row.",
-      ar: "تدرّب سبعة أيام دراسية متتالية.",
+      en: "Play on 7 different days — any days, in any order.",
+      ar: "تدرّب في 7 أيام مختلفة — أي أيام، وبأي ترتيب.",
     },
-    icon: "🔥",
-    criteria: { type: "STREAK_DAYS", days: 7 },
+    icon: "📅",
+    criteria: { type: "ACTIVE_DAYS", days: 7 },
     order: 9,
   },
   {

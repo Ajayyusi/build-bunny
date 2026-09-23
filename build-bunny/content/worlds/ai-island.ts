@@ -26,6 +26,42 @@ type AiSimDraft = z.input<typeof aiSimPayload>;
 
 export const aiIsland: WorldFixture = {
   slug: "ai-island",
+  // Story beats, friend and Power — docs/build-bunny/STORY.md.
+  story: {
+    beats: [
+      {
+        pose: "waving",
+        text: {
+          en: "Coco the Parrot learns everything by copying — show her a berry, she remembers it. The island's sorting machine works the same way.",
+          ar: "الببغاء كوكو تتعلّم كل شيء بالتقليد — أرِها حبة توت وستتذكّرها. وآلة الفرز في الجزيرة تعمل بالطريقة نفسها.",
+        },
+      },
+      {
+        pose: "thinking",
+        text: {
+          en: "This time there's no program to write. I only get better by the examples you choose. Choose well, and I'll sort berries I've never seen.",
+          ar: "هذه المرة لا يوجد برنامج لتكتبه. أنا أتحسّن فقط بالأمثلة التي تختارها. اختر جيدًا، وسأفرز حبات توت لم أرها من قبل.",
+        },
+      },
+      {
+        pose: "pointing",
+        text: {
+          en: "And watch out for that nosy app on the beach. Not everything that asks deserves an answer.",
+          ar: "وانتبه لذلك التطبيق الفضولي على الشاطئ. ليس كل من يسأل يستحق إجابة.",
+        },
+      },
+    ],
+  },
+  character: {
+    name: { en: "Coco the Parrot", ar: "الببغاء كوكو" },
+    role: { en: "Learns only by copying what she's shown", ar: "تتعلّم فقط بتقليد ما تراه" },
+    glyph: "🦜",
+  },
+  power: {
+    name: { en: "Learning-by-Example Power", ar: "قوة التعلّم بالأمثلة" },
+    idea: { en: "A machine learns from the examples you choose.", ar: "تتعلّم الآلة من الأمثلة التي تختارها." },
+    glyph: "🫐",
+  },
   name: { en: "AI Island", ar: "جزيرة الذكاء الاصطناعي" },
   tagline: {
     en: "What makes a machine smart? Come and find out.",

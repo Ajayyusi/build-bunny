@@ -27,6 +27,18 @@ export function provisionStudent(name: string): ProvisionedStudent {
 }
 
 /**
+ * Fast-forward a provisioned student to a level (dev-only script: every
+ * earlier level is marked complete, the target reset to its first beat).
+ */
+export function skipTo(levelSlug: string, username: string): void {
+  const bare = username.replace(/^demo__/, "");
+  if (!/^[a-z0-9-]+$/.test(levelSlug) || !/^[a-z0-9]+$/.test(bare)) {
+    throw new Error(`unsafe skipTo arguments: ${levelSlug} ${username}`);
+  }
+  execSync(`npm run dev:skip-to -- ${levelSlug} ${bare}`, { encoding: "utf8", stdio: "ignore" });
+}
+
+/**
  * Signs in through the auth API (the same endpoint the student login form
  * calls). The session cookie lands in the page's browser context.
  */

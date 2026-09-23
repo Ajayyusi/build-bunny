@@ -336,6 +336,8 @@ describe("playthrough — every shipped level is winnable by its own solution", 
       "ai-island",
       "data-desert",
       "ml-lab",
+      "code-city",
+      "inventor-island",
     ]);
   });
 
@@ -431,7 +433,8 @@ describe("playthrough — every shipped level is winnable by its own solution", 
 
     // Finishing every world must produce a verifiable certificate per world
     // — six of them now that Data Desert and ML Lab are real content.
-    expect(certificates.length).toBe(6);
+    // One certificate per world completed, and every world is now playable.
+    expect(certificates.length).toBe(8);
     for (const cert of certificates) {
       const publicView = await verifyCertificate(cert.verifySlug);
       expect(publicView, `certificate ${cert.serial} does not verify`).not.toBeNull();

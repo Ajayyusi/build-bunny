@@ -530,6 +530,8 @@ describe("attempt submission pipeline", () => {
     expect(lastBody.worldCompleted).toEqual({
       slug: worldSlug,
       name: { en: "Grading World" },
+      // The test world authors no Power; a real world's Power rides here.
+      power: null,
     });
     expect(lastBody.newAchievements).toEqual([]); // loop-fan already earned
 

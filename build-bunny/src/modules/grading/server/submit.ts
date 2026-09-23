@@ -17,8 +17,10 @@ import { isLevelEntitled } from "@/modules/curriculum/server/entitlement";
 import { recomputeUnlocks } from "@/modules/learning/server/adventure";
 import {
   localizedText,
+  worldPowerSchema,
   XP_BY_DIFFICULTY,
   type LocalizedText,
+  type WorldPower,
 } from "@/modules/curriculum/schemas";
 import { getPublishedLevelSnapshot } from "@/modules/curriculum/server/queries";
 import { issueWorldCertificate } from "@/modules/certificates/server/issue";
@@ -78,7 +80,7 @@ export interface AttemptResponse {
   xpTotal: number;
   newAchievements: NewAchievement[];
   unlockedLevelIds: string[];
-  worldCompleted: { slug: string; name: LocalizedText } | null;
+  worldCompleted: { slug: string; name: LocalizedText; power: WorldPower | null } | null;
   /** Set only on the run that completes a world AND issues (or already holds) its certificate. */
   certificate: { serial: string; verifySlug: string } | null;
   feedback: { code: string; data?: Record<string, unknown> } | null;
@@ -454,14 +456,19 @@ export async function submitAttempt(
 
     // World completion: only a run that just completed a level can complete
     // a world. Checked inside the tx so it sees this run's progress row.
-    let worldCompleted: { id: string; slug: string; name: LocalizedText } | null = null;
+    let worldCompleted: {
+      id: string;
+      slug: string;
+      name: LocalizedText;
+      power: WorldPower | null;
+    } | null = null;
     if (firstCompletion) {
       const level = await tx.level.findUnique({
         where: { id: levelId },
         select: {
           module: {
             select: {
-              world: { select: { id: true, slug: true, name: true, horizon: true } },
+              world: { select: { id: true, slug: true, name: true, horizon: true, power: true } },
             },
           },
         },
@@ -486,10 +493,14 @@ export async function submitAttempt(
         });
         if (publishedLevels.length > 0 && completedCount === publishedLevels.length) {
           const name = localizedText.safeParse(world.name);
+          // The Power is authored data: parsed, never cast, so a malformed
+          // column costs the celebration its Power card and nothing else.
+          const power = worldPowerSchema.safeParse(world.power);
           worldCompleted = {
             id: world.id,
             slug: world.slug,
             name: name.success ? name.data : { en: world.slug },
+            power: power.success ? power.data : null,
           };
         }
       }
@@ -560,7 +571,11 @@ export async function submitAttempt(
     newAchievements: txResult.newAchievements,
     unlockedLevelIds,
     worldCompleted: txResult.worldCompleted
-      ? { slug: txResult.worldCompleted.slug, name: txResult.worldCompleted.name }
+      ? {
+          slug: txResult.worldCompleted.slug,
+          name: txResult.worldCompleted.name,
+          power: txResult.worldCompleted.power,
+        }
       : null,
     certificate,
     feedback: grade.primaryFeedback,

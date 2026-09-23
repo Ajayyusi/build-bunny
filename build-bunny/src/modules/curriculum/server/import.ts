@@ -153,6 +153,9 @@ async function runImport(
             tagline: toJson(worldFx.tagline),
             theme: worldFx.theme,
             horizon: worldFx.horizon,
+            story: toJson(worldFx.story),
+            character: toJson(worldFx.character),
+            power: toJson(worldFx.power),
           },
         });
         worldId = created.id;
@@ -163,12 +166,18 @@ async function runImport(
         tagline: existingWorld.tagline,
         theme: existingWorld.theme,
         horizon: existingWorld.horizon,
+        story: existingWorld.story,
+        character: existingWorld.character,
+        power: existingWorld.power,
       };
       const target = {
         name: worldFx.name,
         tagline: worldFx.tagline ?? null,
         theme: worldFx.theme,
         horizon: worldFx.horizon,
+        story: worldFx.story ?? null,
+        character: worldFx.character ?? null,
+        power: worldFx.power ?? null,
       };
       if (sameContent(current, target)) {
         diff.unchanged.push(worldLabel);
@@ -182,6 +191,9 @@ async function runImport(
               tagline: toJson(worldFx.tagline),
               theme: worldFx.theme,
               horizon: worldFx.horizon,
+              story: toJson(worldFx.story),
+              character: toJson(worldFx.character),
+              power: toJson(worldFx.power),
             },
           });
         }

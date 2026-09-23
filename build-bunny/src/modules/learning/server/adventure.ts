@@ -7,7 +7,13 @@ import type { SessionContext } from "@/modules/auth/server/session";
 import {
   localizedText,
   moduleUnlockRuleSchema,
+  worldCharacterSchema,
+  worldPowerSchema,
+  worldStorySchema,
   type LocalizedText,
+  type WorldCharacter,
+  type WorldPower,
+  type WorldStory,
 } from "@/modules/curriculum/schemas";
 
 /**
@@ -61,6 +67,10 @@ export interface AdventureWorldNode {
   tagline: LocalizedText | null;
   theme: string;
   horizon: boolean;
+  /** Opening cutscene, friend and finale Power — null when not authored. */
+  story: WorldStory | null;
+  character: WorldCharacter | null;
+  power: WorldPower | null;
   state: "LOCKED" | "AVAILABLE" | "CURRENT" | "COMPLETED" | "HORIZON";
   completedLevels: number;
   totalLevels: number;
@@ -123,6 +133,13 @@ function parseSnapshotText(snapshot: unknown): SnapshotText | null {
 function asText(value: unknown, fallback: string): LocalizedText {
   const parsed = localizedText.safeParse(value);
   return parsed.success ? parsed.data : { en: fallback };
+}
+
+/** Story JSON columns are authored data: parse, never cast. */
+function parseOrNull<T>(schema: { safeParse(v: unknown): { success: boolean; data?: T } }, value: unknown): T | null {
+  if (value === null || value === undefined) return null;
+  const parsed = schema.safeParse(value);
+  return parsed.success ? (parsed.data as T) : null;
 }
 
 function asTextOrNull(value: unknown): LocalizedText | null {
@@ -218,6 +235,10 @@ interface LoadedWorld {
   tagline: unknown;
   theme: string;
   horizon: boolean;
+  /** Raw JSON columns; parsed against their schemas when the node is built. */
+  story: unknown;
+  character: unknown;
+  power: unknown;
   modules: LoadedModule[];
 }
 
@@ -240,6 +261,9 @@ async function loadProgramContent(programId: string): Promise<LoadedWorld[]> {
           tagline: true,
           theme: true,
           horizon: true,
+          story: true,
+          character: true,
+          power: true,
           modules: {
             orderBy: { order: "asc" },
             select: {
@@ -277,6 +301,9 @@ async function loadProgramContent(programId: string): Promise<LoadedWorld[]> {
     tagline: world.tagline,
     theme: world.theme,
     horizon: world.horizon,
+    story: world.story,
+    character: world.character,
+    power: world.power,
     modules: world.horizon
       ? []
       : world.modules.map((mod) => ({
@@ -420,6 +447,9 @@ export async function computeAdventureState(ctx: SessionContext): Promise<Advent
       tagline: asTextOrNull(world.tagline),
       theme: world.theme,
       horizon: world.horizon,
+      story: parseOrNull(worldStorySchema, world.story),
+      character: parseOrNull(worldCharacterSchema, world.character),
+      power: parseOrNull(worldPowerSchema, world.power),
       state,
       completedLevels,
       totalLevels,

@@ -146,7 +146,12 @@ export interface AttemptResponse {
   xpTotal: number;
   newAchievements: { slug: string; name: unknown; icon: string }[];
   unlockedLevelIds: string[];
-  worldCompleted: { slug: string; name: unknown } | null;
+  worldCompleted: {
+    slug: string;
+    name: unknown;
+    /** The Power this world earns (STORY.md) — null for worlds without one. */
+    power: { name: unknown; idea: unknown; glyph: string } | null;
+  } | null;
   feedback: ActivityFeedback | null;
   gradeMismatch: boolean;
 }

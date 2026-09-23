@@ -3,7 +3,8 @@ import { programs } from "./programs";
 import { aiIsland } from "./worlds/ai-island";
 import { bunnyMeadow } from "./worlds/bunny-meadow";
 import { dataDesert } from "./worlds/data-desert";
-import { horizonWorlds } from "./worlds/horizons";
+import { codeCity } from "./worlds/code-city";
+import { inventorIsland } from "./worlds/inventor-island";
 import { logicForest } from "./worlds/logic-forest";
 import { mlLab } from "./worlds/ml-lab";
 import { robotLab } from "./worlds/robot-lab";
@@ -18,8 +19,8 @@ export interface ContentBundle {
   worlds: WorldFixture[];
 }
 
-/** Everything the import service needs: Worlds 1–6 + the horizon roadmap. */
+/** Everything the import service needs: all eight playable worlds. */
 export const bundle: ContentBundle = {
   programs,
-  worlds: [bunnyMeadow, logicForest, robotLab, aiIsland, dataDesert, mlLab, ...horizonWorlds],
+  worlds: [bunnyMeadow, logicForest, robotLab, aiIsland, dataDesert, mlLab, codeCity, inventorIsland],
 };

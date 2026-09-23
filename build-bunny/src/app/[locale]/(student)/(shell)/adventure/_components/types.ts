@@ -1,3 +1,5 @@
+import type { BunnyState } from "@/ui";
+
 /**
  * Serializable view-model for the adventure trail. The page (server) resolves
  * localized text and fetches level intros up front, so the client components
@@ -53,6 +55,12 @@ export interface TrailWorldVM {
   starsEarned: number;
   totalStars: number;
   levels: TrailLevelVM[];
+  /** World slug — keys the per-device "story seen" memory. */
+  slug: string;
+  /** Opening scene, resolved to display strings; null when not authored. */
+  story: { pose: BunnyState; text: string }[] | null;
+  character: { name: string; role: string; glyph: string } | null;
+  power: { name: string; idea: string; glyph: string } | null;
 }
 
 export interface HorizonWorldVM {

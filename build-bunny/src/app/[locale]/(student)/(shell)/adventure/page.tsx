@@ -129,6 +129,27 @@ function toTrailWorld(
     starsEarned: world.starsEarned,
     totalStars: world.totalStars,
     levels,
+    slug: world.slug,
+    story: world.story
+      ? world.story.beats.map((beat) => ({
+          pose: beat.pose,
+          text: resolveText(beat.text, locale),
+        }))
+      : null,
+    character: world.character
+      ? {
+          name: resolveText(world.character.name, locale),
+          role: resolveText(world.character.role, locale),
+          glyph: world.character.glyph,
+        }
+      : null,
+    power: world.power
+      ? {
+          name: resolveText(world.power.name, locale),
+          idea: resolveText(world.power.idea, locale),
+          glyph: world.power.glyph,
+        }
+      : null,
   };
 }
 
@@ -181,7 +202,7 @@ export default async function AdventurePage({ params }: Props) {
     <div className="flex flex-col gap-6">
       <MusicScene track="map" />
       <PageHeader title={t("pathTitle")} description={t("pathSubtitle")} />
-      <AdventureTrail worlds={trailWorlds} />
+      <AdventureTrail worlds={trailWorlds} userId={ctx.userId} />
       <HorizonBand worlds={horizonWorlds} />
     </div>
   );

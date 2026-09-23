@@ -859,6 +859,7 @@ export function TeachPlayer({
           worldCompletedName={
             server.worldCompleted ? resolveLocalized(server.worldCompleted.name, locale) : null
           }
+          worldPower={server.worldCompleted?.power ?? null}
           gradeMismatch={server.gradeMismatch}
           saving={false}
           saveFailed={false}

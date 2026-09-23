@@ -17,7 +17,7 @@ Status legend: **✅ implemented & tested** · **🟡 partial** · **⛔ blocked
 | `fix/first-run-core-bugs` | §1 core bugs + first five minutes | ready for review |
 | `feat/audio` | §2 sound, music, narration | ready for review |
 | `feat/tablet-player-a11y` | §3 Blockly on touch, §7 accessibility | ready for review |
-| `feat/story-worlds` | §3 story, 8 worlds, cutscenes, finales | not started |
+| `feat/story-worlds` | §3 story, 8 worlds, cutscenes, finales | ready for review |
 | `feat/robo-help` | §5 help tools, adaptive hints | not started |
 | `feat/curriculum-expansion` | §4 activities, age bands, levels toward 100 | not started |
 | `feat/classroom-parent` | §6 classroom + parent | not started |
@@ -83,10 +83,11 @@ they should be reviewed and merged in the order above.
 
 | Item | Status | Evidence / files |
 |---|---|---|
-| Connected story across 8 worlds, characters, finales | ⬜ | |
-| Short skippable cutscenes | ⬜ | |
-| Code City + Inventor Island playable | ⬜ | currently horizon art only |
-| Better failure feedback / explanations / celebrations / next flow | 🟡 | first-run fixes above |
+| Connected story across 8 worlds, characters, finales | ✅ | `docs/build-bunny/STORY.md` (the eight Powers for the Inventor's Fair); every world authored with story beats, friend and Power in en + ar (`World.story/character/power`, migration `20260923150000_world_story`); content test enforces it; map shows friend + Power; the finale run awards the Power on the success card |
+| Short skippable cutscenes | ✅ | `WorldIntro.tsx` — 3 lines, skippable at every line, shown once per child per device, replayable from the card's Story button; narrated when voice is on. e2e `story.spec.ts` |
+| Code City + Inventor Island playable | 🟡 | Code City: 8 levels (3 code-reading, 1 grid, 3 debugging incl. a 3-bug finale, 1 sequencing). Inventor Island: "The Workbench" — 4 open-ended levels with many right answers. All 12 pass the real solvability gates in en + ar. **Not yet:** the maze builder and creative projects that make the island the Fair (`feat/curriculum-expansion`) |
+| Better failure feedback / explanations / celebrations / next flow | 🟡 | first-run fixes; Power card on world completion; world-complete + next-level flow unchanged |
+| Streak pressure in rewards | ✅ | "Seven-Day Streak" (7 consecutive school days) is now "Seven Days of Coding" — 7 different days, never consecutive (`ACTIVE_DAYS` criterion) |
 | Blockly on touch: larger targets, undo/redo, duplicate/delete, reset confirm | ✅ | `BlocklyWorkspace.tsx` (1.15× start scale on coarse pointers, `undo/redo/deleteSelected`), build toolbar in `GridPlayer.tsx`, reset confirmation dialog; duplicate/delete also via Blockly's long-press menu. e2e `tablet-tools.spec.ts` |
 | Autosave + exact resume after interruption | ✅ | Per-child device mirror on every change (`shared/local-draft.ts`), keep-alive flush on pagehide/hidden (`api/levels/[levelId]/draft`), "Continue building" briefing. e2e reloads inside the 2 s debounce and the block is still there and runs |
 | Accessible alternative to drag-only input | ✅ | Tap-to-add palette (`shared/BlockPalette.tsx`) snaps blocks after the selection / inside an empty loop / at the end, with the placement announced; e2e solves a level with zero drags |
@@ -136,6 +137,14 @@ they should be reviewed and merged in the order above.
 ---
 
 ## Checkpoint log
+
+### Checkpoint 4 — 2026-09-23 (story + eight worlds)
+
+- **Live:** nothing new.
+- **On branches:** `feat/story-worlds` (stacked on `feat/tablet-player-a11y`).
+- **Tested:** content gates for all 50 levels (solvability, reachability, 3-star solutions), story completeness test, unit + integration suite, e2e `story.spec.ts` (scene once/skip/replay; Power awarded on the finishing run), map + scene screenshots en.
+- **Not tested:** Arabic story copy by a native speaker (authored, flagged for review); hardware.
+- **Next step:** `feat/robo-help`.
 
 ### Checkpoint 3 — 2026-09-23 (tablet player + accessibility)
 

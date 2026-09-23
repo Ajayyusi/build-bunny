@@ -63,7 +63,8 @@ curl -s https://<your-domain>/api/health
 ```
 
 `content.publishedLevels` is the number students can reach. Compare it with
-the bundle: 37 levels across 6 playable worlds at the time of writing.
+the bundle: 50 levels across 8 playable worlds at the time of writing (each world also
+carries its story scene, friend and Power — `World.story/character/power`).
 
 **On Vercel this now happens automatically.** The `vercel-build` script runs
 the content sync before `next build`, using the `DATABASE_URL` Vercel already
@@ -149,7 +150,7 @@ applied migration count matches what's on disk; `503` otherwise. Shape:
 
 (`publishedLevels` reflects whatever the database actually has published —
 the example above matches a freshly seeded database with the full current
-curriculum of 37 levels. A customer database mid-rollout may legitimately
+curriculum of 50 levels. A customer database mid-rollout may legitimately
 show fewer.)
 
 `migrations.expected` is `null` (never fails health on its own) when the

@@ -39,6 +39,42 @@ const startWorkspace = {
 
 export const bunnyMeadow: WorldFixture = {
   slug: "bunny-meadow",
+  // Story beats, friend and Power — docs/build-bunny/STORY.md.
+  story: {
+    beats: [
+      {
+        pose: "waving",
+        text: {
+          en: "Hi! I'm Robo Bunny. I just woke up in this meadow — and I can't move a whisker until someone tells me how.",
+          ar: "مرحبًا! أنا الأرنب الآلي. استيقظت للتوّ في هذا المرج — ولا أستطيع أن أحرّك شاربًا واحدًا حتى يخبرني أحد كيف.",
+        },
+      },
+      {
+        pose: "thinking",
+        text: {
+          en: "Grandma Clover needs carrots for the Spring Feast. If you give me the instructions, I'll do the hopping.",
+          ar: "الجدّة كلوفر تحتاج إلى جزر لعيد الربيع. إن أعطيتني التعليمات، فسأتولّى أنا القفز.",
+        },
+      },
+      {
+        pose: "excited",
+        text: {
+          en: "Snap a block, press Run, and watch me go. Let's find out what we can do together!",
+          ar: "ألصِق لبنة، واضغط تشغيل، وشاهدني أنطلق. لنكتشف ما نستطيع فعله معًا!",
+        },
+      },
+    ],
+  },
+  character: {
+    name: { en: "Grandma Clover", ar: "الجدّة كلوفر" },
+    role: { en: "Keeper of the carrot garden", ar: "راعية حديقة الجزر" },
+    glyph: "🐰",
+  },
+  power: {
+    name: { en: "Sequence Power", ar: "قوة التسلسل" },
+    idea: { en: "One clear instruction after another.", ar: "تعليمة واضحة تلو الأخرى." },
+    glyph: "🧩",
+  },
   name: { en: "Bunny Meadow", ar: "مرج الأرنب" },
   tagline: {
     en: "Every explorer starts with a single hop.",
