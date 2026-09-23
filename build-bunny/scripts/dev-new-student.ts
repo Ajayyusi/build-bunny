@@ -4,6 +4,7 @@
  * uses. For first-run / onboarding QA and the e2e suite.
  *
  * Usage: npx tsx scripts/dev-new-student.ts <username> [password]
+ * Prints one JSON line: { username, userId, className, firstLevelId, … }.
  * Refuses to run with NODE_ENV=production.
  */
 import "dotenv/config";
@@ -59,7 +60,28 @@ async function main() {
   await db.classMembership.create({
     data: { schoolId: school.id, classId: klass.id, userId: created.userId, role: "STUDENT" },
   });
-  console.log(`created DEMO / ${username} (${created.userId}) in ${klass.name}`);
+  // The first level of the school's programme, for tests that open a level
+  // by URL before anything has unlocked it.
+  const firstLevel = await db.level.findFirst({
+    where: {
+      status: "PUBLISHED",
+      module: {
+        order: 1,
+        world: { horizon: false, programs: { some: { order: 1 } } },
+      },
+    },
+    orderBy: { order: "asc" },
+    select: { id: true, slug: true },
+  });
+  console.log(
+    JSON.stringify({
+      username: `demo__${username}`,
+      userId: created.userId,
+      className: klass.name,
+      firstLevelId: firstLevel?.id ?? null,
+      firstLevelSlug: firstLevel?.slug ?? null,
+    }),
+  );
   await db.$disconnect();
 }
 
