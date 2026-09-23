@@ -14,7 +14,7 @@ import { Button, cn, useReducedMotion } from "@/ui";
 import { PlayerSoundControls } from "@/modules/audio/AudioControls";
 import { runForPlayback } from "./client-run";
 import { HintDrawer, type HintTierState } from "./shared/HintDrawer";
-import { postAttempt } from "./shared/attempt-outbox";
+import { postAttempt, runIdFor } from "./shared/attempt-outbox";
 import { LearnScene } from "./shared/LearnScene";
 import { IntroOverlay } from "./shared/IntroOverlay";
 import { MissionStrip } from "./shared/MissionStrip";
@@ -203,7 +203,10 @@ export function LearnPlayer({
       return;
     }
     setNudge(null);
-    void submit(crypto.randomUUID(), filled);
+    void submit(
+      runIdFor(submission && { id: submission.id, saveFailed: submission.saveFailed, answer: submission.blockType }, filled),
+      filled,
+    );
   };
 
   const handleRetrySave = () => {

@@ -751,7 +751,8 @@
         "easy": "Easy",
         "justRight": "Just right",
         "tricky": "Tricky",
-        "thanks": "Thanks — your teacher will see how the class found this level."
+        "thanks": "Thanks — your teacher will see how the class found this level.",
+        "notSaved": "That didn't save. Tap your answer again when you're back online."
       },
       "firstSteps": {
         "add": "Tap “+ Add block” and pick a block to start your program.",

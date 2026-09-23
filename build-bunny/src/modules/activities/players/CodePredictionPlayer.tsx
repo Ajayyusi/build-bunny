@@ -10,7 +10,7 @@ import { Button, cn, useReducedMotion } from "@/ui";
 import { PlayerSoundControls } from "@/modules/audio/AudioControls";
 import { HintDrawer, type HintTierState } from "./shared/HintDrawer";
 import { RoboHelp, type HelpTopic } from "./shared/RoboHelp";
-import { postAttempt } from "./shared/attempt-outbox";
+import { postAttempt, runIdFor } from "./shared/attempt-outbox";
 import { PredictScene } from "./shared/PredictScene";
 import { IntroOverlay } from "./shared/IntroOverlay";
 import { MissionStrip } from "./shared/MissionStrip";
@@ -106,7 +106,10 @@ export function CodePredictionPlayer({
 
   const handleSubmit = () => {
     if (!selected || submitting) return;
-    void submit(crypto.randomUUID(), selected);
+    void submit(
+      runIdFor(submission && { id: submission.id, saveFailed: submission.saveFailed, answer: submission.optionId }, selected),
+      selected,
+    );
   };
 
   const handleRetrySubmit = () => {

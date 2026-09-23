@@ -62,6 +62,12 @@ export interface ActivityIntro {
    * then points at "Add block", and then at Run, until the first run.
    */
   firstSteps?: boolean;
+  /**
+   * Version of the server's saved draft (its save time, ISO) or null. This
+   * device's mirror of the blocks is trusted only while the server still
+   * holds the version the mirror was based on.
+   */
+  draftVersion?: string | null;
 }
 
 // ── Per-type student-facing payloads (answer-free by construction) ────────
@@ -90,6 +96,10 @@ export interface MazeActivityPayload {
   board: { width: number; height: number };
   palette: ("#" | "W" | "C")[];
   mustInclude: { obstacles: number; carrots: number };
+  /** Shortest route to the burrow, in hops, at least (same rule as the server). */
+  minGoalHops: number;
+  /** Blocks the program must use (secondary checks, as on the server). */
+  requiredBlocks: string[];
   toolbox: { type: string; limit?: number }[];
   budgets: { maxCommands: number };
   starCriteria: { threeStarMaxBlocks?: number };

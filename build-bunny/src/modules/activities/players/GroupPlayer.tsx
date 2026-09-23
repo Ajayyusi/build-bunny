@@ -17,7 +17,7 @@ import { BunnyMascot, Button, cn, useReducedMotion } from "@/ui";
 import { PlayerSoundControls } from "@/modules/audio/AudioControls";
 import { GroupScene } from "./GroupScene";
 import { Walkthrough } from "./shared/Walkthrough";
-import { postAttempt } from "./shared/attempt-outbox";
+import { postAttempt, runIdFor } from "./shared/attempt-outbox";
 import { HintDrawer } from "./shared/HintDrawer";
 import { RoboHelp, type HelpTopic } from "./shared/RoboHelp";
 import { SuccessOverlay } from "./shared/SuccessOverlay";
@@ -108,6 +108,8 @@ export function GroupPlayer({
   // PATTERN_RECOGNITION levels had no hint drawer either — same fix as
   // TeachPlayer: authored hints were unreachable from the player.
   const hints = useHints(intro.levelId, intro.hintsUsedTiers, revealHintAction);
+  // The last run whose save has not been confirmed (see runIdFor).
+  const lastRunRef = useRef<{ id: string; saveFailed: boolean; answer: unknown } | null>(null);
   // "Ask Robo Bunny": why an answer was wrong, the smallest hint, and what
   // the level's idea is. Opens on a topic from the failure banner.
   const [roboOpen, setRoboOpen] = useState(false);
@@ -293,20 +295,22 @@ export function GroupPlayer({
     setSubmitting(true);
     // A real attempt unlocks the next hint tier without the 60s wait.
     setLastSubmitAt(Date.now());
+    // The SEED is the answer — on training levels the grader replays
+    // the loop itself. round2 mirrors the wire format's 0.01 grid.
+    const answer = {
+      markers: seed.map((m) => ({ size: round2(m.size), color: round2(m.color) })),
+      excluded: [...excluded],
+    };
+    // Tapping again after a failed save resends the same run.
+    const runId = runIdFor(lastRunRef.current, answer);
+    lastRunRef.current = { id: runId, saveFailed: true, answer };
     try {
       const res = await postAttempt(intro.playerKey, `/api/levels/${intro.levelId}/attempts`, {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          attemptRunId: crypto.randomUUID(),
-          // The SEED is the answer — on training levels the grader replays
-          // the loop itself. round2 mirrors the wire format's 0.01 grid.
-          answer: {
-            markers: seed.map((m) => ({ size: round2(m.size), color: round2(m.color) })),
-            excluded: [...excluded],
-          },
-        }),
+        body: JSON.stringify({ attemptRunId: runId, answer }),
       });
+      if (res.ok) lastRunRef.current = null;
       if (!res.ok) {
         setResult({ verdict: "ERROR" });
         return;

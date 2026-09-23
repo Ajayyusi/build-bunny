@@ -60,10 +60,36 @@ function runIdOf(body: string): string | null {
 
 /**
  * The server answered, so the run is settled — accepted, or refused for a
- * reason a resend cannot fix (4xx). 429 and 5xx are worth another try.
+ * reason a resend cannot fix. Kept for another try: 401 (the session
+ * expired; the child signs in again), 412 (sent under another child's
+ * session), 429 and 5xx.
  */
 function settled(status: number): boolean {
-  return (status >= 200 && status < 300) || (status >= 400 && status < 500 && status !== 429);
+  if (status >= 200 && status < 300) return true;
+  return status >= 400 && status < 500 && status !== 401 && status !== 412 && status !== 429;
+}
+
+/** Remove one run, re-reading storage so runs queued meanwhile survive. */
+function removeRun(runId: string): void {
+  const outbox = read();
+  if (!(runId in outbox)) return;
+  delete outbox[runId];
+  write(outbox);
+}
+
+/** Runs with a request on the wire right now — never sent twice at once. */
+const inFlight = new Set<string>();
+/** A hung request must not block every later resend. */
+const SEND_TIMEOUT_MS = 20_000;
+
+function send(url: string, init: RequestInit, playerKey: string): Promise<Response> {
+  const controller = new AbortController();
+  const timer = window.setTimeout(() => controller.abort(), SEND_TIMEOUT_MS);
+  const headers = new Headers(init.headers);
+  headers.set("X-BB-Player", playerKey);
+  return fetch(url, { ...init, headers, signal: controller.signal }).finally(() =>
+    window.clearTimeout(timer),
+  );
 }
 
 /** Drop-in for `fetch` on the attempts endpoint: queue, send, settle. */
@@ -77,14 +103,15 @@ export async function postAttempt(
     const outbox = read();
     outbox[runId] = { playerKey, url, body: init.body, queuedAt: Date.now() };
     write(outbox);
+    inFlight.add(runId);
   }
-  const response = await fetch(url, init);
-  if (runId && settled(response.status)) {
-    const outbox = read();
-    delete outbox[runId];
-    write(outbox);
+  try {
+    const response = await send(url, init, playerKey);
+    if (runId && settled(response.status)) removeRun(runId);
+    return response;
+  } finally {
+    if (runId) inFlight.delete(runId);
   }
-  return response;
 }
 
 let flushing = false;
@@ -95,33 +122,50 @@ export async function flushOutbox(playerKey: string): Promise<number> {
   flushing = true;
   let sent = 0;
   try {
-    const outbox = read();
     const now = Date.now();
-    for (const [runId, entry] of Object.entries(outbox)) {
+    // A snapshot to iterate; every change below re-reads storage, so a run
+    // queued while this loop waits on the network is never overwritten.
+    for (const [runId, entry] of Object.entries(read())) {
       if (now - entry.queuedAt > MAX_AGE_MS) {
-        delete outbox[runId];
+        removeRun(runId);
         continue;
       }
-      if (entry.playerKey !== playerKey) continue;
+      if (entry.playerKey !== playerKey || inFlight.has(runId)) continue;
+      inFlight.add(runId);
       try {
-        const response = await fetch(entry.url, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: entry.body,
-        });
+        const response = await send(
+          entry.url,
+          { method: "POST", headers: { "Content-Type": "application/json" }, body: entry.body },
+          playerKey,
+        );
         if (settled(response.status)) {
-          delete outbox[runId];
+          removeRun(runId);
           sent += 1;
         }
       } catch {
-        break; // still offline — try again on the next "online"
+        break; // still offline (or timed out) — try again on the next "online"
+      } finally {
+        inFlight.delete(runId);
       }
     }
-    write(outbox);
   } finally {
     flushing = false;
   }
   return sent;
+}
+
+/**
+ * The run id for a submission: the SAME id as the previous one when that
+ * save failed and the answer has not changed. Tapping Check again while
+ * offline then resends one run (the server de-duplicates it) instead of
+ * queuing a new attempt per tap.
+ */
+export function runIdFor(
+  previous: { id: string; saveFailed: boolean; answer: unknown } | null,
+  answer: unknown,
+): string {
+  if (previous?.saveFailed && JSON.stringify(previous.answer) === JSON.stringify(answer)) return previous.id;
+  return crypto.randomUUID();
 }
 
 /** How many runs this child still has waiting on this device. */

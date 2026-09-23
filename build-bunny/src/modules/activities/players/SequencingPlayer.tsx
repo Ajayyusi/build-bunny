@@ -9,7 +9,7 @@ import { Button, cn, useReducedMotion } from "@/ui";
 import { PlayerSoundControls } from "@/modules/audio/AudioControls";
 import { HintDrawer, type HintTierState } from "./shared/HintDrawer";
 import { RoboHelp, type HelpTopic } from "./shared/RoboHelp";
-import { postAttempt } from "./shared/attempt-outbox";
+import { postAttempt, runIdFor } from "./shared/attempt-outbox";
 import { SequenceScene } from "./shared/SequenceScene";
 import { IntroOverlay } from "./shared/IntroOverlay";
 import { MissionStrip } from "./shared/MissionStrip";
@@ -157,7 +157,10 @@ export function SequencingPlayer({
 
   const handleSubmit = () => {
     if (submitting || phase === "result") return;
-    void submit(crypto.randomUUID(), order);
+    void submit(
+      runIdFor(submission && { id: submission.id, saveFailed: submission.saveFailed, answer: submission.order }, order),
+      order,
+    );
   };
 
   const handleRetrySubmit = () => {

@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { flushOutbox, pendingCount, postAttempt } from "@/modules/activities/players/shared/attempt-outbox";
+import { flushOutbox, pendingCount, postAttempt, runIdFor } from "@/modules/activities/players/shared/attempt-outbox";
 
 /**
  * The attempt outbox keeps a graded run on the device until the server has
@@ -73,5 +73,59 @@ describe("attempt outbox", () => {
     await flushOutbox("kid-a");
     expect(sent).not.toHaveBeenCalled();
     expect(pendingCount("kid-a")).toBe(0);
+  });
+
+  it("never loses a run queued while a resend is waiting on the network", async () => {
+    // r-old is queued (offline).
+    vi.stubGlobal("fetch", vi.fn(async () => {
+      throw new TypeError("Failed to fetch");
+    }));
+    await expect(postAttempt("kid-a", URL_A, init("r-old"))).rejects.toThrow();
+
+    // The resend's request hangs until we release it…
+    let release!: () => void;
+    vi.stubGlobal("fetch", vi.fn(() => new Promise<Response>((resolve) => {
+      release = () => resolve(new Response("{}", { status: 200 }));
+    })));
+    const flushing = flushOutbox("kid-a");
+    await Promise.resolve();
+
+    // …and meanwhile the child runs again, offline: r-new is queued.
+    const hung = fetch;
+    vi.stubGlobal("fetch", vi.fn(async () => {
+      throw new TypeError("Failed to fetch");
+    }));
+    await expect(postAttempt("kid-a", URL_A, init("r-new"))).rejects.toThrow();
+    vi.stubGlobal("fetch", hung);
+    release();
+    expect(await flushing).toBe(1);
+
+    // r-old settled; r-new is still waiting on the device.
+    expect(pendingCount("kid-a")).toBe(1);
+    expect(Object.keys(JSON.parse(window.localStorage.getItem("bb:outbox:v1")!))).toEqual(["r-new"]);
+  });
+
+  it("keeps runs on an expired session (401) or when sent under another child (412)", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => new Response("{}", { status: 401 })));
+    await postAttempt("kid-a", URL_A, init("r-401"));
+    vi.stubGlobal("fetch", vi.fn(async () => new Response("{}", { status: 412 })));
+    await postAttempt("kid-a", URL_A, init("r-412"));
+    expect(pendingCount("kid-a")).toBe(2);
+  });
+
+  it("names the child who made the run on every send", async () => {
+    const spy = vi.fn(async () => new Response("{}", { status: 200 }));
+    vi.stubGlobal("fetch", spy);
+    await postAttempt("kid-a", URL_A, init("r-h"));
+    const sent = (spy.mock.calls[0] as unknown as [string, RequestInit])[1];
+    expect(new Headers(sent.headers).get("X-BB-Player")).toBe("kid-a");
+  });
+
+  it("reuses the run id after a failed save while the answer is unchanged", () => {
+    const failed = { id: "run-1", saveFailed: true, answer: { optionId: "a" } };
+    expect(runIdFor(failed, { optionId: "a" })).toBe("run-1");
+    expect(runIdFor(failed, { optionId: "b" })).not.toBe("run-1");
+    expect(runIdFor({ ...failed, saveFailed: false }, { optionId: "a" })).not.toBe("run-1");
+    expect(runIdFor(null, { optionId: "a" })).toMatch(/^[0-9a-f-]{36}$/);
   });
 });

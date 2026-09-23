@@ -68,8 +68,13 @@ export function MazePlayer({
   const payload = rawPayload as MazeActivityPayload;
   const t = useTranslations("student.play");
   const rules = useMemo(
-    () => ({ board: payload.board, palette: payload.palette, mustInclude: payload.mustInclude }),
-    [payload.board, payload.palette, payload.mustInclude],
+    () => ({
+      board: payload.board,
+      palette: payload.palette,
+      mustInclude: payload.mustInclude,
+      minGoalHops: payload.minGoalHops,
+    }),
+    [payload.board, payload.palette, payload.mustInclude, payload.minGoalHops],
   );
 
   const [design, setDesign] = useState<GridVariantSpec>(
@@ -104,7 +109,8 @@ export function MazePlayer({
   const saveDesign = (next: GridVariantSpec) => {
     const parsed = mazeDraftSchema.safeParse({ design: next, workspaceJson: workspaceRef.current ?? null });
     if (!parsed.success) return;
-    void saveDraftAction({ levelId: intro.levelId, workspaceJson: parsed.data });
+    // Offline, the save rejects; the design is already mirrored on this device.
+    saveDraftAction({ levelId: intro.levelId, workspaceJson: parsed.data }).catch(() => {});
   };
 
   const onDesignChange = (next: GridVariantSpec) => {
@@ -122,7 +128,12 @@ export function MazePlayer({
   const gridPayload: GridActivityPayload = useMemo(
     () => ({
       ...mazeGridPayload(
-        { toolbox: payload.toolbox, budgets: payload.budgets, starCriteria: payload.starCriteria },
+        {
+          toolbox: payload.toolbox,
+          budgets: payload.budgets,
+          starCriteria: payload.starCriteria,
+          requiredBlocks: payload.requiredBlocks,
+        },
         design,
       ),
       initialWorkspace: workspaceRef.current ?? payload.resetWorkspace,
@@ -219,7 +230,16 @@ export function MazePlayer({
           worldTheme={intro.worldTheme}
           howScene={<GridScene />}
           resumeDraft={resumeDraft}
-          onStart={() => setPhase(resumeDraft && ready ? "build" : "design")}
+          onStart={() => {
+            if (resumeDraft && ready) {
+              // Remount the grid on the design actually on screen (this
+              // device's copy may be newer than the server's).
+              setBuild((n) => n + 1);
+              setPhase("build");
+            } else {
+              setPhase("design");
+            }
+          }}
         />
       ) : null}
     </div>

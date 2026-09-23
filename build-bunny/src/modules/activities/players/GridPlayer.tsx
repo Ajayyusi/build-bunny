@@ -19,7 +19,14 @@ import { PlayerSoundControls } from "@/modules/audio/AudioControls";
 import { generateDisplayCode, runLocally, type LocalRunOutcome } from "./client-run";
 import { BlockPalette } from "./shared/BlockPalette";
 import { postAttempt as sendAttempt } from "./shared/attempt-outbox";
-import { clearLocalDraft, readLocalDraft, writeLocalDraft } from "./shared/local-draft";
+import {
+  clearLocalDraft,
+  pruneLocalDrafts,
+  readLocalDraft,
+  setLocalDraftBase,
+  stableStringify,
+  writeLocalDraft,
+} from "./shared/local-draft";
 import { GridScene } from "./shared/GridScene";
 import { HintDrawer, type HintTierState } from "./shared/HintDrawer";
 import { IntroOverlay } from "./shared/IntroOverlay";
@@ -97,8 +104,19 @@ export function GridPlayer({
   // Offline, a draft save rejects; the work is already mirrored on this
   // device (local-draft), so a failed server copy must not surface as an
   // unhandled error. The next edit or reconnect saves it again.
+  // The server draft version this device's mirror is based on; advanced by
+  // every successful save from this page.
+  const draftBaseRef = useRef<string | null>(intro.draftVersion ?? null);
   const saveDraftQuietly = (input: { levelId: string; workspaceJson: unknown }) => {
-    saveDraftAction(input).catch(() => {});
+    saveDraftAction(input)
+      .then((result) => {
+        const savedAt = result.ok ? (result.data as { savedAt?: unknown } | null)?.savedAt : undefined;
+        if (savedAt === undefined || savedAt === null) return;
+        const version = new Date(savedAt as string | Date).toISOString();
+        draftBaseRef.current = version;
+        setLocalDraftBase({ playerKey: intro.playerKey, levelId: intro.levelId }, version);
+      })
+      .catch(() => {});
   };
 
   const t = useTranslations("student.play");
@@ -170,18 +188,26 @@ export function GridPlayer({
   const draftKey = { playerKey: intro.playerKey, levelId: intro.levelId };
 
   // Exact resume: this device keeps a mirror of every edit (written on
-  // change, no debounce). If it differs from what the server sent, the
-  // mirror is newer — the server copy is at best two seconds behind, and
-  // an interrupted tablet may never have sent it at all.
+  // change, no debounce). It wins only when the server still holds the
+  // draft version the mirror was based on (nothing newer from another
+  // tablet, and not cleared by a pass) and the mirror has edits the server
+  // copy lacks — never because of a clock or key order.
   useEffect(() => {
+    pruneLocalDrafts();
     const local = readLocalDraft(draftKey);
     if (local === null) return;
-    if (JSON.stringify(local) === JSON.stringify(payload.initialWorkspace ?? null)) return;
-    jsonRef.current = local;
-    setSeed((current) => ({ key: current.key + 1, json: local }));
+    if (local.base !== (intro.draftVersion ?? null)) {
+      clearLocalDraft(draftKey);
+      return;
+    }
+    if (stableStringify(local.json) === stableStringify(payload.initialWorkspace ?? null)) return;
+    const json = local.json;
+    jsonRef.current = json;
+    setSeed((current) => ({ key: current.key + 1, json }));
     setResumeDraft(true);
-    onWorkspaceJson?.(local);
-    saveDraftQuietly({ levelId: intro.levelId, workspaceJson: wrap(local) });
+    if (intro.firstSteps) setAttachedBlocks(programShape(json ?? {}).attached);
+    onWorkspaceJson?.(json);
+    saveDraftQuietly({ levelId: intro.levelId, workspaceJson: wrap(json) });
     // eslint-disable-next-line react-hooks/exhaustive-deps -- mount only
   }, []);
 
@@ -228,7 +254,7 @@ export function GridPlayer({
     jsonRef.current = json;
     setCoach(null);
     if (intro.firstSteps) setAttachedBlocks(programShape(json).attached);
-    writeLocalDraft(draftKey, json);
+    writeLocalDraft(draftKey, json, draftBaseRef.current);
     onWorkspaceJson?.(json);
     unsavedRef.current = json;
     // Autosave contract: 2s debounce after the last edit.
@@ -255,6 +281,12 @@ export function GridPlayer({
     setLastFailure(null);
     clearLocalDraft(draftKey);
     unsavedRef.current = null;
+    // A pending autosave of the old blocks must not land after the reset.
+    if (saveTimerRef.current !== null) {
+      window.clearTimeout(saveTimerRef.current);
+      saveTimerRef.current = null;
+    }
+    if (intro.firstSteps) setAttachedBlocks(programShape(payload.resetWorkspace ?? {}).attached);
     if (phase === "result") setPhase("edit");
     if (payload.resetWorkspace != null) {
       onWorkspaceJson?.(payload.resetWorkspace);
@@ -312,6 +344,8 @@ export function GridPlayer({
             : current,
         );
         setStarsBest((best) => Math.max(best, data.starsBest ?? 0));
+        // A pass clears the server draft; the device copy goes with it.
+        if (data.verdict === "PASS") clearLocalDraft({ playerKey: intro.playerKey, levelId: intro.levelId });
       })
       .catch(() => {
         setAttempt((current) =>

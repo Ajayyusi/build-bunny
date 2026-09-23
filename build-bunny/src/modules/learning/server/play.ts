@@ -39,6 +39,8 @@ export interface PlayableLevel extends LevelIntro {
   payload: unknown;
   /** Autosaved workspace, wins over startWorkspace when present. */
   draftWorkspace: unknown;
+  /** When the server draft was saved (ISO), or null — the draft's version. */
+  draftSavedAt: string | null;
   /** Author-provided starting workspace from the payload (convenience). */
   startWorkspace: unknown;
   starsBest: number;
@@ -77,7 +79,7 @@ export async function getPlayableLevel(
   const [progressRow, hintRows] = await Promise.all([
     db.studentProgress.findFirst({
       where: { studentUserId: ctx.userId, schoolId: ctx.schoolId, levelId },
-      select: { stars: true, draftWorkspace: true },
+      select: { stars: true, draftWorkspace: true, draftSavedAt: true },
     }),
     db.hintUsage.findMany({
       where: { studentUserId: ctx.userId, schoolId: ctx.schoolId, levelId },
@@ -98,6 +100,7 @@ export async function getPlayableLevel(
     explanation: extras.data.explanation ?? null,
     payload,
     draftWorkspace: progressRow.draftWorkspace ?? null,
+    draftSavedAt: progressRow.draftSavedAt?.toISOString() ?? null,
     startWorkspace,
     starsBest: progressRow.stars,
     hintsUsedTiers: hintRows.map((row) => row.tier),

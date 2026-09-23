@@ -9,7 +9,7 @@ import { Button, cn, useReducedMotion } from "@/ui";
 import { PlayerSoundControls } from "@/modules/audio/AudioControls";
 import { HintDrawer, type HintTierState } from "./shared/HintDrawer";
 import { RoboHelp, type HelpTopic } from "./shared/RoboHelp";
-import { postAttempt } from "./shared/attempt-outbox";
+import { postAttempt, runIdFor } from "./shared/attempt-outbox";
 import { EthicsScene } from "./shared/EthicsScene";
 import { IntroOverlay } from "./shared/IntroOverlay";
 import { MissionStrip } from "./shared/MissionStrip";
@@ -182,7 +182,10 @@ export function AiEthicsPlayer({
 
   const handleFinish = () => {
     if (submitting || phase === "result") return;
-    void submit(crypto.randomUUID(), path);
+    void submit(
+      runIdFor(submission && { id: submission.id, saveFailed: submission.saveFailed, answer: submission.path }, path),
+      path,
+    );
   };
 
   const handleRetrySubmit = () => {

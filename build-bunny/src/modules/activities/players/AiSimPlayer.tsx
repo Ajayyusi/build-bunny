@@ -13,7 +13,7 @@ import { Badge, Button, cn, useReducedMotion } from "@/ui";
 import { PlayerSoundControls } from "@/modules/audio/AudioControls";
 import { HintDrawer, type HintTierState } from "./shared/HintDrawer";
 import { RoboHelp, type HelpTopic } from "./shared/RoboHelp";
-import { postAttempt } from "./shared/attempt-outbox";
+import { postAttempt, runIdFor } from "./shared/attempt-outbox";
 import { IntroOverlay } from "./shared/IntroOverlay";
 import { MissionStrip } from "./shared/MissionStrip";
 import { useDraftAutosave } from "./shared/useDraftAutosave";
@@ -142,7 +142,10 @@ export function AiSimPlayer({
 
   const handleSubmit = () => {
     if (!ready || work === null || submitting || phase === "result") return;
-    void submit(crypto.randomUUID(), work);
+    void submit(
+      runIdFor(submission && { id: submission.id, saveFailed: submission.saveFailed, answer: submission.answer }, work),
+      work,
+    );
   };
 
   const handleRetrySubmit = () => {
