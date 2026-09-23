@@ -16,6 +16,13 @@ export const BUNNY_HAT_BLOCK = "bb_whenStart";
 /** Value (sensor) blocks — excluded from BlockStats per engine contract. */
 export const BUNNY_SENSOR_BLOCKS = ["bb_pathAhead"] as const;
 
+/**
+ * "my trick": the one named procedure a program can teach. A top-level block
+ * (no previous/next connection) like the hat — its body runs only where
+ * "do my trick" is called.
+ */
+export const BUNNY_DEFINE_BLOCK = "bb_defineTrick";
+
 /** Statement blocks — the only blocks BlockStats counts. */
 export const BUNNY_STATEMENT_BLOCKS = [
   "bb_moveForward",
@@ -27,6 +34,13 @@ export const BUNNY_STATEMENT_BLOCKS = [
   "bb_repeatUntilGoal",
   "bb_if",
   "bb_ifElse",
+  // Variables (Code City): one number Robo Bunny can remember — "the counter".
+  "bb_setCounter",
+  "bb_changeCounter",
+  "bb_sayCounter",
+  // Functions: teach a trick once, do it anywhere.
+  BUNNY_DEFINE_BLOCK,
+  "bb_doTrick",
 ] as const;
 
 export const BUNNY_BLOCK_TYPES = [
@@ -49,6 +63,11 @@ interface BlockLabels {
   if_: string;
   ifElse: string;
   pathAhead: string;
+  setCounter: string;
+  changeCounter: string;
+  sayCounter: string;
+  defineTrick: string;
+  doTrick: string;
 }
 
 // %1/%2/%3 are Blockly interpolation slots; their order is part of the
@@ -66,6 +85,11 @@ const LABELS: Record<BlockLocale, BlockLabels> = {
     if_: "if %1 do %2",
     ifElse: "if %1 do %2 else %3",
     pathAhead: "path ahead is blocked",
+    setCounter: "set counter to %1",
+    changeCounter: "add %1 to counter",
+    sayCounter: "say the counter",
+    defineTrick: "my trick %1",
+    doTrick: "do my trick",
   },
   ar: {
     whenStart: "عند البدء",
@@ -79,6 +103,11 @@ const LABELS: Record<BlockLocale, BlockLabels> = {
     if_: "إذا %1 نفّذ %2",
     ifElse: "إذا %1 نفّذ %2 وإلا %3",
     pathAhead: "الطريق أمامي مسدود",
+    setCounter: "اجعل العدّاد %1",
+    changeCounter: "أضف %1 إلى العدّاد",
+    sayCounter: "قل قيمة العدّاد",
+    defineTrick: "حيلتي %1",
+    doTrick: "نفّذ حيلتي",
   },
 };
 
@@ -192,6 +221,45 @@ export function registerBunnyBlocks(locale: BlockLocale = "en"): void {
       output: "Boolean",
       style: "bunny_sensing",
     },
+    // Field names VALUE / DELTA / DO are pinned like the others: content
+    // fixtures serialize them.
+    bb_setCounter: {
+      type: "bb_setCounter",
+      message0: L.setCounter,
+      args0: [{ type: "field_number", name: "VALUE", value: 0, min: 0, max: 99, precision: 1 }],
+      previousStatement: null,
+      nextStatement: null,
+      style: "bunny_data",
+    },
+    bb_changeCounter: {
+      type: "bb_changeCounter",
+      message0: L.changeCounter,
+      args0: [{ type: "field_number", name: "DELTA", value: 1, min: -9, max: 9, precision: 1 }],
+      previousStatement: null,
+      nextStatement: null,
+      style: "bunny_data",
+    },
+    bb_sayCounter: {
+      type: "bb_sayCounter",
+      message0: L.sayCounter,
+      previousStatement: null,
+      nextStatement: null,
+      style: "bunny_data",
+    },
+    bb_defineTrick: {
+      type: "bb_defineTrick",
+      message0: L.defineTrick,
+      args0: [{ type: "input_statement", name: "DO" }],
+      style: "bunny_tricks",
+      hat: "cap",
+    },
+    bb_doTrick: {
+      type: "bb_doTrick",
+      message0: L.doTrick,
+      previousStatement: null,
+      nextStatement: null,
+      style: "bunny_tricks",
+    },
   };
 
   for (const type of BUNNY_BLOCK_TYPES) {
@@ -200,8 +268,11 @@ export function registerBunnyBlocks(locale: BlockLocale = "en"): void {
       init(this: Block) {
         this.jsonInit(def);
         // The hat is scaffolding, not part of the student's program: the
-        // runnable generator's highlight STATEMENT_PREFIX must skip it.
-        if (type === BUNNY_HAT_BLOCK) this.suppressPrefixSuffix = true;
+        // runnable generator's highlight STATEMENT_PREFIX must skip it. So
+        // is a trick definition — its BODY is highlighted as it runs.
+        if (type === BUNNY_HAT_BLOCK || type === BUNNY_DEFINE_BLOCK) {
+          this.suppressPrefixSuffix = true;
+        }
       },
     };
   }

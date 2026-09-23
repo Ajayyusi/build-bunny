@@ -28,6 +28,9 @@ declare module "js-interpreter" {
       value: InterpreterValue,
     ): void;
 
+    /** Reads a property; primitives come back as JS primitives. */
+    getProperty(object: InterpreterValue, name: string): InterpreterValue;
+
     value: InterpreterValue;
   }
 

@@ -5,6 +5,7 @@ import type {
   codePredictionPayload,
   conceptCardsPayload,
 } from "@/modules/curriculum/schemas";
+import { forestPractice } from "./logic-forest-practice";
 
 /**
  * World 2 — Logic Forest (seed levels 6–10, curriculum-content.md §5, plus
@@ -1417,5 +1418,6 @@ export const logicForest: WorldFixture = {
         },
       ],
     },
+    forestPractice,
   ],
 };

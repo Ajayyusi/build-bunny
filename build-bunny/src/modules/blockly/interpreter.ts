@@ -87,6 +87,33 @@ function haltTermination(err: unknown): Termination | null {
  * Fatal engine events, runtime exceptions, syntax errors and the step
  * budget all resolve to a RunResult — this function never throws.
  */
+/**
+ * The program variables the bunny language can declare. Read back from the
+ * sandbox's global scope when a run ends, for the variableEquals check and
+ * the player's "the counter ended on…" feedback.
+ */
+const PROGRAM_VARIABLES = ["counter"] as const;
+
+function readVariables(
+  interpreter: InstanceType<InterpreterClass> | null,
+  globalObject: unknown,
+): Record<string, number | string | boolean> | undefined {
+  if (!interpreter || globalObject === undefined) return undefined;
+  const out: Record<string, number | string | boolean> = {};
+  for (const name of PROGRAM_VARIABLES) {
+    let value: unknown;
+    try {
+      value = interpreter.getProperty(globalObject, name);
+    } catch {
+      continue;
+    }
+    if (typeof value === "number" || typeof value === "string" || typeof value === "boolean") {
+      out[name] = value;
+    }
+  }
+  return Object.keys(out).length > 0 ? out : undefined;
+}
+
 export function runProgram(
   code: string,
   variant: GridVariantSpec,
@@ -96,8 +123,10 @@ export function runProgram(
   const sim = createSimulation(variant, config);
   const highlights: HighlightEntry[] = [];
   let commandsExecuted = 0;
+  let globals: unknown;
 
   const initFunc = (interpreter: InstanceType<InterpreterClass>, globalObject: unknown) => {
+    globals = globalObject;
     const bind = (name: string, fn: (...args: unknown[]) => unknown) => {
       interpreter.setProperty(
         globalObject,
@@ -122,12 +151,13 @@ export function runProgram(
     bind("onGoal", () => sim.sense({ type: "onGoal" }));
   };
 
-  const finishAs = (termination?: Termination): ProgramRun => ({
-    ...sim.finish(termination),
-    highlights,
-  });
+  let interpreter: InstanceType<InterpreterClass> | null = null;
+  const finishAs = (termination?: Termination): ProgramRun => {
+    const result = sim.finish(termination);
+    const variables = readVariables(interpreter, globals);
+    return variables ? { ...result, variables, highlights } : { ...result, highlights };
+  };
 
-  let interpreter: InstanceType<InterpreterClass>;
   try {
     interpreter = new Interpreter(code, initFunc);
   } catch {
@@ -151,12 +181,12 @@ export function runProgram(
         // spins without ever issuing a command — precisely the infinite loop
         // the message describes. The engine's separate command budget
         // already terminated this way.
-        const result = sim.finish("BUDGET_EXCEEDED");
+        const result = finishAs("BUDGET_EXCEEDED");
         result.events.push({
           type: "budgetExceeded",
           step: result.commandCount + 1,
         });
-        return { ...result, highlights };
+        return result;
       }
     }
   } catch (err) {

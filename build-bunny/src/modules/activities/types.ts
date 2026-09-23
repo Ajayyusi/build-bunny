@@ -1,5 +1,6 @@
 import type { Check, GridVariantSpec } from "@/engine";
 import type { LocalizedText } from "@/modules/curriculum/schemas";
+import type { AgeBand, SupportLevel } from "@/modules/learning/age-band";
 
 /**
  * The activity-engine registry contract (m4 task 4). Every V1 engine
@@ -47,6 +48,14 @@ export interface ActivityIntro {
   worldTheme: string;
   /** Concept tags ("loops", "logic", …) — pick Robo Bunny's similar example. */
   tags: string[];
+  /** Who the level is written for — a chip on the briefing, never a lock. */
+  ageBand: AgeBand | null;
+  /**
+   * How much scaffolding THIS child gets, from their grade: "extra" opens
+   * Robo Bunny's example after two failed runs; "stretch" offers a harder
+   * idea after a clean pass. Never shown as a label.
+   */
+  support: SupportLevel;
   nextLevel: ActivityNextLevel | null;
 }
 
@@ -64,6 +73,24 @@ export interface GridActivityPayload {
   /** Workspace to load first: draft, else the reset workspace. */
   initialWorkspace: unknown;
   /** What Reset restores: startWorkspace (brokenWorkspace for DEBUGGING). */
+  resetWorkspace: unknown;
+}
+
+/**
+ * Answer-free CREATIVE_PROJECT (build-your-own maze) payload: the board and
+ * palette the child designs with, the toolbox they program with, and their
+ * saved design + program (a draft holds both). `sample` never leaves the server.
+ */
+export interface MazeActivityPayload {
+  board: { width: number; height: number };
+  palette: ("#" | "W" | "C")[];
+  mustInclude: { obstacles: number; carrots: number };
+  toolbox: { type: string; limit?: number }[];
+  budgets: { maxCommands: number };
+  starCriteria: { threeStarMaxBlocks?: number };
+  /** The child's saved design, or null on a first visit. */
+  initialDesign: GridVariantSpec | null;
+  initialWorkspace: unknown;
   resetWorkspace: unknown;
 }
 

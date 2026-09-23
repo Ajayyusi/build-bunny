@@ -15,6 +15,11 @@ const MOTION = "#2e7d32"; // --bb-meadow-600 (was meadow-500; the new NITAQ
 const LOOPS = "#00786a"; // --bb-sky-600
 const LOGIC = "#d14a2e"; // --bb-coral-500
 const SENSING = "#5c6873"; // --bb-slate-600
+// Variables and tricks have no --bb-* ramp yet: plum and clay, chosen for
+// white-label contrast (5.9:1 and 4.9:1) and distance from the five above.
+// BlockPalette.tsx carries the same two hexes for its tap-to-add buttons.
+const DATA = "#7b4fa3";
+const TRICKS = "#a4552b";
 
 export const BunnyTheme = Blockly.Theme.defineTheme("bunny", {
   name: "bunny",
@@ -27,6 +32,8 @@ export const BunnyTheme = Blockly.Theme.defineTheme("bunny", {
     bunny_loops: { colourPrimary: LOOPS },
     bunny_logic: { colourPrimary: LOGIC },
     bunny_sensing: { colourPrimary: SENSING },
+    bunny_data: { colourPrimary: DATA },
+    bunny_tricks: { colourPrimary: TRICKS },
   },
   categoryStyles: {
     bunny_event_category: { colour: EVENT },
@@ -34,6 +41,8 @@ export const BunnyTheme = Blockly.Theme.defineTheme("bunny", {
     bunny_loops_category: { colour: LOOPS },
     bunny_logic_category: { colour: LOGIC },
     bunny_sensing_category: { colour: SENSING },
+    bunny_data_category: { colour: DATA },
+    bunny_tricks_category: { colour: TRICKS },
   },
   componentStyles: {
     workspaceBackgroundColour: "#fdfbf7", // --bb-cream-50

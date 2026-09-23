@@ -22,10 +22,34 @@ const ORDER_ATOMIC = 0;
 class BunnyGenerator extends Blockly.CodeGenerator {
   /** Monotonic per-generation counter for ES5 loop variable names. */
   private loopCounter = 0;
+  /** Any counter block was generated: the program needs `var counter`. */
+  usesCounter = false;
+  /** The "my trick" definition, hoisted above the program by finish(). */
+  trickDefinition: string | null = null;
+  /** "do my trick" was generated (with or without a definition). */
+  usesTrick = false;
 
   override init(workspace: Workspace): void {
     super.init(workspace);
     this.loopCounter = 0;
+    this.usesCounter = false;
+    this.trickDefinition = null;
+    this.usesTrick = false;
+  }
+
+  /**
+   * The program's prologue: the counter variable and the trick definition
+   * come first, whatever order the stacks sit in on the canvas. "Do my
+   * trick" with no trick taught runs an empty one, so the run reports where
+   * the bunny ended up instead of crashing on an undefined function (the
+   * player also coaches this before running).
+   */
+  override finish(code: string): string {
+    const prologue: string[] = [];
+    if (this.usesCounter) prologue.push("var counter = 0;\n");
+    if (this.trickDefinition !== null) prologue.push(this.trickDefinition);
+    else if (this.usesTrick) prologue.push("function myTrick() {\n}\n");
+    return prologue.join("") + code;
   }
 
   nextLoopVar(): string {
@@ -90,6 +114,34 @@ function installForBlock(gen: BunnyGenerator): void {
   // The block reads "path ahead is blocked" (curriculum pedagogy) while the
   // engine sensor answers "is the path ahead walkable" — hence the negation.
   gen.forBlock["bb_pathAhead"] = () => ["!pathAhead()", ORDER_ATOMIC];
+
+  // ── Variables: one number, "the counter" ──────────────────────────────
+  gen.forBlock["bb_setCounter"] = (block, generator) => {
+    (generator as BunnyGenerator).usesCounter = true;
+    const value = Number(block.getFieldValue("VALUE")) || 0;
+    return `counter = ${value};\n`;
+  };
+  gen.forBlock["bb_changeCounter"] = (block, generator) => {
+    (generator as BunnyGenerator).usesCounter = true;
+    const delta = Number(block.getFieldValue("DELTA")) || 0;
+    return `counter = counter + ${delta};\n`;
+  };
+  gen.forBlock["bb_sayCounter"] = (_block, generator) => {
+    (generator as BunnyGenerator).usesCounter = true;
+    return "say(String(counter));\n";
+  };
+
+  // ── Functions: teach a trick, do a trick ──────────────────────────────
+  gen.forBlock["bb_defineTrick"] = (block, generator) => {
+    const g = generator as BunnyGenerator;
+    const body = g.statementToCode(block, "DO");
+    g.trickDefinition = `function myTrick() {\n${body}}\n`;
+    return ""; // hoisted by finish()
+  };
+  gen.forBlock["bb_doTrick"] = (_block, generator) => {
+    (generator as BunnyGenerator).usesTrick = true;
+    return "myTrick();\n";
+  };
 }
 
 /**

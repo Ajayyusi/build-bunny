@@ -33,6 +33,12 @@ const BLOCK_TONE: Record<string, string> = {
   bb_if: "bg-danger text-on-brand",
   bb_ifElse: "bg-danger text-on-brand",
   bb_pathAhead: "bg-ink-muted text-on-brand",
+  // Same hexes as the DATA / TRICKS block styles in blockly/theme.ts.
+  bb_setCounter: "bg-[#7b4fa3] text-on-brand",
+  bb_changeCounter: "bg-[#7b4fa3] text-on-brand",
+  bb_sayCounter: "bg-[#7b4fa3] text-on-brand",
+  bb_defineTrick: "bg-[#a4552b] text-on-brand",
+  bb_doTrick: "bg-[#a4552b] text-on-brand",
 };
 
 interface BlockPaletteProps {

@@ -247,7 +247,12 @@
           "MEDIUM": "Medium",
           "HARD": "Hard"
         },
-        "start": "Start level"
+        "start": "Start level",
+        "ageBand": {
+          "starter": "Ages 7–8",
+          "explorer": "Ages 9–10",
+          "inventor": "Ages 11–13"
+        }
       },
       "horizonHeading": "On the horizon",
       "horizonBody": "New worlds are being charted for your journey.",
@@ -334,7 +339,11 @@
         "mysteryRoundsWrong": "You matched {correct} of {total} mystery pictures. Take another look at the blocky ones!",
         "emptyProgram": "Your program is empty! Drag a block and snap it under “when start”, then press Run.",
         "looseBlocks": "So close! Your blocks aren't connected yet. Snap them under “when start” so they click together.",
-        "gotIt": "Got it"
+        "gotIt": "Got it",
+        "wrongVariable": "The counter ended on {actual}, but it should be {expected}. Follow the counter blocks one by one.",
+        "noValue": "nothing",
+        "noTrick": "“Do my trick” needs a trick to do — add a “my trick” block and put some blocks inside it.",
+        "mazeInvalid": "Your maze can't be solved yet — open the maze checklist and fix what's missing."
       },
       "learn": {
         "stepWatch": "Step 1 of 2 · Watch",
@@ -378,7 +387,9 @@
         "next": "Next level",
         "backToMap": "Back to map",
         "powerEarned": "You earned the {power}!",
-        "powerIdea": "Robo Bunny will remember this forever:"
+        "powerIdea": "Robo Bunny will remember this forever:",
+        "stretchHeading": "Stretch idea",
+        "stretch": "Three stars, first try or not — now can you do it with even fewer blocks, or without opening a hint? Try the Code tab and predict every line before you run."
       },
       "blockNames": {
         "bb_whenStart": "when start",
@@ -391,7 +402,12 @@
         "bb_repeatUntilGoal": "repeat until goal",
         "bb_if": "if",
         "bb_ifElse": "if–else",
-        "bb_pathAhead": "path ahead is blocked"
+        "bb_pathAhead": "path ahead is blocked",
+        "bb_setCounter": "set counter",
+        "bb_changeCounter": "add to counter",
+        "bb_sayCounter": "say the counter",
+        "bb_defineTrick": "my trick",
+        "bb_doTrick": "do my trick"
       },
       "codePrediction": {
         "codeHeading": "The program",
@@ -606,7 +622,9 @@
           "tooManyBlocks": "It worked, but with more blocks than the three-star limit. Look for a stretch that repeats — a Repeat block can say it once.",
           "missingBlock": "This level is about a particular block, and the program didn't use it.",
           "forbiddenBlock": "The program used a block this level asks you to do without.",
-          "generic": "The run didn't reach the goal. Watch it again and find the first step where Robo Bunny goes somewhere you didn't expect."
+          "generic": "The run didn't reach the goal. Watch it again and find the first step where Robo Bunny goes somewhere you didn't expect.",
+          "wrongVariable": "Each counter block changes the number by a fixed amount, in order. Write the number after each block and see where it drifts from the target.",
+          "mazeInvalid": "The program never ran: the maze itself broke a rule of the checklist. Change my maze, fix the line without a tick, and build again."
         },
         "blocks": {
           "bb_whenStart": "The start. Everything snapped under this block runs when you press Run — from the top, one block at a time.",
@@ -619,8 +637,62 @@
           "bb_repeatUntilGoal": "Keeps running what's inside until Robo Bunny is standing on the goal — no counting needed. Make sure it can actually get there!",
           "bb_if": "Asks a question first. If the answer is yes, the blocks inside run; if no, they're skipped and the program carries on below.",
           "bb_ifElse": "Asks a question, then does ONE of two things: the first mouth if yes, the second mouth if no. Exactly one of them always runs.",
-          "bb_pathAhead": "A sensor question: is the tile in front of Robo Bunny blocked? It answers yes or no — it doesn't move or turn."
+          "bb_pathAhead": "A sensor question: is the tile in front of Robo Bunny blocked? It answers yes or no — it doesn't move or turn.",
+          "bb_setCounter": "Puts a number into the counter — Robo Bunny's one pocket for remembering a number. Setting it replaces whatever was there.",
+          "bb_changeCounter": "Adds to the number already in the counter (a minus number takes away). The counter remembers the new total.",
+          "bb_sayCounter": "Robo Bunny says the number that is in the counter right now.",
+          "bb_defineTrick": "Teaches Robo Bunny a trick: the blocks inside get a name, but they don't run yet. Use “do my trick” to run them — as many times as you like.",
+          "bb_doTrick": "Runs the trick you taught, once, right here. Teach it once, use it anywhere."
         }
+      },
+      "maze": {
+        "designTitle": "Design your maze",
+        "designBody": "Pick a tile, then tap the map to place it. Robo Bunny must be able to reach the burrow.",
+        "brushLabel": "Tile to place",
+        "brush": {
+          "start": "Robo Bunny",
+          "goal": "Burrow",
+          "rock": "Rock",
+          "water": "Water",
+          "carrot": "Carrot",
+          "clear": "Clear"
+        },
+        "hint": {
+          "paint": "Tap a square on the map to place it. Tap again with Clear to remove it.",
+          "start": "Tap a square to move Robo Bunny there. Tap Robo Bunny again to turn it."
+        },
+        "gridLabel": "Your maze, {width} squares wide and {height} tall",
+        "cell": "Row {row}, column {col}: {what}",
+        "tile": {
+          "empty": "empty",
+          "rock": "rock",
+          "water": "water",
+          "carrot": "carrot",
+          "goal": "burrow",
+          "start": "Robo Bunny, facing {dir}"
+        },
+        "dir": {
+          "N": "up",
+          "E": "right",
+          "S": "down",
+          "W": "left"
+        },
+        "checklistTitle": "Maze checklist",
+        "check": {
+          "done": "Done:",
+          "todo": "Still to do:",
+          "oneGoal": "Exactly one burrow to reach",
+          "obstacles": "At least {need} rocks or water ({have} so far)",
+          "carrots": "At least {need} carrots ({have} so far)",
+          "startFree": "Robo Bunny is standing on a clear square",
+          "reachGoal": "Robo Bunny can reach the burrow",
+          "reachCarrots": "Every carrot can be reached"
+        },
+        "ready": "Your maze is ready — now program Robo Bunny through it!",
+        "notReady": "Finish the checklist, then build your program.",
+        "build": "Build my program",
+        "edit": "Change my maze",
+        "designRegion": "Maze designer"
       }
     },
     "profile": {

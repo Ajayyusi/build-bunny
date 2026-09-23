@@ -11,7 +11,7 @@ import type {
   WorkspaceEditState,
 } from "@/modules/blockly/BlocklyWorkspace";
 import { CodeView } from "@/modules/blockly/CodeView";
-import { programBlocks, programShape } from "@/modules/blockly/serialization";
+import { missingTrick, programBlocks, programShape } from "@/modules/blockly/serialization";
 import SimulationCanvas from "@/modules/simulation/SimulationCanvas";
 import { Button, Dialog, cn, useReducedMotion } from "@/ui";
 
@@ -61,21 +61,45 @@ interface AttemptState {
   saveFailed: boolean;
 }
 
+/**
+ * Hooks for a player that wraps the grid player around its own first step —
+ * the maze builder (CREATIVE_PROJECT) designs a map, then hands the grid
+ * player a one-variant level. All optional; plain grid levels pass none.
+ */
+export interface GridPlayerHost {
+  /** The wrapper showed the briefing itself: start editing right away. */
+  skipIntro?: boolean;
+  /** Extra fields sent with every attempt (the child's maze design). */
+  attemptExtras?: Record<string, unknown>;
+  /** Wraps the workspace JSON before any server draft save (design + program). */
+  wrapDraft?: (workspaceJson: unknown) => unknown;
+  /** The latest workspace JSON, on every edit. */
+  onWorkspaceJson?: (workspaceJson: unknown) => void;
+  /** One more build-toolbar action ("Change my maze"). */
+  extraAction?: { label: string; onClick: () => void };
+}
+
 export function GridPlayer({
   intro,
   payload: rawPayload,
   revealHintAction,
   saveDraftAction,
-}: ActivityPlayerProps) {
+  skipIntro = false,
+  attemptExtras,
+  wrapDraft,
+  onWorkspaceJson,
+  extraAction,
+}: ActivityPlayerProps & GridPlayerHost) {
   // Registry dispatch guarantees this matches intro.activityType.
   const payload = rawPayload as GridActivityPayload;
+  const wrap = wrapDraft ?? ((json: unknown) => json);
 
   const t = useTranslations("student.play");
   const feedbackText = useFeedbackText();
   const locale = useLocale();
   const blockLocale: BlockLocale = locale === "ar" ? "ar" : "en";
 
-  const [phase, setPhase] = useState<Phase>("intro");
+  const [phase, setPhase] = useState<Phase>(skipIntro ? "edit" : "intro");
   const [attempt, setAttempt] = useState<AttemptState | null>(null);
   const [failStreak, setFailStreak] = useState(0);
   const [view, setView] = useState<"blocks" | "code">("blocks");
@@ -143,7 +167,8 @@ export function GridPlayer({
     jsonRef.current = local;
     setSeed((current) => ({ key: current.key + 1, json: local }));
     setResumeDraft(true);
-    void saveDraftAction({ levelId: intro.levelId, workspaceJson: local });
+    onWorkspaceJson?.(local);
+    void saveDraftAction({ levelId: intro.levelId, workspaceJson: wrap(local) });
     // eslint-disable-next-line react-hooks/exhaustive-deps -- mount only
   }, []);
 
@@ -153,7 +178,7 @@ export function GridPlayer({
   useEffect(() => {
     const flush = () => {
       if (unsavedRef.current === null) return;
-      const body = JSON.stringify({ workspaceJson: unsavedRef.current });
+      const body = JSON.stringify({ workspaceJson: wrap(unsavedRef.current) });
       unsavedRef.current = null;
       if (saveTimerRef.current !== null) window.clearTimeout(saveTimerRef.current);
       void fetch(`/api/levels/${intro.levelId}/draft`, {
@@ -173,6 +198,7 @@ export function GridPlayer({
       document.removeEventListener("visibilitychange", onVisibility);
       if (saveTimerRef.current !== null) window.clearTimeout(saveTimerRef.current);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- wrap is stable per host
   }, [intro.levelId]);
 
   // ── Workspace plumbing ─────────────────────────────────────────────────
@@ -189,12 +215,13 @@ export function GridPlayer({
     jsonRef.current = json;
     setCoach(null);
     writeLocalDraft(draftKey, json);
+    onWorkspaceJson?.(json);
     unsavedRef.current = json;
     // Autosave contract: 2s debounce after the last edit.
     if (saveTimerRef.current !== null) window.clearTimeout(saveTimerRef.current);
     saveTimerRef.current = window.setTimeout(() => {
       unsavedRef.current = null;
-      void saveDraftAction({ levelId: intro.levelId, workspaceJson: json });
+      void saveDraftAction({ levelId: intro.levelId, workspaceJson: wrap(json) });
     }, 2000);
   };
 
@@ -216,9 +243,10 @@ export function GridPlayer({
     unsavedRef.current = null;
     if (phase === "result") setPhase("edit");
     if (payload.resetWorkspace != null) {
+      onWorkspaceJson?.(payload.resetWorkspace);
       void saveDraftAction({
         levelId: intro.levelId,
-        workspaceJson: payload.resetWorkspace,
+        workspaceJson: wrap(payload.resetWorkspace),
       });
     }
   };
@@ -256,6 +284,7 @@ export function GridPlayer({
         workspaceJson,
         clientVerdict,
         durationMs,
+        ...attemptExtras,
       }),
     })
       .then(async (response) => {
@@ -295,6 +324,14 @@ export function GridPlayer({
       sounds.play("hint");
       return;
     }
+    // "Do my trick" with no trick taught — same idea: explain, don't run.
+    if (missingTrick(json)) {
+      setAttempt(null);
+      setPhase("edit");
+      setCoach({ code: "noTrick" });
+      sounds.play("hint");
+      return;
+    }
     setCoach(null);
     sounds.play("run");
     const maxHintTier = hints.reduce(
@@ -329,8 +366,15 @@ export function GridPlayer({
   const handlePlaybackEnd = () => {
     setHighlightId(null);
     setPhase("result");
-    if (attempt?.outcome.verdict === "FAIL") setFailStreak((count) => count + 1);
-    else setFailStreak(0);
+    if (attempt?.outcome.verdict === "FAIL") {
+      const streak = failStreak + 1;
+      setFailStreak(streak);
+      // A younger child (support "extra") is shown a similar example after
+      // two failed runs, without having to find the help button first.
+      if (intro.support === "extra" && streak === 2) openHelp("example");
+    } else {
+      setFailStreak(0);
+    }
   };
 
   const handleTryAgain = () => {
@@ -636,6 +680,17 @@ export function GridPlayer({
               aria-label={t("tools.addBlock")}
               className="flex shrink-0 flex-wrap items-center justify-end gap-1"
             >
+              {extraAction ? (
+                <button
+                  type="button"
+                  onClick={extraAction.onClick}
+                  disabled={phase === "running"}
+                  className="me-auto inline-flex h-11 items-center gap-1 rounded-lg border border-border-token bg-surface-raised px-3 text-sm font-bold text-ink hover:bg-surface-sunken disabled:opacity-40"
+                >
+                  <span aria-hidden="true">🧱</span>
+                  {extraAction.label}
+                </button>
+              ) : null}
               <button
                 type="button"
                 onClick={() => setPaletteOpen(true)}
@@ -741,6 +796,7 @@ export function GridPlayer({
           instructions={intro.instructions}
           difficulty={intro.difficulty}
           estimatedMinutes={intro.estimatedMinutes}
+          ageBand={intro.ageBand}
           worldTheme={intro.worldTheme}
           howScene={<GridScene />}
           resumeDraft={resumeDraft}
@@ -793,6 +849,7 @@ export function GridPlayer({
           instructions={intro.instructions}
           difficulty={intro.difficulty}
           estimatedMinutes={intro.estimatedMinutes}
+          ageBand={intro.ageBand}
           howScene={<GridScene />}
           onStart={() => setBriefingOpen(false)}
         />
@@ -815,6 +872,11 @@ export function GridPlayer({
           improveNote={
             displayStars < intro.maxStars && resultFeedback
               ? feedbackText(resultFeedback)
+              : null
+          }
+          stretchNote={
+            intro.support === "stretch" && displayStars >= intro.maxStars
+              ? t("success.stretch")
               : null
           }
           nextHref={nextHref}

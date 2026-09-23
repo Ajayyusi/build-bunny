@@ -17,6 +17,8 @@ interface IntroOverlayProps {
   instructions: string;
   difficulty: string;
   estimatedMinutes: number;
+  /** Age-band key ("starter" | "explorer" | "inventor"); null hides the chip. */
+  ageBand?: string | null;
   /**
    * World theme for the game-entry transition's environment. Optional so a
    * player that has no world context still renders the briefing.
@@ -65,6 +67,7 @@ export function IntroOverlay({
   instructions,
   difficulty,
   estimatedMinutes,
+  ageBand = null,
   worldTheme,
   howScene,
   reopened = false,
@@ -126,6 +129,7 @@ export function IntroOverlay({
               <span aria-hidden="true">⏱</span>
               {tAdventure("minutes", { minutes: estimatedMinutes })}
             </Badge>
+            {ageBand ? <Badge variant="neutral">{tAdventure(`ageBand.${ageBand}`)}</Badge> : null}
           </div>
         </div>
 

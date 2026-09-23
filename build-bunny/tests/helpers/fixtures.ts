@@ -182,7 +182,8 @@ export async function createTestLevel(
       | "DEBUGGING"
       | "CODE_PREDICTION"
       | "SEQUENCING"
-      | "CONCEPT_CARDS";
+      | "CONCEPT_CARDS"
+      | "CREATIVE_PROJECT";
     difficulty?: "EASY" | "MEDIUM" | "HARD";
     xpReward?: number;
     tags?: string[];

@@ -9,6 +9,7 @@ import type { SessionContext } from "@/modules/auth/server/session";
 import { localizedText, type LocalizedText } from "@/modules/curriculum/schemas";
 import type { LevelSnapshot } from "@/modules/curriculum/server/publish";
 import { gradeWorkspace, type GradeVariantResult } from "@/modules/grading/server/grade";
+import { gradeMaze, mazeAnswerSchema } from "@/modules/grading/server/maze";
 import type { ProgramRun } from "@/modules/blockly/interpreter";
 import {
   localDateKey,
@@ -1142,9 +1143,24 @@ export async function getAttemptReplay(
   // simulation to replay for those, so the UI falls back to a plain answer
   // review (activityType tells it which).
   const isGridType = snapshot.activityType === "BLOCK_CODING" || snapshot.activityType === "DEBUGGING";
-  const grade = isGridType
-    ? gradeWorkspace(snapshot, attempt.workspaceJson)
-    : { generatedCode: "", runs: [] as ProgramRun[], perVariant: [] as GradeVariantResult[] };
+  const empty = { generatedCode: "", runs: [] as ProgramRun[], perVariant: [] as GradeVariantResult[] };
+  let grade = isGridType ? gradeWorkspace(snapshot, attempt.workspaceJson) : empty;
+  // A maze attempt stores the program AND the child's design: re-grade the
+  // pair and hand the viewer the generated one-variant grid level, so the
+  // teacher watches the run on the map the child drew.
+  let replayWorkspace: unknown = attempt.workspaceJson;
+  let replayPayload: unknown = snapshot.payload;
+  if (snapshot.activityType === "CREATIVE_PROJECT") {
+    const answer = mazeAnswerSchema.safeParse(attempt.workspaceJson);
+    if (answer.success) {
+      const maze = gradeMaze(snapshot, answer.data);
+      replayWorkspace = answer.data.workspaceJson;
+      if (maze.outcome && maze.gridPayload) {
+        grade = maze.outcome;
+        replayPayload = maze.gridPayload;
+      }
+    }
+  }
 
   return {
     attempt: {
@@ -1167,9 +1183,9 @@ export async function getAttemptReplay(
       gradeMismatch: attempt.gradeMismatch,
       createdAt: attempt.createdAt,
     },
-    workspaceJson: attempt.workspaceJson,
+    workspaceJson: replayWorkspace,
     generatedCode: grade.generatedCode,
-    levelPayload: snapshot.payload,
+    levelPayload: replayPayload,
     runs: grade.runs,
     perVariant: grade.perVariant,
   };

@@ -66,6 +66,9 @@ export function LevelIntroSheet({ level, onClose }: LevelIntroSheetProps) {
             <span aria-hidden="true">⏱</span>
             {t("intro.minutes", { minutes: intro.estimatedMinutes })}
           </Badge>
+          {intro.ageBand ? (
+            <Badge variant="neutral">{t(`intro.ageBand.${intro.ageBand}`)}</Badge>
+          ) : null}
           <span
             className="ms-auto inline-flex items-center gap-1"
             role="img"

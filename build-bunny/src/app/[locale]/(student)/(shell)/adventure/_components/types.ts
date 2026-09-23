@@ -1,3 +1,4 @@
+import type { AgeBand } from "@/modules/learning/age-band";
 import type { BunnyState } from "@/ui";
 
 /**
@@ -21,6 +22,8 @@ export interface TrailIntroVM {
   /** Raw difficulty key (EASY | MEDIUM | HARD) — labelled via messages. */
   difficulty: string;
   estimatedMinutes: number;
+  /** Who the level is written for ("Ages 9–10"); null when not authored. */
+  ageBand: AgeBand | null;
   stars: number;
   maxStars: number;
 }

@@ -18,7 +18,8 @@ const SimulationCanvas = dynamic(() => import("@/modules/simulation/SimulationCa
   ssr: false,
 });
 
-const GRID_TYPES = new Set(["BLOCK_CODING", "DEBUGGING"]);
+// CREATIVE_PROJECT replays arrive as the generated grid level (the child's own maze).
+const GRID_TYPES = new Set(["BLOCK_CODING", "DEBUGGING", "CREATIVE_PROJECT"]);
 
 export interface ReplayCheckFailureVM {
   code: string;

@@ -32,6 +32,74 @@ const hat = (next: unknown) => ({
 
 export const CONCEPT_EXAMPLES: ConceptExample[] = [
   {
+    tags: ["variables"],
+    variant: { rows: ["..G", "..."], start: { x: 0, y: 0, dir: "E" } },
+    autoCollect: true,
+    solution: hat({
+      type: "bb_repeat",
+      id: "r",
+      fields: { TIMES: 2 },
+      inputs: {
+        DO: {
+          block: {
+            type: "bb_moveForward",
+            id: "m",
+            next: { block: { type: "bb_changeCounter", id: "c", fields: { DELTA: 1 } } },
+          },
+        },
+      },
+      next: { block: { type: "bb_sayCounter", id: "s" } },
+    }),
+    caption: {
+      en: "The counter starts at 0. \"Add 1\" inside the loop runs once per hop, so after the loop Robo Bunny says 2.",
+      ar: "يبدأ العدّاد من 0. «أضف 1» داخل الحلقة تعمل مرة مع كل قفزة، فبعد الحلقة يقول الأرنب الآلي 2.",
+    },
+  },
+  {
+    tags: ["functions"],
+    variant: { rows: ["..", ".G"], start: { x: 0, y: 0, dir: "E" } },
+    autoCollect: true,
+    solution: {
+      blocks: {
+        languageVersion: 0,
+        blocks: [
+          {
+            type: "bb_whenStart",
+            id: "start",
+            x: 24,
+            y: 24,
+            next: { block: { type: "bb_doTrick", id: "d" } },
+          },
+          {
+            type: "bb_defineTrick",
+            id: "def",
+            x: 220,
+            y: 24,
+            inputs: {
+              DO: {
+                block: {
+                  type: "bb_moveForward",
+                  id: "m1",
+                  next: {
+                    block: {
+                      type: "bb_turnRight",
+                      id: "t",
+                      next: { block: { type: "bb_moveForward", id: "m2" } },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        ],
+      },
+    },
+    caption: {
+      en: "\"My trick\" holds hop, turn right, hop. It runs only where \"do my trick\" is — here, once.",
+      ar: "«حيلتي» تحمل: اقفز، استدر يمينًا، اقفز. لا تعمل إلا حيث توجد «نفّذ حيلتي» — هنا، مرة واحدة.",
+    },
+  },
+  {
     tags: ["loops", "reading-code"],
     variant: { rows: ["...G", "####"], start: { x: 0, y: 0, dir: "E" } },
     autoCollect: true,

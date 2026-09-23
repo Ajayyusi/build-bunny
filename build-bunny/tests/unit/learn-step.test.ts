@@ -190,19 +190,34 @@ describe("shipped Learn steps actually run", () => {
   it.each(learnLevels.map(({ world, level }) => ({ slug: `${world.slug}/${level.slug}`, level })))(
     "$slug: the faded program does NOT solve it until the gap is filled",
     ({ slug, level }) => {
-      // If the faded copy already reaches the goal, the missing block was
-      // decorative and the student learns nothing by placing it.
+      // If the faded copy already does what the worked example does, the
+      // missing block was decorative and the student learns nothing by
+      // placing it. For a movement lesson that means it must miss the
+      // burrow; for a lesson about what the program remembers or says (the
+      // counter), the faded run must remember or say something different.
       const payload = conceptCardsPayload.parse((level as LevelFixture).payload);
-      const { code } = generateRunnableCode(
-        payload.faded.blocks,
-        toolboxFor(payload.faded.blocks, payload.faded.toolbox),
-      );
-      const run = runProgram(code, payload.variants[0]!, {
+      const config = {
         autoCollect: payload.autoCollect,
         nonFatalBumps: payload.nonFatalBumps,
         maxCommands: payload.budgets.maxCommands,
-      });
-      expect(run.reachedGoal, `${slug}: faded program solves itself`).toBe(false);
+      };
+      const worked = runProgram(
+        generateRunnableCode(
+          payload.workedExample.blocks,
+          toolboxFor(payload.workedExample.blocks, payload.faded.toolbox),
+        ).code,
+        payload.variants[0]!,
+        config,
+      );
+      const faded = runProgram(
+        generateRunnableCode(payload.faded.blocks, toolboxFor(payload.faded.blocks, payload.faded.toolbox)).code,
+        payload.variants[0]!,
+        config,
+      );
+      const observed = (run: typeof worked) =>
+        JSON.stringify({ sayOutputs: run.sayOutputs, variables: run.variables ?? null });
+      const differs = !faded.reachedGoal || observed(faded) !== observed(worked);
+      expect(differs, `${slug}: faded program solves itself`).toBe(true);
     },
   );
 });
@@ -305,11 +320,12 @@ describe("shipped Learn steps are internally coherent", () => {
   });
 
   it("ships a Learn step in every playable world, one per concept", () => {
-    expect(learnLevels).toHaveLength(5);
-    // Every playable world must carry at least one; Logic Forest carries
-    // three because it is where the most new blocks debut.
+    expect(learnLevels).toHaveLength(7);
+    // Every programming world must carry at least one; Logic Forest carries
+    // three because it is where the most new blocks debut, Code City two
+    // (variables, functions).
     const worlds = new Set(learnLevels.map(({ world }) => world.slug));
-    expect([...worlds].sort()).toEqual(["bunny-meadow", "logic-forest", "robot-lab"]);
+    expect([...worlds].sort()).toEqual(["bunny-meadow", "code-city", "logic-forest", "robot-lab"]);
     // Concepts are distinct: a duplicate slug would break spaced review,
     // which selects on conceptSlug.
     const concepts = learnLevels.map(
@@ -402,6 +418,11 @@ describe("shipped Learn steps are internally coherent", () => {
       "bb_ifElse",
       "bb_say",
       "bb_pathAhead",
+      "bb_setCounter",
+      "bb_changeCounter",
+      "bb_sayCounter",
+      "bb_defineTrick",
+      "bb_doTrick",
     ]);
     for (const { world, level } of learnLevels) {
       const payload = conceptCardsPayload.parse((level as LevelFixture).payload);

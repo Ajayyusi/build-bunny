@@ -54,6 +54,10 @@ const GroupPlayer = dynamic(
 const AiSimPlayer = dynamic(() => import("./AiSimPlayer").then((m) => m.AiSimPlayer), {
   ssr: false,
 });
+// Build-your-own maze: a design step, then the grid player on the child's map.
+const MazePlayer = dynamic(() => import("./MazePlayer").then((m) => m.MazePlayer), {
+  ssr: false,
+});
 const AiEthicsPlayer = dynamic(
   () => import("./AiEthicsPlayer").then((m) => m.AiEthicsPlayer),
   { ssr: false },
@@ -62,6 +66,7 @@ const AiEthicsPlayer = dynamic(
 export const ACTIVITY_PLAYERS: Partial<Record<string, ComponentType<ActivityPlayerProps>>> = {
   BLOCK_CODING: GridPlayer,
   DEBUGGING: GridPlayer,
+  CREATIVE_PROJECT: MazePlayer,
   CODE_PREDICTION: CodePredictionPlayer,
   SEQUENCING: SequencingPlayer,
   CONCEPT_CARDS: LearnPlayer,

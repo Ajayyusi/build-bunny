@@ -47,9 +47,9 @@ test("a new world's story plays once, can be skipped, and can be replayed", asyn
 test("finishing a world's last level awards its Power", async ({ page, baseURL }, testInfo) => {
   test.skip(testInfo.project.name !== "laptop", "one viewport is enough for the reward beat");
   const kid = provisionStudent(studentName(testInfo.project.name, "p"));
-  // Everything before Inventor Island's last level is marked done, so
-  // solving it completes the world.
-  skipTo("around-the-fountain", kid.username);
+  // Everything before Bunny Meadow's last level (Clover Loop, in the
+  // Practice Paddock) is marked done, so solving it completes the world.
+  skipTo("clover-loop", kid.username);
   await signIn(page, baseURL!, kid.username);
 
   await page.goto("/en/adventure");
@@ -61,14 +61,14 @@ test("finishing a world's last level awards its Power", async ({ page, baseURL }
     await scene.getByRole("button", { name: "Skip" }).click();
     await expect(scene).toHaveCount(0);
   }
-  await page.getByRole("button", { name: /Around the Fountain/ }).click();
+  await page.getByRole("button", { name: /Clover Loop/ }).click();
   await page.getByRole("link", { name: "Start level" }).click();
 
-  const briefing = page.getByRole("dialog", { name: "Around the Fountain" });
+  const briefing = page.getByRole("dialog", { name: "Clover Loop" });
   await briefing.getByRole("button", { name: /Let's build!|Continue building/ }).click();
 
-  // Solve it by tapping: Turn Right, Move Forward, Move Forward.
-  for (const block of ["turn right", "move forward", "move forward"]) {
+  // Solve it by tapping: five hops (a pass, if not the three-star loop).
+  for (const block of ["move forward", "move forward", "move forward", "move forward", "move forward"]) {
     await page.getByRole("button", { name: "Add block" }).click();
     await page
       .getByRole("dialog", { name: "Add a block" })
@@ -79,7 +79,7 @@ test("finishing a world's last level awards its Power", async ({ page, baseURL }
 
   const success = page.getByRole("dialog", { name: "Level complete!" });
   await expect(success).toBeVisible();
-  await expect(success.getByText("You finished Inventor Island!")).toBeVisible();
-  await expect(success.getByText("You earned the Invention Power!")).toBeVisible();
-  await expect(success.getByText("Every Power at once, on something of your own.")).toBeVisible();
+  await expect(success.getByText("You finished Bunny Meadow!")).toBeVisible();
+  await expect(success.getByText("You earned the Sequence Power!")).toBeVisible();
+  await expect(success.getByText("One clear instruction after another.")).toBeVisible();
 });

@@ -43,6 +43,12 @@ const KNOWN_BLOCKS = new Set([
   "bb_ifElse",
   "bb_say",
   "bb_pathAhead",
+  // Code City variables and tricks (curriculum expansion).
+  "bb_setCounter",
+  "bb_changeCounter",
+  "bb_sayCounter",
+  "bb_defineTrick",
+  "bb_doTrick",
 ]);
 
 const FOREST_MULTI_VARIANT_SLUGS = ["choose-the-path", "hidden-carrot", "forest-challenge"];
@@ -160,19 +166,25 @@ describe("content bundle shape", () => {
     // you-be-the-classifier (AI_SIM boundary-builder) and fortune-teller
     // (AI_SIM trend-line) in data-desert's lines-in-the-sand.
     // + Code City (8: 3 CODE_PREDICTION, 1 BLOCK_CODING, 3 DEBUGGING,
-    // 1 SEQUENCING) and Inventor Island's Workbench (4 open BLOCK_CODING).
+    // 1 SEQUENCING) and Inventor Island's Workbench (4 open BLOCK_CODING)
+    // + the Fair (3 CREATIVE_PROJECT build-your-own mazes)
+    // + Code City's Counters and Tricks (7: 2 CONCEPT_CARDS, 4 BLOCK_CODING,
+    // 1 DEBUGGING — variables and functions)
+    // + practice modules: Practice Paddock (3, bunny-meadow), Forest Practice
+    // (2), Lab Practice (2) + AI Island's Safety and Fairness (2 AI_ETHICS,
+    // 1 AI_CLASSIFICATION bias lesson) + Data Desert's Three Oases (1).
     const levelCount = playableWorlds.reduce((n, w) => n + allLevels(w).length, 0);
-    expect(levelCount).toBe(50);
+    expect(levelCount).toBe(71);
     const codeCity = playableWorlds.find((w) => w.slug === "code-city");
-    expect(allLevels(codeCity as WorldFixture)).toHaveLength(8);
+    expect(allLevels(codeCity as WorldFixture)).toHaveLength(15);
     const inventorIsland = playableWorlds.find((w) => w.slug === "inventor-island");
-    expect(allLevels(inventorIsland as WorldFixture)).toHaveLength(4);
+    expect(allLevels(inventorIsland as WorldFixture)).toHaveLength(7);
     const robotLab = playableWorlds.find((w) => w.slug === "robot-lab");
-    expect(allLevels(robotLab as WorldFixture)).toHaveLength(8);
+    expect(allLevels(robotLab as WorldFixture)).toHaveLength(10);
     const aiIsland = playableWorlds.find((w) => w.slug === "ai-island");
-    expect(allLevels(aiIsland as WorldFixture)).toHaveLength(6);
+    expect(allLevels(aiIsland as WorldFixture)).toHaveLength(9);
     const dataDesert = playableWorlds.find((w) => w.slug === "data-desert");
-    expect(allLevels(dataDesert as WorldFixture)).toHaveLength(6);
+    expect(allLevels(dataDesert as WorldFixture)).toHaveLength(7);
   });
 });
 
@@ -408,9 +420,16 @@ describe("solutions survive the real publish gates (no DB needed)", () => {
     };
   }
 
+  // CREATIVE_PROJECT levels run the gates on their author sample (design +
+  // solution) — the same standard, on the level's own proof.
   const gridLevels = playableWorlds.flatMap((world) =>
     allLevels(world)
-      .filter((l) => l.activityType === "BLOCK_CODING" || l.activityType === "DEBUGGING")
+      .filter(
+        (l) =>
+          l.activityType === "BLOCK_CODING" ||
+          l.activityType === "DEBUGGING" ||
+          l.activityType === "CREATIVE_PROJECT",
+      )
       .map((level) => ({ world, level })),
   );
 

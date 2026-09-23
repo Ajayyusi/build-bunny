@@ -5,6 +5,7 @@ import { ActivityPlayer } from "@/modules/activities/players/ActivityPlayer";
 import { getActivityEngine } from "@/modules/activities/server/registry";
 import { codePredictionStudentPayload } from "@/modules/activities/server/code-prediction";
 import { conceptCardsStudentPayload } from "@/modules/activities/server/concept-cards";
+import { mazeDraftSchema } from "@/modules/activities/maze";
 import {
   sequencingStudentPayload,
   shuffleSequencingItems,
@@ -21,6 +22,7 @@ import type {
   GridActivityPayload,
   GroupActivityPayload,
   LearnActivityPayload,
+  MazeActivityPayload,
   SequencingActivityPayload,
   TeachActivityPayload,
 } from "@/modules/activities/types";
@@ -28,6 +30,7 @@ import { requireRole } from "@/modules/auth/server/session";
 import {
   aiClassificationStudentPayload,
   blockCodingPayload,
+  creativeProjectStudentPayload,
   debuggingPayload,
   patternRecognitionStudentPayload,
   resolveText,
@@ -41,6 +44,7 @@ import {
   revealHint,
   saveWorkspaceDraft,
 } from "@/modules/learning/server/actions";
+import { ageBandFor, supportFor } from "@/modules/learning/age-band";
 import { getPlayableLevel } from "@/modules/learning/server/queries";
 import { isFeatureEnabled } from "@/modules/shared/features";
 import { getMyStudentSnapshot } from "@/modules/students/server/queries";
@@ -129,6 +133,8 @@ export default async function PlayLevelPage({ params }: Props) {
     hintsUsedTiers: playable.hintsUsedTiers,
     worldTheme: theme,
     tags: playable.tags,
+    ageBand: ageBandFor(playable.recommendedGradeMin),
+    support: supportFor(snapshot?.grade ?? null),
     nextLevel: next,
   };
 
@@ -146,6 +152,7 @@ export default async function PlayLevelPage({ params }: Props) {
     | CodePredictionActivityPayload
     | SequencingActivityPayload
     | LearnActivityPayload
+    | MazeActivityPayload
     | TeachActivityPayload
     | GroupActivityPayload
     | AiEthicsActivityPayload
@@ -165,6 +172,24 @@ export default async function PlayLevelPage({ params }: Props) {
       initialWorkspace: playable.draftWorkspace ?? resetWorkspace,
       resetWorkspace,
     } satisfies GridActivityPayload;
+  } else if (playable.activityType === "CREATIVE_PROJECT") {
+    // Build-your-own maze. The .strict() mirror has no `sample` (the author's
+    // solved maze) — a strip regression fails here, not in a child's browser.
+    // A draft holds the design and the program together.
+    const parsed = creativeProjectStudentPayload.parse(playable.payload);
+    const draft = mazeDraftSchema.safeParse(playable.draftWorkspace);
+    const resetWorkspace = parsed.startWorkspace ?? null;
+    payload = {
+      board: parsed.board,
+      palette: parsed.palette,
+      mustInclude: parsed.mustInclude,
+      toolbox: parsed.toolbox,
+      budgets: parsed.budgets,
+      starCriteria: parsed.starCriteria,
+      initialDesign: draft.success ? draft.data.design : null,
+      initialWorkspace: draft.success ? (draft.data.workspaceJson ?? resetWorkspace) : resetWorkspace,
+      resetWorkspace,
+    } satisfies MazeActivityPayload;
   } else if (playable.activityType === "CODE_PREDICTION") {
     const parsed = codePredictionStudentPayload.parse(playable.payload);
     payload = {

@@ -101,16 +101,25 @@ it started. Tested, not trusted."
 3. *(excited)* "Read first, then run. Let's keep the city moving!"
 
 Finale: **City Bug Bounty** — three bugs, one delivery. Mo: "On time, and
-you read every line first. Have a key to the city."
+you read every line first. Have a key to the city." A third module,
+**Counters and Tricks**, follows on Counter Street: Robo Bunny's one pocket
+for a number (the counter) and its one named trick (a function), closing
+with **City Parade** — a lap of the square by one trick, one loop and one
+counter, and real `var`, `for` and `function` in the Code tab.
 
 ### 8 · Inventor Island — "The Fair"
 1. *(waving)* "Everyone's here for the Inventor's Fair — Grandma Clover, Oona, Pip, Coco, Fenn, Nova and Mayor Mo. And I have all eight Powers."
 2. *(thinking)* "There are no instructions on this island. There's a workbench, every block I know, and an empty map."
 3. *(excited)* "So let's invent something. Yours first — then mine."
 
-Finale: the child's own project (`feat/curriculum-expansion`: maze builder
-and creative projects). Until those ship, Inventor Island opens with its
-first workshop module — open-ended levels with many right answers.
+Finale: the child's own project. The Workbench (open-ended levels with many
+right answers) leads to **The Fair**: three build-your-own mazes — the
+child designs the map (rocks, water, carrots, the burrow) against a
+checklist that refuses an unwinnable maze in words, then programs Robo
+Bunny through it. The last, **The Fair Maze**, is the capstone: a staircase
+maze solved with a trick inside a loop, every Power at once on something of
+the child's own. Grandma Clover: "Every inventor at the Fair shows a maze of
+their own. Build one, then prove Robo Bunny can get through it."
 
 ## Rules the story keeps
 

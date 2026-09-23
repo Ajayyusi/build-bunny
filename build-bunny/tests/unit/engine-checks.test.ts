@@ -183,7 +183,7 @@ describe("evaluateChecks — expectedOutput and unsupported ids", () => {
     ]);
   });
 
-  it.each(["variableEquals", "expectedSequence", "classifierResult"] as const)(
+  it.each(["expectedSequence", "classifierResult"] as const)(
     "%s reports a quality-severity unsupported skip (never flips a verdict)",
     (id) => {
       const failures = evaluateChecks([core(id)], goalRun, stats());

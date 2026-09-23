@@ -67,6 +67,15 @@ function solutionFor(level: PlayableLevel): Record<string, unknown> {
       if (!solution) throw new Error(`${level.slug}: no recorded solution in payload`);
       return { workspaceJson: solution };
     }
+    case "CREATIVE_PROJECT": {
+      // Build-your-own maze: the author's sample design is the design a
+      // child could have drawn, and its recorded solution solves it.
+      const sample = payload.sample as { design?: unknown; solution?: unknown } | undefined;
+      if (!sample?.design || !sample.solution) {
+        throw new Error(`${level.slug}: no sample design + solution in payload`);
+      }
+      return { workspaceJson: sample.solution, design: sample.design };
+    }
     case "CODE_PREDICTION": {
       const optionId = payload.correctOptionId;
       if (typeof optionId !== "string") throw new Error(`${level.slug}: no correctOptionId`);

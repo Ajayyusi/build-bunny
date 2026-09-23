@@ -63,6 +63,12 @@ export interface RunResult {
   finalPose: Pose;
   commandCount: number;
   sayOutputs: string[];
+  /**
+   * The program's variables when it ended (the interpreter host reads them
+   * back from the sandbox; the Simulation itself never sets this). Only
+   * primitives — what the `variableEquals` check compares.
+   */
+  variables?: Record<string, number | string | boolean>;
 }
 
 // ── Check contracts ──────────────────────────────────────────────────────
