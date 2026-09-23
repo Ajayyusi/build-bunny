@@ -21,7 +21,7 @@ Status legend: **✅ implemented & tested** · **🟡 partial** · **⛔ blocked
 | `feat/robo-help` | §5 help tools, adaptive hints | ready for review |
 | `feat/curriculum-expansion` | §4 variables/functions, build-your-own maze, age bands, 71 levels | ready for review |
 | `feat/classroom-parent` | §6 misconception report, curriculum guide, projector challenge, family view | ready for review |
-| `feat/offline-perf-polish` | §7 offline, performance, privacy review | not started |
+| `feat/offline-perf-polish` | §7 offline outbox, accessibility scan, privacy review | ready for review |
 
 Nothing is merged or deployed. Each branch is based on the previous one, so
 they should be reviewed and merged in the order above.
@@ -129,15 +129,24 @@ they should be reviewed and merged in the order above.
 
 | Item | Status | Evidence / files |
 |---|---|---|
-| Keyboard, screen reader, focus, non-colour feedback | 🟡 | Every block reachable by keyboard/tap through the palette + toolbar (44 px, labelled); switches are `role="switch"`, results are `role="alert"`/`status`, dialogs trap focus; on/off never colour-only. **Not done:** a full screen-reader pass of every player (NVDA/VoiceOver) |
+| Keyboard, screen reader, focus, non-colour feedback | 🟡 | Every block reachable by keyboard/tap through the palette + toolbar (44 px, labelled); switches are `role="switch"`, results are `role="alert"`/`status`, dialogs trap focus; on/off never colour-only. **New:** automated axe-core scan (`e2e/a11y.spec.ts`) of home, map, briefing and editor in EN + AR fails the build on serious/critical findings — it found and we fixed low-contrast avatar initials. **Not done:** a person-run screen-reader pass (NVDA/VoiceOver); Blockly's own canvas is excluded from the scan (third-party) |
 | Reduced motion, high contrast, text size | ✅ | `src/ui/display/*`, `DisplayControls.tsx`; CSS in `globals.css` (also honours OS `prefers-contrast`/`prefers-reduced-motion`); boot script prevents flash; `useReducedMotion` follows the manual switch. Unit tests + e2e (apply, persist across reload) |
 | Arabic content + RTL verified in the game | 🟡 | first-run flow verified in ar; native review flags pending |
-| Weak Wi-Fi / offline queue / reconnect / no duplicate submissions | ⬜ | idempotent attempts already exist |
-| Telemetry data-minimisation review | ⬜ | |
+| Weak Wi-Fi / offline queue / reconnect / no duplicate submissions | ✅ | **attempt outbox** (`players/shared/attempt-outbox.ts`) used by all 8 players: every graded run is stored on the device before sending and removed only when the server answers; resent on the next level open, on reconnect, and every 10 s while the success card is open; same attemptRunId, so the server never counts it twice; entries tied to the child (never sent under another child on a shared tablet), dropped after 7 days. Success card says "kept on this device…". Offline draft saves no longer throw. Unit `attempt-outbox.test.ts` (5), e2e `offline.spec.ts` (Wi-Fi drops on Run → reconnect → saved, map shows it completed) |
+| Telemetry data-minimisation review | ✅ | `build-bunny/docs/privacy-data-inventory.md` §8b–8d: family links, everything kept on the device, and a review of every event/attempt/log field. No third-party analytics; no child text to any model. Open item recorded: `LearningEvent.classId` stays unwritten |
+| Performance on school devices | 🟡 | production build: level player 136 kB first-load JS (Blockly loads separately, only on block levels), family page 130 kB. **Not done:** measurements on a real low-end tablet / throttled school network |
 
 ---
 
 ## Checkpoint log
+
+### Checkpoint 8 — 2026-09-24 (offline, accessibility, privacy)
+
+- **Live:** nothing new; nothing merged, deployed or pushed.
+- **On branches:** `feat/offline-perf-polish` (stacked on `feat/classroom-parent`).
+- **Tested:** unit + integration 743 passing; full e2e 30 passing (15 intentionally single-viewport skips) including the new `offline.spec.ts` and `a11y.spec.ts`; lint, type-check and production build clean.
+- **Also fixed here:** the grid player's local `postAttempt` shadowed the new outbox helper and called itself (caught by the offline e2e before commit); offline draft saves raised unhandled errors.
+- **Still open across the brief:** 71 levels, not 100; Arabic native review; physical iPad / Safari; a person-run screen-reader pass; §6 assignment templates, group missions, reflections, standards mapping, weekly email (needs an email provider); real-device performance numbers.
 
 ### Checkpoint 7 — 2026-09-24 (classroom + family)
 

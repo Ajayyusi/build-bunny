@@ -32,6 +32,7 @@ import { TeachScene } from "./TeachScene";
 const BUILT_IN_BEATS = [1, 2, 3, 4] as const;
 
 import { Walkthrough } from "./shared/Walkthrough";
+import { postAttempt } from "./shared/attempt-outbox";
 import { HintDrawer } from "./shared/HintDrawer";
 import { SuccessOverlay } from "./shared/SuccessOverlay";
 import { useHints } from "./shared/useHints";
@@ -343,7 +344,7 @@ export function TeachPlayer({
     // without waiting out the timer, same rule as every other player.
     setLastSubmitAt(Date.now());
     try {
-      const res = await fetch(`/api/levels/${intro.levelId}/attempts`, {
+      const res = await postAttempt(intro.playerKey, `/api/levels/${intro.levelId}/attempts`, {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({

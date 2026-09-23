@@ -63,6 +63,8 @@ interface SuccessOverlayProps {
   extra?: ReactNode;
 }
 
+/** How often a failed save is quietly retried while the success card is open. */
+const RETRY_MS = 10_000;
 const BURST_MS = 2200;
 
 export function SuccessOverlay({
@@ -89,6 +91,23 @@ export function SuccessOverlay({
   const [stage, setStage] = useState<"burst" | "card">(
     reducedMotion ? "card" : "burst",
   );
+
+  // The run is kept on this device (the attempt outbox) when the save
+  // fails; when the connection comes back, send it again without making the
+  // child find the Retry button. Same attemptRunId, so never counted twice.
+  // The "online" event alone is not enough — a tablet can be on Wi-Fi with
+  // no internet behind it, and emulated networks do not always fire it — so
+  // a quiet retry every ten seconds backs it up while the save is pending.
+  useEffect(() => {
+    if (!saveFailed) return;
+    const retry = () => onRetrySave();
+    window.addEventListener("online", retry);
+    const timer = window.setInterval(retry, RETRY_MS);
+    return () => {
+      window.removeEventListener("online", retry);
+      window.clearInterval(timer);
+    };
+  }, [saveFailed, onRetrySave]);
 
   useEffect(() => {
     if (stage !== "burst") return;

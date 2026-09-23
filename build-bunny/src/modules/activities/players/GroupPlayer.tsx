@@ -17,6 +17,7 @@ import { BunnyMascot, Button, cn, useReducedMotion } from "@/ui";
 import { PlayerSoundControls } from "@/modules/audio/AudioControls";
 import { GroupScene } from "./GroupScene";
 import { Walkthrough } from "./shared/Walkthrough";
+import { postAttempt } from "./shared/attempt-outbox";
 import { HintDrawer } from "./shared/HintDrawer";
 import { SuccessOverlay } from "./shared/SuccessOverlay";
 import { useDraftAutosave } from "./shared/useDraftAutosave";
@@ -284,7 +285,7 @@ export function GroupPlayer({
     // A real attempt unlocks the next hint tier without the 60s wait.
     setLastSubmitAt(Date.now());
     try {
-      const res = await fetch(`/api/levels/${intro.levelId}/attempts`, {
+      const res = await postAttempt(intro.playerKey, `/api/levels/${intro.levelId}/attempts`, {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({

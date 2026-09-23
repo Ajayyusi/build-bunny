@@ -4,6 +4,7 @@ import { WorldMusic } from "@/modules/audio/scene";
 
 import type { ActivityPlayerProps } from "../types";
 import { getActivityPlayer } from "./registry";
+import { useAttemptOutbox } from "./shared/attempt-outbox";
 
 interface Props extends ActivityPlayerProps {
   activityType: string;
@@ -20,6 +21,9 @@ interface Props extends ActivityPlayerProps {
  * the server half of the same registry.
  */
 export function ActivityPlayer({ activityType, ...props }: Props) {
+  // Runs saved on this device while offline are sent as soon as a level
+  // opens, or the moment the connection comes back.
+  useAttemptOutbox(props.intro.playerKey);
   const Player = getActivityPlayer(activityType);
   if (!Player) return null;
   return (

@@ -12,6 +12,7 @@ import { Badge, Button, cn, useReducedMotion } from "@/ui";
 
 import { PlayerSoundControls } from "@/modules/audio/AudioControls";
 import { HintDrawer, type HintTierState } from "./shared/HintDrawer";
+import { postAttempt } from "./shared/attempt-outbox";
 import { IntroOverlay } from "./shared/IntroOverlay";
 import { MissionStrip } from "./shared/MissionStrip";
 import { useDraftAutosave } from "./shared/useDraftAutosave";
@@ -112,7 +113,7 @@ export function AiSimPlayer({
   const submit = async (id: string, answer: unknown) => {
     setSubmitting(true);
     try {
-      const response = await fetch(`/api/levels/${intro.levelId}/attempts`, {
+      const response = await postAttempt(intro.playerKey, `/api/levels/${intro.levelId}/attempts`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ attemptRunId: id, answer }),
