@@ -154,7 +154,7 @@ export default async function StudentHomePage({ params }: Props) {
           />
 
           <div className="relative flex max-w-md flex-col items-start gap-3">
-            <span className="rounded-full bg-brand px-3 py-1 text-[11px] font-bold tracking-wide text-on-brand">
+            <span className="rounded-full bg-brand px-3 py-1 text-xs font-bold tracking-wide text-on-brand">
               {t("kicker")}
             </span>
             <h1 className="font-display text-2xl font-bold text-ink sm:text-3xl">
@@ -270,10 +270,10 @@ export default async function StudentHomePage({ params }: Props) {
               {t("roadmapTitle")}
             </h2>
             <div className="flex items-center gap-2">
-              <span className="rounded-full bg-surface-sunken px-3 py-1 text-[11px] font-bold text-ink-muted">
+              <span className="rounded-full bg-surface-sunken px-3 py-1 text-xs font-bold text-ink-muted">
                 {t("roadmapWorlds", { count: worldCards.length })}
               </span>
-              <span className="rounded-full bg-surface-sunken px-3 py-1 text-[11px] font-bold text-ink-muted">
+              <span className="rounded-full bg-surface-sunken px-3 py-1 text-xs font-bold text-ink-muted">
                 {t("roadmapLevels", { count: totalLevels })}
               </span>
             </div>

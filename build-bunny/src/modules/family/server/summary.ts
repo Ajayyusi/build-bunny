@@ -7,7 +7,19 @@ import { localizedText, worldPowerSchema, type LocalizedText } from "@/modules/c
 
 import { resolveEntitlement } from "@/modules/schools/server/entitlement";
 
+import { createRateLimiter } from "@/lib/rate-limit";
+
 import { hashFamilyToken } from "./links";
+
+/**
+ * The family page is public. A family opens it a few times a week; this
+ * stops a script from hammering it (each view reads several tables and
+ * records the visit). Over the limit, the page reads "not active".
+ */
+const viewLimiter = createRateLimiter({ limit: 30, windowMs: 60_000 });
+export function allowFamilyView(clientKey: string): boolean {
+  return viewLimiter.allow(clientKey);
+}
 
 /**
  * The family view's data (brief §6): a read-only weekly summary for one

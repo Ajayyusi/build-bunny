@@ -64,7 +64,7 @@ export function WorldCard({
           {world.emoji}
         </span>
         {world.locked ? (
-          <span className="inline-flex items-center gap-1 rounded-full bg-surface-sunken px-2 py-1 text-[11px] font-bold text-ink-muted">
+          <span className="inline-flex items-center gap-1 rounded-full bg-surface-sunken px-2 py-1 text-xs font-bold text-ink-muted">
             <span aria-hidden="true">🔒</span>
             {lockedLabel}
           </span>

@@ -116,20 +116,24 @@ export default async function CurriculumGuidePage({ params }: Props) {
                   const codes = standardsForTags(mod.levels.flatMap((level) => level.tags));
                   if (codes.length === 0) return null;
                   return (
-                    <p className="flex flex-wrap items-center gap-1.5 text-xs text-ink-muted">
-                      <span>{t("cstaLabel")}</span>
-                      {codes.map((code) => (
-                        <abbr
-                          key={code}
-                          title={t(`csta.${code}`)}
-                          tabIndex={0}
-                          dir="ltr"
-                          className="rounded bg-surface-sunken px-1.5 py-0.5 font-mono text-ink no-underline print:bg-transparent"
-                        >
-                          {code}
-                        </abbr>
-                      ))}
-                    </p>
+                    // Visible, not a hover tooltip: tablets, keyboards and
+                    // printed guides have no hover.
+                    <div className="flex flex-col gap-1 text-xs text-ink-muted">
+                      <span className="font-semibold">{t("cstaLabel")}</span>
+                      <ul className="flex flex-col gap-0.5">
+                        {codes.map((code) => (
+                          <li key={code} className="flex flex-wrap items-baseline gap-2">
+                            <span
+                              dir="ltr"
+                              className="rounded bg-surface-sunken px-1.5 py-0.5 font-mono text-ink print:bg-transparent print:px-0"
+                            >
+                              {code}
+                            </span>
+                            <span>{t(`csta.${code}`)}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
                   );
                 })()}
                 <div className="overflow-x-auto">

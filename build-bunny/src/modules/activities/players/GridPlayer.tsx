@@ -137,6 +137,9 @@ export function GridPlayer({
   });
   const [editState, setEditState] = useState<WorkspaceEditState | null>(null);
   const [paletteOpen, setPaletteOpen] = useState(false);
+  // Spoken confirmation for the tap-to-add path (screen reader, switch):
+  // the palette closes on add, so without this nothing says it worked.
+  const [addedAnnouncement, setAddedAnnouncement] = useState("");
   const [resetConfirmOpen, setResetConfirmOpen] = useState(false);
   // Blocks were restored (server draft or this device's mirror).
   const [resumeDraft, setResumeDraft] = useState(
@@ -877,6 +880,10 @@ export function GridPlayer({
         />
       ) : null}
 
+      <p role="status" aria-live="polite" className="sr-only">
+        {addedAnnouncement}
+      </p>
+
       <BlockPalette
         open={paletteOpen}
         onClose={() => setPaletteOpen(false)}
@@ -884,7 +891,12 @@ export function GridPlayer({
         editState={editState}
         onAdd={(type) => {
           const added = workspaceHandleRef.current?.addBlock(type) ?? false;
-          if (added) sounds.play("place");
+          if (added) {
+            sounds.play("place");
+            setAddedAnnouncement(
+              t("tools.added", { block: t.has(`blockNames.${type}`) ? t(`blockNames.${type}`) : type }),
+            );
+          }
           return added;
         }}
       />

@@ -132,7 +132,8 @@
       "settings": "Sound settings",
       "readAloud": "Read aloud",
       "everythingOnScreen": "Everything important is always written on screen too.",
-      "close": "Close"
+      "close": "Close",
+      "settingsButton": "Sound settings"
     },
     "header": {
       "xpChip": "{value} XP",
@@ -185,11 +186,12 @@
             "body": "Snap blocks together to make a program. Press Run, and I'll follow your blocks one by one."
           },
           "2": {
-            "title": "Stuck? Tap Hint.",
+            "title": "Stuck? Tap Ask Robo Bunny.",
             "body": "I'll give you a small clue first, then a bigger one. Every coder gets stuck — hints are how we get unstuck."
           }
         },
-        "later": "Look around first"
+        "later": "Look around first",
+        "letsGo": "Let's go!"
       },
       "feedback": {
         "heading": "From your teacher",
@@ -255,6 +257,11 @@
           "starter": "Ages 7–8",
           "explorer": "Ages 9–10",
           "inventor": "Ages 11–13"
+        },
+        "bandName": {
+          "starter": "Starter",
+          "explorer": "Explorer",
+          "inventor": "Inventor"
         }
       },
       "horizonHeading": "On the horizon",
@@ -346,7 +353,7 @@
         "wrongVariable": "The counter ended on {actual}, but it should be {expected}. Follow the counter blocks one by one.",
         "noValue": "nothing",
         "noTrick": "“Do my trick” needs a trick to do — add a “my trick” block and put some blocks inside it.",
-        "mazeInvalid": "Your maze can't be solved yet — open the maze checklist and fix what's missing.",
+        "mazeInvalid": "Your maze can't be solved yet. Tap “Change my maze” and fix the line without a tick.",
         "emptyTrick": "Your trick has no blocks inside yet. Put the steps in “my trick”, then use “do my trick”."
       },
       "learn": {
@@ -460,7 +467,7 @@
         "tooManyExamples": "That is {used} examples, and you may only use {max}. Take some back out and pick the ones that teach it the most.",
         "capUsed": "{used} of {max} used",
         "recapHeading": "How you taught it",
-        "recapTaught": "You showed it {count} {kind, select, grain {seeds} cell {cells} blip {readings} other {berries}}, and nothing else:",
+        "recapTaught": "You showed it {count} {kind, select, grain {{count, plural, one {seed} other {seeds}}} cell {{count, plural, one {cell} other {cells}}} blip {{count, plural, one {reading} other {readings}}} other {{count, plural, one {berry} other {berries}}}}, and nothing else:",
         "recapDecided": "Then it worked out the new ones by copying whichever of yours each one looked most like:",
         "improveFewer": "The bunny can be taught with as few as {max} examples. Fewer, better-chosen ones earn the last star.",
         "keepForTesting": "Keep for testing",
@@ -628,7 +635,7 @@
           "forbiddenBlock": "The program used a block this level asks you to do without.",
           "generic": "The run didn't reach the goal. Watch it again and find the first step where Robo Bunny goes somewhere you didn't expect.",
           "wrongVariable": "Each counter block changes the number by a fixed amount, in order. Write the number after each block and see where it drifts from the target.",
-          "mazeInvalid": "The program never ran: the maze itself broke a rule of the checklist. Change my maze, fix the line without a tick, and build again.",
+          "mazeInvalid": "The program never ran, because the maze itself broke a rule on the checklist. Tap “Change my maze”, fix the line without a tick, and build again.",
           "genericAnswer": "Not quite yet. Read the question again slowly, and check each part of your answer one at a time.",
           "wrongOutput": "Robo Bunny said something different from what was needed. Check the words in each say block, and whether they happen in the right order.",
           "wrongOption": "The program does something a little different from the answer you picked. Pretend you are the computer: follow it one line at a time, and keep track of where things are after each line.",
@@ -756,7 +763,7 @@
       },
       "firstSteps": {
         "add": "Tap “+ Add block” and pick a block to start your program.",
-        "run": "Nice! Now press ▶ Run to see what Bunny does."
+        "run": "Nice! Now press ▶ Run to see what Robo Bunny does."
       }
     },
     "profile": {
@@ -1167,12 +1174,12 @@
       },
       "curriculum": {
         "title": "Curriculum guide",
-        "subtitle": "{levels} levels across {worlds} worlds — about {lessons} lessons of {minutes} minutes. Objectives, concepts, age bands, timing and teacher notes for every level, in the order children play them.",
+        "subtitle": "{levels, plural, one {# level} other {# levels}} across {worlds, plural, one {# world} other {# worlds}} — about {lessons, plural, one {# lesson} other {# lessons}} of {minutes} minutes. Objectives, concepts, age bands, timing and teacher notes for every level, in the order children play them.",
         "print": "Print guide",
         "emptyTitle": "No curriculum enabled",
         "emptyBody": "Your school has not enabled a programme yet.",
-        "worldPacing": "{levels} levels · about {lessons, plural, one {# lesson} other {# lessons}} of {minutes} min",
-        "modulePacing": "{levels} levels · {total} min · about {lessons, plural, one {# lesson} other {# lessons}} of {minutes} min",
+        "worldPacing": "{levels, plural, one {# level} other {# levels}} · about {lessons, plural, one {# lesson} other {# lessons}} of {minutes} min",
+        "modulePacing": "{levels, plural, one {# level} other {# levels}} · {total} min · about {lessons, plural, one {# lesson} other {# lessons}} of {minutes} min",
         "power": "Earns the {power}",
         "teacherNotes": "Teacher notes",
         "col": {
@@ -1209,7 +1216,7 @@
           "error": "That did not work. Check you teach this class and try again."
         },
         "cstaLabel": "Suggested CSTA alignment:",
-        "cstaNote": "Standards codes are our suggested alignment with the CSTA K–12 Computer Science Standards (1B = grades 3–5, 2 = grades 6–8), not an endorsement by CSTA. Hover or focus a code to read it.",
+        "cstaNote": "Standards codes are our suggested alignment with the CSTA K–12 Computer Science Standards (1B = grades 3–5, 2 = grades 6–8), not an endorsement by CSTA.",
         "csta": {
           "1B-AP-08": "Compare and refine different algorithms for the same task",
           "1B-AP-09": "Use variables to store and change data in a program",
@@ -2057,7 +2064,7 @@
     "thisWeek": "Finished this week",
     "quietWeek": "No levels finished this week — that's fine. Ask what they're building next!",
     "worlds": "The adventure so far",
-    "worldProgress": "{completed} of {total} levels",
+    "worldProgress": "{completed} of {total, plural, one {# level} other {# levels}}",
     "powerEarned": "Earned the {power}",
     "privacy": "This is a private, read-only link shared by the school. It shows no scores against other children and changes nothing. It stops working on {date}, or sooner if the teacher switches it off.",
     "inactiveTitle": "This link isn't active",

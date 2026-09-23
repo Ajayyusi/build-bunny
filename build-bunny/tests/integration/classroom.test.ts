@@ -3,7 +3,7 @@ import { beforeAll, describe, expect, it } from "vitest";
 
 import { db } from "@/lib/db";
 import { getClassMisconceptions, getClassReflections } from "@/modules/analytics/server/queries";
-import { createStaff, createStudent } from "@/modules/auth/server/provisioning";
+import { createStaff, createStudent, setAccountDisabled } from "@/modules/auth/server/provisioning";
 import type { SessionContext } from "@/modules/auth/server/session";
 import { getTeacherCurriculumGuide } from "@/modules/curriculum/server/guide";
 import { getModuleWorksheet } from "@/modules/curriculum/server/worksheet";
@@ -189,6 +189,19 @@ describe("family link", () => {
     expect(await getFamilyLinkStatus(teacherCtx, studentIds[0]!)).toMatchObject({ active: true });
     const viewed = await db.familyLink.findFirst({ where: { studentUserId: studentIds[0]!, revokedAt: null } });
     expect(viewed?.lastViewedAt).not.toBeNull();
+  });
+
+  it("disabling a child switches their family link off, and a view as someone else can't create one", async () => {
+    const { token } = await createFamilyLinkCore(teacherCtx, { studentUserId: studentIds[0]! });
+    expect(await getFamilySummary(token)).not.toBeNull();
+    await setAccountDisabled(SYSTEM_ACTOR, { userId: studentIds[0]!, schoolId: studentCtxs[0]!.schoolId, isStudent: true }, true);
+    expect(await getFamilySummary(token)).toBeNull();
+    await setAccountDisabled(SYSTEM_ACTOR, { userId: studentIds[0]!, schoolId: studentCtxs[0]!.schoolId, isStudent: true }, false);
+    // Re-enabling does not bring the old link back; the teacher makes a new one.
+    expect(await getFamilySummary(token)).toBeNull();
+
+    const impersonating = { ...teacherCtx, impersonatedBy: "platform-admin" };
+    await expect(createFamilyLinkCore(impersonating, { studentUserId: studentIds[0]! })).rejects.toThrow();
   });
 
   it("a new link replaces the old one, and switching off ends it", async () => {

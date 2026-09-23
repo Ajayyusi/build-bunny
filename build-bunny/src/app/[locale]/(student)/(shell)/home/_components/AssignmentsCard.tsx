@@ -59,7 +59,13 @@ export async function AssignmentsCard({ assignments, locale }: Props) {
                 <div className="flex min-w-0 flex-col gap-1">
                   <span className="flex flex-wrap items-center gap-2">
                     <span className="font-display text-base font-bold text-ink">
-                      {assignment.title}
+                      {/* Assigned straight from the curriculum guide, the
+                          title is the module's name in the teacher's
+                          language; show it in the child's instead. */}
+                      {assignment.title === resolveText(assignment.targetLabel, "en") ||
+                      assignment.title === resolveText(assignment.targetLabel, "ar")
+                        ? resolveText(assignment.targetLabel, locale)
+                        : assignment.title}
                     </span>
                     {assignment.done ? (
                       <span className="inline-flex items-center gap-1 rounded-full bg-positive/15 px-2 py-0.5 text-xs font-bold text-positive-strong">

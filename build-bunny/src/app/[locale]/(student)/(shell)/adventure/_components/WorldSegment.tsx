@@ -149,7 +149,7 @@ export function WorldSegment({ world, index, onOpenLevel, onReplayStory }: World
               {themeEmoji(world.theme)}
             </span>
             {isCurrent ? (
-              <span className="inline-flex items-center gap-1 rounded-full bg-brand px-2.5 py-1 text-[11px] font-bold tracking-wide text-on-brand">
+              <span className="inline-flex items-center gap-1 rounded-full bg-brand px-2.5 py-1 text-xs font-bold tracking-wide text-on-brand">
                 <span aria-hidden="true">▶</span>
                 {t("resume")}
               </span>

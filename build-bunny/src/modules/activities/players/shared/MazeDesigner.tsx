@@ -153,7 +153,9 @@ export function MazeDesigner({ rules, design, onChange, issues }: MazeDesignerPr
 
       <div
         dir="ltr"
-        role="grid"
+        // A group of labelled buttons (roving tabindex + arrow keys): a
+        // "grid" role would need row elements that this layout doesn't have.
+        role="group"
         aria-label={t("gridLabel", { width: rules.board.width, height: rules.board.height })}
         className="mx-auto grid w-fit gap-1 rounded-xl border border-border-token bg-surface-sunken p-2"
         style={{ gridTemplateColumns: `repeat(${rules.board.width}, minmax(0, 1fr))` }}
@@ -167,7 +169,6 @@ export function MazeDesigner({ rules, design, onChange, issues }: MazeDesignerPr
                 key={`${x},${y}`}
                 id={cellId(x, y)}
                 type="button"
-                role="gridcell"
                 aria-label={cellName(x, y)}
                 tabIndex={focused ? 0 : -1}
                 onClick={() => paint(x, y)}

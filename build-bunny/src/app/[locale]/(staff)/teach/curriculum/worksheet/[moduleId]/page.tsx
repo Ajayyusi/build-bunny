@@ -13,7 +13,8 @@ interface Props {
   searchParams: Promise<{ answers?: string }>;
 }
 
-const TILE: Record<string, string> = { "#": "🪨", C: "🥕", G: "🏠", W: "💧", ".": "" };
+// The same pictures the game's maze designer and map use.
+const TILE: Record<string, string> = { "#": "🪨", C: "🥕", G: "🕳️", W: "🌊", ".": "" };
 const ARROW: Record<string, string> = { N: "↑", E: "→", S: "↓", W: "←" };
 /** Step labels: A, B, C… in English; أ، ب، ج… on Arabic sheets. */
 const STEP_LETTERS: Record<string, string[]> = {
@@ -76,7 +77,7 @@ export default async function WorksheetPage({ params, searchParams }: Props) {
       </header>
 
       <p className="text-sm text-ink-muted" aria-label={t("legendLabel")}>
-        {t("legend")}: 🐰 + → {t("legendStart")} · 🏠 {t("legendGoal")} · 🥕 {t("legendCarrot")} · 🪨 {t("legendRock")} · 💧 {t("legendWater")}
+        {t("legend")}: 🐰 + → {t("legendStart")} · 🕳️ {t("legendGoal")} · 🥕 {t("legendCarrot")} · 🪨 {t("legendRock")} · 🌊 {t("legendWater")}
       </p>
 
       {paper.length === 0 ? <p className="text-sm">{t("noPaper")}</p> : null}

@@ -74,13 +74,13 @@ test("silent by default, starts on a tap, music stops on mute / hidden tab / lea
   expect(await audio(page)).toMatchObject({ contexts: 0, oscillators: 0 });
 
   // Turn effects + music on from the sidebar.
-  await page.getByRole("button", { name: "Sound off" }).click();
+  await page.getByRole("button", { name: "Sound settings: Sound off" }).click();
   const panel = page.getByRole("dialog", { name: "Sound" });
   await panel.getByRole("switch", { name: "Sound effects" }).click();
   await panel.getByRole("switch", { name: "Music" }).click();
   await expect(panel.getByRole("switch", { name: "Music" })).toHaveAttribute("aria-checked", "true");
   await panel.getByRole("button", { name: "Done" }).first().click();
-  await expect(page.getByRole("button", { name: "Sound on" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Sound settings: Sound on" })).toBeVisible();
 
   // Music is scheduling notes on a running context.
   await expect.poll(async () => (await audio(page)).state).toBe("running");
@@ -96,10 +96,10 @@ test("silent by default, starts on a tap, music stops on mute / hidden tab / lea
   await page.goto(`/en/play/${kid.firstLevelId}`);
   await page.getByRole("dialog", { name: "First Hop" }).getByRole("button", { name: "Let's build!" }).click();
   const mute = page.getByRole("button", { name: "Mute sound" });
-  await expect(mute).toHaveAttribute("aria-pressed", "true");
+  await expect(mute).toBeVisible();
   await expect.poll(async () => (await audio(page)).state).toBe("running");
   await mute.click();
-  await expect(page.getByRole("button", { name: "Turn sound on" })).toHaveAttribute("aria-pressed", "false");
+  await expect(page.getByRole("button", { name: "Turn sound on" })).toBeVisible();
   await page.waitForTimeout(1500); // let the fade finish
   const afterMute = (await audio(page)).oscillators;
   await page.waitForTimeout(2000);

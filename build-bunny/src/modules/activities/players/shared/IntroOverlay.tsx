@@ -129,7 +129,7 @@ export function IntroOverlay({
               <span aria-hidden="true">⏱</span>
               {tAdventure("minutes", { minutes: estimatedMinutes })}
             </Badge>
-            {ageBand ? <Badge variant="neutral">{tAdventure(`ageBand.${ageBand}`)}</Badge> : null}
+            {ageBand ? <Badge variant="neutral">{tAdventure(`bandName.${ageBand}`)}</Badge> : null}
           </div>
         </div>
 
