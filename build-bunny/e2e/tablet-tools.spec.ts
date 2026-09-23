@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-import { dragBlockUnderStack, provisionStudent, signIn, studentName } from "./helpers";
+import { dragBlockUnderStack, openMap, provisionStudent, signIn, studentName } from "./helpers";
 
 /**
  * Building without dragging, and never losing work: the tap-to-add palette,
@@ -91,7 +91,7 @@ test("display settings apply immediately and persist across reloads", async ({
   test.skip(testInfo.project.name !== "laptop", "settings are viewport-independent");
   const kid = provisionStudent(studentName(testInfo.project.name, "d"));
   await signIn(page, baseURL!, kid.username);
-  await page.goto("/en/adventure");
+  await openMap(page);
   await page.getByRole("button", { name: "Display" }).click();
   const panel = page.getByRole("dialog", { name: "Display" });
   await panel.getByRole("radio", { name: "Extra large" }).click();

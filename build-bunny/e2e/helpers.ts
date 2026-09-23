@@ -93,3 +93,18 @@ export async function dragBlockUnderStack(page: Page, blockType: string): Promis
   await page.mouse.move(target.x + 14, target.bottom + 10, { steps: 15 });
   await page.mouse.up();
 }
+
+/**
+ * Open the adventure map and dismiss the world's story scene if it opens
+ * (a newly reached world plays its scene once, a beat after the map
+ * mounts). For specs that are not about the story.
+ */
+export async function openMap(page: Page): Promise<void> {
+  await page.goto("/en/adventure");
+  const scene = page.getByRole("dialog", { name: /the story/ });
+  await scene.waitFor({ state: "visible", timeout: 5000 }).catch(() => {});
+  if (await scene.isVisible().catch(() => false)) {
+    await scene.getByRole("button", { name: "Skip" }).click();
+    await expect(scene).toHaveCount(0);
+  }
+}
