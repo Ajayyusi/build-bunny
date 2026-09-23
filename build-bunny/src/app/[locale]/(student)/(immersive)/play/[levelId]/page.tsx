@@ -136,6 +136,7 @@ export default async function PlayLevelPage({ params }: Props) {
     ageBand: ageBandFor(playable.recommendedGradeMin),
     support: supportFor(snapshot?.grade ?? null),
     nextLevel: next,
+    firstSteps: adventure.worlds.every((world) => world.completedLevels === 0),
   };
 
   // Re-parse the (student-stripped) payload per activity type so schema

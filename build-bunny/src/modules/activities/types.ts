@@ -57,6 +57,11 @@ export interface ActivityIntro {
    */
   support: SupportLevel;
   nextLevel: ActivityNextLevel | null;
+  /**
+   * True only for a child who has never finished a level: the block editor
+   * then points at "Add block", and then at Run, until the first run.
+   */
+  firstSteps?: boolean;
 }
 
 // ── Per-type student-facing payloads (answer-free by construction) ────────

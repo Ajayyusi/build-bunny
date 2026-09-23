@@ -209,10 +209,14 @@ export function TeachPlayer({
   // Presentation, with the berry defaults every already-authored level relies
   // on. A level that sets none of this renders exactly as it did before.
   const glyph = data.theme?.glyph ?? DEFAULT_GLYPH_THEME;
+  // Copy that names the things being sorted (berries, seeds, cells,
+  // readings) takes the level's glyph, so a seed level never says "berries".
+  const tk = (key: string, values: Record<string, string | number> = {}) =>
+    t(key, { ...values, kind: glyph });
   const truthEmoji = data.theme?.truthEmoji ?? { positive: "😋", negative: "🤢" };
   const beats = data.walkthrough ?? BUILT_IN_BEATS.map((n) => ({
-    title: t(`walk${n}Title`),
-    body: t(`walk${n}Body`),
+    title: tk(`walk${n}Title`),
+    body: tk(`walk${n}Body`),
   }));
 
 
@@ -498,7 +502,7 @@ export function TeachPlayer({
             <div className="flex flex-col gap-5">
               {/* Tray of berries still to teach with */}
               <section className="flex flex-col gap-3">
-                <StepHeading n={1} title={t("trayHeading")} help={t("trayHelp")} />
+                <StepHeading n={1} title={tk("trayHeading")} help={t("trayHelp")} />
                 <ul className="flex flex-wrap gap-3">
                   {unassigned.map((s) => (
                     <li
@@ -544,14 +548,14 @@ export function TeachPlayer({
                     </li>
                   ))}
                   {unassigned.length === 0 ? (
-                    <li className="text-sm text-ink-muted">{t("trayEmpty")}</li>
+                    <li className="text-sm text-ink-muted">{tk("trayEmpty")}</li>
                   ) : null}
                 </ul>
               </section>
 
               {/* The two taught buckets */}
               <section className="flex flex-col gap-3">
-                <StepHeading n={2} title={t("bucketsHeading")} help={t("bucketsHelp")} />
+                <StepHeading n={2} title={t("bucketsHeading")} help={tk("bucketsHelp")} />
                 <div className="grid gap-3 sm:grid-cols-2">
                   {(["positive", "negative"] as const).map((label) => (
                     <div
@@ -582,7 +586,7 @@ export function TeachPlayer({
                               <button
                                 type="button"
                                 onClick={() => assign(e.id, label)}
-                                aria-label={t("removeExample")}
+                                aria-label={tk("removeExample")}
                                 className="rounded-full p-0.5 transition-transform hover:scale-110"
                               >
                                 <Berry specimen={e} theme={glyph} />
@@ -711,12 +715,12 @@ export function TeachPlayer({
               >
                 <StepHeading
                   n={data.holdout ? 4 : 3}
-                  title={t("guessHeading")}
-                  help={t("guessHelp")}
+                  title={tk("guessHeading")}
+                  help={tk("guessHelp")}
                 />
                 {!ready ? (
                   <p className="text-sm text-ink-muted">
-                    {t("needMore", { count: data.minPerLabel })}
+                    {tk("needMore", { count: data.minPerLabel })}
                   </p>
                 ) : (
                   <ul className="flex flex-col gap-2">
@@ -811,8 +815,8 @@ export function TeachPlayer({
                         max: data.maxExamples ?? 0,
                       })
                     : typeof result.correct === "number" && typeof result.total === "number"
-                      ? t("missed", { correct: result.correct, total: result.total })
-                      : t("tryAgain")}
+                      ? tk("missed", { correct: result.correct, total: result.total })
+                      : tk("tryAgain")}
             </p>
           ) : null}
 

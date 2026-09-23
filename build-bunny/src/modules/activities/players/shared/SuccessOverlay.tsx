@@ -18,6 +18,7 @@ import {
 } from "@/ui";
 
 import styles from "./player.module.css";
+import { ReflectionRow } from "./ReflectionRow";
 import { resolveLocalized } from "../../types";
 
 /**
@@ -261,6 +262,8 @@ export function SuccessOverlay({
             </p>
           </div>
         ) : null}
+
+        <ReflectionRow />
 
         {improveNote ? (
           <div className="flex items-start gap-2 rounded-lg border border-border-token p-3">

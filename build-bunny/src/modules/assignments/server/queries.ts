@@ -270,6 +270,12 @@ export interface MyAssignment {
   /** Next unfinished level in scope, so the card can lead somewhere. */
   nextLevelId: string | null;
   teacherName: string;
+  /**
+   * Class mission: how many children in the class have finished the whole
+   * assignment, out of how many. Counts only — never which children.
+   */
+  classFinished: number;
+  classSize: number;
 }
 
 /**
@@ -310,6 +316,33 @@ export async function listMyStudentAssignments(ctx: SessionContext): Promise<MyA
   });
   const completedIds = new Set(completed.map((row) => row.levelId));
 
+  // Class mission counts: completions across each class roster.
+  const classIds = [...new Set(rows.map((row) => row.class.id))];
+  const rosters = await db.classMembership.findMany({
+    where: { schoolId, classId: { in: classIds }, role: "STUDENT" },
+    select: { classId: true, userId: true },
+  });
+  const rosterByClass = new Map<string, string[]>();
+  for (const member of rosters) {
+    rosterByClass.set(member.classId, [...(rosterByClass.get(member.classId) ?? []), member.userId]);
+  }
+  const classCompletions = await db.studentProgress.findMany({
+    where: {
+      schoolId,
+      studentUserId: { in: [...new Set(rosters.map((m) => m.userId))] },
+      levelId: { in: allLevelIds },
+      status: "COMPLETED",
+    },
+    select: { studentUserId: true, levelId: true },
+  });
+  const doneByStudent = new Map<string, Set<string>>();
+  for (const row of classCompletions) {
+    const set = doneByStudent.get(row.studentUserId) ?? new Set<string>();
+    set.add(row.levelId);
+    doneByStudent.set(row.studentUserId, set);
+  }
+  const classIdByAssignment = new Map(rows.map((row) => [row.id, row.class.id]));
+
   // Scope level ids come back unordered; the "next" level should be the one
   // the student would reach first on the map. Every assignment scope sits
   // inside a single world, so module-then-level order is the map order.
@@ -338,8 +371,22 @@ export async function listMyStudentAssignments(ctx: SessionContext): Promise<MyA
       done: levelIds.length > 0 && doneCount === levelIds.length,
       nextLevelId: remaining[0] ?? null,
       teacherName: summary.createdByName,
+      ...classMission(levelIds, rosterByClass.get(classIdByAssignment.get(summary.id) ?? "") ?? [], doneByStudent),
     };
   });
+}
+
+function classMission(
+  levelIds: string[],
+  roster: string[],
+  doneByStudent: Map<string, Set<string>>,
+): { classFinished: number; classSize: number } {
+  if (levelIds.length === 0) return { classFinished: 0, classSize: roster.length };
+  const classFinished = roster.filter((userId) => {
+    const done = doneByStudent.get(userId);
+    return done !== undefined && levelIds.every((id) => done.has(id));
+  }).length;
+  return { classFinished, classSize: roster.length };
 }
 
 export interface AssignmentProgress {

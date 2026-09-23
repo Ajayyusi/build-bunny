@@ -69,6 +69,7 @@ model User {
   certificates     Certificate[]
   familyLinks      FamilyLink[]      @relation("FamilyLinkStudent")
   familyLinksMade  FamilyLink[]      @relation("FamilyLinkCreator")
+  reflections      LevelReflection[]
 
   @@index([schoolId, role])
 }
@@ -160,6 +161,7 @@ model School {
   assignments      Assignment[]
   certificates     Certificate[]
   familyLinks      FamilyLink[]
+  reflections      LevelReflection[]
 }
 
 enum LicenceStatus {
@@ -439,6 +441,7 @@ model Level {
   progress      StudentProgress[]
   attempts      ActivityAttempt[]
   feedback      TeacherFeedback[]
+  reflections   LevelReflection[]
 
   @@unique([moduleId, slug])
   @@unique([moduleId, order])
@@ -848,4 +851,30 @@ model FamilyLink {
   lastViewedAt  DateTime?
 
   @@index([schoolId, studentUserId])
+}
+
+// How a level felt to the child (brief §6: reflections). One tap after a
+// level — never free text — so a teacher can see which levels a class found
+// tricky without anything a child typed being stored. One row per child per
+// level; tapping again changes it.
+enum ReflectionFeeling {
+  EASY
+  JUST_RIGHT
+  TRICKY
+}
+
+model LevelReflection {
+  id            String            @id @default(cuid())
+  schoolId      String
+  school        School            @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  studentUserId String
+  student       User              @relation(fields: [studentUserId], references: [id], onDelete: Cascade)
+  levelId       String
+  level         Level             @relation(fields: [levelId], references: [id], onDelete: Cascade)
+  feeling       ReflectionFeeling
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  @@unique([studentUserId, levelId])
+  @@index([schoolId, levelId])
 }

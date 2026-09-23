@@ -1323,24 +1323,8 @@ export async function getClassMisconceptions(
   });
   const grouped = summarizeMisconceptions(rows);
   if (grouped.length === 0) return [];
-  const levelRows = await loadSchoolLevels(schoolId);
-  const byId = new Map(levelRows.map((row) => [row.matrix.id, { ...row.matrix }]));
-  // Level titles from the PUBLISHED snapshot: the report describes what the
-  // class actually played, not a draft someone is editing.
   const namedIds = [...new Set(grouped.flatMap((g) => g.levels.map((l) => l.levelId)))];
-  const published = await db.level.findMany({
-    where: { id: { in: namedIds }, publishedVersionId: { not: null } },
-    select: { id: true, publishedVersionId: true },
-  });
-  const versions = await db.levelVersion.findMany({
-    where: { id: { in: published.map((l) => l.publishedVersionId as string) } },
-    select: { levelId: true, snapshot: true },
-  });
-  for (const version of versions) {
-    const title = localizedText.safeParse((version.snapshot as { title?: unknown } | null)?.title);
-    const known = byId.get(version.levelId);
-    if (known && title.success) known.title = title.data;
-  }
+  const byId = await publishedLevelNames(schoolId, namedIds);
   return grouped.map((group) => ({
     id: group.id,
     attempts: group.attempts,
@@ -1352,4 +1336,91 @@ export async function getClassMisconceptions(
         : [];
     }),
   }));
+}
+
+/**
+ * Title and world name for each level, with the title taken from the
+ * PUBLISHED snapshot: class reports describe what children actually played,
+ * never a draft someone is editing.
+ */
+async function publishedLevelNames(
+  schoolId: string,
+  levelIds: string[],
+): Promise<Map<string, { title: LocalizedText; worldName: LocalizedText }>> {
+  const levelRows = await loadSchoolLevels(schoolId);
+  const byId = new Map(levelRows.map((row) => [row.matrix.id, { ...row.matrix }]));
+  const published = await db.level.findMany({
+    where: { id: { in: levelIds }, publishedVersionId: { not: null } },
+    select: { id: true, publishedVersionId: true },
+  });
+  const versions = await db.levelVersion.findMany({
+    where: { id: { in: published.map((l) => l.publishedVersionId as string) } },
+    select: { levelId: true, snapshot: true },
+  });
+  for (const version of versions) {
+    const title = localizedText.safeParse((version.snapshot as { title?: unknown } | null)?.title);
+    const known = byId.get(version.levelId);
+    if (known && title.success) known.title = title.data;
+  }
+  return byId;
+}
+
+// ── Reflections: how the class felt about each level (brief §6) ───────────
+
+export interface ClassReflectionLevel {
+  levelId: string;
+  title: LocalizedText;
+  worldName: LocalizedText;
+  easy: number;
+  justRight: number;
+  tricky: number;
+}
+
+/** Fewer answers than this say nothing about a class. */
+const MIN_REFLECTIONS = 3;
+
+/**
+ * The levels this class most often called "tricky" in the one-tap
+ * reflection, trickiest share first. Counts only — never which child said
+ * what. Same access rule as the matrix; a foreign class gets [].
+ */
+export async function getClassReflections(
+  ctx: SessionContext,
+  classId: string,
+): Promise<ClassReflectionLevel[]> {
+  const schoolId = requireSchool(ctx);
+  const cls = await resolveClassAccess(ctx, classId);
+  if (!cls) return [];
+  const roster = await db.classMembership.findMany({
+    where: { schoolId, classId, role: "STUDENT" },
+    select: { userId: true },
+  });
+  if (roster.length === 0) return [];
+  const rows = await db.levelReflection.groupBy({
+    by: ["levelId", "feeling"],
+    where: { schoolId, studentUserId: { in: roster.map((r) => r.userId) } },
+    _count: { _all: true },
+  });
+  const byLevel = new Map<string, { easy: number; justRight: number; tricky: number }>();
+  for (const row of rows) {
+    const entry = byLevel.get(row.levelId) ?? { easy: 0, justRight: 0, tricky: 0 };
+    if (row.feeling === "EASY") entry.easy += row._count._all;
+    else if (row.feeling === "JUST_RIGHT") entry.justRight += row._count._all;
+    else entry.tricky += row._count._all;
+    byLevel.set(row.levelId, entry);
+  }
+  const known = await publishedLevelNames(schoolId, [...byLevel.keys()]);
+  return [...byLevel]
+    .filter(([levelId, c]) => known.has(levelId) && c.easy + c.justRight + c.tricky >= MIN_REFLECTIONS && c.tricky > 0)
+    .map(([levelId, c]) => ({
+      levelId,
+      title: known.get(levelId)!.title,
+      worldName: known.get(levelId)!.worldName,
+      ...c,
+    }))
+    .sort((a, b) => {
+      const share = (x: ClassReflectionLevel) => x.tricky / (x.easy + x.justRight + x.tricky);
+      return share(b) - share(a) || b.tricky - a.tricky;
+    })
+    .slice(0, 5);
 }

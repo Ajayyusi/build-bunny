@@ -258,3 +258,26 @@ export async function markLevelStartedCore(
   });
   return { started: true };
 }
+
+// ── Reflections (brief §6) ─────────────────────────────────────────────────
+
+export type ReflectionFeeling = "EASY" | "JUST_RIGHT" | "TRICKY";
+
+/**
+ * "How did that feel?" — one tap after a level, stored once per child per
+ * level (tapping again changes it). Only levels the child can reach: the
+ * same progress-row + entitlement gate as hints and drafts. No free text.
+ */
+export async function saveReflectionCore(
+  ctx: SessionContext,
+  input: { levelId: string; feeling: ReflectionFeeling },
+): Promise<{ feeling: ReflectionFeeling }> {
+  const schoolId = requireSchool(ctx);
+  await requireProgressRow(ctx, input.levelId);
+  await db.levelReflection.upsert({
+    where: { studentUserId_levelId: { studentUserId: ctx.userId, levelId: input.levelId } },
+    create: { schoolId, studentUserId: ctx.userId, levelId: input.levelId, feeling: input.feeling },
+    update: { feeling: input.feeling },
+  });
+  return { feeling: input.feeling };
+}

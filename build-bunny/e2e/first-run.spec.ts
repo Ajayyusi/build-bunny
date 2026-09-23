@@ -35,6 +35,10 @@ test("welcome → first mission → coached mistake → success → next level",
   // The mission stays on screen while building.
   await expect(page.getByRole("button", { name: /^Mission: Snap one block/ })).toBeVisible();
 
+  // First steps: a brand-new child is pointed at "Add block" first…
+  const pointer = page.getByRole("status").filter({ hasText: /Add block|press ▶ Run/ });
+  await expect(pointer).toHaveText(/Add block. and pick a block/);
+
   // Run must be reachable without scrolling on every screen shape.
   const run = page.getByRole("button", { name: RUN }).filter({ visible: true }).first();
   await expect(run).toBeInViewport();
@@ -47,6 +51,8 @@ test("welcome → first mission → coached mistake → success → next level",
   await expect(coach).toHaveCount(0);
 
   await dragBlockUnderStack(page, "bb_moveForward");
+  // …then, once a block is attached, at Run.
+  await expect(pointer).toHaveText(/Now press ▶ Run/);
   await run.click();
 
   const success = page.getByRole("dialog", { name: "Level complete!" });
@@ -57,8 +63,18 @@ test("welcome → first mission → coached mistake → success → next level",
     .poll(async () => Number((await success.innerText()).match(/\+\s*(\d+)\s*XP/)?.[1] ?? 0))
     .toBeGreaterThan(0);
 
+  // One optional tap: how did that feel? Counts only reach the teacher.
+  const feel = success.getByRole("radiogroup", { name: "How did that feel?" });
+  await feel.getByRole("radio", { name: /Just right/ }).click();
+  await expect(feel.getByRole("radio", { name: /Just right/ })).toHaveAttribute("aria-checked", "true");
+  await expect(success.getByText(/Thanks/)).toBeVisible();
+
   await success.getByRole("link", { name: /Next level/ }).click();
-  await expect(page.getByRole("dialog", { name: "Two Steps" })).toBeVisible();
+  const next = page.getByRole("dialog", { name: "Two Steps" });
+  await expect(next).toBeVisible();
+  // A child who has finished a level no longer gets the pointer.
+  await next.getByRole("button", { name: "Let's build!" }).click();
+  await expect(page.getByRole("status").filter({ hasText: /Add block|press ▶ Run/ })).toHaveCount(0);
 });
 
 test("a brand-new child can open a level straight from a link", async ({
