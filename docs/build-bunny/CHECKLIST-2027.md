@@ -23,6 +23,7 @@ Status legend: **✅ implemented & tested** · **🟡 partial** · **⛔ blocked
 | `feat/classroom-parent` | §6 misconception report, curriculum guide, projector challenge, family view | ready for review |
 | `feat/offline-perf-polish` | §7 offline outbox, accessibility scan, privacy review | ready for review |
 | `feat/more-levels` | §4 29 more levels → 100 | ready for review |
+| `feat/classroom-extras` | §6 reflections, class missions, assign from the guide, CSTA alignment; §1 first-steps pointer | ready for review |
 
 Nothing is merged or deployed. Each branch is based on the previous one, so
 they should be reviewed and merged in the order above.
@@ -121,8 +122,8 @@ they should be reviewed and merged in the order above.
 | Item | Status | Evidence / files |
 |---|---|---|
 | Projector mode improvements, live challenges, pacing | ✅ | projector: pick a class challenge level, the board shows "N of M finished" (a count, never a ranking), "Hide names" switch for shared screens; one shared builder for page + poll (`src/modules/analytics/live.ts`, unit `live-snapshot.test.ts`). Pacing: per-world and per-module minutes and "about N lessons of 40 min" in the guide |
-| Lesson objectives, curriculum mapping, teacher guides, printables | 🟡 | new **Curriculum** page for teachers/admins (`/teach/curriculum`): every published level in play order with objective, child-facing mission, concepts, age band, minutes and teacher notes; printable. Published snapshots only; integration `classroom.test.ts`, isolation case. **Not done:** mapping to a named external standard (needs the school's chosen framework), separate worksheets |
-| Assignment templates, group missions, reflections | ⬜ | existing assignments (world/module/level, due dates) unchanged; templates, group missions and student reflections not built |
+| Lesson objectives, curriculum mapping, teacher guides, printables | ✅ | new **Curriculum** page for teachers/admins (`/teach/curriculum`): every published level in play order with objective, child-facing mission, concepts, age band, minutes and teacher notes; printable. Published snapshots only; integration `classroom.test.ts`, isolation case. **Standards:** each module shows its *suggested* CSTA K–12 alignment (1B = grades 3–5, 2 = grades 6–8) with a short statement per code in EN/AR, labelled as our suggestion, not a CSTA endorsement (`src/modules/curriculum/standards.ts`; unit test fails if any content tag is unmapped). If the school follows a different framework, the mapping is one table to swap. **Not done:** separate worksheets |
+| Assignment templates, group missions, reflections | ✅ | **Assign from the guide:** "Assign to a class" on every module (class + optional due date; same server action and teaches-this-class check as the full form). **Class missions:** a child's assignment card says "N of M in your class have finished" — counts only, never names (integration in `teacher-analytics.test.ts`). **Reflections:** one optional tap after each level (easy / just right / tricky), no free text; the class page lists the levels most often called tricky once at least 3 children answered, counts only. Migration `20260924120000_level_reflections`; integration (threshold, change of mind counts once, locked level refused, foreign teacher sees nothing) + isolation case; e2e taps it on the success card |
 | Misconception reports | ✅ | class page card "Common mistakes to reteach": last 30 days of located feedback grouped into 16 teaching ideas, each with runs, number of children, the levels it shows on and a reteach suggestion; aggregates only, no child named (`src/modules/analytics/misconceptions.ts`, unit + integration + isolation) |
 | Read-only parent view + weekly summary | ✅ | teacher creates a private read-only **family link** on the student page (no parent accounts): 32-byte token, only its SHA-256 hash stored, shown once, 90-day expiry, one live link per child, revocable, audited. Public page `/family/[token]`: the week's finished levels, days played, stars, worlds + Powers, what they are learning now; never attempts, hints, flags or teacher notes; unknown/expired/revoked all read "not active"; noindex. Migration `20260924090000_family_links`; integration covers access, hashing, replace, revoke, expiry. A weekly **email** is not sent: no email provider is configured (your choice) |
 
@@ -141,9 +142,17 @@ they should be reviewed and merged in the order above.
 
 ## Checkpoint log
 
+### Checkpoint 10 — 2026-09-24 (classroom extras + CI fixes)
+
+- **Live:** nothing merged or deployed. All branches are pushed and have open PRs (stacked, merge in order). Vercel builds a *preview* for each PR automatically; production is untouched.
+- **On branches:** `feat/classroom-extras` (stacked on `feat/more-levels`): reflections, class missions, assign-from-guide, suggested CSTA alignment, a first-steps pointer for a child who has never finished a level ("Add block", then "Run", gone after the first real run), and the teach-by-example levels now name what is sorted (seeds, cells, readings) instead of always "berries".
+- **CI on the earlier PRs:** `ci` (lint, type-check, unit, integration, build) passed on all nine. The browser-test job failed on three for test-harness reasons, now fixed at the branch where each began, and the branches above were rebased (same content, new commit ids): the audio test checked the browser's audio-device state, which lags on a headless runner (now checks what the app requested); the audio branch hit the default sign-in limit of 10 per 15 min (the CI-only ceiling moved down from the tablet branch); the story branch's scene covered the map in two older tests (the skip helper moved down from the next branch).
+- **Tested locally on this branch:** see the PR; lint, type-check, unit, integration, full e2e and production build.
+- **Still open across the brief:** weekly family email (needs an email provider — your choice); Arabic native review; physical iPad / Safari; a person-run screen-reader pass; real-device performance numbers; AI tutor (deliberately not built); Robo Bunny panel in the non-grid players; worksheets.
+
 ### Checkpoint 9 — 2026-09-24 (100 levels)
 
-- **Live:** nothing new; nothing merged or deployed. Branches are ready to push once this machine is signed in to GitHub.
+- **Live:** nothing new; nothing merged or deployed. (Pushed and opened as PRs right after this checkpoint.)
 - **On branches:** `feat/more-levels` (stacked on `feat/offline-perf-polish`).
 - **Tested:** unit 518, integration 264 (playthrough of all 100 levels), full e2e 30 passing; lint and type-check clean; new levels spot-checked in the player in EN and AR.
 - **Found and fixed:** a new teach-by-example level (Seed Sorter) could not be lost, so it taught nothing — the repo's AI-level tests caught it; it now has a real trap.
