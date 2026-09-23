@@ -29,6 +29,13 @@ const serverSchema = z
       .min(16, "BETTER_AUTH_SECRET must be at least 16 characters"),
     NEXT_PUBLIC_APP_URL: z.string().url(),
     NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
+    /**
+     * Sign-in attempts allowed per IP per 15 minutes. The limiter is never
+     * switched off; this only raises the ceiling where many fresh accounts
+     * sign in from one address on purpose — the browser test suite, which
+     * provisions a brand-new child for every test. Leave unset in production.
+     */
+    AUTH_SIGNIN_RATE_MAX: z.coerce.number().int().min(1).max(100_000).default(10),
   })
   .superRefine((value, ctx) => {
     if (value.NODE_ENV !== "production") return;

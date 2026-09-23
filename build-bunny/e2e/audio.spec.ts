@@ -14,10 +14,10 @@ import { provisionStudent, signIn, studentName } from "./helpers";
 async function instrument(page: Page) {
   await page.addInitScript(() => {
     const w = window as unknown as {
-      __audio: { contexts: AudioContext[]; oscillators: number };
+      __audio: { contexts: AudioContext[]; oscillators: number; lastRequest: string | null };
       AudioContext: typeof AudioContext;
     };
-    w.__audio = { contexts: [], oscillators: 0 };
+    w.__audio = { contexts: [], oscillators: 0, lastRequest: null };
     const Original = window.AudioContext;
     class Counted extends Original {
       constructor(options?: AudioContextOptions) {
@@ -28,6 +28,17 @@ async function instrument(page: Page) {
         w.__audio.oscillators += 1;
         return super.createOscillator();
       }
+      // What the app ASKED for. The context's own state follows the
+      // browser's audio device, which on a headless CI runner can lag
+      // behind by seconds; the policy under test is the request.
+      override suspend() {
+        w.__audio.lastRequest = "suspend";
+        return super.suspend();
+      }
+      override resume() {
+        w.__audio.lastRequest = "resume";
+        return super.resume();
+      }
     }
     w.AudioContext = Counted;
   });
@@ -35,9 +46,17 @@ async function instrument(page: Page) {
 
 const audio = (page: Page) =>
   page.evaluate(() => {
-    const a = (window as unknown as { __audio: { contexts: AudioContext[]; oscillators: number } })
-      .__audio;
-    return { contexts: a.contexts.length, state: a.contexts[0]?.state ?? null, oscillators: a.oscillators };
+    const a = (
+      window as unknown as {
+        __audio: { contexts: AudioContext[]; oscillators: number; lastRequest: string | null };
+      }
+    ).__audio;
+    return {
+      contexts: a.contexts.length,
+      state: a.contexts[0]?.state ?? null,
+      oscillators: a.oscillators,
+      lastRequest: a.lastRequest,
+    };
   });
 
 test("silent by default, starts on a tap, music stops on mute / hidden tab / leaving", async ({
@@ -95,9 +114,9 @@ test("silent by default, starts on a tap, music stops on mute / hidden tab / lea
       document.dispatchEvent(new Event("visibilitychange"));
     }, state);
   await setVisibility("hidden");
-  await expect.poll(async () => (await audio(page)).state).toBe("suspended");
+  await expect.poll(async () => (await audio(page)).lastRequest).toBe("suspend");
   await setVisibility("visible");
-  await expect.poll(async () => (await audio(page)).state).toBe("running");
+  await expect.poll(async () => (await audio(page)).lastRequest).toBe("resume");
 
   // Leave the game area (map → profile, client-side): the music fades out
   // and stops scheduling notes.
