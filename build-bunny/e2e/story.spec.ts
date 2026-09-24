@@ -47,9 +47,9 @@ test("a new world's story plays once, can be skipped, and can be replayed", asyn
 test("finishing a world's last level awards its Power", async ({ page, baseURL }, testInfo) => {
   test.skip(testInfo.project.name !== "laptop", "one viewport is enough for the reward beat");
   const kid = provisionStudent(studentName(testInfo.project.name, "p"));
-  // Everything before Bunny Meadow's last level (Clover Loop, in the
+  // Everything before Bunny Meadow's last level (Garden Steps, in the
   // Practice Paddock) is marked done, so solving it completes the world.
-  skipTo("clover-loop", kid.username);
+  skipTo("garden-steps", kid.username);
   await signIn(page, baseURL!, kid.username);
 
   await page.goto("/en/adventure");
@@ -61,14 +61,15 @@ test("finishing a world's last level awards its Power", async ({ page, baseURL }
     await scene.getByRole("button", { name: "Skip" }).click();
     await expect(scene).toHaveCount(0);
   }
-  await page.getByRole("button", { name: /Clover Loop/ }).click();
+  await page.getByRole("button", { name: /Garden Steps/ }).click();
   await page.getByRole("link", { name: "Start level" }).click();
 
-  const briefing = page.getByRole("dialog", { name: "Clover Loop" });
+  const briefing = page.getByRole("dialog", { name: "Garden Steps" });
   await briefing.getByRole("button", { name: /Let's build!|Continue building/ }).click();
 
-  // Solve it by tapping: five hops (a pass, if not the three-star loop).
-  for (const block of ["move forward", "move forward", "move forward", "move forward", "move forward"]) {
+  // Solve it by tapping, step by step (a pass, if not the three-star loop).
+  const step = ["move forward", "turn right", "move forward", "turn left"];
+  for (const block of [...step, ...step, "move forward"]) {
     await page.getByRole("button", { name: "Add block" }).click();
     await page
       .getByRole("dialog", { name: "Add a block" })

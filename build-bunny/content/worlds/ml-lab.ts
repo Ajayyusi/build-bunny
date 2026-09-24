@@ -4,6 +4,7 @@ import type {
   aiClassificationPayload,
   patternRecognitionPayload,
 } from "@/modules/curriculum/schemas";
+import { decidingWell } from "./more-ai";
 
 /**
  * World 6 — Machine Learning Lab. "Train a real model with your own hands."
@@ -514,5 +515,6 @@ export const mlLab: WorldFixture = {
         },
       ],
     },
+    decidingWell,
   ],
 };

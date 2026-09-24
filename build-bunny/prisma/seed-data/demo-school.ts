@@ -126,10 +126,10 @@ export interface StudentSeed {
 
 /**
  * 16 students, 8 per class — a deliberate spread of curriculum states so every
- * surface has something honest to show. World layout (curriculum expansion):
- * Bunny Meadow = 9 levels (6 + Practice Paddock 3), Logic Forest = 11 (9 +
- * Forest Practice 2), Robot Lab = 10 (8 + Lab Practice 2), AI Island = 9,
- * Data Desert = 7, ML Lab = 3, Code City = 15, Inventor Island = 7 — 71 in
+ * surface has something honest to show. World layout (100 levels):
+ * Bunny Meadow = 12 (6 + Practice Paddock 6), Logic Forest = 14 (9 + Forest
+ * Practice 5), Robot Lab = 13 (8 + Lab Practice 5), AI Island = 13, Data
+ * Desert = 11, ML Lab = 5, Code City = 22, Inventor Island = 10 — 100 in
  * all, seven of them CONCEPT_CARDS Learn steps that score no stars. The
  * practice modules sit at the END of their worlds, so every history that had
  * cleared a world carries full-star entries for that world's practice
@@ -156,14 +156,14 @@ export const STUDENTS: StudentSeed[] = [
   {
     firstName: "Aisha", lastInitial: "K", username: "aisha", studentIdentifier: "DEMO-1001",
     className: "Grade 3A", grade: 3, password: "star-bunny-31",
-    // Three worlds plus most of AI Island: 9 Bunny Meadow + 11 Logic Forest +
-    // 10 Robot Lab + 3 AI Island = 33. She has to reach this far or the AI
+    // Three worlds plus most of AI Island: 12 Bunny Meadow + 14 Logic Forest +
+    // 13 Robot Lab + 3 AI Island = 42. She has to reach this far or the AI
     // world is invisible in a demo — worlds unlock in order, so one student
     // must clear three worlds before anyone can even see the fourth. Every
     // scored level is ≥2 stars (a genuine PASS, never just PARTIAL) because
     // the certificate issuance path gates on that. The 0s are Learn steps,
-    // which have no stars to earn: index 4 learn-repeat, 9 learn-loop-body,
-    // 12 learn-if, 14 learn-repeat-until, 23 learn-if-else.
+    // which have no stars to earn: index 4 learn-repeat, 12 learn-loop-body,
+    // 15 learn-if, 17 learn-repeat-until, 29 learn-if-else.
     //
     // This array is POSITIONAL along the flattened trail (world → module →
     // level order), so inserting a level anywhere before the end silently
@@ -173,9 +173,9 @@ export const STUDENTS: StudentSeed[] = [
     // tests/unit/demo-seed-trail.test.ts checks the alignment.
     progress: {
       completedStars: [
-        3, 3, 3, 3, 0, 3, 3, 3, 3, // Bunny Meadow (+ Practice Paddock)
-        0, 3, 3, 0, 2, 0, 3, 3, 3, 3, 3, // Logic Forest (+ Forest Practice)
-        3, 3, 3, 0, 3, 3, 3, 3, 3, 3, // Robot Lab (+ Lab Practice)
+        3, 3, 3, 3, 0, 3, 3, 3, 3, 3, 3, 3, // Bunny Meadow (+ Practice Paddock)
+        0, 3, 3, 0, 2, 0, 3, 3, 3, 3, 3, 3, 3, 3, // Logic Forest (+ Forest Practice)
+        3, 3, 3, 0, 3, 3, 3, 3, 3, 3, 3, 3, 3, // Robot Lab (+ Lab Practice)
         // AI Island, deliberately one short: nothing-rules-alone stays her
         // live frontier so a demo always has an unplayed level to open.
         3, 3, 2,
@@ -187,19 +187,19 @@ export const STUDENTS: StudentSeed[] = [
   {
     firstName: "Mohammed", lastInitial: "R", username: "mohammed", studentIdentifier: "DEMO-1002",
     className: "Grade 3A", grade: 3, password: "mango-kite-52",
-    progress: { completedStars: [3, 3, 2, 3, 0, 3, 3, 3, 3, 0, 3, 3], streakCurrent: 4, streakBest: 7, lastActiveDaysAgo: 1 },
+    progress: { completedStars: [3, 3, 2, 3, 0, 3, 3, 3, 3, 3, 3, 3, 0, 3, 3], streakCurrent: 4, streakBest: 7, lastActiveDaysAgo: 1 },
     loginTrailDays: 4,
   },
   {
     firstName: "Layla", lastInitial: "H", username: "layla", studentIdentifier: "DEMO-1003",
     className: "Grade 3A", grade: 3, password: "coral-frog-18",
-    progress: { completedStars: [3, 2, 3, 2, 0, 3, 3, 3, 3, 0], streakCurrent: 3, streakBest: 5, lastActiveDaysAgo: 1 },
+    progress: { completedStars: [3, 2, 3, 2, 0, 3, 3, 3, 3, 3, 3, 3, 0], streakCurrent: 3, streakBest: 5, lastActiveDaysAgo: 1 },
     loginTrailDays: 3,
   },
   {
     firstName: "Yousef", lastInitial: "A", username: "yousef", studentIdentifier: "DEMO-1004",
     className: "Grade 3A", grade: 3, password: "tiger-cloud-74",
-    progress: { completedStars: [2, 2, 3, 2, 0, 3, 3, 3, 3, 0], streakCurrent: 2, streakBest: 4, lastActiveDaysAgo: 2 },
+    progress: { completedStars: [2, 2, 3, 2, 0, 3, 3, 3, 3, 3, 3, 3, 0], streakCurrent: 2, streakBest: 4, lastActiveDaysAgo: 2 },
   },
   {
     firstName: "Fatima", lastInitial: "S", username: "fatima", studentIdentifier: "DEMO-1005",
@@ -226,19 +226,19 @@ export const STUDENTS: StudentSeed[] = [
   {
     firstName: "Noor", lastInitial: "E", username: "noor", studentIdentifier: "DEMO-1009",
     className: "Grade 4A", grade: 4, password: "violet-nest-37",
-    progress: { completedStars: [3, 3, 3, 3, 0, 2, 3, 3, 3, 0, 3, 2, 0], streakCurrent: 7, streakBest: 8, lastActiveDaysAgo: 0 },
+    progress: { completedStars: [3, 3, 3, 3, 0, 2, 3, 3, 3, 3, 3, 3, 0, 3, 2, 0], streakCurrent: 7, streakBest: 8, lastActiveDaysAgo: 0 },
     loginTrailDays: 5,
   },
   {
     firstName: "Hamdan", lastInitial: "S", username: "hamdan", studentIdentifier: "DEMO-1010",
     className: "Grade 4A", grade: 4, password: "breeze-lemon-91",
-    progress: { completedStars: [3, 2, 3, 3, 0, 2, 3, 3, 3, 0, 2], streakCurrent: 5, streakBest: 5, lastActiveDaysAgo: 1 },
+    progress: { completedStars: [3, 2, 3, 3, 0, 2, 3, 3, 3, 3, 3, 3, 0, 2], streakCurrent: 5, streakBest: 5, lastActiveDaysAgo: 1 },
     loginTrailDays: 4,
   },
   {
     firstName: "Hessa", lastInitial: "A", username: "hessa", studentIdentifier: "DEMO-1011",
     className: "Grade 4A", grade: 4, password: "olive-quest-24",
-    progress: { completedStars: [2, 3, 2, 3, 0, 2, 3, 3, 3, 0], streakCurrent: 2, streakBest: 6, lastActiveDaysAgo: 2 },
+    progress: { completedStars: [2, 3, 2, 3, 0, 2, 3, 3, 3, 3, 3, 3, 0], streakCurrent: 2, streakBest: 6, lastActiveDaysAgo: 2 },
   },
   {
     firstName: "Rashid", lastInitial: "K", username: "rashid", studentIdentifier: "DEMO-1012",

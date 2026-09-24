@@ -6,6 +6,7 @@ import type {
   debuggingPayload,
   sequencingPayload,
 } from "@/modules/curriculum/schemas";
+import { cityWorkshop } from "./more-city-and-fair";
 import { countersAndTricks } from "./code-city-counters";
 
 /**
@@ -1082,5 +1083,6 @@ export const codeCity: WorldFixture = {
       ],
     },
     countersAndTricks,
+    cityWorkshop,
   ],
 };

@@ -1,5 +1,6 @@
 import type { z } from "zod";
 import type { ModuleFixture, blockCodingPayload } from "@/modules/curriculum/schemas";
+import { labMore } from "./more-practice";
 
 /**
  * Robot Lab, module 3 — Lab Practice: two short levels on the lab's own
@@ -177,5 +178,6 @@ export const labPractice: ModuleFixture = {
         solution: hat(ifElseBlocked("ie1", chain(right("t1"), move("m1")), move("m2"))),
       } satisfies BlockCodingDraft,
     },
+    ...labMore,
   ],
 };

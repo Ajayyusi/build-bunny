@@ -1,5 +1,6 @@
 import type { z } from "zod";
 import type { ModuleFixture, blockCodingPayload } from "@/modules/curriculum/schemas";
+import { forestMore } from "./more-practice";
 
 /**
  * Logic Forest, module 3 — Forest Practice: two short levels that reuse the
@@ -189,5 +190,6 @@ export const forestPractice: ModuleFixture = {
         solution: hat(untilGoal("u1", move("m1"))),
       } satisfies BlockCodingDraft,
     },
+    ...forestMore,
   ],
 };

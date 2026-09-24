@@ -5,6 +5,7 @@ import type {
   aiEthicsPayload,
   aiSimPayload,
 } from "@/modules/curriculum/schemas";
+import { onlineLife } from "./more-ai";
 import { safetyAndFairness } from "./ai-island-safety";
 
 /**
@@ -1081,5 +1082,6 @@ export const aiIsland: WorldFixture = {
       ],
     },
     safetyAndFairness,
+    onlineLife,
   ],
 };

@@ -1,5 +1,6 @@
 import type { z } from "zod";
 import type { ModuleFixture, creativeProjectPayload } from "@/modules/curriculum/schemas";
+import { fairMore } from "./more-city-and-fair";
 
 /**
  * Inventor Island, module 2 — The Fair: build-your-own mazes
@@ -426,5 +427,6 @@ export const theFair: ModuleFixture = {
         },
       } satisfies MazeDraft,
     },
+    ...fairMore,
   ],
 };

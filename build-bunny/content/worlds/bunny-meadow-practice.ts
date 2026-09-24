@@ -1,5 +1,6 @@
 import type { z } from "zod";
 import type { ModuleFixture, blockCodingPayload } from "@/modules/curriculum/schemas";
+import { meadowMore } from "./more-practice";
 
 /**
  * Bunny Meadow, module 3 — The Practice Paddock: three tiny levels for the
@@ -216,6 +217,7 @@ export const practicePaddock: ModuleFixture = {
         solution: hat(repeat("r1", 5, move("m1"))),
       } satisfies BlockCodingDraft,
     },
+    ...meadowMore,
   ],
 };
 

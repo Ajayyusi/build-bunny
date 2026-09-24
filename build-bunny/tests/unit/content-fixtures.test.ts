@@ -173,18 +173,21 @@ describe("content bundle shape", () => {
     // + practice modules: Practice Paddock (3, bunny-meadow), Forest Practice
     // (2), Lab Practice (2) + AI Island's Safety and Fairness (2 AI_ETHICS,
     // 1 AI_CLASSIFICATION bias lesson) + Data Desert's Three Oases (1).
+    // + more-levels (29): 3 more practice levels each in the first three
+    // worlds, AI Island Online Life (4), Data Desert More Readings (4), ML Lab
+    // Deciding Well (2), Code City City Workshop (7), three more Fair mazes.
     const levelCount = playableWorlds.reduce((n, w) => n + allLevels(w).length, 0);
-    expect(levelCount).toBe(71);
+    expect(levelCount).toBe(100);
     const codeCity = playableWorlds.find((w) => w.slug === "code-city");
-    expect(allLevels(codeCity as WorldFixture)).toHaveLength(15);
+    expect(allLevels(codeCity as WorldFixture)).toHaveLength(22);
     const inventorIsland = playableWorlds.find((w) => w.slug === "inventor-island");
-    expect(allLevels(inventorIsland as WorldFixture)).toHaveLength(7);
+    expect(allLevels(inventorIsland as WorldFixture)).toHaveLength(10);
     const robotLab = playableWorlds.find((w) => w.slug === "robot-lab");
-    expect(allLevels(robotLab as WorldFixture)).toHaveLength(10);
+    expect(allLevels(robotLab as WorldFixture)).toHaveLength(13);
     const aiIsland = playableWorlds.find((w) => w.slug === "ai-island");
-    expect(allLevels(aiIsland as WorldFixture)).toHaveLength(9);
+    expect(allLevels(aiIsland as WorldFixture)).toHaveLength(13);
     const dataDesert = playableWorlds.find((w) => w.slug === "data-desert");
-    expect(allLevels(dataDesert as WorldFixture)).toHaveLength(7);
+    expect(allLevels(dataDesert as WorldFixture)).toHaveLength(11);
   });
 });
 
