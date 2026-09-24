@@ -35,6 +35,30 @@
 
 /* ── Layer 1 · primitives ─────────────────────────────────────────────── */
 :root {
+  /* Toy Box — the children's look (2027 redesign): a bright sky, grass
+     hills, chunky press-able buttons and one bold colour per world. Staff
+     screens keep the quieter Pro theme below. */
+  --bb-toy-navy: #173a63;
+  --bb-toy-navy-soft: #45617f;
+  --bb-toy-blue: #1b64c6;
+  --bb-toy-blue-strong: #144c99;
+  --bb-toy-sky: #5ec7ff;
+  --bb-toy-sky-mid: #8fe0ff;
+  --bb-toy-sky-light: #d4f4ff;
+  --bb-toy-cloud: #e6f4ff;
+  --bb-toy-line: #bfdcf2;
+  --bb-toy-sun: #ffd23f;
+  --bb-toy-sun-strong: #d19c00;
+  --bb-toy-sun-ink: #5a3b00;
+  --bb-toy-grass: #6ccf45;
+  --bb-toy-grass-dark: #4fae2c;
+  --bb-toy-green: #257a35;
+  --bb-toy-green-strong: #1e6b2f;
+  --bb-toy-orange: #a15c00;
+  --bb-toy-orange-strong: #7a4500;
+  --bb-toy-berry: #c92a5c;
+  --bb-toy-violet: #6b3fd6;
+
   /* Warm cream/paper neutrals — Play surfaces. */
   --bb-cream-50: #fdfbf7;
   --bb-cream-100: #f8f4ea;
@@ -160,32 +184,40 @@
 /* ── Layer 2 · semantic slots (Play is the :root default) ─────────────── */
 :root,
 [data-theme="play"] {
-  --color-surface: var(--bb-cream-50);
+  /* Toy Box: navy ink on white and pale-sky surfaces, bright blue as the
+     brand, sunshine yellow as the accent. Every text pair ≥ 4.5:1. */
+  --color-surface: var(--bb-toy-sky-light);
   --color-surface-raised: #ffffff;
-  --color-surface-sunken: var(--bb-cream-100);
-  --color-border: var(--bb-cream-300);
-  --color-ink: var(--bb-ink-900);
-  --color-ink-muted: var(--bb-ink-600);
+  --color-surface-sunken: var(--bb-toy-cloud);
+  --color-border: var(--bb-toy-line);
+  --color-ink: var(--bb-toy-navy);
+  --color-ink-muted: var(--bb-toy-navy-soft);
   /* ink-faint is below AA by design — decorative/disabled use only. */
-  --color-ink-faint: var(--bb-ink-400);
-  --color-brand: var(--bb-meadow-600);
-  --color-brand-strong: var(--bb-meadow-700);
+  --color-ink-faint: #8aa3bd;
+  --color-brand: var(--bb-toy-blue);
+  --color-brand-strong: var(--bb-toy-blue-strong);
   --color-on-brand: #ffffff;
-  --color-accent: var(--bb-star-400);
-  --color-on-accent: var(--bb-ink-900);
-  --color-positive: var(--bb-meadow-600);
-  --color-warning: var(--bb-star-700);
+  --color-accent: var(--bb-toy-sun);
+  --color-on-accent: var(--bb-toy-sun-ink);
+  --color-positive: var(--bb-toy-green);
+  --color-warning: var(--bb-toy-orange);
   /* Same-hue text on a /14 tint of itself needs the next step down for 4.5:1. */
-  --color-positive-strong: var(--bb-meadow-700);
-  --color-warning-strong: var(--bb-star-800);
-  --color-danger: var(--bb-coral-600);
-  --color-info: var(--bb-sky-600);
-  --color-focus: var(--bb-sky-500);
+  --color-positive-strong: var(--bb-toy-green-strong);
+  --color-warning-strong: var(--bb-toy-orange-strong);
+  --color-danger: var(--bb-toy-berry);
+  --color-info: var(--bb-toy-blue);
+  --color-focus: var(--bb-toy-violet);
 
-  --radius-sm: var(--bb-radius-sm);
-  --radius-md: var(--bb-radius-md);
-  --radius-lg: var(--bb-radius-lg);
-  --radius-xl: var(--bb-radius-xl);
+  /* Rounder, toy-like corners. */
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-xl: 26px;
+
+  /* Chunky "press-able" depth: a solid ledge under cards and buttons. */
+  --bb-shadow-soft: 0 4px 0 rgb(23 58 99 / 0.12);
+  --bb-shadow-raised: 0 6px 0 rgb(23 58 99 / 0.14), 0 12px 24px rgb(23 58 99 / 0.1);
+  --bb-shadow-overlay: 0 8px 0 rgb(23 58 99 / 0.16), 0 20px 48px rgb(23 58 99 / 0.2);
 
   /* Locale-driven font pair: fontVariables() (src/ui/fonts.ts) applies the
      --bb-font-* variables; fallbacks keep things readable without them. */
@@ -237,6 +269,12 @@
   --radius-md: var(--bb-radius-sm);
   --radius-lg: var(--bb-radius-md);
   --radius-xl: var(--bb-radius-lg);
+
+  /* Staff keep the soft, low-contrast elevation (the children's theme
+     redefines these as chunky ledges). */
+  --bb-shadow-soft: 0 1px 2px rgb(27 26 23 / 0.05), 0 2px 6px rgb(27 26 23 / 0.05);
+  --bb-shadow-raised: 0 2px 4px rgb(27 26 23 / 0.06), 0 8px 24px rgb(27 26 23 / 0.09);
+  --bb-shadow-overlay: 0 4px 12px rgb(27 26 23 / 0.1), 0 16px 48px rgb(27 26 23 / 0.16);
 }
 
 /* ── Layer 3 · Tailwind mapping ───────────────────────────────────────── */
@@ -493,4 +531,64 @@ html[data-contrast="high"] :focus-visible {
     size: A4 landscape;
     margin: 0;
   }
+}
+
+/* ── Toy Box (children's theme) ───────────────────────────────────────── */
+
+/* The sky and the hills behind every child screen. */
+[data-theme="play"].bb-sky {
+  background-color: var(--bb-toy-sky-light);
+  background-image:
+    radial-gradient(160px 70px at 12% 100%, var(--bb-toy-grass) 98%, transparent 100%),
+    radial-gradient(220px 90px at 50% 100%, var(--bb-toy-grass-dark) 98%, transparent 100%),
+    radial-gradient(180px 80px at 90% 100%, var(--bb-toy-grass) 98%, transparent 100%),
+    linear-gradient(180deg, var(--bb-toy-sky) 0, var(--bb-toy-sky-mid) 320px, var(--bb-toy-sky-light) 640px);
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  background-attachment: fixed;
+}
+
+/* Press-able buttons: a solid ledge that the button sinks into on press. */
+[data-theme="play"] [data-bb-button] {
+  font-family: var(--font-display);
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  transition:
+    translate var(--bb-dur-tap) ease-out,
+    box-shadow var(--bb-dur-tap) ease-out,
+    background-color var(--bb-dur-snap) ease-out;
+}
+[data-theme="play"] [data-bb-button="primary"] { box-shadow: 0 5px 0 var(--color-brand-strong); }
+[data-theme="play"] [data-bb-button="go"] { box-shadow: 0 5px 0 var(--bb-toy-sun-strong); }
+[data-theme="play"] [data-bb-button="secondary"] { box-shadow: 0 5px 0 var(--color-border); }
+[data-theme="play"] [data-bb-button="danger"] { box-shadow: 0 5px 0 #8f1d42; }
+[data-theme="play"] [data-bb-button]:not([data-bb-button="ghost"]):active:not(:disabled) {
+  translate: 0 3px;
+  box-shadow: 0 2px 0 var(--bb-press, var(--color-border));
+}
+[data-theme="play"] [data-bb-button="primary"] { --bb-press: var(--color-brand-strong); }
+[data-theme="play"] [data-bb-button="go"] { --bb-press: var(--bb-toy-sun-strong); }
+
+/* Links styled as the main button (a.bg-brand) get the same ledge. */
+[data-theme="play"] a.bg-brand {
+  box-shadow: 0 5px 0 var(--color-brand-strong);
+  font-family: var(--font-display);
+  font-weight: 800;
+}
+[data-theme="play"] a.bg-brand:active { translate: 0 3px; box-shadow: 0 2px 0 var(--color-brand-strong); }
+
+/* Helpers for links and panels that play the same role as a button. */
+[data-theme="play"] .bb-go {
+  background-color: var(--bb-toy-sun);
+  color: var(--bb-toy-sun-ink);
+  box-shadow: 0 5px 0 var(--bb-toy-sun-strong);
+  font-family: var(--font-display);
+  font-weight: 800;
+}
+[data-theme="play"] .bb-go:active { translate: 0 3px; box-shadow: 0 2px 0 var(--bb-toy-sun-strong); }
+[data-theme="play"] .bb-ledge-brand { box-shadow: 0 6px 0 var(--color-brand-strong); }
+
+@media (prefers-reduced-motion: reduce) {
+  [data-theme="play"] [data-bb-button],
+  [data-theme="play"] a.bg-brand { transition: none; }
 }

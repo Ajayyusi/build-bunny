@@ -25,6 +25,30 @@ function synth(): SpeechSynthesis | null {
     : null;
 }
 
+/**
+ * Robo Bunny is a cartoon character, not a newsreader. Lighter, brighter
+ * voices sound right when pitched up; deep ones turn into a chipmunk-robot.
+ * These are the built-in (on-device) voices known to take a high pitch well,
+ * by the name each platform gives them: iPad/Mac, Windows, Android/ChromeOS.
+ */
+const CHARACTER_VOICES: Record<"en" | "ar", string[]> = {
+  en: ["samantha", "karen", "tessa", "moira", "fiona", "victoria", "zira", "hazel", "susan", "libby", "sonia", "aria", "jenny", "ana"],
+  ar: ["laila", "hoda", "mariam", "salma", "amira", "zariyah", "fatima"],
+};
+
+/**
+ * How the character talks: well above a normal speaking pitch (the Web
+ * Speech range is 0–2, 1 = normal) and a touch quicker and bouncier than
+ * the child's chosen talking speed. Rate stays inside what stays clear for
+ * a young listener.
+ */
+export const CHARACTER_PITCH = 1.75;
+export const CHARACTER_RATE_FACTOR = 1.08;
+
+export function characterRate(childRate: number): number {
+  return Math.min(1.3, Math.max(0.7, childRate * CHARACTER_RATE_FACTOR));
+}
+
 /** Best local voice for `locale` ("en" / "ar"), or null. Pure over the list. */
 export function pickVoice(
   voices: readonly Pick<SpeechSynthesisVoice, "lang" | "localService" | "default" | "name">[],
@@ -35,12 +59,15 @@ export function pickVoice(
     (v) => v.localService && v.lang.toLowerCase().replace("_", "-").startsWith(want),
   );
   if (local.length === 0) return null;
-  // Prefer the Gulf / UAE and US/UK variants a child here will expect, then
+  // Prefer the Gulf / UAE and US/UK variants a child here will expect;
+  // within the chosen variant, a voice that suits a cartoon character; then
   // the platform default, then anything in the language.
+  const character = (v: (typeof voices)[number]) =>
+    CHARACTER_VOICES[want].some((name) => v.name.toLowerCase().includes(name));
   const preferred = want === "ar" ? ["ar-ae", "ar-sa", "ar-"] : ["en-gb", "en-us", "en-"];
   for (const prefix of preferred) {
-    const hit = local.find((v) => v.lang.toLowerCase().replace("_", "-").startsWith(prefix));
-    if (hit) return hit;
+    const inVariant = local.filter((v) => v.lang.toLowerCase().replace("_", "-").startsWith(prefix));
+    if (inVariant.length > 0) return inVariant.find(character) ?? inVariant[0]!;
   }
   return local.find((v) => v.default) ?? local[0]!;
 }
@@ -77,8 +104,9 @@ export function speak(
   utterance.voice = voice;
   utterance.lang = voice.lang;
   utterance.volume = Math.min(1, Math.max(0, opts.volume));
-  utterance.rate = opts.rate;
-  utterance.pitch = 1.1; // a touch brighter — it's Robo Bunny talking
+  utterance.rate = characterRate(opts.rate);
+  // A cartoon voice: high and bright (see CHARACTER_PITCH).
+  utterance.pitch = CHARACTER_PITCH;
   if (opts.onEnd) {
     utterance.onend = opts.onEnd;
     utterance.onerror = opts.onEnd;

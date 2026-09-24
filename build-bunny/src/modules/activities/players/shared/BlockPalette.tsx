@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 
 import type { WorkspaceEditState } from "@/modules/blockly/BlocklyWorkspace";
+import { BLOCK_COLOR_BY_TYPE } from "@/modules/blockly/colors";
 import type { BlockRef } from "@/modules/blockly/serialization";
 import { Button, Dialog, cn } from "@/ui";
 
@@ -22,24 +23,11 @@ import { Button, Dialog, cn } from "@/ui";
  * remaining count when the level limits that block.
  */
 
-const BLOCK_TONE: Record<string, string> = {
-  bb_moveForward: "bg-brand text-on-brand",
-  bb_turnLeft: "bg-brand text-on-brand",
-  bb_turnRight: "bg-brand text-on-brand",
-  bb_collect: "bg-brand text-on-brand",
-  bb_say: "bg-brand text-on-brand",
-  bb_repeat: "bg-info text-on-brand",
-  bb_repeatUntilGoal: "bg-info text-on-brand",
-  bb_if: "bg-danger text-on-brand",
-  bb_ifElse: "bg-danger text-on-brand",
-  bb_pathAhead: "bg-ink-muted text-on-brand",
-  // Same hexes as the DATA / TRICKS block styles in blockly/theme.ts.
-  bb_setCounter: "bg-[#7b4fa3] text-on-brand",
-  bb_changeCounter: "bg-[#7b4fa3] text-on-brand",
-  bb_sayCounter: "bg-[#7b4fa3] text-on-brand",
-  bb_defineTrick: "bg-[#a4552b] text-on-brand",
-  bb_doTrick: "bg-[#a4552b] text-on-brand",
-};
+// Same colours as the blocks themselves (blockly/colors.ts).
+const blockTone = (type: string): React.CSSProperties => ({
+  backgroundColor: BLOCK_COLOR_BY_TYPE[type] ?? "var(--color-brand)",
+  color: "#ffffff",
+});
 
 interface BlockPaletteProps {
   open: boolean;
@@ -93,9 +81,9 @@ export function BlockPalette({ open, onClose, toolbox, editState, onAdd }: Block
                   onClick={() => {
                     if (onAdd(entry.type)) onClose();
                   }}
+                  style={blockTone(entry.type)}
                   className={cn(
-                    "flex min-h-14 w-full items-center justify-between gap-3 rounded-xl px-4 text-start text-base font-bold shadow-soft transition-transform active:scale-[0.98] disabled:opacity-50",
-                    BLOCK_TONE[entry.type] ?? "bg-ink text-surface-raised",
+                    "flex min-h-14 w-full items-center justify-between gap-3 rounded-xl px-4 text-start font-display text-base font-extrabold shadow-[0_4px_0_rgb(0_0_0_/_0.22)] transition-transform active:translate-y-0.5 disabled:opacity-50",
                   )}
                 >
                   <span className="flex items-center gap-2">

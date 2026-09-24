@@ -9,6 +9,8 @@ const variantClasses = {
     "border border-border-token bg-surface-raised text-ink hover:bg-surface-sunken",
   ghost: "text-ink hover:bg-surface-sunken",
   danger: "bg-danger text-on-brand hover:bg-danger/90",
+  /** The one big "do it" action on a child's screen (Run, Check): sunshine yellow. */
+  go: "bg-accent text-on-accent hover:brightness-105",
 } as const;
 
 // Only `lg` clears the 44px touch minimum. `sm` and `md` exist for the dense
@@ -49,6 +51,8 @@ export function Button({
       type={type}
       disabled={disabled || loading}
       aria-busy={loading || undefined}
+      // The children's theme gives buttons a press-able ledge (globals.css).
+      data-bb-button={variant}
       className={cn(
         "inline-flex select-none items-center justify-center font-semibold transition-colors",
         "disabled:pointer-events-none disabled:opacity-60",

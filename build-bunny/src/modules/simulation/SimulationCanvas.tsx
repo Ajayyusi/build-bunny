@@ -11,6 +11,7 @@ import {
 } from "@/engine";
 import type { ProgramRun } from "@/modules/blockly/interpreter";
 import { cn } from "@/ui/cn";
+import { tintHex, worldColor } from "@/ui/worldColors";
 
 /**
  * Canvas playback of an engine event log (m3 pinned contract). The canvas is
@@ -273,40 +274,68 @@ interface SimPalette {
   bodyFont: string;
 }
 
-/** Token families per world theme; substring match like the map bands. */
-function paletteVars(theme: string): { a: string; b: string; edge: string; deep: string } {
-  const needle = theme.toLowerCase();
-  if (needle.includes("meadow")) {
-    return { a: "--bb-meadow-100", b: "--bb-meadow-50", edge: "--bb-meadow-300", deep: "--bb-meadow-800" };
-  }
-  if (needle.includes("forest")) {
-    return { a: "--bb-meadow-200", b: "--bb-meadow-100", edge: "--bb-meadow-400", deep: "--bb-meadow-900" };
-  }
-  if (needle.includes("robot") || needle.includes("lab") || needle.includes("city")) {
-    return { a: "--bb-sky-100", b: "--bb-sky-50", edge: "--bb-sky-300", deep: "--bb-sky-900" };
-  }
-  if (needle.includes("desert") || needle.includes("island")) {
-    return { a: "--bb-star-100", b: "--bb-star-50", edge: "--bb-star-300", deep: "--bb-star-800" };
-  }
-  return { a: "--bb-cream-100", b: "--bb-cream-50", edge: "--bb-cream-300", deep: "--bb-ink-800" };
-}
-
+/**
+ * Toy Box board: a checkerboard of the world's bright pastel (the same hue
+ * as its card on the home screen and its band on the map), sky-blue water,
+ * and the world colour's dark ledge for outlines.
+ */
 function readPalette(el: HTMLElement, theme: string): SimPalette {
   const cs = getComputedStyle(el);
-  const read = (name: string, fallback: string): string => {
-    const value = cs.getPropertyValue(name).trim();
-    return value || fallback;
-  };
-  const vars = paletteVars(theme);
+  const color = worldColor(theme);
   return {
-    groundA: read(vars.a, "#e8e2d2"),
-    groundB: read(vars.b, "#f3efe3"),
-    edge: read(vars.edge, "#cbbe9f"),
-    deep: read(vars.deep, "#333"),
-    water: read("--bb-sky-200", "#9be3d6"),
-    bubbleBg: read("--color-surface-raised", "#ffffff"),
+    groundA: color.tile,
+    groundB: tintHex(color.tile, 0.55),
+    edge: tintHex(color.fill, 0.45),
+    deep: color.ledge,
+    water: "#8fe0ff",
+    bubbleBg: cs.getPropertyValue("--color-surface-raised").trim() || "#ffffff",
     bodyFont: cs.fontFamily || "sans-serif",
   };
+}
+
+/**
+ * Robo Bunny from above-ish: the same robot bunny as the mascot (white
+ * shell, blue visor, glowing eyes, sunshine antenna bulbs), drawn upright so
+ * its ears point the way it faces; the caller rotates it to the heading.
+ * `s` is the drawn height.
+ */
+function drawRoboBunny(ctx: CanvasRenderingContext2D, s: number): void {
+  const navy = "#173a63";
+  ctx.lineWidth = Math.max(1.5, s * 0.045);
+  ctx.strokeStyle = navy;
+  ctx.lineJoin = "round";
+  const shape = (x: number, y: number, w: number, h: number, r: number, fill: string) => {
+    ctx.beginPath();
+    ctx.roundRect(x * s, y * s, w * s, h * s, r * s);
+    ctx.fillStyle = fill;
+    ctx.fill();
+    ctx.stroke();
+  };
+  // Ears (point forward) with pink insides and antenna bulbs.
+  for (const ex of [-0.2, 0.08]) {
+    shape(ex, -0.62, 0.13, 0.38, 0.065, "#ffffff");
+    ctx.beginPath();
+    ctx.roundRect((ex + 0.035) * s, -0.55 * s, 0.06 * s, 0.24 * s, 0.03 * s);
+    ctx.fillStyle = "#ff9ec4";
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc((ex + 0.065) * s, -0.63 * s, 0.055 * s, 0, Math.PI * 2);
+    ctx.fillStyle = "#ffd23f";
+    ctx.fill();
+    ctx.stroke();
+  }
+  // Head, visor, eyes, smile.
+  shape(-0.34, -0.3, 0.68, 0.6, 0.27, "#ffffff");
+  shape(-0.27, -0.18, 0.54, 0.26, 0.13, "#1b64c6");
+  ctx.fillStyle = "#9ff7ff";
+  for (const ex of [-0.12, 0.12]) {
+    ctx.beginPath();
+    ctx.ellipse(ex * s, -0.05 * s, 0.055 * s, 0.075 * s, 0, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.beginPath();
+  ctx.arc(0, 0.13 * s, 0.07 * s, 0.15 * Math.PI, 0.85 * Math.PI);
+  ctx.stroke();
 }
 
 // ── Component ────────────────────────────────────────────────────────────
@@ -466,8 +495,7 @@ export default function SimulationCanvas({
       ctx.translate(cx(p.x), cy(p.y) - p.lift * tile);
       ctx.rotate((p.angle * Math.PI) / 180);
       ctx.globalAlpha = p.opacity;
-      ctx.font = emojiFont(tile * 0.66 * p.scale);
-      ctx.fillText("🐰", 0, 0);
+      drawRoboBunny(ctx, tile * 0.78 * p.scale);
       ctx.restore();
 
       // Effect glyph (bump/splash/confusion).

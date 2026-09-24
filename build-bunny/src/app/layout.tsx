@@ -35,7 +35,7 @@ export const metadata: Metadata = {
 // concerns, not document-head concerns) — NITAQ's --primary-color, matching
 // the icons above and the realigned --bb-meadow-600 token.
 export const viewport: Viewport = {
-  themeColor: "#2e7d32",
+  themeColor: "#1b64c6",
 };
 
 // Passthrough: <html>/<body> live in [locale]/layout.tsx so lang/dir and the

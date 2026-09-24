@@ -585,6 +585,7 @@ export function GridPlayer({
   const actionButtons = (
     <>
       <Button
+        variant="go"
         size="lg"
         onClick={handleRun}
         disabled={phase === "running"}
