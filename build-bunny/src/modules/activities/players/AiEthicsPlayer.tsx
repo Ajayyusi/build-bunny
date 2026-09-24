@@ -11,6 +11,7 @@ import { HintDrawer, type HintTierState } from "./shared/HintDrawer";
 import { RoboHelp, type HelpTopic } from "./shared/RoboHelp";
 import { postAttempt, runIdFor } from "./shared/attempt-outbox";
 import { EthicsScene } from "./shared/EthicsScene";
+import { NextStepHint } from "./shared/NextStepHint";
 import { IntroOverlay } from "./shared/IntroOverlay";
 import { MissionStrip } from "./shared/MissionStrip";
 import { useDraftAutosave } from "./shared/useDraftAutosave";
@@ -78,6 +79,7 @@ export function AiEthicsPlayer({
   payload: rawPayload,
   draft,
   revealHintAction,
+  nextStepAction,
   saveDraftAction,
 }: ActivityPlayerProps) {
   // Registry dispatch guarantees this matches intro.activityType.
@@ -93,6 +95,8 @@ export function AiEthicsPlayer({
   const [briefingOpen, setBriefingOpen] = useState(false);
   const [sceneIndex, setSceneIndex] = useState(restored.sceneIndex);
   const [chosenChoiceId, setChosenChoiceId] = useState<string | null>(null);
+  // The choice "Show me the next step" named, ringed until the child picks.
+  const [pointed, setPointed] = useState<string | null>(null);
   const [path, setPath] = useState<{ sceneId: string; choiceId: string }[]>(restored.path);
   const [submission, setSubmission] = useState<Submission | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -337,7 +341,10 @@ export function AiEthicsPlayer({
                       type="button"
                       onClick={() => choose(choice.id)}
                       disabled={locked}
-                      className="min-h-11 rounded-lg border-2 border-border-token bg-surface-sunken px-4 py-3 text-start text-sm font-semibold text-ink transition-colors hover:bg-surface-sunken/70 focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
+                      className={cn(
+                        "min-h-11 rounded-lg border-2 border-border-token bg-surface-sunken px-4 py-3 text-start text-sm font-semibold text-ink transition-colors hover:bg-surface-sunken/70 focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2",
+                        pointed === choice.id && "ring-4 ring-accent ring-offset-2 ring-offset-surface",
+                      )}
                     >
                       {resolveLocalized(choice.text, locale)}
                     </button>
@@ -426,6 +433,22 @@ export function AiEthicsPlayer({
           <span aria-hidden="true">💡</span>
           {t("help.open")}
         </Button>
+        {nextStepAction && phase !== "result" ? (
+          <NextStepHint
+            levelId={intro.levelId}
+            action={nextStepAction}
+            usedBefore={intro.hintsUsedTiers.includes(5)}
+            readyAction={`“${tEthics(chosenChoiceId && sceneIndex < payload.scenes.length - 1 ? "continueStory" : "finish")}”`}
+            getState={() => ({ sceneId: chosenChoiceId ? null : (scene?.id ?? null) })}
+            names={{
+              choice: (id) => {
+                const c = scene?.choices.find((x) => x.id === id);
+                return c ? resolveLocalized(c.text, locale) : id;
+              },
+            }}
+            onStep={(step) => setPointed(step.code === "chooseSafe" ? step.choiceId : null)}
+          />
+        ) : null}
       </div>
 
       {/* ── Overlays ── */}
@@ -466,6 +489,14 @@ export function AiEthicsPlayer({
           saveFailed={false}
           onRetrySave={handleRetrySubmit}
           improveNote={null}
+          onReplay={() => {
+            setSubmission(null);
+            setSceneIndex(0);
+            setPath([]);
+            setChosenChoiceId(null);
+            setPhase("scene");
+          }}
+          certificate={submission.server?.certificate ?? null}
           nextHref={nextHref}
           reducedMotion={reducedMotion}
         />

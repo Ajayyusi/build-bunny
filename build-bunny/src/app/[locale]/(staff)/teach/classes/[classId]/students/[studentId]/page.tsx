@@ -91,7 +91,11 @@ export default async function StudentDetailPage({ params }: Props) {
     {
       key: "hints",
       header: t("attempts.hints"),
-      cell: (row) => <span className="tabular-nums">{row.hintTierUsed || "—"}</span>,
+      cell: (row) => (
+        <span className="tabular-nums">
+          {row.hintTierUsed === 5 ? t("attempts.nextStepHelp") : row.hintTierUsed || "—"}
+        </span>
+      ),
       align: "end",
     },
     {

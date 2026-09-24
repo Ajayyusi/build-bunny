@@ -41,6 +41,7 @@ import {
 } from "@/modules/learning/server/adventure";
 import {
   markLevelStarted,
+  nextStepHint,
   revealHint,
   saveWorkspaceDraft,
 } from "@/modules/learning/server/actions";
@@ -354,6 +355,7 @@ export default async function PlayLevelPage({ params }: Props) {
         payload={payload}
         draft={playable.draftWorkspace ?? null}
         revealHintAction={revealHint}
+        nextStepAction={nextStepHint}
         saveDraftAction={saveWorkspaceDraft}
       />
     </main>

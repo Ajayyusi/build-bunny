@@ -6,7 +6,7 @@ import * as ArabicMessages from "blockly/msg/ar";
 import * as EnglishMessages from "blockly/msg/en";
 import { Blockly } from "./blockly-core";
 import { BUNNY_HAT_BLOCK, registerBunnyBlocks, type BlockLocale } from "./blocks";
-import { workspaceToJson, type GapPath } from "./serialization";
+import { programBlocks, workspaceToJson, type GapPath } from "./serialization";
 import { BunnyTheme } from "./theme";
 import type { BlockRef } from "./serialization";
 
@@ -51,6 +51,12 @@ export interface BlocklyWorkspaceHandle {
    * block goes in the gap" is.
    */
   fillSlot(path: GapPath, type: string): boolean;
+  /**
+   * Selects what a "next step" hint points at, so "+ Add block" lands where
+   * the hint said: block N (in the order the child counts them), the "when
+   * start" hat, the "my trick" hat, or nothing (a new loose "my trick").
+   */
+  selectFor(target: { kind: "index"; index: number } | { kind: "hat" } | { kind: "trick" } | { kind: "none" }): void;
 }
 
 /** Student-stripped BLOCK_CODING payload surface the editor needs. */
@@ -205,6 +211,27 @@ export default function BlocklyWorkspace({
       lastSelectedRef.current = null;
       block.dispose(true);
       return true;
+    },
+    selectFor(target) {
+      const workspace = workspaceRef.current;
+      if (!workspace) return;
+      let block: BlockSvg | null = null;
+      if (target.kind === "index") {
+        const entry = programBlocks(workspaceToJson(workspace)).find((b) => b.index === target.index);
+        block = entry ? ((workspace.getBlockById(entry.id) as BlockSvg | null) ?? null) : null;
+      } else if (target.kind === "hat" || target.kind === "trick") {
+        const type = target.kind === "hat" ? BUNNY_HAT_BLOCK : "bb_defineTrick";
+        block = (workspace.getTopBlocks(false).find((b) => b.type === type) as BlockSvg | undefined) ?? null;
+      }
+      for (const other of workspace.getAllBlocks(false)) {
+        if (other !== block && other instanceof Blockly.BlockSvg) other.removeSelect();
+      }
+      lastSelectedRef.current = block?.id ?? null;
+      if (block) {
+        block.select();
+        workspace.scrollBoundsIntoView(block.getBoundingRectangle());
+      }
+      reportEditState(workspace);
     },
     fillSlot(path: GapPath, type: string) {
       const workspace = workspaceRef.current;

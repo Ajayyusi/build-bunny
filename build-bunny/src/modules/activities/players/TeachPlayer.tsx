@@ -32,6 +32,7 @@ import { TeachScene } from "./TeachScene";
 const BUILT_IN_BEATS = [1, 2, 3, 4] as const;
 
 import { Walkthrough } from "./shared/Walkthrough";
+import { NextStepHint } from "./shared/NextStepHint";
 import { postAttempt, runIdFor } from "./shared/attempt-outbox";
 import { HintDrawer } from "./shared/HintDrawer";
 import { RoboHelp, type HelpTopic } from "./shared/RoboHelp";
@@ -161,6 +162,7 @@ export function TeachPlayer({
   payload,
   draft,
   revealHintAction,
+  nextStepAction,
   saveDraftAction,
 }: ActivityPlayerProps) {
   // Cast back at the registry boundary — see ActivityPlayerProps.payload.
@@ -194,6 +196,9 @@ export function TeachPlayer({
   // taught. Kept separate from `assigned` so a specimen physically cannot
   // be in both — moving it to one side removes it from the other.
   const [heldBack, setHeldBack] = useState<Set<string>>(restored.heldBack);
+  // The specimen "Show me the next step" last named, ringed wherever it sits.
+  const [pointed, setPointed] = useState<string | null>(null);
+  const ring = (id: string) => (pointed === id ? "ring-4 ring-accent ring-offset-2 ring-offset-surface" : "");
   // Opens on arrival. A child (or an adult) landing on an abstract board of
   // circles has no way to infer the rules, so the walkthrough is the default
   // state rather than a help button nobody presses.
@@ -532,7 +537,10 @@ export function TeachPlayer({
                   {unassigned.map((s) => (
                     <li
                       key={s.id}
-                      className="flex w-32 flex-col items-center gap-2 rounded-xl border border-border-token bg-surface-raised p-3 transition-all hover:-translate-y-0.5 hover:border-brand/40 hover:shadow-md"
+                      className={cn(
+                        "flex w-32 flex-col items-center gap-2 rounded-xl border border-border-token bg-surface-raised p-3 transition-all hover:-translate-y-0.5 hover:border-brand/40 hover:shadow-md",
+                        ring(s.id),
+                      )}
                     >
                       {/* Fixed-height berry row: berries differ in diameter by
                           design, and without this the cards ended up ragged and
@@ -617,7 +625,7 @@ export function TeachPlayer({
                                 type="button"
                                 onClick={() => assign(e.id, label)}
                                 aria-label={`${tk("removeExample")}: ${describe(e)}`}
-                                className="rounded-full p-0.5 transition-transform hover:scale-110"
+                                className={cn("rounded-full p-0.5 transition-transform hover:scale-110", ring(e.id))}
                               >
                                 <Berry specimen={e} theme={glyph} />
                               </button>
@@ -865,6 +873,28 @@ export function TeachPlayer({
             >
               {t("check")}
             </Button>
+            {nextStepAction && !submitting ? (
+              <NextStepHint
+                levelId={intro.levelId}
+                action={nextStepAction}
+                usedBefore={intro.hintsUsedTiers.includes(5)}
+                readyAction={`“${t("check")}”`}
+                getState={() => ({
+                  examples: examples.map((e) => ({ id: e.id, label: e.label })),
+                  held: [...heldBack],
+                })}
+                names={{
+                  specimen: (id) => {
+                    const sp = data.pool.find((x) => x.id === id);
+                    return sp ? describe(sp) : id;
+                  },
+                  label: (l) => data.labels[l],
+                }}
+                onStep={(step) =>
+                  setPointed("specimenId" in step ? step.specimenId : null)
+                }
+              />
+            ) : null}
             <span className="text-xs text-ink-muted">
               {data.maxExamples === undefined
                 ? t("taughtCount", { count: examples.length })
@@ -909,6 +939,11 @@ export function TeachPlayer({
               ? t("improveFewer", { max: data.starCriteria.threeStarMaxBlocks })
               : null
           }
+          onReplay={() => {
+            setResult(null);
+            setServer(null);
+          }}
+          certificate={server.certificate ?? null}
           nextHref={nextHref}
           reducedMotion={reducedMotion}
           extra={

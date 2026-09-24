@@ -11,6 +11,7 @@ import { PlayerSoundControls } from "@/modules/audio/AudioControls";
 import { HintDrawer, type HintTierState } from "./shared/HintDrawer";
 import { RoboHelp, type HelpTopic } from "./shared/RoboHelp";
 import { postAttempt, runIdFor } from "./shared/attempt-outbox";
+import { NextStepHint } from "./shared/NextStepHint";
 import { PredictScene } from "./shared/PredictScene";
 import { IntroOverlay } from "./shared/IntroOverlay";
 import { MissionStrip } from "./shared/MissionStrip";
@@ -45,6 +46,7 @@ export function CodePredictionPlayer({
   intro,
   payload: rawPayload,
   revealHintAction,
+  nextStepAction,
 }: ActivityPlayerProps) {
   // Registry dispatch guarantees this matches intro.activityType.
   const payload = rawPayload as CodePredictionActivityPayload;
@@ -57,6 +59,8 @@ export function CodePredictionPlayer({
   // The briefing reopened from the mission strip, mid-level.
   const [briefingOpen, setBriefingOpen] = useState(false);
   const [selected, setSelected] = useState<string | null>(null);
+  // Options "Show me the next step" has crossed off, one per request.
+  const [ruledOut, setRuledOut] = useState<string[]>([]);
   const [submission, setSubmission] = useState<Submission | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [starsBest, setStarsBest] = useState(intro.starsBest);
@@ -262,6 +266,7 @@ export function CodePredictionPlayer({
               {payload.options.map((option) => {
                 const text = resolveLocalized(option.text, locale);
                 const checked = selected === option.id;
+                const crossed = ruledOut.includes(option.id) && !checked;
                 return (
                   <label
                     key={option.id}
@@ -272,6 +277,7 @@ export function CodePredictionPlayer({
                         ? "border-brand bg-brand/10"
                         : "border-border-token bg-surface-raised hover:bg-surface-sunken",
                       phase === "result" && "pointer-events-none opacity-90",
+                      crossed && "opacity-45",
                     )}
                   >
                     <input
@@ -292,9 +298,10 @@ export function CodePredictionPlayer({
                     >
                       {checked ? <span className="size-2.5 rounded-full bg-on-brand" /> : null}
                     </span>
-                    <span className="text-base font-medium leading-relaxed text-ink">
+                    <span className={cn("text-base font-medium leading-relaxed text-ink", crossed && "line-through")}>
                       {text}
                     </span>
+                    {crossed ? <span className="sr-only">{tPrediction("ruledOut")}</span> : null}
                   </label>
                 );
               })}
@@ -349,6 +356,23 @@ export function CodePredictionPlayer({
           <span aria-hidden="true">💡</span>
           {t("help.open")}
         </Button>
+        {nextStepAction && phase !== "result" ? (
+          <NextStepHint
+            levelId={intro.levelId}
+            action={nextStepAction}
+            usedBefore={intro.hintsUsedTiers.includes(5)}
+            readyAction={`“${tPrediction("submit")}”`}
+            getState={() => ({ ruledOut })}
+            names={{ option: (id) => resolveLocalized(payload.options.find((o) => o.id === id)?.text ?? id, locale) }}
+            onStep={(step) => {
+              if (step.code === "ruleOut") {
+                setRuledOut((current) => (current.includes(step.optionId) ? current : [...current, step.optionId]));
+                if (selected === step.optionId) setSelected(null);
+              }
+              if (step.code === "answerIs") setSelected(step.optionId);
+            }}
+          />
+        ) : null}
       </div>
 
       {/* ── Overlays ── */}
@@ -388,7 +412,9 @@ export function CodePredictionPlayer({
           saving={false}
           saveFailed={false}
           onRetrySave={handleRetrySubmit}
-          improveNote={null}
+          improveNote={(submission?.server?.stars ?? intro.maxStars) < intro.maxStars ? t("success.improveFirstTry") : null}
+          onReplay={handleTryAgain}
+          certificate={submission?.server?.certificate ?? null}
           nextHref={nextHref}
           reducedMotion={reducedMotion}
         />
