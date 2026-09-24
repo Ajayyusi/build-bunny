@@ -8,8 +8,8 @@ import { boundaryBuilderAnswerSchema, labelIdsOf, type BoundaryBuilderConfig } f
 /**
  * "You Be the Classifier" grading (g-contracts): recompute misclassifications
  * for the SUBMITTED line — never trust a client-reported count. PASS at
- * <= maxErrors, 3 stars at 0. A generous PARTIAL band rewards a genuine,
- * close attempt instead of dropping straight to FAIL.
+ * <= maxErrors, 3 stars at 0, FAIL otherwise — with `close` set in the
+ * feedback when the line is within the old "still learning" cushion.
  */
 export function gradeBoundaryBuilder(
   config: BoundaryBuilderConfig,
@@ -28,16 +28,17 @@ export function gradeBoundaryBuilder(
   // point of slack even when maxErrors is 0, sized to a fifth of the set.
   const partialLimit = passLimit + Math.max(1, Math.ceil(total * 0.2));
 
-  let verdict: ActivityVerdict;
-  if (errors <= passLimit) verdict = "PASS";
-  else if (errors <= partialLimit) verdict = "PARTIAL";
-  else verdict = "FAIL";
+  // No PARTIAL band: submit.ts completes a level on PARTIAL, so a line with
+  // four fruit on the wrong side used to finish the level (1 star). The
+  // cushion now only tells the child they are close.
+  const verdict: ActivityVerdict = errors <= passLimit ? "PASS" : "FAIL";
+  const close = errors > passLimit && errors <= partialLimit;
 
   const qualityPassed = errors === 0;
   const primaryFeedback =
     verdict === "PASS"
       ? null
-      : { code: "classifierErrors", data: { errors, maxErrors: passLimit } };
+      : { code: "classifierErrors", data: { errors, maxErrors: passLimit, close } };
 
   return {
     verdict,

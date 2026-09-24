@@ -32,14 +32,16 @@ export function gradePixelPlayground(
     if (isCorrect) correct++;
   }
 
-  let verdict: ActivityVerdict;
-  if (correct === total) verdict = "PASS";
-  else if (correct >= Math.ceil(total / 2)) verdict = "PARTIAL";
-  else verdict = "FAIL";
+  // No PARTIAL band. submit.ts treats PARTIAL as COMPLETED and unlocks the
+  // next level, so "half the mystery pictures right" used to finish the
+  // level with a wrong answer on the board — the near miss ai-classification
+  // deliberately refuses to reward. A close attempt is a FAIL that says so.
+  const verdict: ActivityVerdict = correct === total ? "PASS" : "FAIL";
+  const close = correct < total && correct >= Math.ceil(total / 2);
 
   const qualityPassed = correct === total;
   const primaryFeedback =
-    verdict === "PASS" ? null : { code: "mysteryRoundsWrong", data: { correct, total } };
+    verdict === "PASS" ? null : { code: "mysteryRoundsWrong", data: { correct, total, close } };
 
   return {
     verdict,

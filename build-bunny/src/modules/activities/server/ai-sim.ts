@@ -29,19 +29,30 @@ import type { ActivityGradeResult } from "../types";
 
 const lineSchema = z.object({ slope: z.number(), intercept: z.number() });
 
-const boundaryBuilderAnswerSchema = z.object({
-  line: lineSchema,
-  sorts: z.record(z.string().min(1), z.string().min(1)).optional(),
-});
+// Every shape is .strict() because aiSimAnswerSchema below is a UNION, and a
+// union returns the first branch that parses. Non-strict, a trend-line answer
+// ({ line, prediction }) parsed as a boundary-builder answer ({ line }) with
+// `prediction` silently stripped, so the widget's own schema then rejected
+// it and every Fortune Teller submission graded ERROR.
+const boundaryBuilderAnswerSchema = z
+  .object({
+    line: lineSchema,
+    sorts: z.record(z.string().min(1), z.string().min(1)).optional(),
+  })
+  .strict();
 
-const trendLineAnswerSchema = z.object({
-  line: lineSchema,
-  prediction: z.number(),
-});
+const trendLineAnswerSchema = z
+  .object({
+    line: lineSchema,
+    prediction: z.number(),
+  })
+  .strict();
 
-const pixelPlaygroundAnswerSchema = z.object({
-  rounds: z.record(z.string().min(1), z.string().min(1)),
-});
+const pixelPlaygroundAnswerSchema = z
+  .object({
+    rounds: z.record(z.string().min(1), z.string().min(1)),
+  })
+  .strict();
 
 const ANSWER_SCHEMAS = {
   "boundary-builder": boundaryBuilderAnswerSchema,

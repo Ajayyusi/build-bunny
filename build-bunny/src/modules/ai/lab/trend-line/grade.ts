@@ -7,7 +7,7 @@ import { trendLineAnswerSchema, type TrendLineConfig } from "./types";
 
 /** 3-star band: within 15% of the true optimum — genuinely close, not just passing. */
 const STAR3_FACTOR = 1.15;
-/** PARTIAL band: half again as forgiving as the pass line — rewards a real attempt. */
+/** "Close" band: half again as forgiving as the pass line. Flags a near miss in the feedback; still a FAIL. */
 const PARTIAL_MULTIPLIER = 1.5;
 /** Prediction error band width, in residual standard deviations either side of the fitted value. */
 const BAND_MULTIPLIER = 1.5;
@@ -35,10 +35,11 @@ export function gradeTrendLine(config: TrendLineConfig, submission: unknown): Ac
   const partialThreshold = optimumSSE * config.toleranceFactor * PARTIAL_MULTIPLIER;
   const starThreshold = optimumSSE * STAR3_FACTOR;
 
-  let verdict: ActivityVerdict;
-  if (childSSE <= passThreshold) verdict = "PASS";
-  else if (childSSE <= partialThreshold) verdict = "PARTIAL";
-  else verdict = "FAIL";
+  // No PARTIAL band: submit.ts completes a level on PARTIAL, so a line half
+  // again worse than the pass line used to finish it. The cushion now only
+  // tells the child they are close.
+  const verdict: ActivityVerdict = childSSE <= passThreshold ? "PASS" : "FAIL";
+  const close = childSSE > passThreshold && childSSE <= partialThreshold;
 
   const qualityPassed = childSSE <= starThreshold;
 
@@ -54,7 +55,7 @@ export function gradeTrendLine(config: TrendLineConfig, submission: unknown): Ac
       ? null
       : {
           code: "trendMissTooHigh",
-          data: { childScore: round2(childSSE), targetScore: round2(passThreshold) },
+          data: { childScore: round2(childSSE), targetScore: round2(passThreshold), close },
         };
 
   return {
