@@ -19,7 +19,7 @@ Status legend: **✅ implemented & tested** · **🟡 partial** · **⛔ blocked
 | `feat/tablet-player-a11y` | §3 Blockly on touch, §7 accessibility | ready for review |
 | `feat/story-worlds` | §3 story, 8 worlds, cutscenes, finales | ready for review |
 | `feat/robo-help` | §5 help tools, adaptive hints | ready for review |
-| `feat/curriculum-expansion` | §4 activities, age bands, levels toward 100 | not started |
+| `feat/curriculum-expansion` | §4 variables/functions, build-your-own maze, age bands, 71 levels | ready for review |
 | `feat/classroom-parent` | §6 classroom + parent | not started |
 | `feat/offline-perf-polish` | §7 offline, performance, privacy review | not started |
 
@@ -97,14 +97,14 @@ they should be reviewed and merged in the order above.
 
 | Item | Status | Evidence / files |
 |---|---|---|
-| Debugging, prediction, sequencing, loops, conditionals | 🟡 | engines exist; content thin |
-| Variables, functions | ⬜ | no engine blocks yet |
-| Data sorting/visualisation, AI classification, training/testing, bias/ethics | 🟡 | engines exist for most; bias not built |
-| Cyber-safety decisions | 🟡 | 1 AI_ETHICS level ("Secret Keepers") |
-| Creative coding, build-your-own maze, final projects | ⬜ | |
-| Age bands 7–8 / 9–10 / 11–13 | ⬜ | |
-| Adaptive hints/recommendations from observable signals | ⬜ | |
-| ~100 tested bilingual levels (currently 38) | ⬜ | |
+| Debugging, prediction, sequencing, loops, conditionals | ✅ | every type has a Learn step + puzzles; new practice modules in Bunny Meadow (3), Logic Forest (2), Robot Lab (2); "Off by One" debugging (`content/worlds/code-city-counters.ts`) |
+| Variables, functions | ✅ | new blocks `bb_setCounter` / `bb_changeCounter` / `bb_sayCounter` / `bb_defineTrick` / `bb_doTrick` (`src/modules/blockly/{blocks,codegen}.ts`), interpreter reads variables back, `variableEquals` check implemented (`src/engine/checks.ts`); Code City "Counters and Tricks" (7 levels: 2 Learn steps, 4 puzzles, 1 debugging); unit `blockly-variables.test.ts`, e2e `counters.spec.ts` |
+| Data sorting/visualisation, AI classification, training/testing, bias/ethics | ✅ | bias lesson "Bias Detective" (typical-only teaching proven to fail: `tests/unit/expansion-content.test.ts`), "Three Waterholes" clustering; existing engines unchanged |
+| Cyber-safety decisions | ✅ | AI Island "Safety and Fairness": "Stranger in the Chat", "Is That Real?" (AI-made fakes, chatbot confidence, sharing, AI homework help) + "Secret Keepers" |
+| Creative coding, build-your-own maze, final projects | ✅ | CREATIVE_PROJECT engine end to end: designer (tap/keyboard, live checklist, same rule server-side), grader, publish gates on the author sample, teacher replay on the child's map; Inventor Island "The Fair" (3 mazes, last one needs a trick); unit `maze.test.ts`, integration `maze.test.ts`, e2e `maze.spec.ts` (laptop + tablet portrait) |
+| Age bands 7–8 / 9–10 / 11–13 | ✅ | band chip from `recommendedGradeMin` on the map sheet and briefing (`src/modules/learning/age-band.ts`); support by the child's grade: Robo Bunny's example opens after 2 failed runs for grade ≤ 3, a stretch idea after a clean pass for grade ≥ 6, warm-up offered sooner for grade ≤ 3 — never shown as a label |
+| Adaptive hints/recommendations from observable signals | ✅ | warm-up recommendation (§5) + support level above; signals are failed runs, hint tier, grade — no labels |
+| ~100 tested bilingual levels | 🟡 | **71** real levels, every one through the publish gates (solution runs, reachability, EN complete) and the playthrough integration test; Arabic authored for all, flagged for native review. 29 short of the brief — not inflated |
 
 ## §5 Robo Bunny help
 
@@ -138,6 +138,16 @@ they should be reviewed and merged in the order above.
 ---
 
 ## Checkpoint log
+
+### Checkpoint 6 — 2026-09-23 (curriculum expansion)
+
+- **Live:** nothing new. Nothing is merged or deployed; pushing needs a one-time GitHub sign-in on this machine.
+- **On branches:** `feat/curriculum-expansion` (stacked on `feat/robo-help`).
+- **What it adds:** variables ("the counter") and functions ("my trick") as real blocks, code and grading; build-your-own maze (CREATIVE_PROJECT) from designer to teacher replay; 21 new levels (50 → 71): Code City Counters and Tricks (7), Inventor Island The Fair (3), practice modules (7), AI Island Safety and Fairness (3), Data Desert Three Oases (1); age bands and grade-based support; Robo Bunny examples for variables and functions.
+- **Tested:** unit 471 (incl. `blockly-variables`, `maze`, `expansion-content`, Learn steps run for real), integration (maze pipeline, playthrough of all 71 levels by their own solutions, recommendation thresholds), e2e `maze.spec.ts` (laptop + tablet portrait), `counters.spec.ts`, plus the full suite; lint and type-check clean; screenshots of the designer/builder in English and Arabic at laptop and tablet sizes.
+- **Also fixed here:** Blockly 13 drops the selection when a dialog steals focus from a tapped block (the block palette itself), so "add after the selected block" fell back to the end of the program; tap-to-add also left stale selection glows on earlier blocks. Both fixed in `BlocklyWorkspace.tsx`.
+- **Honest gaps:** 71 levels, not 100; Arabic still needs a native reviewer; no physical iPad; a maze level's replay for teachers is implemented but only unit-tested, not clicked through.
+- **Next step:** `feat/classroom-parent` (§6).
 
 ### Checkpoint 5 — 2026-09-23 (Robo Bunny's help)
 

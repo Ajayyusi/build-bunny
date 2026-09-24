@@ -50,6 +50,8 @@ interface SuccessOverlayProps {
   onRetrySave: () => void;
   /** "For more stars" note when the pass wasn't perfect. */
   improveNote: string | null;
+  /** A harder idea after a clean pass (support "stretch"); null hides it. */
+  stretchNote?: string | null;
   nextHref: string | null;
   reducedMotion: boolean;
   /**
@@ -76,6 +78,7 @@ export function SuccessOverlay({
   saveFailed,
   onRetrySave,
   improveNote,
+  stretchNote = null,
   nextHref,
   reducedMotion,
   extra,
@@ -248,6 +251,18 @@ export function SuccessOverlay({
                 {t("improveHeading")}
               </h2>
               <p className="text-sm leading-relaxed text-ink">{improveNote}</p>
+            </div>
+          </div>
+        ) : null}
+
+        {stretchNote ? (
+          <div className="flex items-start gap-2 rounded-lg border border-border-token p-3">
+            <span aria-hidden="true">🚀</span>
+            <div className="flex flex-col gap-0.5">
+              <h2 className="text-xs font-bold uppercase tracking-wide text-ink-muted">
+                {t("stretchHeading")}
+              </h2>
+              <p className="text-sm leading-relaxed text-ink">{stretchNote}</p>
             </div>
           </div>
         ) : null}

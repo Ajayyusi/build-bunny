@@ -115,9 +115,22 @@ function evaluateCheck(
       };
     }
 
+    case "variableEquals": {
+      // { name, value }: the variable's final value must equal `value`.
+      const name = str(params.name);
+      if (!name) return null; // malformed params: publish gates own validation
+      const expected = params.value;
+      const actual = result.variables?.[name];
+      if (actual === expected) return null;
+      return {
+        ...failureBase(check),
+        code: "wrongVariable",
+        data: { name, expected, actual: actual ?? null },
+      };
+    }
+
     // Not implemented in V1 (no content uses them). Reported as a
     // quality-severity skip so they can never flip a verdict.
-    case "variableEquals":
     case "expectedSequence":
     case "classifierResult":
       return { id: check.id, severity: "quality", code: "unsupported" };

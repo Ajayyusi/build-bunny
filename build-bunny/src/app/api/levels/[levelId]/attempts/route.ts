@@ -9,6 +9,7 @@ import { aiSimAnswerSchema } from "@/modules/activities/server/ai-sim";
 import { patternRecognitionAnswerSchema } from "@/modules/activities/server/pattern-recognition";
 import { hasPermission } from "@/modules/auth/permissions";
 import { getSessionContext } from "@/modules/auth/server/session";
+import { gridVariantSchema } from "@/modules/curriculum/schemas";
 import { getPublishedLevelSnapshot } from "@/modules/curriculum/server/queries";
 import { submitAttempt, type AttemptInput } from "@/modules/grading/server/submit";
 
@@ -33,6 +34,11 @@ const gridBodySchema = z
     clientVerdict: z.enum(["PASS", "PARTIAL", "FAIL"]).optional(),
     durationMs: z.number().int().nonnegative().optional(),
   })
+  .strict();
+
+/** CREATIVE_PROJECT (build-your-own maze): the program AND the child's design. */
+const creativeProjectBodySchema = gridBodySchema
+  .extend({ design: gridVariantSchema })
   .strict();
 
 const codePredictionBodySchema = z
@@ -185,6 +191,10 @@ export async function POST(
         const parsed = aiSimBodySchema.safeParse(raw);
         if (!parsed.success) return validationError(parsed.error.flatten().fieldErrors);
         input = parsed.data;
+      } else if (activityType === "CREATIVE_PROJECT") {
+        const parsed = creativeProjectBodySchema.safeParse(raw);
+        if (!parsed.success) return validationError(parsed.error.flatten().fieldErrors);
+        input = { ...parsed.data, workspaceJson: parsed.data.workspaceJson ?? null };
       } else if (!activityType || GRID_ACTIVITY_TYPES.has(activityType)) {
         const parsed = gridBodySchema.safeParse(raw);
         if (!parsed.success) return validationError(parsed.error.flatten().fieldErrors);

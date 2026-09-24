@@ -217,6 +217,13 @@ export default function BlocklyWorkspace({
           const origin = hat?.getRelativeToSurfaceXY() ?? { x: 24, y: 24 };
           block.moveBy(origin.x + 40, origin.y + 120);
         }
+        // Select the new block. Blockly's selection glow is tied to DOM
+        // focus, and a block selected while a button holds focus keeps its
+        // glow after the next one is selected — so the others are cleared
+        // by hand, or three blocks end up looking selected at once.
+        for (const other of workspace.getAllBlocks(false)) {
+          if (other !== block && other instanceof Blockly.BlockSvg) other.removeSelect();
+        }
         block.select();
         lastSelectedRef.current = block.id;
         workspace.scrollBoundsIntoView(block.getBoundingRectangle());
@@ -294,9 +301,17 @@ export default function BlocklyWorkspace({
       newElementId?: string | null;
     }) => {
       if (event.type === Blockly.Events.SELECTED) {
-        // A real selection change: remember the block, or forget it on an
-        // explicit deselect (canvas tap). Focus loss fires no such event.
-        lastSelectedRef.current = event.newElementId ?? null;
+        // Remember a newly selected block. A deselect is only honoured when
+        // it is the child's own doing — a tap on the canvas background, which
+        // leaves keyboard focus inside the workspace. Blockly 13 also drops
+        // the selection when focus LEAVES the canvas (a tapped block has DOM
+        // focus, and opening the block palette or any dialog blurs it); that
+        // is not a decision to build somewhere else, so the block is kept.
+        if (event.newElementId) {
+          lastSelectedRef.current = event.newElementId;
+        } else if (hostRef.current?.contains(document.activeElement)) {
+          lastSelectedRef.current = null;
+        }
         reportEditState(workspace);
         return;
       }

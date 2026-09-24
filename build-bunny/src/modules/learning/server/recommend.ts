@@ -5,6 +5,7 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import type { SessionContext } from "@/modules/auth/server/session";
 import { localizedText, type LocalizedText } from "@/modules/curriculum/schemas";
+import { supportFor } from "../age-band";
 
 import { computeAdventureState, type AdventureState } from "./adventure";
 
@@ -52,7 +53,7 @@ export async function recommendWarmUp(
   const currentId = adventure.currentLevelId;
   if (!currentId) return null;
 
-  const [failedRuns, topHint] = await Promise.all([
+  const [failedRuns, topHint, profile] = await Promise.all([
     db.activityAttempt.count({
       where: {
         studentUserId: ctx.userId,
@@ -67,10 +68,18 @@ export async function recommendWarmUp(
       orderBy: { tier: "desc" },
       select: { tier: true },
     }),
+    db.studentProfile.findFirst({
+      where: { userId: ctx.userId, schoolId },
+      select: { grade: true },
+    }),
   ]);
   const hintTier = topHint?.tier ?? 0;
-  const stuck =
-    failedRuns >= STUCK_FAILS && (hintTier >= STUCK_HINT_TIER || failedRuns >= STUCK_FAILS_ALONE);
+  // A younger child (grade 3 and below) is offered the warm-up sooner: two
+  // failed runs and any hint, or three failed runs.
+  const extra = supportFor(profile?.grade ?? null) === "extra";
+  const stuck = extra
+    ? failedRuns >= 2 && (hintTier >= 1 || failedRuns >= 3)
+    : failedRuns >= STUCK_FAILS && (hintTier >= STUCK_HINT_TIER || failedRuns >= STUCK_FAILS_ALONE);
   if (!stuck) return null;
 
   // Completed levels earlier on the trail, in trail order.

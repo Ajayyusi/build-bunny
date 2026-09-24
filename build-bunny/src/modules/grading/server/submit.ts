@@ -9,7 +9,7 @@ import { Prisma } from "@prisma/client";
 
 import { db } from "@/lib/db";
 import { recordLearningEvent } from "@/lib/events";
-import { computeStars, ENGINE_VERSION } from "@/engine";
+import { computeStars, ENGINE_VERSION, type GridVariantSpec } from "@/engine";
 import { getActivityEngine } from "@/modules/activities/server/registry";
 import type { ActivityGradeResult } from "@/modules/activities/types";
 import type { SessionContext } from "@/modules/auth/server/session";
@@ -42,6 +42,8 @@ export interface GridAttemptInput {
   workspaceJson: unknown;
   clientVerdict?: "PASS" | "PARTIAL" | "FAIL";
   durationMs?: number;
+  /** CREATIVE_PROJECT only: the child's own maze, graded with the program. */
+  design?: GridVariantSpec;
 }
 
 /** Non-grid types submit a small structured answer instead. */
@@ -182,8 +184,12 @@ export async function submitAttempt(
   // own belt-and-suspenders check for any caller that reaches submitAttempt
   // directly (tests, or a future non-HTTP caller). ────────────────────────
   const activityType = published.snapshot.activityType;
-  const isGridType = activityType === "BLOCK_CODING" || activityType === "DEBUGGING";
+  const isMaze = activityType === "CREATIVE_PROJECT";
+  const isGridType = activityType === "BLOCK_CODING" || activityType === "DEBUGGING" || isMaze;
   if (isGridAttemptInput(input) !== isGridType) {
+    return { status: 400, body: { error: "VALIDATION" } };
+  }
+  if (isMaze && (!isGridAttemptInput(input) || !input.design)) {
     return { status: 400, body: { error: "VALIDATION" } };
   }
 
@@ -238,7 +244,13 @@ export async function submitAttempt(
     // anything the student did. Let the route's catch-all report it.
     throw new Error(`No activity engine registered for type ${activityType}`);
   }
-  const gradeInput: unknown = isGridAttemptInput(input) ? input.workspaceJson : input.answer;
+  // A maze attempt is the program AND the design — stored together as the
+  // attempt's input, so a replay rebuilds the child's own map.
+  const gradeInput: unknown = isGridAttemptInput(input)
+    ? isMaze
+      ? { workspaceJson: input.workspaceJson, design: input.design }
+      : input.workspaceJson
+    : input.answer;
   const clientVerdict = isGridAttemptInput(input) ? input.clientVerdict : undefined;
   const durationMs = isGridAttemptInput(input) ? input.durationMs : undefined;
 

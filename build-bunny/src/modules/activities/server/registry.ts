@@ -16,6 +16,7 @@ import {
   gradeCodePrediction,
 } from "./code-prediction";
 import { conceptCardsAnswerSchema, gradeConceptCards } from "./concept-cards";
+import { creativeProjectAnswerSchema, gradeCreativeProject } from "./creative-project";
 import {
   gradePatternRecognition,
   patternRecognitionAnswerSchema,
@@ -126,9 +127,19 @@ const aiSim: ActivityEngine = {
   stripPayload: (payload) => stripStudentPayload("AI_SIM", payload),
 };
 
+/** Build-your-own maze (Inventor Island): the child's design + program, graded together. */
+const creativeProject: ActivityEngine = {
+  grade: (snapshot, input) => {
+    const parsed = creativeProjectAnswerSchema.safeParse(input);
+    return parsed.success ? gradeCreativeProject(snapshot, parsed.data) : invalidAnswer();
+  },
+  stripPayload: (payload) => stripStudentPayload("CREATIVE_PROJECT", payload),
+};
+
 export const ACTIVITY_ENGINES: Partial<Record<V1ActivityType, ActivityEngine>> = {
   BLOCK_CODING: grid,
   DEBUGGING: grid,
+  CREATIVE_PROJECT: creativeProject,
   CODE_PREDICTION: codePrediction,
   SEQUENCING: sequencing,
   CONCEPT_CARDS: conceptCards,

@@ -96,6 +96,8 @@ export interface LevelIntro {
   instructions: LocalizedText | null;
   difficulty: string;
   estimatedMinutes: number;
+  /** Authored "written for grade N and up" — drives the age-band chip. */
+  recommendedGradeMin: number | null;
   maxStars: number;
   stars: number;
   state: "UNLOCKED" | "IN_PROGRESS" | "COMPLETED";
@@ -282,6 +284,7 @@ async function loadProgramContent(programId: string): Promise<LoadedWorld[]> {
                   activityType: true,
                   difficulty: true,
                   estimatedMinutes: true,
+                  recommendedGradeMin: true,
                   maxStars: true,
                   publishedVersionId: true,
                   prerequisites: { select: { requiresLevelId: true } },
@@ -498,6 +501,7 @@ export async function getLevelIntro(
       activityType: true,
       difficulty: true,
       estimatedMinutes: true,
+      recommendedGradeMin: true,
       maxStars: true,
       publishedVersionId: true,
       module: {
@@ -544,6 +548,7 @@ export async function getLevelIntro(
     instructions: text.instructions ?? null,
     difficulty: level.difficulty,
     estimatedMinutes: level.estimatedMinutes,
+    recommendedGradeMin: level.recommendedGradeMin ?? null,
     maxStars: level.maxStars,
     stars: row.stars,
     state: row.status,
@@ -589,6 +594,7 @@ export async function getLevelIntros(
       activityType: true,
       difficulty: true,
       estimatedMinutes: true,
+      recommendedGradeMin: true,
       maxStars: true,
       publishedVersionId: true,
       module: {
@@ -647,6 +653,7 @@ export async function getLevelIntros(
       instructions: text.instructions ?? null,
       difficulty: level.difficulty,
       estimatedMinutes: level.estimatedMinutes,
+      recommendedGradeMin: level.recommendedGradeMin ?? null,
       maxStars: level.maxStars,
       stars: row.stars,
       state: row.status,

@@ -1,14 +1,15 @@
 import type { z } from "zod";
 import type { WorldFixture, blockCodingPayload } from "@/modules/curriculum/schemas";
+import { theFair } from "./inventor-island-fair";
 
 /**
  * World 8 — Inventor Island: no instructions, your ideas lead (STORY.md §8).
  *
  * The island opens with "The Workbench": open-ended grid levels with MANY
  * right answers and generous block budgets, where the three-star line is
- * "find your own shortest" rather than "match ours". The maze builder and
- * creative projects that make this the Fair itself ship with the
- * curriculum-expansion work; this module is real and complete on its own.
+ * "find your own shortest" rather than "match ours". Then "The Fair"
+ * (inventor-island-fair.ts): build-your-own mazes, the island's creative
+ * projects.
  */
 
 type BlockCodingDraft = z.input<typeof blockCodingPayload>;
@@ -609,5 +610,6 @@ export const inventorIsland: WorldFixture = {
         },
       ],
     },
+    theFair,
   ],
 };

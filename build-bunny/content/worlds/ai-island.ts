@@ -5,6 +5,7 @@ import type {
   aiEthicsPayload,
   aiSimPayload,
 } from "@/modules/curriculum/schemas";
+import { safetyAndFairness } from "./ai-island-safety";
 
 /**
  * World 4 — AI Island. The first world where the student stops writing rules.
@@ -1079,5 +1080,6 @@ export const aiIsland: WorldFixture = {
         },
       ],
     },
+    safetyAndFairness,
   ],
 };

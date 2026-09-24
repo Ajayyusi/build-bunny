@@ -4,6 +4,7 @@ import type {
   blockCodingPayload,
   conceptCardsPayload,
 } from "@/modules/curriculum/schemas";
+import { practicePaddock } from "./bunny-meadow-practice";
 
 /**
  * World 1 — Bunny Meadow (seed levels 1–5, curriculum-content.md §5).
@@ -869,5 +870,6 @@ export const bunnyMeadow: WorldFixture = {
         },
       ],
     },
+    practicePaddock,
   ],
 };

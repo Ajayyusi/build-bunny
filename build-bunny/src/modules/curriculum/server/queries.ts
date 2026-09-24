@@ -345,6 +345,8 @@ export async function getPublishedLevelSnapshot(
  */
 const ANSWER_KEYS = [
   "solution",
+  // CREATIVE_PROJECT's author design + solution (a solved maze is a spoiler).
+  "sample",
   "correctOptionId",
   "correctOrder",
   "rule",

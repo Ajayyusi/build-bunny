@@ -707,6 +707,59 @@ export const aiSimPayload = z.object({
   }),
 });
 
+// ── CREATIVE_PROJECT: build-your-own maze (Inventor Island) ──────────────
+// The child designs the map inside `board`, painting tiles from `palette`
+// (the burrow is always available), then programs Robo Bunny through it with
+// `toolbox`. The design is an ordinary grid variant once accepted, so the
+// program is graded by the same pipeline as every puzzle.
+export const mazePaletteTileSchema = z.enum(["#", "W", "C"]);
+
+const creativeProjectCore = z.object({
+  kind: z.literal("MAZE"),
+  board: z.object({
+    width: z.number().int().min(3).max(8),
+    height: z.number().int().min(2).max(8),
+  }),
+  palette: z.array(mazePaletteTileSchema).min(1),
+  /** What a design must contain before the child may build a program for it. */
+  mustInclude: z
+    .object({
+      obstacles: z.number().int().min(0).max(30).default(0),
+      carrots: z.number().int().min(0).max(10).default(0),
+    })
+    .default({ obstacles: 0, carrots: 0 }),
+  toolbox: z.array(blockRefSchema).min(1),
+  budgets: z
+    .object({ maxCommands: z.number().int().positive().max(10_000).default(1000) })
+    .default({ maxCommands: 1000 }),
+  starCriteria: starCriteriaSchema.default({}),
+  startWorkspace: z.unknown().optional(),
+});
+
+export const creativeProjectPayload = creativeProjectCore
+  .extend({
+    /**
+     * The author's own design and a program that solves it: the publish
+     * gates prove the toolbox can beat a design that meets the rules. Never
+     * shown to a child (stripped like a solution).
+     */
+    sample: z.object({ design: gridVariantSchema, solution: z.unknown() }),
+  })
+  .superRefine((p, ctx) => {
+    if (p.mustInclude.carrots > 0 && !p.palette.includes("C")) {
+      ctx.addIssue({ code: "custom", message: "mustInclude.carrots needs \"C\" on the palette" });
+    }
+    if (p.mustInclude.obstacles > 0 && !p.palette.some((t) => t === "#" || t === "W")) {
+      ctx.addIssue({ code: "custom", message: "mustInclude.obstacles needs \"#\" or \"W\" on the palette" });
+    }
+    if (p.sample.design.rows.length !== p.board.height || p.sample.design.rows.some((r) => r.length !== p.board.width)) {
+      ctx.addIssue({ code: "custom", message: "sample.design must fill the board exactly" });
+    }
+  });
+
+/** Answer-free mirror: `sample` absent, .strict() so a strip regression fails loudly. */
+export const creativeProjectStudentPayload = creativeProjectCore.strict();
+
 /** V1 activity types with a real engine behind them (plan §0.1-7). */
 export const V1_ACTIVITY_TYPES = [
   "AI_CLASSIFICATION",
@@ -716,6 +769,7 @@ export const V1_ACTIVITY_TYPES = [
   "BLOCK_CODING",
   "CODE_PREDICTION",
   "CONCEPT_CARDS",
+  "CREATIVE_PROJECT",
   "DEBUGGING",
   "SEQUENCING",
 ] as const;
@@ -729,6 +783,7 @@ const PAYLOAD_SCHEMAS: Record<V1ActivityType, z.ZodTypeAny> = {
   BLOCK_CODING: blockCodingPayload,
   CODE_PREDICTION: codePredictionPayload,
   CONCEPT_CARDS: conceptCardsPayload,
+  CREATIVE_PROJECT: creativeProjectPayload,
   DEBUGGING: debuggingPayload,
   SEQUENCING: sequencingPayload,
 };

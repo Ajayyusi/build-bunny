@@ -1,11 +1,14 @@
 import "server-only";
 
 import { parseGrid, type ParsedGrid } from "@/engine";
+import { analyzeMazeDesign } from "@/modules/activities/maze";
 import {
   blockCodingPayload,
+  creativeProjectPayload,
   debuggingPayload,
 } from "@/modules/curriculum/schemas";
 import { gradeWorkspace } from "@/modules/grading/server/grade";
+import { gradeMaze } from "@/modules/grading/server/maze";
 import type { GateResult, LevelSnapshot } from "./publish";
 
 /**
@@ -50,6 +53,7 @@ function parseGridPayload(snapshot: LevelSnapshot): GridPayload | null {
  */
 export function gateSolutionRuns(snapshot: LevelSnapshot): GateResult {
   const gate = "solutionRuns";
+  if (snapshot.activityType === "CREATIVE_PROJECT") return gateMazeSample(gate, snapshot);
   if (!GRID_ACTIVITY_TYPES.has(snapshot.activityType)) {
     return skipped(gate, `not applicable to ${snapshot.activityType}`);
   }
@@ -104,6 +108,7 @@ function walkable(grid: ParsedGrid, x: number, y: number): boolean {
  */
 export function gateReachability(snapshot: LevelSnapshot): GateResult {
   const gate = "reachability";
+  if (snapshot.activityType === "CREATIVE_PROJECT") return gateMazeSampleDesign(gate, snapshot);
   if (!GRID_ACTIVITY_TYPES.has(snapshot.activityType)) {
     return skipped(gate, `not applicable to ${snapshot.activityType}`);
   }
@@ -159,4 +164,39 @@ export function gateReachability(snapshot: LevelSnapshot): GateResult {
   });
 
   return issues.length === 0 ? pass(gate) : fail(gate, issues);
+}
+
+// ── Build-your-own maze (CREATIVE_PROJECT) ──────────────────────────────
+// The child's design is not known at publish time, so the gates prove the
+// LEVEL instead: the author's sample design meets the level's own rules and
+// is winnable, and the recorded solution beats it flawlessly with the
+// level's toolbox — the same standard every puzzle meets.
+
+function gateMazeSample(gate: string, snapshot: LevelSnapshot): GateResult {
+  const parsed = creativeProjectPayload.safeParse(snapshot.payload);
+  if (!parsed.success) return fail(gate, ["payload does not validate — fix payloadValid first"]);
+  const { issues, outcome } = gradeMaze(snapshot, {
+    workspaceJson: parsed.data.sample.solution,
+    design: parsed.data.sample.design,
+  });
+  if (issues.length > 0) {
+    return fail(gate, issues.map((issue) => `sample design: ${JSON.stringify(issue)}`));
+  }
+  if (outcome && outcome.verdict === "PASS" && outcome.stars === 3) return pass(gate);
+  const messages = [
+    `sample solution graded ${outcome?.verdict ?? "ERROR"} with ${outcome?.stars ?? 0} star(s) — expected PASS with 3`,
+  ];
+  outcome?.perVariant[0]?.checkFailures.forEach((failure) => {
+    messages.push(`${failure.id} failed (${failure.code}${failure.data ? ` ${JSON.stringify(failure.data)}` : ""})`);
+  });
+  return fail(gate, messages);
+}
+
+function gateMazeSampleDesign(gate: string, snapshot: LevelSnapshot): GateResult {
+  const parsed = creativeProjectPayload.safeParse(snapshot.payload);
+  if (!parsed.success) return fail(gate, ["payload does not validate — fix payloadValid first"]);
+  const issues = analyzeMazeDesign(parsed.data, parsed.data.sample.design);
+  return issues.length === 0
+    ? pass(gate)
+    : fail(gate, issues.map((issue) => `sample design: ${JSON.stringify(issue)}`));
 }

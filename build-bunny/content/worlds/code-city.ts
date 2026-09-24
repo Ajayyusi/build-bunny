@@ -6,6 +6,7 @@ import type {
   debuggingPayload,
   sequencingPayload,
 } from "@/modules/curriculum/schemas";
+import { countersAndTricks } from "./code-city-counters";
 
 /**
  * World 7 — Code City: where blocks turn into real code (STORY.md §7).
@@ -1080,5 +1081,6 @@ export const codeCity: WorldFixture = {
         },
       ],
     },
+    countersAndTricks,
   ],
 };

@@ -5,6 +5,7 @@ import type {
   aiSimPayload,
   patternRecognitionPayload,
 } from "@/modules/curriculum/schemas";
+import { threeOases } from "./data-desert-oases";
 
 /**
  * World 5 — Data Desert. "Patterns hide in the dunes. Learn to spot them."
@@ -940,5 +941,6 @@ export const dataDesert: WorldFixture = {
         },
       ],
     },
+    threeOases,
   ],
 };

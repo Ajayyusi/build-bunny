@@ -6,6 +6,7 @@ import type {
   debuggingPayload,
   sequencingPayload,
 } from "@/modules/curriculum/schemas";
+import { labPractice } from "./robot-lab-practice";
 
 /**
  * World 3 — Robot Lab (m3-contracts wave 3, plus the m4 SEQUENCING level
@@ -1301,5 +1302,6 @@ export const robotLab: WorldFixture = {
         },
       ],
     },
+    labPractice,
   ],
 };

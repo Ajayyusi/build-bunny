@@ -33,6 +33,7 @@ const KNOWN_CODES = new Set([
   "missingBlock",
   "forbiddenBlock",
   "wrongOutput",
+  "wrongVariable",
   "wrongOption",
   "wrongOrder",
   "tryAnotherBlock",
@@ -43,6 +44,9 @@ const KNOWN_CODES = new Set([
   // is empty, or its blocks are not snapped under "when start".
   "emptyProgram",
   "looseBlocks",
+  "noTrick",
+  // CREATIVE_PROJECT: the design broke a checklist rule (server-side re-check).
+  "mazeInvalid",
 ]);
 
 const CODE_ICON: Record<string, string> = {
@@ -56,6 +60,7 @@ const CODE_ICON: Record<string, string> = {
   missingBlock: "🧩",
   forbiddenBlock: "🧩",
   wrongOutput: "💬",
+  wrongVariable: "🔢",
   wrongOption: "🤔",
   wrongOrder: "🔀",
   tryAnotherBlock: "🧩",
@@ -64,6 +69,8 @@ const CODE_ICON: Record<string, string> = {
   mysteryRoundsWrong: "🖼️",
   emptyProgram: "🧩",
   looseBlocks: "🔗",
+  noTrick: "🎩",
+  mazeInvalid: "🧱",
   generic: "🔍",
 };
 
@@ -102,6 +109,11 @@ export function useFeedbackText(): (feedback: ActivityFeedback | null) => string
         });
       case "mysteryRoundsWrong":
         return t(code, { correct: asNumber(data.correct), total: asNumber(data.total) });
+      case "wrongVariable":
+        return t(code, {
+          expected: String(data.expected ?? "?"),
+          actual: data.actual === null || data.actual === undefined ? t("noValue") : String(data.actual),
+        });
       case "missingBlock":
       case "forbiddenBlock": {
         const blockType = typeof data.blockType === "string" ? data.blockType : "";

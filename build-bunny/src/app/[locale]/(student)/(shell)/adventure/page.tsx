@@ -2,6 +2,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { redirect } from "@/i18n/navigation";
 import { MusicScene } from "@/modules/audio/scene";
+import { ageBandFor } from "@/modules/learning/age-band";
 import { resolveText } from "@/modules/curriculum/schemas";
 import {
   computeAdventureState,
@@ -63,6 +64,7 @@ async function loadIntros(
         instructions: resolveText(intro.instructions, locale),
         difficulty: intro.difficulty,
         estimatedMinutes: intro.estimatedMinutes,
+        ageBand: ageBandFor(intro.recommendedGradeMin),
         stars: intro.stars,
         maxStars: intro.maxStars,
       } satisfies TrailIntroVM,
@@ -108,6 +110,7 @@ function toTrailWorld(
                 instructions: "",
                 difficulty: level.difficulty,
                 estimatedMinutes: level.estimatedMinutes,
+                ageBand: null,
                 stars: level.stars,
                 maxStars: level.maxStars,
               }),

@@ -2,6 +2,7 @@ import type { Workspace } from "blockly/core";
 import type { BlockStats } from "@/engine";
 import { Blockly } from "./blockly-core";
 import {
+  BUNNY_DEFINE_BLOCK,
   BUNNY_HAT_BLOCK,
   BUNNY_STATEMENT_BLOCKS,
 } from "./blocks";
@@ -202,8 +203,15 @@ export function programBlocks(
     }
     walk(block.next?.block);
   };
-  for (const top of topBlocksOf(workspaceJson)) {
+  const tops = topBlocksOf(workspaceJson);
+  for (const top of tops) {
     if (top.type === BUNNY_HAT_BLOCK) walk(top);
+  }
+  // A trick's body runs when "do my trick" is reached; its blocks are
+  // numbered after the main program so "block 5, move forward" still names
+  // one block on screen.
+  for (const top of tops) {
+    if (top.type === BUNNY_DEFINE_BLOCK) walk(top.inputs?.["DO"]?.block);
   }
   return out;
 }
@@ -215,6 +223,9 @@ export function programShape(workspaceJson: unknown): {
   let attached = 0;
   let loose = 0;
   for (const top of topBlocksOf(workspaceJson)) {
+    // A trick definition is scaffolding like the hat: neither loose nor
+    // part of the run until "do my trick" calls it.
+    if (top.type === BUNNY_DEFINE_BLOCK) continue;
     let count = 0;
     visitBlocks(top, (type) => {
       if (STATEMENT_TYPES.has(type)) count += 1;
@@ -223,6 +234,16 @@ export function programShape(workspaceJson: unknown): {
     else loose += count;
   }
   return { attached, loose };
+}
+
+/**
+ * "Do my trick" somewhere in the workspace with no "my trick" taught — the
+ * player coaches this before running rather than running an empty trick.
+ */
+export function missingTrick(workspaceJson: unknown): boolean {
+  const counts = countTypes(workspaceJson);
+  if ((counts.get("bb_doTrick") ?? 0) === 0) return false;
+  return !topBlocksOf(workspaceJson).some((top) => top.type === BUNNY_DEFINE_BLOCK);
 }
 
 /**
