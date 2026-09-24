@@ -10,7 +10,7 @@ import {
   toggleQuickMute,
 } from "@/ui/audio/prefs";
 import { SfxPlayer } from "@/ui/audio/sfx";
-import { pickVoice } from "@/ui/audio/voice";
+import { CHARACTER_PITCH, characterRate, pickVoice } from "@/ui/audio/voice";
 
 describe("audio preferences", () => {
   it("is completely silent by default", () => {
@@ -129,6 +129,22 @@ describe("narration voice choice", () => {
     const voices = [v("ar-EG", true), v("ar-AE", true), v("en-US", true)];
     expect(pickVoice(voices, "ar")?.lang).toBe("ar-AE");
     expect(pickVoice([v("ar_EG", true), v("en-GB", true)], "ar")?.lang).toBe("ar_EG");
+  });
+
+  it("within the preferred variant, picks a voice that suits a cartoon character", () => {
+    const voices = [v("en-GB", true, "Daniel"), v("en-GB", true, "Karen"), v("en-US", true, "Samantha")];
+    expect(pickVoice(voices, "en")?.name).toBe("Karen");
+    // Region still comes first: a character voice in another variant doesn't win.
+    expect(pickVoice([v("ar-AE", true, "Naayf"), v("ar-EG", true, "Hoda")], "ar")?.name).toBe("Naayf");
+    expect(pickVoice([v("ar-SA", true, "Maged"), v("ar-SA", true, "Laila")], "ar")?.name).toBe("Laila");
+  });
+
+  it("talks like a cartoon: high pitch, a little quicker, still clear", () => {
+    expect(CHARACTER_PITCH).toBeGreaterThanOrEqual(1.5);
+    expect(CHARACTER_PITCH).toBeLessThanOrEqual(2);
+    expect(characterRate(1)).toBeGreaterThan(1);
+    expect(characterRate(1.2)).toBeLessThanOrEqual(1.3);
+    expect(characterRate(0.7)).toBeGreaterThanOrEqual(0.7);
   });
 
   it("returns null when the device has no voice for the language", () => {
