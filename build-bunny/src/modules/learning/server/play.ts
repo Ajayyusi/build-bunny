@@ -285,8 +285,11 @@ export async function saveWorkspaceDraftCore(
   ctx: SessionContext,
   input: { levelId: string; workspaceJson: unknown },
 ): Promise<{ savedAt: Date }> {
-  const size = JSON.stringify(input.workspaceJson ?? null).length;
-  if (size > MAX_DRAFT_BYTES) throw new ConflictError("Draft is too large");
+  // JSON.stringify returns undefined for what it cannot serialize (an opaque
+  // client reference among them) — refuse that as a bad draft, not a crash.
+  const serialized = JSON.stringify(input.workspaceJson ?? null) as string | undefined;
+  if (serialized === undefined) throw new ConflictError("Draft is not plain JSON");
+  if (serialized.length > MAX_DRAFT_BYTES) throw new ConflictError("Draft is too large");
   const row = await requireProgressRow(ctx, input.levelId);
   const savedAt = new Date();
   await db.studentProgress.update({

@@ -163,7 +163,11 @@ export function NextStepHint({
     setLoading(true);
     setFailed(false);
     try {
-      const result = await action({ levelId, state: getState() });
+      // A plain JSON copy: Blockly's serialized workspace is not made of plain
+      // objects, and React sends a non-plain object to a server action as an
+      // opaque client reference the server cannot read.
+      const state = JSON.parse(JSON.stringify(getState())) as NextStepStateInput;
+      const result = await action({ levelId, state });
       if (!result.ok) throw new Error(result.error);
       setMessage(text(result.data, names, readyAction));
       onStep?.(result.data);

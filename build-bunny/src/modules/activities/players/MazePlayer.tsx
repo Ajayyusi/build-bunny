@@ -114,7 +114,8 @@ export function MazePlayer({
     const parsed = mazeDraftSchema.safeParse({ design: next, workspaceJson: workspaceRef.current ?? null });
     if (!parsed.success) return;
     // Offline, the save rejects; the design is already mirrored on this device.
-    saveDraftAction({ levelId: intro.levelId, workspaceJson: parsed.data })
+    // Plain JSON: see GridPlayer's saveDraftQuietly.
+    saveDraftAction({ levelId: intro.levelId, workspaceJson: JSON.parse(JSON.stringify(parsed.data)) })
       .then((result) => {
         const savedAt = result.ok ? (result.data as { savedAt?: unknown } | null)?.savedAt : undefined;
         if (savedAt) recordDraftVersion(draftKey, new Date(savedAt as string | Date).toISOString());

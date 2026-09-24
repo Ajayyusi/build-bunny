@@ -121,7 +121,11 @@ export function GridPlayer({
     recordDraftVersion({ playerKey: intro.playerKey, levelId: intro.levelId }, version);
   };
   const saveDraftQuietly = (input: { levelId: string; workspaceJson: unknown }) => {
-    saveDraftAction(input)
+    // A plain JSON copy. Blockly's serialized workspace is not built from
+    // plain objects, and React hands a non-plain object to a server action
+    // as an opaque reference: the server could not read it, the save threw,
+    // and the draft never reached the server (only this device's mirror).
+    saveDraftAction({ levelId: input.levelId, workspaceJson: JSON.parse(JSON.stringify(input.workspaceJson ?? null)) })
       .then((result) => {
         if (result.ok) noteSaved((result.data as { savedAt?: unknown } | null)?.savedAt);
       })
