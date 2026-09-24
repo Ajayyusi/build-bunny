@@ -249,7 +249,7 @@ export function BoundaryBuilder({
         ref={svgRef}
         viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
         style={{ direction: "ltr" }}
-        role="img"
+        role="group"
         aria-label={t("chartLabel")}
         className="h-auto w-full max-w-[600px] touch-none select-none rounded-lg border border-border-token bg-surface-raised"
       >
