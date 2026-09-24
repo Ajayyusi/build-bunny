@@ -45,11 +45,20 @@ const sizeClasses: Record<BunnySize, string> = {
 /** States where the bunny faces the inline-end and must mirror in RTL. */
 const DIRECTIONAL: ReadonlySet<BunnyState> = new Set(["pointing", "running"]);
 
-const STROKE = "var(--bb-ink-900)";
+// Toy Box robot bunny: navy outline, white shell, blue visor with glowing
+// eyes, sunshine antenna bulbs on the ear tips.
+const STROKE = "var(--bb-toy-navy, #173a63)";
 const FUR = "#ffffff";
+const VISOR = "var(--bb-toy-blue, #1b64c6)";
+const GLOW = "#9ff7ff";
+const BULB = "var(--bb-toy-sun, #ffd23f)";
+const EAR_INNER = "#ff9ec4";
+const CHEEK = "#ffb3cf";
+const PANEL = "#e6f4ff";
 
 /**
- * The Build Bunny character — a hand-drawn articulated SVG (ears, head,
+ * The Build Bunny character — Robo Bunny, a robot bunny (Toy Box style) drawn
+ * as an articulated SVG (ears, head,
  * eyes, mouth set, arms, feet all independently posable) styled and
  * animated by src/app/bunny.css. Server-renderable, zero JS at runtime;
  * state changes are pure CSS. Replaces the platform-dependent 🐰 emoji so
@@ -72,92 +81,91 @@ export function BunnyMascot({
     >
       <svg viewBox="0 -30 120 162" xmlns="http://www.w3.org/2000/svg">
         <g className="bb-b-root">
-          <circle cx="96" cy="108" r="9" fill={FUR} stroke={STROKE} strokeWidth="2.5" />
+          {/* Tail */}
+          <circle cx="96" cy="108" r="9" fill={FUR} stroke={STROKE} strokeWidth="3" />
+          {/* Body */}
           <path
             d="M60 62 C36 62 26 82 26 100 C26 118 40 126 60 126 C80 126 94 118 94 100 C94 82 84 62 60 62 Z"
             fill={FUR}
             stroke={STROKE}
-            strokeWidth="2.5"
+            strokeWidth="3"
           />
-          <ellipse cx="60" cy="104" rx="19" ry="15" fill="var(--bb-cream-100)" />
+          {/* Chest panel with a little status light */}
+          <rect x="46" y="90" width="28" height="20" rx="7" fill={PANEL} stroke={STROKE} strokeWidth="2.2" />
+          <circle cx="54" cy="100" r="3.6" fill={BULB} stroke={STROKE} strokeWidth="1.4" />
+          <rect x="60" y="97" width="9" height="2.6" rx="1.3" fill={VISOR} />
+          <rect x="60" y="101.5" width="6" height="2.6" rx="1.3" fill={VISOR} />
           <g className="bb-b-footL">
-            <ellipse cx="45" cy="123" rx="11" ry="6.5" fill={FUR} stroke={STROKE} strokeWidth="2.5" />
+            <ellipse cx="45" cy="123" rx="11" ry="6.5" fill={FUR} stroke={STROKE} strokeWidth="3" />
           </g>
           <g className="bb-b-footR">
-            <ellipse cx="75" cy="123" rx="11" ry="6.5" fill={FUR} stroke={STROKE} strokeWidth="2.5" />
+            <ellipse cx="75" cy="123" rx="11" ry="6.5" fill={FUR} stroke={STROKE} strokeWidth="3" />
           </g>
           <g className="bb-b-armL">
-            <ellipse cx="31" cy="88" rx="6.5" ry="13" fill={FUR} stroke={STROKE} strokeWidth="2.5" />
+            <ellipse cx="31" cy="88" rx="6.5" ry="13" fill={FUR} stroke={STROKE} strokeWidth="3" />
           </g>
           <g className="bb-b-armR">
-            <ellipse cx="89" cy="88" rx="6.5" ry="13" fill={FUR} stroke={STROKE} strokeWidth="2.5" />
+            <ellipse cx="89" cy="88" rx="6.5" ry="13" fill={FUR} stroke={STROKE} strokeWidth="3" />
           </g>
-          {/* NITAQ-green neckerchief — the brand accent. */}
-          <path
-            d="M42 66 Q60 76 78 66 L74 74 Q60 82 46 74 Z"
-            fill="var(--bb-meadow-400)"
-            stroke="var(--bb-meadow-600)"
-            strokeWidth="1.5"
-          />
+          {/* Collar band */}
+          <path d="M40 67 Q60 77 80 67 L78 73 Q60 83 42 73 Z" fill={VISOR} stroke={STROKE} strokeWidth="2" />
           <g className="bb-b-head">
             <g className="bb-b-earL">
-              <ellipse cx="46" cy="0" rx="8" ry="26" fill={FUR} stroke={STROKE} strokeWidth="2.5" />
-              <ellipse cx="46" cy="3" rx="3.8" ry="17" fill="var(--bb-coral-200)" />
+              <rect x="38" y="-22" width="16" height="44" rx="8" fill={FUR} stroke={STROKE} strokeWidth="3" />
+              <rect x="42" y="-14" width="8" height="28" rx="4" fill={EAR_INNER} />
+              <circle cx="46" cy="-24" r="6" fill={BULB} stroke={STROKE} strokeWidth="2.5" />
             </g>
             <g className="bb-b-earR">
-              <ellipse cx="74" cy="0" rx="8" ry="26" fill={FUR} stroke={STROKE} strokeWidth="2.5" />
-              <ellipse cx="74" cy="3" rx="3.8" ry="17" fill="var(--bb-coral-200)" />
+              <rect x="66" y="-22" width="16" height="44" rx="8" fill={FUR} stroke={STROKE} strokeWidth="3" />
+              <rect x="70" y="-14" width="8" height="28" rx="4" fill={EAR_INNER} />
+              <circle cx="74" cy="-24" r="6" fill={BULB} stroke={STROKE} strokeWidth="2.5" />
             </g>
-            <ellipse cx="60" cy="46" rx="31" ry="27" fill={FUR} stroke={STROKE} strokeWidth="2.5" />
-            <circle cx="40" cy="53" r="5.5" fill="var(--bb-coral-100)" />
-            <circle cx="80" cy="53" r="5.5" fill="var(--bb-coral-100)" />
-            <g stroke="var(--bb-ink-300)" strokeWidth="1.4" strokeLinecap="round">
-              <line x1="31" y1="49" x2="24" y2="48" />
-              <line x1="31" y1="53" x2="24" y2="55" />
-              <line x1="89" y1="49" x2="96" y2="48" />
-              <line x1="89" y1="53" x2="96" y2="55" />
-            </g>
+            {/* Head */}
+            <rect x="26" y="16" width="68" height="58" rx="27" fill={FUR} stroke={STROKE} strokeWidth="3" />
+            {/* Visor */}
+            <rect x="33" y="28" width="54" height="26" rx="13" fill={VISOR} stroke={STROKE} strokeWidth="2.5" />
+            <circle cx="34" cy="62" r="5" fill={CHEEK} />
+            <circle cx="86" cy="62" r="5" fill={CHEEK} />
             <g className="bb-b-eyes">
               <g className="bb-b-eyes-open">
-                <circle cx="49" cy="44" r="4.2" fill={STROKE} />
-                <circle cx="71" cy="44" r="4.2" fill={STROKE} />
-                <circle cx="50.4" cy="42.6" r="1.4" fill={FUR} />
-                <circle cx="72.4" cy="42.6" r="1.4" fill={FUR} />
+                <ellipse cx="48" cy="41" rx="6" ry="7.5" fill={GLOW} />
+                <ellipse cx="72" cy="41" rx="6" ry="7.5" fill={GLOW} />
+                <circle cx="50" cy="38.5" r="2.2" fill={FUR} />
+                <circle cx="74" cy="38.5" r="2.2" fill={FUR} />
               </g>
               <g
                 className="bb-b-eyes-closed"
-                stroke={STROKE}
-                strokeWidth="2.2"
+                stroke={GLOW}
+                strokeWidth="3"
                 strokeLinecap="round"
                 fill="none"
               >
-                <path d="M45 45 Q49 48 53 45" />
-                <path d="M67 45 Q71 48 75 45" />
+                <path d="M42 42 Q48 46 54 42" />
+                <path d="M66 42 Q72 46 78 42" />
               </g>
             </g>
-            <path d="M57 52 Q60 50 63 52 Q60 56 57 52 Z" fill="var(--bb-coral-400)" />
             <g className="bb-b-teeth">
-              <rect x="55.8" y="55.5" width="4" height="5" rx="1.2" fill={FUR} stroke={STROKE} strokeWidth="1.4" />
-              <rect x="60.2" y="55.5" width="4" height="5" rx="1.2" fill={FUR} stroke={STROKE} strokeWidth="1.4" />
+              <rect x="55.8" y="64" width="4" height="4.5" rx="1.2" fill={FUR} stroke={STROKE} strokeWidth="1.4" />
+              <rect x="60.2" y="64" width="4" height="4.5" rx="1.2" fill={FUR} stroke={STROKE} strokeWidth="1.4" />
             </g>
             <path
               className="bb-m-smile"
-              d="M52 59 Q56 62 60 60 M68 59 Q64 62 60 60"
+              d="M50 62 Q55 67 60 64 M70 62 Q65 67 60 64"
               stroke={STROKE}
-              strokeWidth="2"
+              strokeWidth="2.6"
               strokeLinecap="round"
               fill="none"
             />
-            <path className="bb-m-open" d="M53 61 Q60 69 67 61 Q60 64 53 61 Z" fill={STROKE} />
-            <ellipse className="bb-m-o" cx="60" cy="61" rx="3.4" ry="4.2" fill={STROKE} />
+            <path className="bb-m-open" d="M51 62 Q60 72 69 62 Q60 66 51 62 Z" fill={STROKE} />
+            <ellipse className="bb-m-o" cx="60" cy="64" rx="3.6" ry="4.4" fill={STROKE} />
             <line
               className="bb-m-flat"
-              x1="55"
-              y1="60"
-              x2="65"
-              y2="60"
+              x1="54"
+              y1="64"
+              x2="66"
+              y2="64"
               stroke={STROKE}
-              strokeWidth="2"
+              strokeWidth="2.6"
               strokeLinecap="round"
             />
           </g>

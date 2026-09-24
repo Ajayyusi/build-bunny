@@ -110,7 +110,7 @@ export default async function StudentHomePage({ params }: Props) {
           <div className="flex flex-wrap items-center gap-2">
             <Link
               href={`/play/${warmUp.levelId}`}
-              className="inline-flex h-11 items-center gap-2 rounded-lg bg-info px-4 text-sm font-bold text-on-brand"
+              className="bb-go inline-flex h-11 items-center gap-2 rounded-lg px-4 text-sm"
             >
               <span aria-hidden="true">🐰</span>
               {t("warmUpCta", { level: resolveText(warmUp.title, locale) })}
@@ -144,7 +144,7 @@ export default async function StudentHomePage({ params }: Props) {
       {/* ── Row 1: hero + progress panels ─────────────────────────────── */}
       <div className="grid gap-4 lg:grid-cols-[1fr_20rem]">
         {/* Hero — "pick up where you left off" */}
-        <section className="bb-cascade relative overflow-hidden rounded-2xl border border-border-token bg-gradient-to-br from-brand/15 via-accent/10 to-surface-raised p-6 sm:p-8">
+        <section className="bb-cascade relative overflow-hidden rounded-2xl bg-surface-raised p-6 shadow-raised sm:p-8">
           {/* Decorative mascot, hidden from AT and from narrow screens where
               it would crowd the copy. */}
           <BunnyMascot
@@ -153,7 +153,7 @@ export default async function StudentHomePage({ params }: Props) {
             className="pointer-events-none absolute -bottom-2 end-4 hidden opacity-95 sm:block"
           />
 
-          <div className="relative flex max-w-md flex-col items-start gap-3">
+          <div className="relative flex max-w-md flex-col items-start gap-3 sm:pe-28">
             <span className="rounded-full bg-brand px-3 py-1 text-xs font-bold tracking-wide text-on-brand">
               {t("kicker")}
             </span>
@@ -171,7 +171,7 @@ export default async function StudentHomePage({ params }: Props) {
               <div className="mt-1 flex flex-wrap items-center gap-3">
                 <Link
                   href={currentLevelHref ?? "/adventure"}
-                  className="bb-pop inline-flex h-12 max-w-full items-center gap-2 rounded-lg bg-ink px-5 text-base font-bold text-surface-raised shadow-soft"
+                  className="bb-pop bb-go inline-flex h-12 max-w-full items-center gap-2 rounded-lg px-5 text-base"
                 >
                   <span aria-hidden="true">▶</span>
                   <span className="truncate">
@@ -210,16 +210,16 @@ export default async function StudentHomePage({ params }: Props) {
         {/* XP + badges rail */}
         <div className="flex flex-col gap-4">
           <section
-            className="bb-cascade rounded-2xl bg-brand-strong p-5 text-on-brand shadow-soft"
+            className="bb-cascade bb-ledge-brand rounded-2xl bg-brand p-5 text-on-brand"
             style={{ "--i": 1 } as React.CSSProperties}
           >
             <h2 className="font-display text-base font-bold">
               {t("xpPanelTitle")}
             </h2>
-            <p className="mt-0.5 text-xs opacity-80">{t("xpPanelBody")}</p>
+            <p className="mt-0.5 text-xs">{t("xpPanelBody")}</p>
             <p className="mt-4 font-display text-3xl font-bold tabular-nums">
               <CountUp value={snapshot?.xpTotal ?? 0} />
-              <span className="ms-1 text-base font-bold opacity-80">XP</span>
+              <span className="ms-1 text-base font-bold">XP</span>
             </p>
           </section>
 

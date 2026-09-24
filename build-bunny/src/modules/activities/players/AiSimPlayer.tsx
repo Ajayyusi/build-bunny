@@ -338,6 +338,7 @@ export function AiSimPlayer({
       {/* ── Action bar ── */}
       <div className="flex shrink-0 items-center gap-2 border-t border-border-token bg-surface-raised p-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] sm:justify-center">
         <Button
+          variant="go"
           size="lg"
           onClick={handleSubmit}
           loading={submitting}

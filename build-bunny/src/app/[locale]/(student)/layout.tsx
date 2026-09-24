@@ -26,7 +26,7 @@ export default async function StudentLayout({ children, params }: Props) {
   return (
     <div
       data-theme="play"
-      className="flex min-h-dvh flex-col bg-surface text-ink"
+      className="bb-sky flex min-h-dvh flex-col bg-surface text-ink"
     >
       {ctx.impersonatedBy ? <ImpersonationBanner /> : null}
       <DisplayProvider>

@@ -3,7 +3,7 @@
 import { useId } from "react";
 import { useTranslations } from "next-intl";
 
-import { Badge, cn } from "@/ui";
+import { Badge, cn, tintHex, worldColor } from "@/ui";
 
 import styles from "./adventure.module.css";
 import { LevelNode } from "./LevelNode";
@@ -117,13 +117,24 @@ export function WorldSegment({ world, index, onOpenLevel, onReplayStory }: World
         data-world-theme={world.theme}
         className={cn(
           styles.world,
-          "bb-cascade relative overflow-hidden rounded-2xl border border-border-token p-5 shadow-soft",
+          "bb-cascade relative overflow-hidden rounded-2xl border-2 p-5",
           locked && "opacity-70",
           // Alternate sides on lg. Column 2 needs an explicit start so the
           // card doesn't stretch across the spine.
           onEndSide ? "lg:col-start-2" : "lg:col-start-1",
         )}
-        style={{ "--i": index } as React.CSSProperties}
+        style={
+          {
+            "--i": index,
+            // Toy Box: the band is a light tint of the world's own colour,
+            // edged and ledged in that colour (same colour as its home card).
+            "--world-band": tintHex(worldColor(world.theme).tile, 0.5),
+            "--world-edge": worldColor(world.theme).fill,
+            "--world-deep": worldColor(world.theme).ledge,
+            borderColor: worldColor(world.theme).fill,
+            boxShadow: `0 6px 0 ${worldColor(world.theme).ledge}`,
+          } as React.CSSProperties
+        }
       >
         {/* The world's own landscape, behind its header — this is what makes
             a world feel like a place. Locked worlds keep it, dimmed, so a

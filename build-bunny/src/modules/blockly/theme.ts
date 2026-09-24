@@ -1,4 +1,5 @@
 import { Blockly } from "./blockly-core";
+import { BLOCK_COLORS } from "./colors";
 
 /**
  * Bunny theme: Zelos geometry (big, rounded, touch-friendly) recoloured
@@ -7,19 +8,14 @@ import { Blockly } from "./blockly-core";
  * the two in sync if the palette ever shifts.
  */
 
-// Block category colours — each is the token step whose white-label
-// contrast is strongest in its ramp while staying friendly, not muddy.
-const EVENT = "#b57c04"; // --bb-star-600
-const MOTION = "#2e7d32"; // --bb-meadow-600 (was meadow-500; the new NITAQ
-// green's 500 step reads too light with white labels — 2.78:1, under AA)
-const LOOPS = "#00786a"; // --bb-sky-600
-const LOGIC = "#d14a2e"; // --bb-coral-500
-const SENSING = "#5c6873"; // --bb-slate-600
-// Variables and tricks have no --bb-* ramp yet: plum and clay, chosen for
-// white-label contrast (5.9:1 and 4.9:1) and distance from the five above.
-// BlockPalette.tsx carries the same two hexes for its tap-to-add buttons.
-const DATA = "#7b4fa3";
-const TRICKS = "#a4552b";
+// Block category colours (Toy Box) — shared with the tap-to-add palette.
+const EVENT = BLOCK_COLORS.event;
+const MOTION = BLOCK_COLORS.motion;
+const LOOPS = BLOCK_COLORS.loops;
+const LOGIC = BLOCK_COLORS.logic;
+const SENSING = BLOCK_COLORS.sensing;
+const DATA = BLOCK_COLORS.data;
+const TRICKS = BLOCK_COLORS.tricks;
 
 export const BunnyTheme = Blockly.Theme.defineTheme("bunny", {
   name: "bunny",
@@ -45,17 +41,18 @@ export const BunnyTheme = Blockly.Theme.defineTheme("bunny", {
     bunny_tricks_category: { colour: TRICKS },
   },
   componentStyles: {
-    workspaceBackgroundColour: "#fdfbf7", // --bb-cream-50
-    toolboxBackgroundColour: "#f8f4ea", // --bb-cream-100
-    flyoutBackgroundColour: "#f8f4ea", // --bb-cream-100
+    // Toy Box: a clean white building area on a pale-sky shelf.
+    workspaceBackgroundColour: "#ffffff",
+    toolboxBackgroundColour: "#e6f4ff", // --bb-toy-cloud
+    flyoutBackgroundColour: "#e6f4ff", // --bb-toy-cloud
     flyoutOpacity: 1,
-    scrollbarColour: "#cbbe9f", // --bb-cream-400
-    scrollbarOpacity: 0.55,
-    insertionMarkerColour: "#292724", // --bb-ink-900
+    scrollbarColour: "#8fb8dc",
+    scrollbarOpacity: 0.6,
+    insertionMarkerColour: "#173a63", // --bb-toy-navy
     insertionMarkerOpacity: 0.25,
-    selectedGlowColour: "#00897b", // --bb-sky-500 (matches --color-focus)
-    selectedGlowOpacity: 0.6,
-    cursorColour: "#00897b", // --bb-sky-500
+    selectedGlowColour: "#6b3fd6", // --bb-toy-violet (matches --color-focus)
+    selectedGlowOpacity: 0.7,
+    cursorColour: "#6b3fd6",
   },
   fontStyle: {
     // Same pair the app's --font-body resolves to; SVG text cannot read
