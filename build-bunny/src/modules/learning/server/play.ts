@@ -17,6 +17,8 @@ import {
   getPublishedLevelSnapshot,
   stripStudentPayload,
 } from "@/modules/curriculum/server/queries";
+import { getActivityEngine } from "@/modules/activities/server/registry";
+import { computeNextStep, type NextStep, type NextStepState } from "@/modules/hints/server/next-step";
 import { getLevelIntro, type LevelIntro } from "./adventure";
 
 /**
@@ -29,6 +31,13 @@ import { getLevelIntro, type LevelIntro } from "./adventure";
 
 /** Wait a failed attempt OR 60 s before the next hint tier unlocks. */
 export const HINT_COOLDOWN_MS = 60_000;
+
+/**
+ * "Show me the next step" is recorded as this hint tier: above the authored
+ * ladder (1–4), so computeStars' existing tier-3+ rule caps the level at two
+ * stars, and a teacher's attempt view can tell it apart from the ladder.
+ */
+export const NEXT_STEP_TIER = 5;
 
 // ── getPlayableLevel (registered in ./queries.ts tenantScopedQueries) ────
 
@@ -214,6 +223,54 @@ export async function revealHintCore(
     meta: { tier },
   });
   return { tier, text: hint.text };
+}
+
+/**
+ * "Show me the next step": the one next move that brings the child's
+ * current work closer to a pass (see modules/hints/server/next-step.ts).
+ * Needs the answer-bearing payload, so it only ever runs here. The first
+ * request per level is recorded as hint tier 5; later ones are free — the
+ * star cap has already been paid.
+ */
+export async function nextStepHintCore(
+  ctx: SessionContext,
+  input: { levelId: string; state: NextStepState },
+): Promise<NextStep> {
+  const schoolId = requireSchool(ctx);
+  const { levelId, state } = input;
+  await requireProgressRow(ctx, levelId);
+  const published = await getPublishedLevelSnapshot(levelId);
+  if (!published) throw new NotFoundError("Level is not published");
+  const { snapshot } = published;
+  const engine = getActivityEngine(snapshot.activityType);
+  if (!engine) throw new NotFoundError("No engine for this level");
+
+  const step = computeNextStep(snapshot.activityType, snapshot.payload, state, (answer) => {
+    try {
+      const grade = engine.grade(snapshot, answer);
+      return { pass: grade.verdict === "PASS", top: grade.verdict === "PASS" && grade.qualityPassed };
+    } catch {
+      return { pass: false, top: false };
+    }
+  });
+
+  const existing = await db.hintUsage.findFirst({
+    where: { studentUserId: ctx.userId, schoolId, levelId, tier: NEXT_STEP_TIER },
+    select: { id: true },
+  });
+  if (!existing) {
+    await db.hintUsage.create({
+      data: { schoolId, studentUserId: ctx.userId, levelId, tier: NEXT_STEP_TIER },
+    });
+    await recordLearningEvent({
+      type: "HINT_USED",
+      schoolId,
+      studentUserId: ctx.userId,
+      levelId,
+      meta: { tier: NEXT_STEP_TIER, nextStep: true },
+    });
+  }
+  return step;
 }
 
 /** Autosave — only when the progress row exists (locked levels save nothing). */

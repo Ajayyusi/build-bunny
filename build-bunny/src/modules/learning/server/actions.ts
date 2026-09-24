@@ -4,8 +4,10 @@ import { z } from "zod";
 
 import { createRateLimiter } from "@/lib/rate-limit";
 import { RateLimitedError, withAuth, type ActionResult } from "@/modules/auth/server/guard";
+import { nextStepStateSchema, type NextStep } from "@/modules/hints/server/next-step";
 import {
   markLevelStartedCore,
+  nextStepHintCore,
   revealHintCore,
   saveReflectionCore,
   saveWorkspaceDraftCore,
@@ -41,6 +43,21 @@ export async function revealHint(
       throw new RateLimitedError("Too many hint requests");
     }
     return revealHintCore(ctx, data);
+  })(input);
+}
+
+const nextStepSchema = z.object({
+  levelId: z.string().min(1),
+  state: nextStepStateSchema,
+});
+
+/** "Show me the next step" — see nextStepHintCore. Shares the hint rate limit. */
+export async function nextStepHint(input: unknown): Promise<ActionResult<NextStep>> {
+  return withAuth("attempts:submit", nextStepSchema, (ctx, data) => {
+    if (!hintLimiter.allow(ctx.userId)) {
+      throw new RateLimitedError("Too many hint requests");
+    }
+    return nextStepHintCore(ctx, data);
   })(input);
 }
 
