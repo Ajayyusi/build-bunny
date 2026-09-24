@@ -31,7 +31,9 @@ import {
  *    both the previous-module and previous-world gates. unlockSource "OPEN"
  *    records this on the resulting progress rows.
  *  - World gate (TIGHTENED, owner-approved M3 change): first program world,
- *    or ALL published levels of the previous non-horizon world COMPLETED.
+ *    or ALL published levels of the previous non-horizon world COMPLETED —
+ *    or the child already played in this world (started/finished a level),
+ *    so new content added to an earlier world never re-locks their worlds.
  *  - Only PUBLISHED content is ever visible; student-facing text comes from
  *    the published LevelVersion snapshot, never from draft fields.
  */
@@ -434,7 +436,14 @@ export async function computeAdventureState(ctx: SessionContext): Promise<Advent
     if (world.horizon) {
       state = "HORIZON";
     } else {
-      const available = isFirstRealWorld || previousRealWorldCompleted;
+      // A world the child has already played in (a level started or
+      // finished) stays open. Without this, adding new levels to a world a
+      // child had completed made it "incomplete" again and re-locked every
+      // world after it — including worlds the child was halfway through.
+      // (Merely-unlocked levels don't count: an OPEN module may unlock
+      // levels inside a world whose card is still meant to read LOCKED.)
+      const reached = levelNodes.some((l) => l.state === "IN_PROGRESS" || l.state === "COMPLETED");
+      const available = isFirstRealWorld || previousRealWorldCompleted || reached;
       const completed = totalLevels > 0 && completedLevels === totalLevels;
       state = completed ? "COMPLETED" : available ? "AVAILABLE" : "LOCKED";
       isFirstRealWorld = false;
