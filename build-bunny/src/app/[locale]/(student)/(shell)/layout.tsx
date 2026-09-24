@@ -9,6 +9,7 @@ import {
   getMyUnreadFeedbackCount,
 } from "@/modules/students/server/queries";
 import { AudioSettingsButton } from "@/modules/audio/AudioControls";
+import { DisplaySettingsButton } from "@/modules/display/DisplayControls";
 import { Avatar, BunnyMascot, SkipLink } from "@/ui";
 
 import {
@@ -110,6 +111,7 @@ export default async function StudentShellLayout({ children, params }: Props) {
       <div className="mt-auto flex flex-col gap-1 border-t border-border-token pt-3">
         <LocaleSwitcher size="lg" className="w-full justify-start" />
         <AudioSettingsButton className="w-full justify-start" />
+        <DisplaySettingsButton className="w-full justify-start" />
         <SidebarNavItem href="/profile" icon={<ProfileIcon />}>
           {t("nav.profile")}
         </SidebarNavItem>

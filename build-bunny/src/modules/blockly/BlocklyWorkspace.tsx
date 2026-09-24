@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useImperativeHandle, useRef, type Ref } from "react";
-import type { WorkspaceSvg } from "blockly/core";
+import type { BlockSvg, Connection, WorkspaceSvg } from "blockly/core";
 import * as ArabicMessages from "blockly/msg/ar";
 import * as EnglishMessages from "blockly/msg/en";
 import { Blockly } from "./blockly-core";
@@ -15,10 +15,35 @@ import type { BlockRef } from "./serialization";
  * flyout toolbox built from the level payload with per-block instance
  * limits, RTL-aware, imperative getWorkspaceJson for Run. Import this with
  * next/dynamic ssr:false — Blockly needs a real DOM to render.
+ *
+ * Beyond dragging, the handle exposes undo/redo, delete-selected and
+ * addBlock — the tap-to-add path that lets a child build a program without
+ * a single drag (BlockPalette), which is also how keyboard and switch users
+ * reach every block.
  */
+
+/** What the player's toolbar needs to know to enable its buttons. */
+export interface WorkspaceEditState {
+  canUndo: boolean;
+  canRedo: boolean;
+  /** The selected block, when it is one the student may build on. */
+  selected: { type: string; emptyMouth: boolean } | null;
+  /** Instances of each block type currently on the canvas. */
+  counts: Record<string, number>;
+}
 
 export interface BlocklyWorkspaceHandle {
   getWorkspaceJson(): Record<string, unknown>;
+  undo(): void;
+  redo(): void;
+  /** Deletes the selected block (healing the stack). False if none. */
+  deleteSelected(): boolean;
+  /**
+   * Adds a block WITHOUT dragging: after the selected block, inside its
+   * empty mouth if it has one, else at the end of the program. False when
+   * the toolbox limit for that type is already reached.
+   */
+  addBlock(type: string): boolean;
 }
 
 /** Student-stripped BLOCK_CODING payload surface the editor needs. */
@@ -43,7 +68,17 @@ export interface BlocklyWorkspaceProps {
    * the student's own gestures only, for sound effects.
    */
   onBlockGesture?: (kind: "place" | "remove") => void;
+  /** Undo/redo availability, selection and per-type counts, after every change. */
+  onEditState?: (state: WorkspaceEditState) => void;
   ref?: Ref<BlocklyWorkspaceHandle>;
+}
+
+/** The selected block, if it lives in this workspace and can be built on. */
+function selectedBlock(workspace: WorkspaceSvg): BlockSvg | null {
+  const selected = Blockly.getSelected();
+  if (!(selected instanceof Blockly.BlockSvg)) return null;
+  if (selected.workspace !== workspace || selected.isInFlyout) return null;
+  return selected;
 }
 
 /** Fallback when a level ships no startWorkspace: just the locked hat. */
@@ -72,20 +107,104 @@ export default function BlocklyWorkspace({
   onChange,
   highlightBlockId = null,
   onBlockGesture,
+  onEditState,
   ref,
 }: BlocklyWorkspaceProps) {
   const hostRef = useRef<HTMLDivElement | null>(null);
   const workspaceRef = useRef<WorkspaceSvg | null>(null);
-  // Latest-callback ref so a new inline onChange never forces a re-inject.
+  // Latest-callback refs so a new inline callback never forces a re-inject.
   const onChangeRef = useRef(onChange);
   onChangeRef.current = onChange;
   const onGestureRef = useRef(onBlockGesture);
   onGestureRef.current = onBlockGesture;
+  const onEditStateRef = useRef(onEditState);
+  onEditStateRef.current = onEditState;
+  const limitsRef = useRef<Record<string, number>>({});
+
+  const reportEditState = (workspace: WorkspaceSvg) => {
+    const counts: Record<string, number> = {};
+    for (const block of workspace.getAllBlocks(false)) {
+      counts[block.type] = (counts[block.type] ?? 0) + 1;
+    }
+    const selected = selectedBlock(workspace);
+    const mouth = selected?.getInput("DO")?.connection ?? null;
+    onEditStateRef.current?.({
+      canUndo: workspace.getUndoStack().length > 0,
+      canRedo: workspace.getRedoStack().length > 0,
+      selected: selected
+        ? { type: selected.type, emptyMouth: mouth !== null && mouth.targetBlock() === null }
+        : null,
+      counts,
+    });
+  };
 
   useImperativeHandle(ref, () => ({
     getWorkspaceJson() {
       const workspace = workspaceRef.current;
       return workspace ? workspaceToJson(workspace) : {};
+    },
+    undo() {
+      workspaceRef.current?.undo(false);
+    },
+    redo() {
+      workspaceRef.current?.undo(true);
+    },
+    deleteSelected() {
+      const workspace = workspaceRef.current;
+      const block = workspace ? selectedBlock(workspace) : null;
+      if (!block || !block.isDeletable()) return false;
+      block.dispose(true);
+      return true;
+    },
+    addBlock(type: string) {
+      const workspace = workspaceRef.current;
+      if (!workspace) return false;
+      const limit = limitsRef.current[type];
+      if (limit !== undefined && workspace.getBlocksByType(type, false).length >= limit) {
+        return false;
+      }
+      const hat = workspace
+        .getTopBlocks(false)
+        .find((block) => block.type === BUNNY_HAT_BLOCK) as BlockSvg | undefined;
+      const anchor = selectedBlock(workspace);
+
+      // One undo step for the whole insertion.
+      Blockly.Events.setGroup(true);
+      try {
+        const block = workspace.newBlock(type);
+        block.initSvg();
+        block.render();
+
+        let target: Connection | null = null;
+        if (block.outputConnection) {
+          // A sensor: plug it into the selected block's empty condition slot.
+          const slot = anchor?.getInput("CONDITION")?.connection ?? null;
+          target = slot && !slot.targetBlock() ? slot : null;
+          if (target) target.connect(block.outputConnection);
+        } else if (block.previousConnection) {
+          if (anchor) {
+            const mouth = anchor.getInput("DO")?.connection ?? null;
+            target = mouth && !mouth.targetBlock() ? mouth : anchor.nextConnection;
+          } else if (hat) {
+            let last: BlockSvg = hat;
+            while (last.getNextBlock()) last = last.getNextBlock() as BlockSvg;
+            target = last.nextConnection;
+          }
+          // Connecting into an occupied slot inserts the block and re-attaches
+          // what was there below it — Blockly handles the splice.
+          if (target) target.connect(block.previousConnection);
+        }
+        if (!target) {
+          // Nowhere to snap: drop it beside the program, still selected.
+          const origin = hat?.getRelativeToSurfaceXY() ?? { x: 24, y: 24 };
+          block.moveBy(origin.x + 40, origin.y + 120);
+        }
+        block.select();
+        workspace.scrollBoundsIntoView(block.getBoundingRectangle());
+      } finally {
+        Blockly.Events.setGroup(false);
+      }
+      return true;
     },
   }));
 
@@ -107,6 +226,10 @@ export default function BlocklyWorkspace({
     for (const entry of payload.toolbox) {
       if (entry.limit !== undefined) maxInstances[entry.type] = entry.limit;
     }
+    limitsRef.current = maxInstances;
+    // Fingers are less precise than a mouse: start a touch device a little
+    // zoomed in so blocks and their snap targets are bigger.
+    const coarse = window.matchMedia("(pointer: coarse)").matches;
 
     const workspace = Blockly.inject(host, {
       renderer: "zelos",
@@ -124,7 +247,7 @@ export default function BlocklyWorkspace({
       media: "/blockly-media/",
       sounds: false,
       trashcan: !readOnly,
-      zoom: { controls: true, wheel: false, pinch: true, startScale: 1 },
+      zoom: { controls: true, wheel: false, pinch: true, startScale: coarse ? 1.15 : 1 },
       move: { scrollbars: true, drag: true, wheel: true },
     });
     workspaceRef.current = workspace;
@@ -150,6 +273,10 @@ export default function BlocklyWorkspace({
       newParentId?: string;
       oldParentId?: string;
     }) => {
+      if (event.type === Blockly.Events.SELECTED) {
+        reportEditState(workspace);
+        return;
+      }
       if (event.isUiEvent) return;
       if (event.type === Blockly.Events.FINISHED_LOADING) return;
       if (event.type === Blockly.Events.BLOCK_MOVE && event.newParentId) {
@@ -158,8 +285,10 @@ export default function BlocklyWorkspace({
         onGestureRef.current?.("remove");
       }
       onChangeRef.current(workspaceToJson(workspace));
+      reportEditState(workspace);
     };
     workspace.addChangeListener(listener);
+    reportEditState(workspace);
 
     const resizeObserver = new ResizeObserver(() => {
       Blockly.svgResize(workspace);

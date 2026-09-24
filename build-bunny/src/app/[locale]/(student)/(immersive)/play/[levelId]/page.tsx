@@ -113,6 +113,7 @@ export default async function PlayLevelPage({ params }: Props) {
 
   const intro: ActivityIntro = {
     levelId: playable.id,
+    playerKey: ctx.userId,
     activityType: playable.activityType,
     title: resolveText(playable.title, locale),
     story: resolveText(playable.story, locale),

@@ -16,7 +16,7 @@ Status legend: **✅ implemented & tested** · **🟡 partial** · **⛔ blocked
 |---|---|---|
 | `fix/first-run-core-bugs` | §1 core bugs + first five minutes | ready for review |
 | `feat/audio` | §2 sound, music, narration | ready for review |
-| `feat/tablet-player-a11y` | §3 Blockly on touch, §7 accessibility | not started |
+| `feat/tablet-player-a11y` | §3 Blockly on touch, §7 accessibility | ready for review |
 | `feat/story-worlds` | §3 story, 8 worlds, cutscenes, finales | not started |
 | `feat/robo-help` | §5 help tools, adaptive hints | not started |
 | `feat/curriculum-expansion` | §4 activities, age bands, levels toward 100 | not started |
@@ -87,10 +87,10 @@ they should be reviewed and merged in the order above.
 | Short skippable cutscenes | ⬜ | |
 | Code City + Inventor Island playable | ⬜ | currently horizon art only |
 | Better failure feedback / explanations / celebrations / next flow | 🟡 | first-run fixes above |
-| Blockly on touch: larger targets, undo/redo, duplicate/delete, reset confirm | ⬜ | |
-| Autosave + exact resume after interruption | 🟡 | 2 s debounced draft autosave exists; flush-on-hide not yet |
-| Accessible alternative to drag-only input | ⬜ | |
-| Run button + feedback usable in tablet landscape and portrait | 🟡 | layout fixes above |
+| Blockly on touch: larger targets, undo/redo, duplicate/delete, reset confirm | ✅ | `BlocklyWorkspace.tsx` (1.15× start scale on coarse pointers, `undo/redo/deleteSelected`), build toolbar in `GridPlayer.tsx`, reset confirmation dialog; duplicate/delete also via Blockly's long-press menu. e2e `tablet-tools.spec.ts` |
+| Autosave + exact resume after interruption | ✅ | Per-child device mirror on every change (`shared/local-draft.ts`), keep-alive flush on pagehide/hidden (`api/levels/[levelId]/draft`), "Continue building" briefing. e2e reloads inside the 2 s debounce and the block is still there and runs |
+| Accessible alternative to drag-only input | ✅ | Tap-to-add palette (`shared/BlockPalette.tsx`) snaps blocks after the selection / inside an empty loop / at the end, with the placement announced; e2e solves a level with zero drags |
+| Run button + feedback usable in tablet landscape and portrait | ✅ | `split` layout + min-width board column; action row wraps at large text; verified 1024×768, 768×1024, 785×500 and XL text |
 
 ## §4 Curriculum and activities
 
@@ -127,8 +127,8 @@ they should be reviewed and merged in the order above.
 
 | Item | Status | Evidence / files |
 |---|---|---|
-| Keyboard, screen reader, focus, non-colour feedback | ⬜ | |
-| Reduced motion, high contrast, text size | ⬜ | |
+| Keyboard, screen reader, focus, non-colour feedback | 🟡 | Every block reachable by keyboard/tap through the palette + toolbar (44 px, labelled); switches are `role="switch"`, results are `role="alert"`/`status`, dialogs trap focus; on/off never colour-only. **Not done:** a full screen-reader pass of every player (NVDA/VoiceOver) |
+| Reduced motion, high contrast, text size | ✅ | `src/ui/display/*`, `DisplayControls.tsx`; CSS in `globals.css` (also honours OS `prefers-contrast`/`prefers-reduced-motion`); boot script prevents flash; `useReducedMotion` follows the manual switch. Unit tests + e2e (apply, persist across reload) |
 | Arabic content + RTL verified in the game | 🟡 | first-run flow verified in ar; native review flags pending |
 | Weak Wi-Fi / offline queue / reconnect / no duplicate submissions | ⬜ | idempotent attempts already exist |
 | Telemetry data-minimisation review | ⬜ | |
@@ -136,6 +136,14 @@ they should be reviewed and merged in the order above.
 ---
 
 ## Checkpoint log
+
+### Checkpoint 3 — 2026-09-23 (tablet player + accessibility)
+
+- **Live:** nothing new.
+- **On branches:** `feat/tablet-player-a11y` (stacked on `feat/audio`).
+- **Tested:** typecheck, lint, unit (display prefs + boot script), full suite, e2e `tablet-tools.spec.ts` (tap-to-add solve, undo/redo, guarded reset, exact resume on 3 viewports, display settings) + first-run regression.
+- **Not tested:** real finger input on an iPad (Playwright emulates touch geometry, not a finger); screen-reader pass.
+- **Next step:** `feat/story-worlds`.
 
 ### Checkpoint 2 — 2026-09-23 (audio)
 

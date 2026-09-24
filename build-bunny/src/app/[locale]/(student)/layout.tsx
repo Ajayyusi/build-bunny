@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { setRequestLocale } from "next-intl/server";
 
 import { requireRole } from "@/modules/auth/server/session";
-import { SoundProvider } from "@/ui";
+import { DisplayProvider, SoundProvider } from "@/ui";
 
 import { ImpersonationBanner } from "../_components/ImpersonationBanner";
 
@@ -29,7 +29,9 @@ export default async function StudentLayout({ children, params }: Props) {
       className="flex min-h-dvh flex-col bg-surface text-ink"
     >
       {ctx.impersonatedBy ? <ImpersonationBanner /> : null}
-      <SoundProvider locale={locale}>{children}</SoundProvider>
+      <DisplayProvider>
+        <SoundProvider locale={locale}>{children}</SoundProvider>
+      </DisplayProvider>
     </div>
   );
 }

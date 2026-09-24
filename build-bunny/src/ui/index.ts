@@ -17,6 +17,8 @@ export {
   type TrackId,
 } from "./sound";
 export { trackForTheme } from "./audio/music";
+export { DisplayProvider, useDisplayPrefs } from "./display";
+export type { DisplayPrefs, TextSize } from "./display/prefs";
 
 export { Avatar, type AvatarProps, type AvatarSize } from "./Avatar";
 export { Badge, type BadgeProps, type BadgeVariant } from "./Badge";

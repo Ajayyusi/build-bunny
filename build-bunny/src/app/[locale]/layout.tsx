@@ -6,6 +6,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { routing } from "@/i18n/routing";
 import { ToastProvider } from "@/ui";
+import { DISPLAY_BOOT_SCRIPT } from "@/ui/display/prefs";
 import { fontVariables } from "@/ui/fonts";
 
 import "../globals.css";
@@ -51,7 +52,22 @@ export default async function LocaleLayout({ children, params }: Props) {
     // in English, where "Inter" is first in both; wrong in Arabic, where
     // it put a Latin face ahead of IBM Plex Sans Arabic for any text not
     // inside a [data-theme] subtree).
-    <html lang={locale} dir={locale === "ar" ? "rtl" : "ltr"} className={fontVariables(locale)}>
+    // suppressHydrationWarning: the boot script below adds data-* attributes
+    // to <html> before React hydrates, on purpose; React must not report
+    // that difference (it never patches <html> attributes anyway).
+    <html
+      lang={locale}
+      dir={locale === "ar" ? "rtl" : "ltr"}
+      className={fontVariables(locale)}
+      suppressHydrationWarning
+    >
+      <head>
+        {/* Display preferences (text size, contrast, motion) are applied to
+            <html> before the first paint, so a larger-text tablet never
+            flashes small text. Inline by necessity; the CSP already allows
+            inline scripts (see next.config.ts). */}
+        <script dangerouslySetInnerHTML={{ __html: DISPLAY_BOOT_SCRIPT }} />
+      </head>
       <body>
         <NextIntlClientProvider>
           <ToastProvider dismissLabel={t("dismiss")}>{children}</ToastProvider>

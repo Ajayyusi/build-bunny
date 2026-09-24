@@ -183,6 +183,28 @@ compliant — noted here so "verified" isn't silently indistinguishable from
   star-burst stage entirely, and `SequencingPlayer` reads
   `matchMedia("(prefers-reduced-motion: reduce)")` itself.
 
+## 2026-09 additions — building without a drag, and display settings
+
+- **Tap-to-add palette** (`players/shared/BlockPalette.tsx`, "Add block" in the
+  block-coding player): every toolbox block is a 56 px button; tapping it
+  snaps the block after the selected block, inside an empty loop/if mouth,
+  or at the end of the program, selects it, and says where the next one
+  will go. A level can be solved with no drag at all — pinned by
+  `e2e/tablet-tools.spec.ts`. Undo / redo / delete-selected sit beside it
+  as 44 px labelled buttons; Reset asks before clearing work.
+- **Display settings** (sidebar → Display, `src/modules/display`): text size
+  Normal / Large / Extra large (root `font-size` 100 / 112.5 / 125 %), High
+  contrast (darker ink, stronger borders, 3 px focus ring; also honoured
+  when the OS asks via `prefers-contrast: more`), Reduce motion (same clamp
+  as `prefers-reduced-motion`, and `useReducedMotion()` reports it to
+  JS-driven animation). Stored per device; a boot script applies them
+  before first paint. Player layouts were re-checked at Extra large: the
+  board column's action row wraps rather than clipping.
+- **Sound never carries information alone**: every narrated text is on
+  screen; every audio cue has a visual counterpart (see `docs/audio.md`).
+- Still open: a screen-reader pass of every player with NVDA/VoiceOver, and
+  real-finger testing on an iPad.
+
 ## Keyboard operability — what works, honestly, per surface
 
 **Fully keyboard-operable:** auth pages, the student shell (nav, home,

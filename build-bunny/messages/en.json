@@ -131,7 +131,8 @@
       "unmute": "Turn sound on",
       "settings": "Sound settings",
       "readAloud": "Read aloud",
-      "everythingOnScreen": "Everything important is always written on screen too."
+      "everythingOnScreen": "Everything important is always written on screen too.",
+      "close": "Close"
     },
     "header": {
       "xpChip": "{value} XP",
@@ -291,7 +292,9 @@
         "predictSceneLabel": "A short program is read line by line, then one of three answers is chosen.",
         "ethicsSceneLabel": "A question with two answers. One is chosen, and the story moves on to the next card.",
         "start": "Let's build!",
-        "resume": "Back to building"
+        "resume": "Back to building",
+        "continueBuilding": "Continue building",
+        "draftRestored": "We saved your blocks — carry on where you left off."
       },
       "feedback": {
         "tryAgain": "Try again",
@@ -539,6 +542,25 @@
       "mission": {
         "label": "Mission",
         "show": "Show the whole mission"
+      },
+      "tools": {
+        "undo": "Undo",
+        "redo": "Redo",
+        "deleteBlock": "Delete block",
+        "addBlock": "Add block",
+        "paletteTitle": "Add a block",
+        "paletteHint": "Tap a block to add it to your program. You can also drag blocks from the toolbox.",
+        "paletteAfter": "The next block goes after “{block}”.",
+        "paletteInside": "The next block goes inside “{block}”.",
+        "paletteEnd": "The next block goes at the end of your program.",
+        "remaining": "{count} left",
+        "limitReached": "All used",
+        "added": "Added “{block}”",
+        "close": "Close",
+        "resetTitle": "Start this level again?",
+        "resetBody": "This clears all your blocks. You can't undo it.",
+        "resetConfirm": "Yes, clear my blocks",
+        "resetCancel": "Keep my blocks"
       }
     },
     "profile": {
@@ -577,6 +599,20 @@
       "leaderboardEmpty": "Your class leaderboard appears once your classmates start playing.",
       "leaderboardYou": "You",
       "xpSuffix": "{value} XP"
+    },
+    "display": {
+      "title": "Display",
+      "intro": "These settings stay on this device.",
+      "textSize": "Text size",
+      "textSize_normal": "Normal",
+      "textSize_large": "Large",
+      "textSize_xl": "Extra large",
+      "contrast": "High contrast",
+      "contrastHint": "Darker text and stronger outlines",
+      "motion": "Reduce motion",
+      "motionHint": "Fewer animations and no bouncing",
+      "done": "Done",
+      "close": "Close"
     }
   },
   "staff": {
