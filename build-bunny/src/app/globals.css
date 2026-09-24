@@ -56,7 +56,9 @@
   --bb-toy-green-strong: #1e6b2f;
   --bb-toy-orange: #a15c00;
   --bb-toy-orange-strong: #7a4500;
-  --bb-toy-berry: #c92a5c;
+  /* Danger text sits on its own 15% tint in chips ("Not safe"): #c92a5c
+     reached only 4.2:1 there. #b01f4b is 5.2:1 on the tint, 6.7:1 on white. */
+  --bb-toy-berry: #b01f4b;
   --bb-toy-violet: #6b3fd6;
 
   /* Warm cream/paper neutrals — Play surfaces. */

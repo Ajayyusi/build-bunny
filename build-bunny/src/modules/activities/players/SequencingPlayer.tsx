@@ -414,7 +414,7 @@ export function SequencingPlayer({
             usedBefore={intro.hintsUsedTiers.includes(5)}
             readyAction={`“${tSeq("submit")}”`}
             getState={() => ({ order })}
-            names={{ item: (id) => textById.get(id) ?? id }}
+            names={{ item: (id) => (textById.get(id) ?? id).trim() }}
             onStep={(step) => setPointed(step.code === "moveItem" ? step.itemId : null)}
           />
         ) : null}
