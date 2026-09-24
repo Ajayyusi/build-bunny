@@ -98,6 +98,7 @@ touches).
 | **Teacher** | Their own classes' students only — progress matrix, attempt replay (including the actual workspace/generated code, since staff may legitimately review a student's solution), feedback they've written. Not another teacher's class, even within the same school (asserted explicitly in the isolation suite). |
 | **School admin** | Every student/teacher/class in their own school; the school-wide analytics dashboard, CSV exports, the full data-export bundle (§8), and can reset credentials, disable accounts, and erase a student (§6 below is this section — see the erasure workflow at §6.1). Never another school's data. |
 | **NITAQ platform staff** (`SUPER_ADMIN`/`NITAQ_ADMIN`) | Cross-school by design — they operate the platform. Every access is impersonation-audited; impersonated sessions never write real progress/XP/rewards (`kind: PREVIEW` attempts, m3 contract) so a support engineer looking at a student's account can't accidentally change their stats. |
+| **A family (via a teacher-shared link)** | One child's weekly summary only — see §8b. No login, no other child, no attempts, hints, flags or teacher notes. |
 | **NITAQ (outside the app)** | Nothing beyond what platform staff can already see in-app — there is no separate data pipeline, warehouse, or analytics export outside this database. |
 
 ### 6.1 Student erasure
@@ -169,6 +170,70 @@ text to be spoken, are never selected. The text spoken is always our own
 authored level copy, never anything a child typed. No audio is recorded (the
 microphone stays denied by the Permissions-Policy header), and no audio file
 is downloaded — effects and music are synthesized in the page.
+
+## 8b. Family links — a read-only window, not an account
+
+A teacher (or school admin) may create a private link for one child's
+family (`src/modules/family/server/`). There are no parent accounts and no
+parent data is collected.
+
+- The link carries a 32-byte random token. Only its SHA-256 hash is stored
+  (`FamilyLink.tokenHash`); the link itself is shown to the teacher once.
+- It expires after 90 days, a new link replaces the old one, and it can be
+  switched off at any time. Every create and revoke is written to the audit
+  log (`family_link.create` / `family_link.revoke`).
+- The page (`/family/[token]`, `noindex`) shows only: the child's display
+  name as the school shows it, the school's name, levels finished in the last
+  seven days, days played, stars, world progress and Powers, and the
+  child-facing title of the level they are on. It never shows attempts,
+  workspace content, hints, flags, other children, or anything a teacher
+  wrote.
+- Unknown, expired and revoked links are indistinguishable ("not active").
+- `lastViewedAt` is the only thing recorded about a visit — no IP, no
+  device, no cookie — so a teacher can see the link was opened.
+- Family links are deleted with the student (cascade) and with the school.
+
+## 8c. What stays on the child's device
+
+Browser `localStorage`, never sent to the server except where noted:
+
+| Key | What | Why |
+|---|---|---|
+| `bb:audio:v2` | sound on/off and volumes | device preference (§8a) |
+| `bb:display:v1` | text size, contrast, reduced motion | device preference |
+| `bb:draft:v1:<child>:<level>` | the child's blocks on that level | exact resume on this device; the same work is also autosaved to the server |
+| `bb:maze:v1:<child>:<level>` | the child's maze design | exact resume |
+| `bb:outbox:v1` | graded runs not yet confirmed by the server | sent again when the connection returns; tied to the child who made them and never sent under another child's session; dropped after 7 days |
+| `bb:worldintro:v1:…`, `bb:onboarded:v2:…` | "story already seen" flags | not to replay cutscenes |
+
+Keys that belong to a child are namespaced by their user id, so a shared
+tablet never restores one child's work for another.
+
+## 8d. Telemetry review (2026-09-24)
+
+A review of everything the product records about play, against the rule
+"collect what a teacher or the child needs, nothing else":
+
+- **No third-party analytics, tracking or advertising.** No analytics SDK,
+  pixel or session recorder is installed (checked `package.json`), and no
+  child's words are sent to any AI model — Robo Bunny's help is authored copy
+  plus the child's own run, computed in the page.
+- **LearningEvent** rows carry an event type, school, child, level/world ids
+  and at most a verdict, star count, hint tier, world slug or achievement
+  slug. No workspace content, no free text, no timing beyond the timestamp.
+- **ActivityAttempt** stores the submitted program (or answer) — needed for
+  grading, teacher replay and the misconception report — and is deleted with
+  the child.
+- **Misconception reports** aggregate a class's located feedback codes into
+  ideas; they show counts and level names, never a child's name.
+- **Server logs** record request ids, paths, status codes, durations and the
+  user/school ids for tracing; never request bodies.
+- **Found and fixed during this review:** new staff and family surfaces first
+  read level titles from the draft row; they now read published snapshots
+  only (a draft could contain unreviewed text).
+- **Open item:** `LearningEvent.classId` is always null (documented in the
+  schema); nothing reads it, and it should stay unwritten until a feature
+  genuinely needs it.
 
 ## 9. Where this is enforced in code (for an auditor who wants to verify, not just read)
 

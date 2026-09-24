@@ -64,7 +64,7 @@ export function useDraftAutosave(
       lastSavedRef.current = serialized;
       // Fire-and-forget: a failed autosave must never interrupt play. The
       // work stays on screen and the next edit tries again.
-      void saveDraftAction({ levelId, workspaceJson: JSON.parse(serialized) });
+      saveDraftAction({ levelId, workspaceJson: JSON.parse(serialized) }).catch(() => {});
     }, DEBOUNCE_MS);
 
     return () => {

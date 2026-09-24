@@ -8,6 +8,7 @@ import { Button, cn, useReducedMotion } from "@/ui";
 
 import { PlayerSoundControls } from "@/modules/audio/AudioControls";
 import { HintDrawer, type HintTierState } from "./shared/HintDrawer";
+import { postAttempt } from "./shared/attempt-outbox";
 import { EthicsScene } from "./shared/EthicsScene";
 import { IntroOverlay } from "./shared/IntroOverlay";
 import { MissionStrip } from "./shared/MissionStrip";
@@ -152,7 +153,7 @@ export function AiEthicsPlayer({
   const submit = async (id: string, submittedPath: { sceneId: string; choiceId: string }[]) => {
     setSubmitting(true);
     try {
-      const response = await fetch(`/api/levels/${intro.levelId}/attempts`, {
+      const response = await postAttempt(intro.playerKey, `/api/levels/${intro.levelId}/attempts`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ attemptRunId: id, answer: { path: submittedPath } }),

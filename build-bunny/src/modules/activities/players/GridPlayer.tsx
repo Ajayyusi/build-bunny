@@ -18,6 +18,7 @@ import { Button, Dialog, cn, useReducedMotion } from "@/ui";
 import { PlayerSoundControls } from "@/modules/audio/AudioControls";
 import { generateDisplayCode, runLocally, type LocalRunOutcome } from "./client-run";
 import { BlockPalette } from "./shared/BlockPalette";
+import { postAttempt as sendAttempt } from "./shared/attempt-outbox";
 import { clearLocalDraft, readLocalDraft, writeLocalDraft } from "./shared/local-draft";
 import { GridScene } from "./shared/GridScene";
 import { HintDrawer, type HintTierState } from "./shared/HintDrawer";
@@ -93,6 +94,12 @@ export function GridPlayer({
   // Registry dispatch guarantees this matches intro.activityType.
   const payload = rawPayload as GridActivityPayload;
   const wrap = wrapDraft ?? ((json: unknown) => json);
+  // Offline, a draft save rejects; the work is already mirrored on this
+  // device (local-draft), so a failed server copy must not surface as an
+  // unhandled error. The next edit or reconnect saves it again.
+  const saveDraftQuietly = (input: { levelId: string; workspaceJson: unknown }) => {
+    saveDraftAction(input).catch(() => {});
+  };
 
   const t = useTranslations("student.play");
   const feedbackText = useFeedbackText();
@@ -168,7 +175,7 @@ export function GridPlayer({
     setSeed((current) => ({ key: current.key + 1, json: local }));
     setResumeDraft(true);
     onWorkspaceJson?.(local);
-    void saveDraftAction({ levelId: intro.levelId, workspaceJson: wrap(local) });
+    saveDraftQuietly({ levelId: intro.levelId, workspaceJson: wrap(local) });
     // eslint-disable-next-line react-hooks/exhaustive-deps -- mount only
   }, []);
 
@@ -221,7 +228,7 @@ export function GridPlayer({
     if (saveTimerRef.current !== null) window.clearTimeout(saveTimerRef.current);
     saveTimerRef.current = window.setTimeout(() => {
       unsavedRef.current = null;
-      void saveDraftAction({ levelId: intro.levelId, workspaceJson: wrap(json) });
+      saveDraftQuietly({ levelId: intro.levelId, workspaceJson: wrap(json) });
     }, 2000);
   };
 
@@ -244,7 +251,7 @@ export function GridPlayer({
     if (phase === "result") setPhase("edit");
     if (payload.resetWorkspace != null) {
       onWorkspaceJson?.(payload.resetWorkspace);
-      void saveDraftAction({
+      saveDraftQuietly({
         levelId: intro.levelId,
         workspaceJson: wrap(payload.resetWorkspace),
       });
@@ -276,7 +283,7 @@ export function GridPlayer({
     clientVerdict: "PASS" | "PARTIAL" | "FAIL",
     durationMs: number,
   ) => {
-    fetch(`/api/levels/${intro.levelId}/attempts`, {
+    sendAttempt(intro.playerKey, `/api/levels/${intro.levelId}/attempts`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({

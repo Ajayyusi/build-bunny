@@ -14,6 +14,7 @@ import { Button, cn, useReducedMotion } from "@/ui";
 import { PlayerSoundControls } from "@/modules/audio/AudioControls";
 import { runForPlayback } from "./client-run";
 import { HintDrawer, type HintTierState } from "./shared/HintDrawer";
+import { postAttempt } from "./shared/attempt-outbox";
 import { LearnScene } from "./shared/LearnScene";
 import { IntroOverlay } from "./shared/IntroOverlay";
 import { MissionStrip } from "./shared/MissionStrip";
@@ -169,7 +170,7 @@ export function LearnPlayer({
   const submit = async (id: string, blockType: string) => {
     setChecking(true);
     try {
-      const response = await fetch(`/api/levels/${intro.levelId}/attempts`, {
+      const response = await postAttempt(intro.playerKey, `/api/levels/${intro.levelId}/attempts`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ attemptRunId: id, answer: { blockType } }),

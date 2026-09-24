@@ -376,7 +376,7 @@
         "skip": "Skip",
         "starsSr": "You earned {stars} of {maxStars} stars",
         "saving": "Saving your progress…",
-        "saveFailed": "We couldn't save your run.",
+        "saveFailed": "Your run is kept on this device and will be sent when the internet is back.",
         "saveRetry": "Retry",
         "xp": "+<count>{xp}</count> XP",
         "gradeMismatchNote": "We double-checked this run on our side and updated the result.",
