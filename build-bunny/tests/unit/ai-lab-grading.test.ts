@@ -57,7 +57,7 @@ describe("boundary-builder grading", () => {
     expect(result.summary.misclassifiedIds).toEqual(["d4"]);
   });
 
-  it("PARTIAL: 3 misclassified points (within the generous cushion)", () => {
+  it("near miss: 3 misclassified points is a FAIL flagged close (PARTIAL would complete the level)", () => {
     const config = {
       ...baseConfig,
       points: baseConfig.points.map((p) =>
@@ -65,12 +65,12 @@ describe("boundary-builder grading", () => {
       ),
     };
     const result = engine.grade(config, { line: { slope: 0, intercept: 0 } });
-    expect(result.verdict).toBe("PARTIAL");
+    expect(result.verdict).toBe("FAIL");
     expect(result.qualityPassed).toBe(false);
     expect(result.summary.errors).toBe(3);
     expect(result.primaryFeedback).toEqual({
       code: "classifierErrors",
-      data: { errors: 3, maxErrors: 1 },
+      data: { errors: 3, maxErrors: 1, close: true },
     });
   });
 
@@ -145,18 +145,18 @@ describe("trend-line grading", () => {
     expect(result.summary.childSSE).toBe(1.4);
   });
 
-  it("PARTIAL: childSSE=2.0 (between the pass line and the partial cushion)", () => {
+  it("near miss: childSSE=2.0 is a FAIL flagged close (PARTIAL would complete the level)", () => {
     // line intercept=0.8: residuals -0.8,+0.2,-0.8,+0.2,-0.8 → squares
     // 0.64,0.04,0.64,0.04,0.64 = 2.0.
     const result = engine.grade(config, {
       line: { slope: 0, intercept: 0.8 },
       prediction: 0.8,
     });
-    expect(result.verdict).toBe("PARTIAL");
+    expect(result.verdict).toBe("FAIL");
     expect(result.summary.childSSE).toBe(2);
     expect(result.primaryFeedback).toEqual({
       code: "trendMissTooHigh",
-      data: { childScore: 2, targetScore: 1.92 },
+      data: { childScore: 2, targetScore: 1.92, close: true },
     });
   });
 
@@ -226,14 +226,14 @@ describe("pixel-playground grading", () => {
     expect(result.summary.correct).toBe(4);
   });
 
-  it("PARTIAL: exactly half correct (the ceil(total/2) boundary)", () => {
+  it("near miss: exactly half correct is a FAIL flagged close (PARTIAL would complete the level)", () => {
     const result = engine.grade(config, {
       rounds: { r1: "rabbit", r2: "carrot", r3: "carrot", r4: "rabbit" },
     });
-    expect(result.verdict).toBe("PARTIAL");
+    expect(result.verdict).toBe("FAIL");
     expect(result.qualityPassed).toBe(false);
     expect(result.summary.correct).toBe(2);
-    expect(result.primaryFeedback).toEqual({ code: "mysteryRoundsWrong", data: { correct: 2, total: 4 } });
+    expect(result.primaryFeedback).toEqual({ code: "mysteryRoundsWrong", data: { correct: 2, total: 4, close: true } });
   });
 
   it("FAIL: only one of four correct", () => {
@@ -301,5 +301,44 @@ describe("pixel-playground grading", () => {
 describe("getAiSimWidgetEngine", () => {
   it("returns undefined for an id outside AI_SIM_WIDGETS", () => {
     expect(getAiSimWidgetEngine("not-a-widget")).toBeUndefined();
+  });
+});
+
+// ── the attempts route's answer union ──────────────────────────────────────
+// The route parses every AI_SIM body with ONE union before the adapter picks
+// the widget. A non-strict union returned the first branch that fit, so a
+// trend-line answer came out as a boundary-builder answer minus its
+// `prediction`, and Fortune Teller could never be passed. Parse through the
+// real union, then grade the result, exactly as the route does.
+describe("aiSimAnswerSchema (attempts route)", () => {
+  it("keeps every widget's own fields", async () => {
+    const { aiSimAnswerSchema } = await import("@/modules/activities/server/ai-sim");
+    const trend = { line: { slope: 2, intercept: 1 }, prediction: 25 };
+    expect(aiSimAnswerSchema.parse(trend)).toEqual(trend);
+    const boundary = { line: { slope: 1, intercept: 0 } };
+    expect(aiSimAnswerSchema.parse(boundary)).toEqual(boundary);
+    const pixel = { rounds: { "round-1": "carrot" } };
+    expect(aiSimAnswerSchema.parse(pixel)).toEqual(pixel);
+  });
+
+  it("a trend-line answer that went through the union still grades", async () => {
+    const { aiSimAnswerSchema } = await import("@/modules/activities/server/ai-sim");
+    const engine = getAiSimWidgetEngine("trend-line")!;
+    const config = {
+      widgetId: "trend-line" as const,
+      xAxis: { en: "x" },
+      yAxis: { en: "y" },
+      toleranceFactor: 1.6,
+      predictAt: 10,
+      points: [
+        { x: 0, y: 0 },
+        { x: 1, y: 1 },
+        { x: 2, y: 0 },
+        { x: 3, y: 1 },
+        { x: 4, y: 0 },
+      ],
+    };
+    const answer = aiSimAnswerSchema.parse({ line: { slope: 0, intercept: 0.4 }, prediction: 0.4 });
+    expect(engine.grade(config, answer).verdict).toBe("PASS");
   });
 });

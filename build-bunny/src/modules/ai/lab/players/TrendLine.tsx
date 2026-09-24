@@ -263,6 +263,10 @@ export function TrendLine({
   const sliderMin = domain.yMin;
   const sliderMax = domain.yMax;
   const sliderStep = Math.max((sliderMax - sliderMin) / 200, 0.01);
+  // The −/+ buttons: at most a quarter of the likely-range band, so a tap
+  // can never jump clean over it (a twentieth of the slider was as wide as
+  // the whole band on Fortune Teller).
+  const nudgeStep = Math.max(sliderStep, Math.min(sliderStep * 10, (bandHigh - bandLow) / 4));
 
   return (
     <div className="flex flex-col gap-3">
@@ -505,7 +509,7 @@ export function TrendLine({
               type="button"
               disabled={disabled}
               aria-label={t("predictionDecrease")}
-              onClick={() => setPrediction(clamp(currentPrediction - sliderStep * 10, sliderMin, sliderMax))}
+              onClick={() => setPrediction(clamp(currentPrediction - nudgeStep, sliderMin, sliderMax))}
               className="grid size-11 shrink-0 place-items-center rounded-lg border-2 border-border-token text-lg font-bold text-ink transition-colors hover:bg-surface-sunken disabled:pointer-events-none disabled:opacity-60"
             >
               −
@@ -525,7 +529,7 @@ export function TrendLine({
               type="button"
               disabled={disabled}
               aria-label={t("predictionIncrease")}
-              onClick={() => setPrediction(clamp(currentPrediction + sliderStep * 10, sliderMin, sliderMax))}
+              onClick={() => setPrediction(clamp(currentPrediction + nudgeStep, sliderMin, sliderMax))}
               className="grid size-11 shrink-0 place-items-center rounded-lg border-2 border-border-token text-lg font-bold text-ink transition-colors hover:bg-surface-sunken disabled:pointer-events-none disabled:opacity-60"
             >
               +

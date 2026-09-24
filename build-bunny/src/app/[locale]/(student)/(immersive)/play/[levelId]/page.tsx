@@ -345,13 +345,17 @@ export default async function PlayLevelPage({ params }: Props) {
   }
 
   return (
-    <ActivityPlayer
-      activityType={playable.activityType}
-      intro={intro}
-      payload={payload}
-      draft={playable.draftWorkspace ?? null}
-      revealHintAction={revealHint}
-      saveDraftAction={saveWorkspaceDraft}
-    />
+    // The one screen a child spends most of their time on had no main
+    // landmark, so "skip to content" and landmark navigation had nowhere to go.
+    <main id="main-content" className="flex min-h-0 flex-1 flex-col">
+      <ActivityPlayer
+        activityType={playable.activityType}
+        intro={intro}
+        payload={payload}
+        draft={playable.draftWorkspace ?? null}
+        revealHintAction={revealHint}
+        saveDraftAction={saveWorkspaceDraft}
+      />
+    </main>
   );
 }

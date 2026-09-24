@@ -40,7 +40,9 @@ export type EngineEvent =
   | { type: "turn"; dir: "left" | "right"; pose: Pose; step: number }
   | { type: "collect"; x: number; y: number; step: number; auto: boolean }
   | { type: "collectFail"; step: number }
-  | { type: "bump"; x: number; y: number; step: number }
+  // `edge` marks a hop off the map, as opposed to into a rock — the two need
+  // different words ("hit a rock" was shown for both).
+  | { type: "bump"; x: number; y: number; step: number; edge?: true }
   | { type: "splash"; x: number; y: number; step: number }
   | { type: "say"; text: string; step: number }
   // Emitted at finish() when the final pose sits on the goal (end-state rule).

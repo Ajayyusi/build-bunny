@@ -72,7 +72,11 @@ export function LearnDoneOverlay({
           ) : xpAwarded !== null && xpAwarded > 0 ? (
             <span className="inline-flex h-9 items-center gap-1 rounded-full bg-accent/25 px-4 text-sm font-bold tabular-nums">
               <span aria-hidden="true">⚡</span>
-              {tSuccess("xp", { xp: xpAwarded })}
+              {/* The message wraps the number in a <count> tag (the success
+                  card animates it), so it must go through t.rich — plain
+                  t() cannot format a tagged message and rendered the raw
+                  key "student.play.success.xp" instead. */}
+              {tSuccess.rich("xp", { xp: xpAwarded, count: (chunks) => <>{chunks}</> })}
             </span>
           ) : null}
         </div>

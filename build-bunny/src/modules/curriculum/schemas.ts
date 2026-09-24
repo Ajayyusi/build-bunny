@@ -320,7 +320,7 @@ export const specimenSchema = z
 const aiThemeSchema = z
   .object({
     /** Which glyph vocabulary — see src/modules/ai/glyph.ts. */
-    glyph: z.enum(["berry", "grain", "cell", "blip"]).default("berry"),
+    glyph: z.enum(["berry", "grain", "cell", "blip", "crab"]).default("berry"),
     /** What the two measurements are CALLED in this world. */
     featureNames: z.object({ size: localizedText, color: localizedText }),
     /** The two outcomes, as a glyph a child reads before the words. */

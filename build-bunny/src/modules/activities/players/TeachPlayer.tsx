@@ -225,6 +225,17 @@ export function TeachPlayer({
   const tk = (key: string, values: Record<string, string | number> = {}) =>
     t(key, { ...values, kind: glyph });
   const truthEmoji = data.theme?.truthEmoji ?? { positive: "😋", negative: "🤢" };
+  // What a sighted child reads off the glyph (its size and its colour), in
+  // words, for a screen reader. Without it every card's button was just
+  // "Teach this one" and every basket item "Take this berry back".
+  const featureNames = data.theme?.featureNames ?? { size: t("sizeFallback"), color: t("colorFallback") };
+  const describe = (s: { size: number; color: number }) =>
+    t("specimenDescription", {
+      sizeName: featureNames.size,
+      size: Math.round(s.size * 10),
+      colorName: featureNames.color,
+      color: Math.round(s.color * 10),
+    });
   const beats = data.walkthrough ?? BUILT_IN_BEATS.map((n) => ({
     title: tk(`walk${n}Title`),
     body: tk(`walk${n}Body`),
@@ -542,10 +553,14 @@ export function TeachPlayer({
                       >
                         {truthEmoji[s.truth]} {data.labels[s.truth]}
                       </span>
+                      <span id={`specimen-${s.id}`} className="sr-only">
+                        {describe(s)}, {data.labels[s.truth]}
+                      </span>
                       <button
                         type="button"
                         onClick={() => assign(s.id, s.truth)}
                         disabled={atCap}
+                        aria-describedby={`specimen-${s.id}`}
                         className="w-full rounded-md bg-ink px-2 py-1.5 text-[11px] font-bold text-surface-raised transition-colors hover:bg-brand disabled:opacity-40 disabled:hover:bg-ink"
                       >
                         {t("teachThis")}
@@ -554,6 +569,7 @@ export function TeachPlayer({
                         <button
                           type="button"
                           onClick={() => holdBack(s.id)}
+                          aria-describedby={`specimen-${s.id}`}
                           className="w-full rounded-md border border-info/50 bg-info/10 px-2 py-1.5 text-[11px] font-bold text-info transition-colors hover:bg-info/20"
                         >
                           {t("keepForTesting")}
@@ -600,7 +616,7 @@ export function TeachPlayer({
                               <button
                                 type="button"
                                 onClick={() => assign(e.id, label)}
-                                aria-label={tk("removeExample")}
+                                aria-label={`${tk("removeExample")}: ${describe(e)}`}
                                 className="rounded-full p-0.5 transition-transform hover:scale-110"
                               >
                                 <Berry specimen={e} theme={glyph} />
@@ -636,7 +652,7 @@ export function TeachPlayer({
                             <button
                               type="button"
                               onClick={() => holdBack(s.id)}
-                              aria-label={t("removeFromHold")}
+                              aria-label={`${t("removeFromHold")}: ${describe(s)}`}
                               className="rounded-full p-0.5 transition-transform hover:scale-110"
                             >
                               <Berry specimen={s} theme={glyph} />
@@ -734,7 +750,12 @@ export function TeachPlayer({
                 />
                 {!ready ? (
                   <p className="text-sm text-ink-muted">
-                    {tk("needMore", { count: data.minPerLabel })}
+                    {/* Name the rule that is actually unmet: with both baskets
+                        full, "teach 2 of each first" sent the child looking in
+                        the wrong place when the test pile was what was short. */}
+                    {positives >= data.minPerLabel && negatives >= data.minPerLabel && !holdOk
+                      ? t("needMoreHeldBack", { need: data.holdout?.min ?? 0 })
+                      : tk("needMore", { count: data.minPerLabel })}
                   </p>
                 ) : (
                   <ul className="flex flex-col gap-2">

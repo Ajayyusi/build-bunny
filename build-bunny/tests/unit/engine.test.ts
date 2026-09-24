@@ -133,7 +133,7 @@ describe("fatal events", () => {
     expect(result.termination).toBe("BUMPED");
     expect(result.reachedGoal).toBe(false);
     expect(result.finalPose).toEqual({ x: 0, y: 0, dir: "N" });
-    expect(result.events.at(-1)).toEqual({ type: "bump", x: 0, y: -1, step: 3 });
+    expect(result.events.at(-1)).toEqual({ type: "bump", x: 0, y: -1, step: 3, edge: true });
   });
 
   it("halts on rock bump without moving", () => {

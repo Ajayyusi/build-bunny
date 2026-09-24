@@ -11,7 +11,7 @@ import {
 } from "@/engine";
 import type { ProgramRun } from "@/modules/blockly/interpreter";
 import { cn } from "@/ui/cn";
-import { tintHex, worldColor } from "@/ui/worldColors";
+import { collectableGlyph, tintHex, worldColor } from "@/ui/worldColors";
 
 /**
  * Canvas playback of an engine event log (m3 pinned contract). The canvas is
@@ -470,7 +470,7 @@ export default function SimulationCanvas({
         }
         ctx.font = emojiFont(size);
         ctx.globalAlpha = alpha;
-        ctx.fillText("🥕", cx(c.x), cy(c.y));
+        ctx.fillText(collectableGlyph(theme), cx(c.x), cy(c.y));
         ctx.globalAlpha = 1;
       }
 

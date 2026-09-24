@@ -36,17 +36,24 @@ interface BlockPaletteProps {
   editState: WorkspaceEditState | null;
   /** Returns false when the block could not be added (limit reached). */
   onAdd: (type: string) => boolean;
+  /** Where the block will land, when the caller knows better than the
+   * selection does (a Learn step always fills its one gap). */
+  placementText?: string;
 }
 
-export function BlockPalette({ open, onClose, toolbox, editState, onAdd }: BlockPaletteProps) {
+export function BlockPalette({ open, onClose, toolbox, editState, onAdd, placementText }: BlockPaletteProps) {
   const t = useTranslations("student.play.tools");
   const tBlocks = useTranslations("student.play.blockNames");
   if (!open) return null;
 
   const label = (type: string) => (tBlocks.has(type) ? tBlocks(type) : type);
   const selected = editState?.selected ?? null;
-  const placement = selected
-    ? selected.emptyMouth
+  const placement = placementText
+    ? placementText
+    : selected
+    ? selected.mouth === "ELSE"
+      ? t("paletteInsideElse", { block: label(selected.type) })
+      : selected.emptyMouth
       ? t("paletteInside", { block: label(selected.type) })
       : t("paletteAfter", { block: label(selected.type) })
     : t("paletteEnd");

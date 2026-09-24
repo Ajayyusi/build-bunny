@@ -72,6 +72,8 @@ export interface Worksheet {
   moduleName: LocalizedText;
   moduleDescription: LocalizedText | null;
   worldName: LocalizedText;
+  /** World theme string — picks what a "C" tile is printed as (collectableGlyph). */
+  worldTheme: string;
   items: WorksheetItem[];
 }
 
@@ -211,7 +213,7 @@ export async function getModuleWorksheet(
       id: true,
       name: true,
       description: true,
-      world: { select: { name: true } },
+      world: { select: { name: true, theme: true } },
       levels: {
         where: { status: "PUBLISHED", publishedVersionId: { not: null } },
         orderBy: { order: "asc" },
@@ -298,6 +300,7 @@ export async function getModuleWorksheet(
     moduleName: name.success ? name.data : { en: "" },
     moduleDescription: description.success ? (description.data ?? null) : null,
     worldName: worldName.success ? worldName.data : { en: "" },
+    worldTheme: mod.world.theme,
     items,
   };
 }

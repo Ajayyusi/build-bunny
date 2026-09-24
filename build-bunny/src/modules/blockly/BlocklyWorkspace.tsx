@@ -6,7 +6,7 @@ import * as ArabicMessages from "blockly/msg/ar";
 import * as EnglishMessages from "blockly/msg/en";
 import { Blockly } from "./blockly-core";
 import { BUNNY_HAT_BLOCK, registerBunnyBlocks, type BlockLocale } from "./blocks";
-import { workspaceToJson } from "./serialization";
+import { workspaceToJson, type GapPath } from "./serialization";
 import { BunnyTheme } from "./theme";
 import type { BlockRef } from "./serialization";
 
@@ -27,7 +27,7 @@ export interface WorkspaceEditState {
   canUndo: boolean;
   canRedo: boolean;
   /** The selected block, when it is one the student may build on. */
-  selected: { type: string; emptyMouth: boolean } | null;
+  selected: { type: string; emptyMouth: boolean; mouth: "DO" | "ELSE" | null } | null;
   /** Instances of each block type currently on the canvas. */
   counts: Record<string, number>;
 }
@@ -44,6 +44,13 @@ export interface BlocklyWorkspaceHandle {
    * the toolbox limit for that type is already reached.
    */
   addBlock(type: string): boolean;
+  /**
+   * Puts a block straight into one addressed connection (a Learn step's
+   * gap), replacing whatever sits there. The tap-to-add path for the faded
+   * program, where "after the selected block" is not the question — "which
+   * block goes in the gap" is.
+   */
+  fillSlot(path: GapPath, type: string): boolean;
 }
 
 /** Student-stripped BLOCK_CODING payload surface the editor needs. */
@@ -96,6 +103,31 @@ function selectedBlock(workspace: WorkspaceSvg, lastId: string | null): BlockSvg
   return null;
 }
 
+/**
+ * Where a tapped block goes inside `block`: the first EMPTY statement mouth,
+ * "do" before "else". Without the else case an if/else could never be
+ * finished from the palette — the else branch was drag-only.
+ */
+function emptyMouth(block: BlockSvg | null): { name: "DO" | "ELSE"; connection: Connection } | null {
+  for (const name of ["DO", "ELSE"] as const) {
+    const connection = block?.getInput(name)?.connection ?? null;
+    if (connection && !connection.targetBlock()) return { name, connection };
+  }
+  return null;
+}
+
+/**
+ * A sensor (a value block, e.g. "path ahead is blocked") has nothing to
+ * build on — no mouth, no next — so a block added "after" it used to land
+ * loose on the canvas. Building on a sensor means building on the block it
+ * plugs into.
+ */
+function buildAnchor(block: BlockSvg | null): BlockSvg | null {
+  let anchor = block;
+  while (anchor?.outputConnection && anchor.getParent()) anchor = anchor.getParent() as BlockSvg;
+  return anchor;
+}
+
 /** Fallback when a level ships no startWorkspace: just the locked hat. */
 const HAT_ONLY_WORKSPACE = {
   blocks: {
@@ -143,13 +175,13 @@ export default function BlocklyWorkspace({
     for (const block of workspace.getAllBlocks(false)) {
       counts[block.type] = (counts[block.type] ?? 0) + 1;
     }
-    const selected = selectedBlock(workspace, lastSelectedRef.current);
-    const mouth = selected?.getInput("DO")?.connection ?? null;
+    const selected = buildAnchor(selectedBlock(workspace, lastSelectedRef.current));
+    const mouth = emptyMouth(selected);
     onEditStateRef.current?.({
       canUndo: workspace.getUndoStack().length > 0,
       canRedo: workspace.getRedoStack().length > 0,
       selected: selected
-        ? { type: selected.type, emptyMouth: mouth !== null && mouth.targetBlock() === null }
+        ? { type: selected.type, emptyMouth: mouth !== null, mouth: mouth?.name ?? null }
         : null,
       counts,
     });
@@ -174,6 +206,45 @@ export default function BlocklyWorkspace({
       block.dispose(true);
       return true;
     },
+    fillSlot(path: GapPath, type: string) {
+      const workspace = workspaceRef.current;
+      if (!workspace) return false;
+      let host: BlockSvg | null = (workspace.getTopBlocks(false)[path.topIndex] as BlockSvg | undefined) ?? null;
+      const steps = path.steps;
+      for (const step of steps.slice(0, -1)) {
+        if (!host) return false;
+        host = (step.kind === "next"
+          ? host.getNextBlock()
+          : host.getInput(step.name)?.connection?.targetBlock() ?? null) as BlockSvg | null;
+      }
+      const last = steps[steps.length - 1];
+      if (!host || !last) return false;
+      const slot = last.kind === "next" ? host.nextConnection : host.getInput(last.name)?.connection ?? null;
+      if (!slot) return false;
+      Blockly.Events.setGroup(true);
+      try {
+        // A block already in the gap is the child's previous answer: swap it.
+        slot.targetBlock()?.dispose(true);
+        const block = workspace.newBlock(type);
+        block.initSvg();
+        block.render();
+        const plug = block.previousConnection ?? block.outputConnection;
+        if (!plug) {
+          block.dispose(false);
+          return false;
+        }
+        slot.connect(plug);
+        for (const other of workspace.getAllBlocks(false)) {
+          if (other !== block && other instanceof Blockly.BlockSvg) other.removeSelect();
+        }
+        block.select();
+        lastSelectedRef.current = block.id;
+        workspace.scrollBoundsIntoView(block.getBoundingRectangle());
+      } finally {
+        Blockly.Events.setGroup(false);
+      }
+      return true;
+    },
     addBlock(type: string) {
       const workspace = workspaceRef.current;
       if (!workspace) return false;
@@ -184,7 +255,8 @@ export default function BlocklyWorkspace({
       const hat = workspace
         .getTopBlocks(false)
         .find((block) => block.type === BUNNY_HAT_BLOCK) as BlockSvg | undefined;
-      const anchor = selectedBlock(workspace, lastSelectedRef.current);
+      const selected = selectedBlock(workspace, lastSelectedRef.current);
+      const anchor = buildAnchor(selected);
 
       // One undo step for the whole insertion.
       Blockly.Events.setGroup(true);
@@ -201,8 +273,7 @@ export default function BlocklyWorkspace({
           if (target) target.connect(block.outputConnection);
         } else if (block.previousConnection) {
           if (anchor) {
-            const mouth = anchor.getInput("DO")?.connection ?? null;
-            target = mouth && !mouth.targetBlock() ? mouth : anchor.nextConnection;
+            target = emptyMouth(anchor)?.connection ?? anchor.nextConnection;
           } else if (hat) {
             let last: BlockSvg = hat;
             while (last.getNextBlock()) last = last.getNextBlock() as BlockSvg;

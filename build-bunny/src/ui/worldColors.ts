@@ -25,7 +25,9 @@ const WORLD_COLORS: ReadonlyArray<readonly [string, WorldColor]> = [
   ["island", { fill: "#c92a5c", ledge: "#8f1d42", tile: "#ffc9da" }],
   ["desert", { fill: "#c2410c", ledge: "#8a2e08", tile: "#ffd6a8" }],
   ["ml", { fill: "#4338ca", ledge: "#2e268f", tile: "#cdd0ff" }],
-  ["lab", { fill: "#4338ca", ledge: "#2e268f", tile: "#cdd0ff" }],
+  // Robot Lab's theme is "lab" (ML Lab's is "ml"): it wears the robot violet,
+  // not ML Lab's indigo, or the two worlds read as the same place.
+  ["lab", { fill: "#6b3fd6", ledge: "#4a2a9a", tile: "#d9ccff" }],
   ["workshop", { fill: "#a15c00", ledge: "#6e3f00", tile: "#ffe2a6" }],
   ["inventor", { fill: "#a15c00", ledge: "#6e3f00", tile: "#ffe2a6" }],
 ];
@@ -38,6 +40,15 @@ export function worldColor(theme: string): WorldColor {
     if (needle.includes(key)) return color;
   }
   return FALLBACK;
+}
+
+/**
+ * What a "C" tile holds in a world. Robot Lab ("lab") is about power cells —
+ * its missions say "leave no power cell behind" — so drawing a carrot there
+ * made the board and the mission disagree. Everywhere else it is a carrot.
+ */
+export function collectableGlyph(theme: string): string {
+  return /lab|robot/i.test(theme) ? "🔋" : "🥕";
 }
 
 /** A colour (#rrggbb) mixed toward white (share = how much colour, 0–1). */

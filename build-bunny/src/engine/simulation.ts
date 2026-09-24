@@ -144,7 +144,9 @@ export class Simulation {
     if (tile === null || tile === "#") {
       // Bump coordinates are the blocked target tile (may sit off-grid on
       // edge bumps) so feedback can point at the exact obstacle.
-      this.events.push({ type: "bump", x: tx, y: ty, step });
+      this.events.push(
+        tile === null ? { type: "bump", x: tx, y: ty, step, edge: true } : { type: "bump", x: tx, y: ty, step },
+      );
       if (!this.config.nonFatalBumps) this.halt("BUMPED");
       return; // non-fatal bump: stay put
     }

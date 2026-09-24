@@ -5,6 +5,7 @@ import { Link } from "@/i18n/navigation";
 import { requireRole } from "@/modules/auth/server/session";
 import { resolveText } from "@/modules/curriculum/schemas";
 import { getModuleWorksheet, type WorksheetItem } from "@/modules/curriculum/server/queries";
+import { collectableGlyph } from "@/ui/worldColors";
 
 import { PrintButton } from "../../../_components/PrintButton";
 
@@ -77,7 +78,9 @@ export default async function WorksheetPage({ params, searchParams }: Props) {
       </header>
 
       <p className="text-sm text-ink-muted" aria-label={t("legendLabel")}>
-        {t("legend")}: 🐰 + → {t("legendStart")} · 🕳️ {t("legendGoal")} · 🥕 {t("legendCarrot")} · 🪨 {t("legendRock")} · 🌊 {t("legendWater")}
+        {t("legend")}: 🐰 + → {t("legendStart")} · 🕳️ {t("legendGoal")} ·{" "}
+        {collectableGlyph(sheet.worldTheme) === "🔋" ? `🔋 ${t("legendPowerCell")}` : `🥕 ${t("legendCarrot")}`} · 🪨{" "}
+        {t("legendRock")} · 🌊 {t("legendWater")}
       </p>
 
       {paper.length === 0 ? <p className="text-sm">{t("noPaper")}</p> : null}
@@ -88,7 +91,7 @@ export default async function WorksheetPage({ params, searchParams }: Props) {
             <h2 className="font-display text-lg font-bold">
               {index + 1}. {text(item.title)}
             </h2>
-            <SheetItem item={item} text={text} blockName={blockName} list={list} t={t} locale={locale} />
+            <SheetItem item={item} text={text} blockName={blockName} list={list} t={t} locale={locale} carrot={collectableGlyph(sheet.worldTheme)} />
           </li>
         ))}
       </ol>
@@ -139,6 +142,7 @@ function SheetItem({
   list,
   t,
   locale,
+  carrot,
 }: {
   item: WorksheetItem;
   text: (value: Parameters<typeof resolveText>[0]) => string;
@@ -146,6 +150,8 @@ function SheetItem({
   list: Intl.ListFormat;
   t: Translate;
   locale: string;
+  /** What a "C" tile is in this world (🥕, or 🔋 in Robot Lab). */
+  carrot: string;
 }) {
   if (item.kind === "grid") {
     return (
@@ -180,7 +186,7 @@ function SheetItem({
                               🐰{ARROW[board.start.dir]}
                             </span>
                           ) : (
-                            TILE[tile] ?? ""
+                            (tile === "C" ? carrot : TILE[tile]) ?? ""
                           )}
                         </span>
                       );

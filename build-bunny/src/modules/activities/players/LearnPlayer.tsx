@@ -13,6 +13,7 @@ import { Button, cn, useReducedMotion } from "@/ui";
 
 import { PlayerSoundControls } from "@/modules/audio/AudioControls";
 import { runForPlayback } from "./client-run";
+import { BlockPalette } from "./shared/BlockPalette";
 import { HintDrawer, type HintTierState } from "./shared/HintDrawer";
 import { postAttempt, runIdFor } from "./shared/attempt-outbox";
 import { LearnScene } from "./shared/LearnScene";
@@ -94,6 +95,9 @@ export function LearnPlayer({
   const [lastCheckAt, setLastCheckAt] = useState<number | null>(null);
   const reducedMotion = useReducedMotion();
   const sounds = useGridSounds();
+  // Tap-to-add for the gap: the faded step was drag-only, so a child who
+  // cannot drag (switch, keyboard, shaky hand) could not finish a lesson.
+  const [paletteOpen, setPaletteOpen] = useState(false);
   const [hints, setHints] = useState<HintTierState[]>(() =>
     [1, 2, 3, 4].map((tier) => ({
       tier,
@@ -307,6 +311,16 @@ export function LearnPlayer({
       >
         {tLearn("check")}
       </Button>
+      <Button
+        variant="secondary"
+        size="lg"
+        onClick={() => setPaletteOpen(true)}
+        disabled={checking || !gapPath}
+        aria-haspopup="dialog"
+      >
+        <span aria-hidden="true">+</span>
+        {t("tools.addBlock")}
+      </Button>
       <Button variant="secondary" size="lg" onClick={handleReset} disabled={checking}>
         {t("reset")}
       </Button>
@@ -503,6 +517,21 @@ export function LearnPlayer({
         />
       ) : null}
 
+      <BlockPalette
+        open={paletteOpen}
+        onClose={() => setPaletteOpen(false)}
+        toolbox={payload.faded.toolbox}
+        editState={null}
+        placementText={t("tools.paletteGap")}
+        onAdd={(type) => {
+          const added = gapPath ? (workspaceHandleRef.current?.fillSlot(gapPath, type) ?? false) : false;
+          if (added) {
+            sounds.play("place");
+            setNudge(null);
+          }
+          return added;
+        }}
+      />
       <HintDrawer
         open={hintOpen}
         onClose={() => setHintOpen(false)}
