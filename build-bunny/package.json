@@ -10,7 +10,7 @@
     "dev": "next dev",
     "postinstall": "prisma generate",
     "build": "next build",
-    "vercel-build": "tsx scripts/import-content.ts --ci ; next build",
+    "vercel-build": "node scripts/migrate-on-deploy.mjs && (tsx scripts/import-content.ts --ci; next build)",
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
