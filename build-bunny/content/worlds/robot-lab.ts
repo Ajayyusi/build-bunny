@@ -84,6 +84,10 @@ export const robotLab: WorldFixture = {
             en: "Pick up a single power cell with the Collect block, then reach the dock.",
             ar: "التقط خلية طاقة واحدة بلبنة «التقط»، ثم صِل إلى محطة الشحن.",
           },
+          mission: {
+            en: "Step onto the power cell, pick it up with Collect, then reach the dock.",
+            ar: "تقدّم إلى خلية الطاقة، والتقطها بلبنة «التقط»، ثم صِل إلى محطة الشحن.",
+          },
           instructions: {
             en: "Move forward onto the power cell, press Collect to pick it up, then move forward again to the dock. Three blocks, in that order.",
             ar: "تقدّم للأمام حتى تقف على خلية الطاقة، ثم استخدم «التقط» لالتقاطها، ثم تقدّم للأمام مرة أخرى إلى محطة الشحن. ثلاث لبنات بهذا الترتيب.",
@@ -198,6 +202,10 @@ export const robotLab: WorldFixture = {
           objective: {
             en: "Use the new Collect block to pick up items deliberately, discovering that in Robot Lab nothing is collected automatically.",
             ar: "استخدم لبنة «التقط» الجديدة لالتقاط الأشياء عن قصد، واكتشف أن مختبر الروبوتات لا يلتقط شيئًا تلقائيًا.",
+          },
+          mission: {
+            en: "Grab BOTH power cells with Collect and reach the charging dock.",
+            ar: "التقط خليتَي الطاقة كلتيهما بلبنة «التقط» وصِل إلى محطة الشحن.",
           },
           instructions: {
             en: "Walk the lab corridor to the charging dock and pick up BOTH power cells on the way. New rule: hopping onto a cell isn't enough anymore — you must use the Collect block while standing on it.",
@@ -331,6 +339,10 @@ export const robotLab: WorldFixture = {
           objective: {
             en: "Write one sensor-driven program that reaches the docking bay on two different hall layouts by checking the path before committing.",
             ar: "اكتب برنامجًا واحدًا يعتمد على المستشعر ليصل إلى منصة الرسو في تصميمَي ممر مختلفين، عبر التحقق من الطريق قبل الالتزام باتجاه.",
+          },
+          mission: {
+            en: "Use the sensor to check for a crate, and dock on BOTH hall layouts with one program.",
+            ar: "استخدم المستشعر لتتحقّق من وجود صندوق، وصِل إلى محطة الإرساء في التصميمين ببرنامج واحد.",
           },
           instructions: {
             en: "The hall has two layouts, and your ONE program must dock on BOTH. Walk to the junction, then use If with the path-ahead sensor: if a crate blocks the way, turn toward the side hatch. Run both layouts before you finish.",
@@ -473,6 +485,10 @@ export const robotLab: WorldFixture = {
           objective: {
             en: "Watch If/Else take one of two paths, then complete it — understanding that exactly one branch runs every single time.",
             ar: "شاهد «إذا / وإلّا» وهي تسلك أحد مسارين، ثم أكملها، مع فهم أن فرعًا واحدًا فقط ينفَّذ في كل مرة.",
+          },
+          mission: {
+            en: "Watch If / Else choose between two plans, then fill in the missing block.",
+            ar: "شاهد «إذا / وإلّا» تختار بين خطتين، ثم أكمل اللبنة الناقصة.",
           },
           instructions: {
             en: "First watch Robo Bunny drive down the corridor and turn at the corner. Then put the missing block back into the FIRST mouth — the one that runs when the path IS blocked — and press Check.",
@@ -664,6 +680,10 @@ export const robotLab: WorldFixture = {
             en: "Use If/Else to choose between two actions — one for each answer the sensor can give — and solve both junction layouts with one program.",
             ar: "استخدم «إذا... وإلا» للاختيار بين تصرفين — واحد لكل إجابة يعطيها المستشعر — وحلّ تصميمَي المفترق ببرنامج واحد.",
           },
+          mission: {
+            en: "Use If / Else so the robot knows which way to turn, and dock on both layouts.",
+            ar: "استخدم «إذا / وإلّا» ليعرف الروبوت أين يستدير، وصِل إلى المحطة في التصميمين.",
+          },
           instructions: {
             en: "At the junction, the sensor's answer decides EVERYTHING: blocked means turn right toward the south dock, clear means turn left toward the north dock. Use the If/Else block so BOTH answers have a plan — and dock on both layouts with one program.",
             ar: "عند المفترق، إجابة المستشعر تحدد كل شيء: مسدود يعني الاستدارة يمينًا نحو المحطة الجنوبية، ومفتوح يعني الاستدارة يسارًا نحو المحطة الشمالية. استخدم لبنة «إذا... وإلا» ليكون لكل إجابة خطتها — وارسُ في التصميمين ببرنامج واحد.",
@@ -819,6 +839,10 @@ export const robotLab: WorldFixture = {
           objective: {
             en: "Repair a broken program by running it, reading the located failure message, and fixing two distinct bugs — a wrong turn and a missing collect.",
             ar: "أصلح برنامجًا معطّلًا بتشغيله، وقراءة رسالة الفشل محددة الموقع، وإصلاح خطأين مختلفين — استدارة خاطئة والتقاط ناقص.",
+          },
+          mission: {
+            en: "Run the broken program, find the TWO bugs, and fix them.",
+            ar: "شغّل البرنامج المعطّل، واعثر على الخطأين، وصحّحهما.",
           },
           instructions: {
             en: "Don't build from scratch — the broken program is already on your workspace. Run it AS IS first and watch where it goes wrong: the failure message tells you the exact step. Fix the program so the robot grabs the power cell AND parks at the charging dock. There are two bugs.",
@@ -985,6 +1009,10 @@ export const robotLab: WorldFixture = {
             en: "Combine a goal-controlled loop, an If/Else decision and explicit collection into one small program that clears two unknown test tracks completely.",
             ar: "اجمع بين حلقة مضبوطة بالهدف، وقرار «إذا... وإلا»، والتقاط صريح، في برنامج صغير واحد يجتاز مضمارَي اختبار مجهولين بالكامل.",
           },
+          mission: {
+            en: "Clear both test tracks with ONE program — and leave no power cell behind.",
+            ar: "اجتَز مساري الاختبار ببرنامج واحد — ولا تترك أي خلية طاقة خلفك.",
+          },
           instructions: {
             en: "Reach the charging dock at the end of the gauntlet and collect EVERY power cell on the way — with ONE program that beats BOTH tracks. Think like the plaque: at every step, either the way is blocked (turn!) or it's open (advance — and grab whatever you land on).",
             ar: "صِل إلى محطة الشحن في نهاية التحدي والتقط كل خلية طاقة في طريقك — ببرنامج واحد فقط يجتاز المضمارين معًا. فكّر كما تقول اللوحة: في كل خطوة، إما أن الطريق مسدود (استدر!) أو مفتوح (تقدّم — والتقط ما تجده تحتك).",
@@ -1137,6 +1165,10 @@ export const robotLab: WorldFixture = {
           objective: {
             en: "Reconstruct the correct step order of a sense → decide → act → collect docking routine, synthesizing the collect, sensor-check and if/else lessons from this lab.",
             ar: "أعِد بناء الترتيب الصحيح لخطوات روتين الرسو (استشعار ← قرار ← تصرّف ← التقاط)، بدمج دروس الالتقاط وفحص المستشعر و«إذا... وإلا» التي تعلّمتها في هذا المختبر.",
+          },
+          mission: {
+            en: "Put the 5 steps of the docking routine back in the right order.",
+            ar: "أعد الخطوات الخمس لروتين الإرساء إلى ترتيبها الصحيح.",
           },
           instructions: {
             en: "Drag the steps into the right order — or use the up/down buttons on each step. The routine only works one way: think about what Robo Bunny needs to know or do BEFORE each later step makes sense.",

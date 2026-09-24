@@ -57,6 +57,10 @@ export const aiIsland: WorldFixture = {
             en: "Train a classifier by example and discover that WHICH examples you choose decides whether it works on berries it has never seen.",
             ar: "درّب مصنّفًا بالأمثلة، واكتشف أن اختيارك للأمثلة هو ما يحدّد نجاحه مع توت لم يره من قبل.",
           },
+          mission: {
+            en: "Teach Robo Bunny with examples so it can sort berries it has never seen.",
+            ar: "علّم الأرنب الآلي بالأمثلة حتى يستطيع فرز حبات توت لم يرها من قبل.",
+          },
           instructions: {
             en: "Robo Bunny has eaten these berries before, so it knows which ones made it sick. Teach it with some of them — then it must work out the NEW berries marked ?. Get all of them right and you win.",
             ar: "أكل الأرنب الآلي هذا التوت من قبل، فهو يعرف ما الذي أصابه بالمرض. علّمه ببعضها — ثم عليه أن يستنتج التوت الجديد المعلَّم بعلامة ؟. أصِبها كلها لتفوز.",
@@ -159,6 +163,10 @@ export const aiIsland: WorldFixture = {
           objective: {
             en: "Teach with only two berries and watch where the bunny puts its line: exactly halfway between them. Pick the pair that puts that line in the right place.",
             ar: "علّم الأرنب بحبتين فقط، وراقب أين يضع خطه: في منتصف المسافة بينهما تمامًا. اختر الحبتين اللتين تضعان الخط في مكانه الصحيح.",
+          },
+          mission: {
+            en: "Pick just two berries so the bunny's line lands in the right place.",
+            ar: "اختر حبّتين فقط حتى يقع خط الأرنب في المكان الصحيح.",
           },
           instructions: {
             en: "Pick one safe berry and one unsafe berry. Two is all you get. The bunny draws its line halfway between the pair you picked, and calls everything paler than the line safe. Swap berries and watch the line slide, until both ? berries come out right.",
@@ -323,6 +331,10 @@ export const aiIsland: WorldFixture = {
           objective: {
             en: "Find the one note that is wrong, and learn that the bunny is never more right than the notes you hand it.",
             ar: "اعثر على الملاحظة الخاطئة الوحيدة، واكتشف أن الأرنب لا يكون أصحّ من الملاحظات التي تعطيه إياها.",
+          },
+          mission: {
+            en: "One note is wrong! Find the berry that is fooling the bunny.",
+            ar: "إحدى الملاحظات خاطئة! اعثر على حبة التوت التي تخدع الأرنب.",
           },
           instructions: {
             en: "One of these notes is wrong. One — not two, and never none. Teach the bunny, look at the ? berries it gets wrong, and work out which note is lying to it.",
@@ -490,6 +502,10 @@ export const aiIsland: WorldFixture = {
           objective: {
             en: "Meet a kind of creature that neither measurement explains on its own, and learn to show the bunny every group of crabs on the beach — not just the tidy pair.",
             ar: "تعرَّف إلى نوع لا يفسّره الحجم وحده ولا اللون وحده، وتعلّم أن تُري الأرنب كل أنواع السلاطعين على الشاطئ، لا النوعين المرتّبين فقط.",
+          },
+          mission: {
+            en: "Choose 6 crabs to teach with, so the bunny gets all 4 mystery crabs right.",
+            ar: "اختر 6 سرطانات للتعليم حتى يُصيب الأرنب في السرطانات الغامضة الأربعة كلها.",
           },
           instructions: {
             en: "Robo Bunny has met all of these crabs before, so it knows which ones pinched. You have six slots to teach it with. Then it has to work out the crabs marked ?. Get all four right and you win.",
@@ -675,6 +691,10 @@ export const aiIsland: WorldFixture = {
             en: "Zoom a picture down to its pixel grid, drag the resolution slider, and identify three mystery images at low resolution — the way a computer's camera actually 'sees'.",
             ar: "قرّب صورة حتى تصل إلى شبكة بكسلاتها، اسحب شريط الدقة، وحدّد ثلاث صور غامضة عند دقة منخفضة — بالطريقة التي «يرى» بها حاسوب الكاميرا فعلًا.",
           },
+          mission: {
+            en: "Shrink pictures into pixels and guess the mystery pictures like a computer.",
+            ar: "صغّر الصور إلى بكسلات وخمّن الصور الغامضة كما يفعل الحاسوب.",
+          },
           instructions: {
             en: "Drag the resolution slider from 64 down to 8 and watch the picture break into fewer, bigger squares. For each mystery round, guess the picture at the LOWEST resolution you can before checking — then see how low a computer could really go.",
             ar: "اسحب شريط الدقة من 64 إلى 8، وشاهد الصورة تتحول إلى مربعات أقل وأكبر. في كل جولة غموض، خمّن الصورة عند أدنى دقة تستطيعها قبل التحقق — ثم اكتشف إلى أي درجة يستطيع الحاسوب النزول فعلًا.",
@@ -798,6 +818,10 @@ export const aiIsland: WorldFixture = {
           objective: {
             en: "Walk through four moments where an app asks for something personal, choose how to respond, and assemble a Privacy Shield checklist from what you learn.",
             ar: "مرّ بأربع لحظات يطلب فيها التطبيق شيئًا شخصيًا، اختر كيف تستجيب، واجمع قائمة «درع الخصوصية» مما تتعلمه.",
+          },
+          mission: {
+            en: "A nosy app wants your secrets. Decide what to share — and what to keep safe.",
+            ar: "تطبيق فضولي يريد أسرارك. قرّر ماذا تشارك — وماذا تحفظ بأمان.",
           },
           instructions: {
             en: "Read what the app asks for, then pick how you'd respond. There's no score for feeling — just read what happens next after every choice, even the ones you wouldn't really make.",

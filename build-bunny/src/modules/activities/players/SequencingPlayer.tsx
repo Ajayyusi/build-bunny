@@ -9,6 +9,7 @@ import { Button, cn, useReducedMotion } from "@/ui";
 import { HintDrawer, type HintTierState } from "./shared/HintDrawer";
 import { SequenceScene } from "./shared/SequenceScene";
 import { IntroOverlay } from "./shared/IntroOverlay";
+import { MissionStrip } from "./shared/MissionStrip";
 import { ResultBanner } from "./shared/ResultBanner";
 import { SuccessOverlay } from "./shared/SuccessOverlay";
 import type {
@@ -50,6 +51,8 @@ export function SequencingPlayer({
   const locale = useLocale();
 
   const [phase, setPhase] = useState<Phase>("intro");
+  // The briefing reopened from the mission strip, mid-level.
+  const [briefingOpen, setBriefingOpen] = useState(false);
   const [order, setOrder] = useState<string[]>(() => payload.items.map((item) => item.id));
   const [announcement, setAnnouncement] = useState("");
   const [submission, setSubmission] = useState<Submission | null>(null);
@@ -267,6 +270,13 @@ export function SequencingPlayer({
         </span>
       </header>
 
+      {phase !== "intro" ? (
+        <MissionStrip
+          objective={intro.objective}
+          onShow={() => setBriefingOpen(true)}
+        />
+      ) : null}
+
       {/* ── Content ── */}
       <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6">
         <div className="mx-auto flex max-w-2xl flex-col gap-4">
@@ -375,8 +385,9 @@ export function SequencingPlayer({
       </div>
 
       {/* ── Overlays ── */}
-      {phase === "intro" ? (
+      {phase === "intro" || briefingOpen ? (
         <IntroOverlay
+          reopened={phase !== "intro"}
           title={intro.title}
           story={intro.story}
           objective={intro.objective}
@@ -386,6 +397,10 @@ export function SequencingPlayer({
           worldTheme={intro.worldTheme}
           howScene={<SequenceScene />}
           onStart={() => {
+            if (phase !== "intro") {
+              setBriefingOpen(false);
+              return;
+            }
             editStartRef.current = Date.now();
             setPhase("edit");
           }}

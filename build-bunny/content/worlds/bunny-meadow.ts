@@ -71,6 +71,10 @@ export const bunnyMeadow: WorldFixture = {
             en: "Assemble and run a one-instruction program: connect a block under When Start and press Run.",
             ar: "ركّب برنامجًا من تعليمة واحدة وشغّله: صِل لبنة تحت لبنة «عند البدء» ثم اضغط تشغيل.",
           },
+          mission: {
+            en: "Snap one block under “when start” and hop Robo Bunny into the burrow!",
+            ar: "ألصِق لبنة واحدة تحت «عند البدء» واجعل الأرنب الآلي يقفز إلى الجُحر!",
+          },
           instructions: {
             en: "Drag a Move Forward block under When Start so they click together, then press Run to hop Robo Bunny into the burrow.",
             ar: "اسحب لبنة «تقدّم للأمام» وضعها تحت لبنة «عند البدء» حتى تلتصقا، ثم اضغط تشغيل ليقفز الأرنب الآلي إلى الجُحر.",
@@ -166,6 +170,10 @@ export const bunnyMeadow: WorldFixture = {
           objective: {
             en: "Sequence multiple instructions and observe ordered, top-to-bottom execution.",
             ar: "رتّب عدة تعليمات في تسلسل، ولاحظ كيف تُنفَّذ بالترتيب من الأعلى إلى الأسفل.",
+          },
+          mission: {
+            en: "The burrow is further away now. Stack blocks to hop Robo Bunny all the way there.",
+            ar: "الجُحر أبعد الآن. رصّ اللبنات ليقفز الأرنب الآلي حتى يصل إليه.",
           },
           instructions: {
             en: "Stack the blocks you need under When Start to reach the burrow. Blocks run in order, from top to bottom.",
@@ -268,6 +276,10 @@ export const bunnyMeadow: WorldFixture = {
           objective: {
             en: "Combine moves and turns to navigate a bend, understanding that a turn is an instruction that moves nothing.",
             ar: "اجمع بين القفز والاستدارة لعبور الانعطاف، مع فهم أن الاستدارة تعليمة لا تُحرّك الأرنب من مكانه.",
+          },
+          mission: {
+            en: "Hop and turn to get Robo Bunny around the berry bush and into the burrow.",
+            ar: "اقفز واستدر لتعبر بالأرنب الآلي حول شجيرة التوت وتدخل الجُحر.",
           },
           instructions: {
             en: "Use Move Forward and the new turn blocks to steer Robo Bunny around the bend and into the burrow.",
@@ -406,6 +418,10 @@ export const bunnyMeadow: WorldFixture = {
           objective: {
             en: "Plan a route satisfying two success conditions (collection + destination) and read PARTIAL feedback to fix a route.",
             ar: "خطّط مسارًا يحقق شرطَي نجاح معًا (جمع الجزر والوصول إلى الجُحر)، وتعلّم قراءة التغذية الراجعة «جزئي» لتصحيح المسار.",
+          },
+          mission: {
+            en: "Collect all 3 carrots, then finish in the burrow.",
+            ar: "اجمع الجزرات الثلاث كلها، ثم انتهِ في الجُحر.",
           },
           instructions: {
             en: "Plan a route that collects all three carrots AND ends in the burrow. Carrots are picked up automatically when you hop onto their tile.",
@@ -556,6 +572,10 @@ export const bunnyMeadow: WorldFixture = {
           objective: {
             en: "Watch a loop run, then complete it — understanding that the blocks inside Repeat are the ones that run again and again.",
             ar: "شاهد حلقة تكرار وهي تعمل ثم أكملها، مع فهم أن اللبنات الموجودة داخل «كرّر» هي التي تعمل مرة بعد مرة.",
+          },
+          mission: {
+            en: "Watch the Repeat trick, then put the missing block back inside it.",
+            ar: "شاهد حيلة «كرّر»، ثم أعد اللبنة الناقصة إلى داخلها.",
           },
           instructions: {
             en: "First watch Robo Bunny hop 3 times using one Repeat block. Then put the missing block back inside the Repeat and press Check.",
@@ -708,6 +728,10 @@ export const bunnyMeadow: WorldFixture = {
           objective: {
             en: "Use Repeat to express four identical actions with one Move block, and articulate why the loop version is better.",
             ar: "استخدم لبنة «كرّر» للتعبير عن أربع حركات متطابقة بلبنة «تقدّم» واحدة، واشرح لماذا نسخة الحلقة أفضل.",
+          },
+          mission: {
+            en: "You only get ONE move block. Use Repeat to hop 4 times to the burrow!",
+            ar: "لديك لبنة «تقدّم للأمام» واحدة فقط. استخدم «كرّر» لتقفز 4 مرات حتى الجُحر!",
           },
           instructions: {
             en: "The toolbox only gives you ONE Move Forward block — that's the puzzle. Use the Repeat block to reach the burrow in four hops.",

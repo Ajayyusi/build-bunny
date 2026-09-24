@@ -10,6 +10,7 @@ import { Button, cn, useReducedMotion } from "@/ui";
 import { HintDrawer, type HintTierState } from "./shared/HintDrawer";
 import { PredictScene } from "./shared/PredictScene";
 import { IntroOverlay } from "./shared/IntroOverlay";
+import { MissionStrip } from "./shared/MissionStrip";
 import { ResultBanner } from "./shared/ResultBanner";
 import { SuccessOverlay } from "./shared/SuccessOverlay";
 import type {
@@ -50,6 +51,8 @@ export function CodePredictionPlayer({
   const locale = useLocale();
 
   const [phase, setPhase] = useState<Phase>("intro");
+  // The briefing reopened from the mission strip, mid-level.
+  const [briefingOpen, setBriefingOpen] = useState(false);
   const [selected, setSelected] = useState<string | null>(null);
   const [submission, setSubmission] = useState<Submission | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -220,6 +223,13 @@ export function CodePredictionPlayer({
         </span>
       </header>
 
+      {phase !== "intro" ? (
+        <MissionStrip
+          objective={intro.objective}
+          onShow={() => setBriefingOpen(true)}
+        />
+      ) : null}
+
       {/* ── Content ── */}
       <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6">
         <div className="mx-auto flex max-w-2xl flex-col gap-6">
@@ -322,8 +332,9 @@ export function CodePredictionPlayer({
       </div>
 
       {/* ── Overlays ── */}
-      {phase === "intro" ? (
+      {phase === "intro" || briefingOpen ? (
         <IntroOverlay
+          reopened={phase !== "intro"}
           title={intro.title}
           story={intro.story}
           objective={intro.objective}
@@ -333,6 +344,10 @@ export function CodePredictionPlayer({
           worldTheme={intro.worldTheme}
           howScene={<PredictScene />}
           onStart={() => {
+            if (phase !== "intro") {
+              setBriefingOpen(false);
+              return;
+            }
             editStartRef.current = Date.now();
             setPhase("edit");
           }}

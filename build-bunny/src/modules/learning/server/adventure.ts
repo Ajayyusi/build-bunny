@@ -81,6 +81,8 @@ export interface LevelIntro {
   title: LocalizedText;
   story: LocalizedText | null;
   objective: LocalizedText | null;
+  /** Child-facing mission line (null → fall back to objective). */
+  mission: LocalizedText | null;
   instructions: LocalizedText | null;
   difficulty: string;
   estimatedMinutes: number;
@@ -108,6 +110,7 @@ const snapshotTextSchema = z.object({
   title: localizedText,
   story: localizedText.nullish(),
   objective: localizedText.nullish(),
+  mission: localizedText.nullish(),
   instructions: localizedText.nullish(),
 });
 type SnapshotText = z.infer<typeof snapshotTextSchema>;
@@ -507,6 +510,7 @@ export async function getLevelIntro(
     title: text.title,
     story: text.story ?? null,
     objective: text.objective ?? null,
+    mission: text.mission ?? null,
     instructions: text.instructions ?? null,
     difficulty: level.difficulty,
     estimatedMinutes: level.estimatedMinutes,
@@ -609,6 +613,7 @@ export async function getLevelIntros(
       title: text.title,
       story: text.story ?? null,
       objective: text.objective ?? null,
+      mission: text.mission ?? null,
       instructions: text.instructions ?? null,
       difficulty: level.difficulty,
       estimatedMinutes: level.estimatedMinutes,

@@ -395,6 +395,10 @@ model Level {
   title        Json
   story        Json?
   objective    Json?
+  /// Child-facing one-line goal shown as "Your mission". `objective` is the
+  /// teacher-facing learning objective; players fall back to it when a
+  /// level has no mission authored.
+  mission      Json?
   instructions Json?
   explanation  Json?
   teacherNotes Json?

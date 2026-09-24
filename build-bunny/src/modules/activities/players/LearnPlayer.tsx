@@ -15,6 +15,7 @@ import { runForPlayback } from "./client-run";
 import { HintDrawer, type HintTierState } from "./shared/HintDrawer";
 import { LearnScene } from "./shared/LearnScene";
 import { IntroOverlay } from "./shared/IntroOverlay";
+import { MissionStrip } from "./shared/MissionStrip";
 import { LearnDoneOverlay } from "./shared/LearnDoneOverlay";
 import type {
   ActivityPlayerProps,
@@ -75,6 +76,8 @@ export function LearnPlayer({
   const blockLocale: BlockLocale = locale === "ar" ? "ar" : "en";
 
   const [phase, setPhase] = useState<Phase>("intro");
+  // The briefing reopened from the mission strip, mid-level.
+  const [briefingOpen, setBriefingOpen] = useState(false);
   const [playing, setPlaying] = useState(false);
   const [watched, setWatched] = useState(false);
   const [highlightId, setHighlightId] = useState<string | null>(null);
@@ -345,11 +348,18 @@ export function LearnPlayer({
         </span>
       </header>
 
+      {phase !== "intro" ? (
+        <MissionStrip
+          objective={intro.objective}
+          onShow={() => setBriefingOpen(true)}
+        />
+      ) : null}
+
       {/* ── Sim + workspace ── */}
-      <div className="relative flex min-h-0 flex-1 flex-col lg:flex-row">
+      <div className="relative flex min-h-0 flex-1 flex-col split:flex-row">
         <section
           aria-label={t("simRegion")}
-          className="relative flex h-[42dvh] shrink-0 flex-col border-b border-border-token lg:h-auto lg:w-[42%] lg:shrink lg:border-b-0 lg:border-e"
+          className="relative flex h-[38dvh] shrink-0 flex-col border-b border-border-token split:h-auto split:w-[42%] split:min-w-[22rem] split:shrink-0 split:border-b-0 split:border-e"
         >
           <div className="relative min-h-0 flex-1 p-2 sm:p-3">
             <SimulationCanvas
@@ -363,7 +373,7 @@ export function LearnPlayer({
               ariaLabel={t("simLabel")}
             />
           </div>
-          <div className="hidden shrink-0 items-center gap-2 px-3 pb-3 lg:flex">
+          <div className="hidden shrink-0 items-center gap-2 px-3 pb-3 split:flex">
             {actionButtons}
           </div>
         </section>
@@ -444,13 +454,14 @@ export function LearnPlayer({
       </div>
 
       {/* ── Mobile action bar (44px+ targets, fixed to the bottom edge) ── */}
-      <div className="flex shrink-0 items-center gap-2 border-t border-border-token bg-surface-raised p-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] lg:hidden">
+      <div className="flex shrink-0 items-center gap-2 border-t border-border-token bg-surface-raised p-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] split:hidden">
         {actionButtons}
       </div>
 
       {/* ── Overlays ── */}
-      {phase === "intro" ? (
+      {phase === "intro" || briefingOpen ? (
         <IntroOverlay
+          reopened={phase !== "intro"}
           title={intro.title}
           story={intro.story}
           objective={intro.objective}
@@ -460,6 +471,10 @@ export function LearnPlayer({
           worldTheme={intro.worldTheme}
           howScene={<LearnScene />}
           onStart={() => {
+            if (phase !== "intro") {
+              setBriefingOpen(false);
+              return;
+            }
             setPhase("show");
             setPlaying(true);
           }}

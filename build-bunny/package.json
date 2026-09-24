@@ -26,7 +26,8 @@
     "demo:reset": "tsx scripts/reset-demo.ts",
     "dev:skip-to": "tsx scripts/skip-to.ts",
     "load-check": "tsx scripts/load-check.ts",
-    "db:studio": "prisma studio"
+    "db:studio": "prisma studio",
+    "test:e2e": "playwright test"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
@@ -47,6 +48,7 @@
     "jsdom": "^26.1.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.63.0",
     "@tailwindcss/postcss": "^4.1.11",
     "@types/node": "^22.10.0",
     "@types/react": "^19.1.9",

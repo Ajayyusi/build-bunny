@@ -180,8 +180,12 @@ export function SuccessOverlay({
             // reads as something you earned, not something you were handed.
             <span className="inline-flex h-9 items-center gap-1 rounded-full bg-accent/25 px-4 text-sm font-bold tabular-nums">
               <span aria-hidden="true">⚡</span>
+              {/* `{xp}` is a plain placeholder; the count-up rides on the
+                  <count> TAG. Passing a function for the placeholder itself
+                  rendered nothing ("+ XP") and logged a React error. */}
               {t.rich("xp", {
-                xp: () => <CountUp key={xpAwarded} value={xpAwarded} />,
+                xp: xpAwarded,
+                count: () => <CountUp key={xpAwarded} value={xpAwarded} />,
               })}
             </span>
           ) : null}

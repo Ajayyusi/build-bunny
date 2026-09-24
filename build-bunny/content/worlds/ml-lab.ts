@@ -65,6 +65,10 @@ export const mlLab: WorldFixture = {
             en: "Split data into training and testing yourself, and discover that a perfect score on your own test can still hide a broken model.",
             ar: "قسّم البيانات بنفسك إلى تدريب واختبار، واكتشف أن العلامة الكاملة في اختبارك أنت قد تخفي نموذجًا معطوبًا.",
           },
+          mission: {
+            en: "Train a power-cell checker — and keep some cells back to test it fairly.",
+            ar: "درّب فاحصًا لخلايا الطاقة — واحتفظ ببعض الخلايا لتختبره بعدل.",
+          },
           instructions: {
             en: "Three piles now: Good, Overheats, and Keep for testing. Hold at least 3 cells back — the model never learns from those. Watch your own score, then press the button to face the lab's hidden exam.",
             ar: "ثلاث أكوام الآن: سليمة، وتسخن، واحتفظ بها للاختبار. احجز 3 خلايا على الأقل — لن يتعلم النموذج منها أبدًا. راقب علامتك، ثم اضغط الزر لتواجه امتحان المختبر الخفي.",
@@ -201,6 +205,10 @@ export const mlLab: WorldFixture = {
           objective: {
             en: "Discover that when one mistake is dangerous and the other is merely wasteful, the most accurate model can be the wrong model.",
             ar: "اكتشف أنه حين يكون أحد الأخطاء خطيرًا والآخر مجرد هدر، قد يكون النموذج الأدق هو النموذج الخطأ.",
+          },
+          mission: {
+            en: "Train a checker that NEVER calls an overheating cell good.",
+            ar: "درّب فاحصًا لا يصف أبدًا خلية ساخنة بأنها جيدة.",
           },
           instructions: {
             en: "The lab's rule: NEVER call an overheating cell good. Up to 2 false alarms the other way are allowed. Lean your teaching toward caution and watch the two tallies — not the total score.",
@@ -346,6 +354,10 @@ export const mlLab: WorldFixture = {
           objective: {
             en: "Run a real training loop, and discover that a machine which improves at every single step can still finish in the wrong place.",
             ar: "شغّل حلقة تدريب حقيقية، واكتشف أن آلة تتحسن في كل خطوة قد تنتهي في المكان الخطأ مع ذلك.",
+          },
+          mission: {
+            en: "Place three starting flags, press Run, and watch the machine train itself.",
+            ar: "ضع ثلاثة أعلام بداية، واضغط تشغيل، وشاهد الآلة تدرّب نفسها.",
           },
           instructions: {
             en: "Place three starting flags, then press Run and watch: every dot joins its nearest flag, every flag walks to the middle of its dots, again and again until it stops. The score that counts is where it STOPS — a sloppy start can win, and a tidy-looking one can lose.",

@@ -3,13 +3,20 @@
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 
+import { Link } from "@/i18n/navigation";
+import { GridScene } from "@/modules/activities/players/shared/GridScene";
 import { BunnyMascot, Button, cn, useFocusTrap, type BunnyState } from "@/ui";
 
 import styles from "./onboarding.module.css";
 
 /**
- * First-run welcome: Bunny introduces itself and the four things a student
- * needs to know (the map, missions, XP/stars, and that hints exist).
+ * First-run welcome: Robo Bunny introduces itself, shows how a program is
+ * made, says hints exist — and then hands the child straight into mission 1.
+ *
+ * It used to be four text cards ending in "Let's go!", which closed the
+ * dialog and left a seven-year-old on a dashboard to work out what to press.
+ * The last step's primary action is now the first mission itself; looking
+ * around is the secondary choice, not the default.
  *
  * Shown only to a student who has not earned any XP yet, and dismissible for
  * good — the "seen" flag lives in localStorage rather than the database
@@ -20,14 +27,22 @@ import styles from "./onboarding.module.css";
  * The key is per-user, and that is not cosmetic: this product runs on shared
  * classroom tablets, so a single global key meant the first child to dismiss
  * the welcome silently consumed it for every child who used that tablet
- * afterwards. Versioned too, so a reworked welcome can be shown again.
+ * afterwards. Versioned too, so a reworked welcome is shown again (v2: the
+ * three-step welcome that ends in the first mission).
  */
 
-const STORAGE_VERSION = "v1";
+const STORAGE_VERSION = "v2";
 const storageKey = (userId: string) => `bb:onboarded:${STORAGE_VERSION}:${userId}`;
-const STEP_STATES: BunnyState[] = ["waving", "pointing", "excited", "thinking"];
+const STEP_STATES: BunnyState[] = ["waving", "pointing", "thinking"];
 
-export function Onboarding({ show, userId }: { show: boolean; userId: string }) {
+interface OnboardingProps {
+  show: boolean;
+  userId: string;
+  /** The level the child should play first; null when none is open yet. */
+  firstMissionHref: string | null;
+}
+
+export function Onboarding({ show, userId, firstMissionHref }: OnboardingProps) {
   const t = useTranslations("student.home.onboarding");
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState(0);
@@ -43,13 +58,17 @@ export function Onboarding({ show, userId }: { show: boolean; userId: string }) 
     setOpen(true);
   }, [show, userId]);
 
-  const close = () => {
-    setOpen(false);
+  const markSeen = () => {
     try {
       window.localStorage.setItem(storageKey(userId), "1");
     } catch {
       // Preference won't persist; the welcome is still dismissed for now.
     }
+  };
+
+  const close = () => {
+    setOpen(false);
+    markSeen();
   };
 
   if (!open) return null;
@@ -60,7 +79,7 @@ export function Onboarding({ show, userId }: { show: boolean; userId: string }) 
     <div
       className={cn(
         styles.scrim,
-        "fixed inset-0 z-50 flex items-center justify-center bg-ink/40 p-4",
+        "fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-ink/40 p-4",
       )}
     >
       <div
@@ -74,11 +93,19 @@ export function Onboarding({ show, userId }: { show: boolean; userId: string }) 
           "flex w-full max-w-sm flex-col items-center gap-4 rounded-2xl border border-border-token bg-surface-raised p-6 text-center shadow-overlay focus:outline-none",
         )}
       >
-        <BunnyMascot state={STEP_STATES[step]!} size="lg" />
+        {step === 1 ? (
+          // "Blocks, then Run, then the bunny moves" is the one idea a
+          // sentence cannot teach, so this step shows it happening.
+          <div className="w-full rounded-xl bg-surface-sunken p-3">
+            <GridScene />
+          </div>
+        ) : (
+          <BunnyMascot state={STEP_STATES[step]!} size="lg" />
+        )}
         <h2 className="font-display text-xl font-bold text-ink">
           {t(`steps.${step}.title`)}
         </h2>
-        <p className="text-sm leading-relaxed text-ink-muted">
+        <p className="text-base leading-relaxed text-ink-muted">
           {t(`steps.${step}.body`)}
         </p>
 
@@ -87,21 +114,43 @@ export function Onboarding({ show, userId }: { show: boolean; userId: string }) 
             <span
               key={index}
               className={cn(
-                "size-1.5 rounded-full transition-colors",
+                "size-2 rounded-full transition-colors",
                 index === step ? "bg-brand" : "bg-border-token",
               )}
             />
           ))}
         </div>
 
-        <div className="flex w-full items-center justify-between gap-2 pt-1">
-          <Button variant="ghost" size="lg" onClick={close}>
-            {t("skip")}
-          </Button>
-          <Button size="lg" onClick={() => (last ? close() : setStep(step + 1))}>
-            {last ? t("done") : t("next")}
-          </Button>
-        </div>
+        {last ? (
+          <div className="flex w-full flex-col gap-2 pt-1">
+            {firstMissionHref ? (
+              <Link
+                href={firstMissionHref}
+                onClick={markSeen}
+                className="inline-flex h-12 items-center justify-center gap-2 rounded-lg bg-brand px-5 text-base font-bold text-on-brand transition-colors hover:bg-brand-strong"
+              >
+                <span aria-hidden="true">▶</span>
+                {t("done")}
+              </Link>
+            ) : null}
+            <Button
+              variant={firstMissionHref ? "ghost" : "primary"}
+              size="lg"
+              onClick={close}
+            >
+              {firstMissionHref ? t("later") : t("next")}
+            </Button>
+          </div>
+        ) : (
+          <div className="flex w-full items-center justify-between gap-2 pt-1">
+            <Button variant="ghost" size="lg" onClick={close}>
+              {t("skip")}
+            </Button>
+            <Button size="lg" onClick={() => setStep(step + 1)}>
+              {t("next")}
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );

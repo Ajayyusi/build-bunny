@@ -8,6 +8,7 @@ import { Link } from "@/i18n/navigation";
 import type { BlockLocale } from "@/modules/blockly/blocks";
 import type { BlocklyWorkspaceHandle } from "@/modules/blockly/BlocklyWorkspace";
 import { CodeView } from "@/modules/blockly/CodeView";
+import { programShape } from "@/modules/blockly/serialization";
 import SimulationCanvas from "@/modules/simulation/SimulationCanvas";
 import { Button, cn, useReducedMotion } from "@/ui";
 
@@ -15,9 +16,11 @@ import { generateDisplayCode, runLocally, type LocalRunOutcome } from "./client-
 import { GridScene } from "./shared/GridScene";
 import { HintDrawer, type HintTierState } from "./shared/HintDrawer";
 import { IntroOverlay } from "./shared/IntroOverlay";
+import { MissionStrip } from "./shared/MissionStrip";
 import { ResultBanner, useFeedbackText } from "./shared/ResultBanner";
 import { SuccessOverlay } from "./shared/SuccessOverlay";
 import type {
+  ActivityFeedback,
   ActivityPlayerProps,
   AttemptResponse,
   GridActivityPayload,
@@ -75,6 +78,9 @@ export function GridPlayer({
   const [hintOpen, setHintOpen] = useState(false);
   const [revealingTier, setRevealingTier] = useState<number | null>(null);
   const [lastRunAt, setLastRunAt] = useState<number | null>(null);
+  // Pre-run coaching (empty / unsnapped program). Never graded, never posted.
+  const [coach, setCoach] = useState<ActivityFeedback | null>(null);
+  const [briefingOpen, setBriefingOpen] = useState(false);
   const reducedMotion = useReducedMotion();
   const [hints, setHints] = useState<HintTierState[]>(() =>
     [1, 2, 3, 4].map((tier) => ({
@@ -111,6 +117,7 @@ export function GridPlayer({
 
   const handleWorkspaceChange = (json: Record<string, unknown>) => {
     jsonRef.current = json;
+    setCoach(null);
     // Autosave contract: 2s debounce after the last edit.
     if (saveTimerRef.current !== null) window.clearTimeout(saveTimerRef.current);
     saveTimerRef.current = window.setTimeout(() => {
@@ -189,6 +196,19 @@ export function GridPlayer({
   const handleRun = () => {
     if (phase === "running") return;
     const json = currentJson();
+    // The two commonest first-run mistakes — Run on an empty program, and a
+    // block dropped near "when start" without snapping on — used to run a
+    // program that did nothing and report "Bunny finished away from the
+    // burrow", which is true and teaches nothing. Explain the wiring instead,
+    // and don't spend an attempt (or a teacher-visible failure) on it.
+    const shape = programShape(json);
+    if (shape.attached === 0) {
+      setAttempt(null);
+      setPhase("edit");
+      setCoach({ code: shape.loose > 0 ? "looseBlocks" : "emptyProgram" });
+      return;
+    }
+    setCoach(null);
     const maxHintTier = hints.reduce(
       (max, hint) => (hint.revealed ? Math.max(max, hint.tier) : max),
       0,
@@ -442,11 +462,18 @@ export function GridPlayer({
         </div>
       </header>
 
+      {phase !== "intro" ? (
+        <MissionStrip
+          objective={intro.objective}
+          onShow={() => setBriefingOpen(true)}
+        />
+      ) : null}
+
       {/* ── Sim + workspace ── */}
-      <div className="relative flex min-h-0 flex-1 flex-col lg:flex-row">
+      <div className="relative flex min-h-0 flex-1 flex-col split:flex-row">
         <section
           aria-label={t("simRegion")}
-          className="relative flex h-[42dvh] shrink-0 flex-col border-b border-border-token lg:h-auto lg:w-[42%] lg:shrink lg:border-b-0 lg:border-e"
+          className="relative flex h-[38dvh] shrink-0 flex-col border-b border-border-token split:h-auto split:w-[42%] split:min-w-[22rem] split:shrink-0 split:border-b-0 split:border-e"
         >
           <div className="relative min-h-0 flex-1 p-2 sm:p-3">
             {payload.variants.length > 1 ? (
@@ -468,7 +495,7 @@ export function GridPlayer({
               ariaLabel={t("simLabel")}
             />
           </div>
-          <div className="hidden shrink-0 items-center gap-2 px-3 pb-3 lg:flex">
+          <div className="hidden shrink-0 items-center gap-2 px-3 pb-3 split:flex">
             {actionButtons}
           </div>
         </section>
@@ -509,8 +536,19 @@ export function GridPlayer({
         </section>
 
         {/* Located failure banner: over the sim panel, never over blocks. */}
+        {coach && !showFailure ? (
+          <div className="absolute bottom-0 start-0 end-0 z-20 p-3 split:bottom-14 split:end-auto split:w-[42%] split:min-w-[22rem]">
+            <ResultBanner
+              tone="coach"
+              feedback={coach}
+              onTryAgain={() => setCoach(null)}
+              showHintNudge={false}
+              onOpenHints={() => setHintOpen(true)}
+            />
+          </div>
+        ) : null}
         {showFailure ? (
-          <div className="absolute bottom-0 start-0 end-0 z-20 p-3 lg:end-auto lg:w-[42%]">
+          <div className="absolute bottom-0 start-0 end-0 z-20 p-3 split:bottom-14 split:end-auto split:w-[42%] split:min-w-[22rem]">
             <ResultBanner
               feedback={resultFeedback}
               onTryAgain={handleTryAgain}
@@ -524,7 +562,7 @@ export function GridPlayer({
       </div>
 
       {/* ── Mobile action bar (44px+ targets, fixed to the bottom edge) ── */}
-      <div className="flex shrink-0 items-center gap-2 border-t border-border-token bg-surface-raised p-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] lg:hidden">
+      <div className="flex shrink-0 items-center gap-2 border-t border-border-token bg-surface-raised p-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] split:hidden">
         {actionButtons}
       </div>
 
@@ -543,6 +581,20 @@ export function GridPlayer({
             editStartRef.current = Date.now();
             setPhase("edit");
           }}
+        />
+      ) : null}
+
+      {briefingOpen ? (
+        <IntroOverlay
+          reopened
+          title={intro.title}
+          story={intro.story}
+          objective={intro.objective}
+          instructions={intro.instructions}
+          difficulty={intro.difficulty}
+          estimatedMinutes={intro.estimatedMinutes}
+          howScene={<GridScene />}
+          onStart={() => setBriefingOpen(false)}
         />
       ) : null}
 

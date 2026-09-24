@@ -80,6 +80,8 @@ export interface LevelSnapshot {
   title: LocalizedText;
   story: LocalizedText | null;
   objective: LocalizedText | null;
+  /** Child-facing mission line; absent in snapshots published before it existed. */
+  mission: LocalizedText | null;
   instructions: LocalizedText | null;
   explanation: LocalizedText | null;
   teacherNotes: LocalizedText | null;
@@ -262,6 +264,7 @@ function buildSnapshot(level: LevelWithParents): LevelSnapshot {
     title: asText(level.title) ?? { en: "" },
     story: asText(level.story),
     objective: asText(level.objective),
+    mission: asText(level.mission),
     instructions: asText(level.instructions),
     explanation: asText(level.explanation),
     teacherNotes: asText(level.teacherNotes),

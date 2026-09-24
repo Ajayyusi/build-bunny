@@ -3,6 +3,16 @@
    unlayered it would beat them (e.g. the home hero's `hidden sm:block`). */
 @import "./bunny.css" layer(components);
 
+/* Side-by-side player layout (board beside blocks). Wide screens always;
+   narrower ones only in landscape, where stacking the board above the blocks
+   pushed Run below the fold on short windows and small laptops. Portrait
+   tablets keep the stacked layout so the block workspace gets full width. */
+@custom-variant split {
+  @media (min-width: 1024px), (min-width: 640px) and (orientation: landscape) {
+    @slot;
+  }
+}
+
 /* ════════════════════════════════════════════════════════════════════════
    Build Bunny design tokens — three layers:
 

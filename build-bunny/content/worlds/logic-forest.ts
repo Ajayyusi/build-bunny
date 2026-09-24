@@ -77,6 +77,10 @@ export const logicForest: WorldFixture = {
             en: "Watch a loop repeat a group of blocks, then complete it — understanding that a Repeat's mouth can hold more than one block and the whole group repeats together.",
             ar: "شاهد حلقة تكرّر مجموعة من اللبنات ثم أكملها، مع فهم أن فم «كرّر» يتّسع لأكثر من لبنة وأن المجموعة كلها تتكرّر معًا.",
           },
+          mission: {
+            en: "Watch a loop with TWO blocks inside, then fill in the missing one.",
+            ar: "شاهد حلقة بداخلها لبنتان، ثم أكمل اللبنة الناقصة.",
+          },
           instructions: {
             en: "First watch Robo Bunny hop a square using one Repeat with TWO blocks inside. Then put the missing block back and press Check.",
             ar: "أولًا شاهد الأرنب الآلي يقفز مربّعًا مستخدمًا «كرّر» واحدة تضمّ لبنتين. ثم أعد اللبنة الناقصة واضغط «تحقّق».",
@@ -234,6 +238,10 @@ export const logicForest: WorldFixture = {
             en: "Identify a repeating movement pattern (move-move-turn) and encode it as a multi-block loop body.",
             ar: "تعرّف على نمط حركة متكرر (تقدّم-تقدّم-استدارة)، وحوّله إلى جسم حلقة يضمّ أكثر من لبنة.",
           },
+          mission: {
+            en: "Find the pattern in the square trail, put it in one Repeat, and grab every carrot.",
+            ar: "اكتشف النمط في الدرب المربّع، وضعه في «كرّر» واحدة، واجمع كل الجزر.",
+          },
           instructions: {
             en: "The trail runs in a square back to the home stump. Find the repeating pattern, pack it into one Repeat block, and collect every carrot on the way around.",
             ar: "يدور الدرب في مربّع ويعود إلى الجذع نفسه. اكتشف النمط المتكرر، وضعه داخل لبنة «كرّر» واحدة، والتقط كل جزرة في طريقك.",
@@ -360,6 +368,10 @@ export const logicForest: WorldFixture = {
           objective: {
             en: "Plan a collision-free route around blocking obstacles and interpret a located runtime failure message ('bumped at step N') to fix a program.",
             ar: "خطّط مسارًا آمنًا يتجنّب العوائق، وتعلّم قراءة رسالة فشل محددة الموقع («اصطدام عند الخطوة رقم كذا») لإصلاح البرنامج.",
+          },
+          mission: {
+            en: "Plan a way around the two boulders and reach the burrow without a bump.",
+            ar: "خطّط طريقًا حول الصخرتين وصِل إلى الجُحر دون أي اصطدام.",
           },
           instructions: {
             en: "Two boulders block the trail, and bumping one ends the run — the message tells you exactly which step went wrong. Plan a detour to the burrow, and keep an eye out for a hidden loop in your route.",
@@ -514,6 +526,10 @@ export const logicForest: WorldFixture = {
           objective: {
             en: "Watch an If block ask a question before acting, then complete it — understanding that what sits inside If runs only when the answer is yes, and is skipped when it is no.",
             ar: "شاهد لبنة «إذا» وهي تطرح سؤالًا قبل التنفيذ، ثم أكملها، مع فهم أن ما بداخل «إذا» لا يعمل إلا عندما تكون الإجابة نعم، ويُتخطّى عندما تكون لا.",
+          },
+          mission: {
+            en: "Watch Robo Bunny look before it hops, then complete the If block.",
+            ar: "شاهد الأرنب الآلي ينظر قبل أن يقفز، ثم أكمل لبنة «إذا».",
           },
           instructions: {
             en: "First watch Robo Bunny check for a blocked path before every hop. Then put the missing block back inside the If and press Check.",
@@ -697,6 +713,10 @@ export const logicForest: WorldFixture = {
             en: "Write one program that succeeds on two different maps by using 'If path ahead is blocked' to choose a direction at a junction.",
             ar: "اكتب برنامجًا واحدًا ينجح على خريطتين مختلفتين باستخدام «إذا الطريق أمامي مسدود» لاختيار الاتجاه عند مفترق الطرق.",
           },
+          mission: {
+            en: "Write ONE program that checks for rocks and reaches a burrow on BOTH maps.",
+            ar: "اكتب برنامجًا واحدًا يتحقّق من الصخور ويصل إلى جُحر في الخريطتين كلتيهما.",
+          },
           instructions: {
             en: "The rockslide blocked a different door on each map. Use the If block with the path-ahead sensor to check before choosing — and write ONE program that reaches a burrow on BOTH maps. Run both before you finish.",
             ar: "سدّ الانهيار الصخري بابًا مختلفًا في كل خريطة. استخدم لبنة «إذا» مع مستشعر الطريق أمامي للتحقق قبل الاختيار — واكتب برنامجًا واحدًا فقط يصل إلى الجُحر في الخريطتين معًا. شغّل الخريطتين قبل أن تنهي.",
@@ -865,6 +885,10 @@ export const logicForest: WorldFixture = {
             en: "Watch a loop run until the burrow is reached, then complete it — understanding that Repeat Until stops on a condition, not on a number.",
             ar: "شاهد حلقة تعمل حتى الوصول إلى الجحر ثم أكملها، مع فهم أن «كرّر حتى» تتوقّف عند شرط لا عند رقم.",
           },
+          mission: {
+            en: "Watch a loop that stops at the burrow all by itself, then fill in the gap.",
+            ar: "شاهد حلقة تتوقف عند الجُحر من تلقاء نفسها، ثم املأ الفراغ.",
+          },
           instructions: {
             en: "First watch Robo Bunny hop the whole trail without anyone counting it. Then put the missing block back inside the loop and press Check.",
             ar: "أولًا شاهد الأرنب الآلي يقطع الدرب كله دون أن يعدّ أحد. ثم أعد اللبنة الناقصة إلى داخل الحلقة واضغط «تحقّق».",
@@ -1008,6 +1032,10 @@ export const logicForest: WorldFixture = {
             en: "Use a condition-controlled loop (Repeat Until I Reach the Goal) to traverse a corridor of unknown length.",
             ar: "استخدم حلقة مضبوطة بشرط («كرّر حتى أصل إلى الهدف») لعبور ممر مجهول الطول.",
           },
+          mission: {
+            en: "The trail's length is a secret! Hop until you reach the goal, and grab the golden carrot.",
+            ar: "طول الدرب سرّ! اقفز حتى تصل إلى الهدف، والتقط الجزرة الذهبية.",
+          },
           instructions: {
             en: "The trail is a different length on each map, so a counted Repeat can't win both. Use Repeat Until I Reach the Goal to hop exactly as far as needed — and grab the carrot on the way. Your program must pass BOTH maps.",
             ar: "طول الدرب يختلف في كل خريطة، فلبنة «كرّر» بعدد ثابت لن تنجح في الاثنتين معًا. استخدم «كرّر حتى أصل إلى الهدف» للقفز بالمسافة اللازمة بالضبط — والتقط الجزرة في طريقك. يجب أن ينجح برنامجك في الخريطتين معًا.",
@@ -1128,6 +1156,10 @@ export const logicForest: WorldFixture = {
           objective: {
             en: "Combine a goal-controlled loop, an If sensor check, movement and turning to solve a spiral maze, demonstrating that small general programs beat long specific ones.",
             ar: "اجمع بين حلقة مضبوطة بالهدف، وفحص «إذا» بالمستشعر، والتقدّم والاستدارة لحلّ متاهة حلزونية — لتُثبت أن البرامج الصغيرة العامة أفضل من البرامج الطويلة المحدَّدة.",
+          },
+          mission: {
+            en: "Solve the spiral maze with ONE program and collect every carrot on both mazes.",
+            ar: "حُلّ متاهة الحلزون ببرنامج واحد واجمع كل الجزر في المتاهتين.",
           },
           instructions: {
             en: "Reach the Great Golden Burrow at the heart of the spiral and collect every carrot — with ONE program that solves BOTH mazes. Remember the trail signs: hop toward the burrow; when you can't, turn.",
@@ -1270,6 +1302,10 @@ export const logicForest: WorldFixture = {
           objective: {
             en: "Read a short program built around a Repeat loop and predict its total effect — specifically how many times a repeated action actually runs.",
             ar: "اقرأ برنامجًا قصيرًا مبنيًا على حلقة «كرّر»، وتوقّع أثره الكلي — وتحديدًا كم مرة تُنفَّذ الحركة المتكررة فعليًا.",
+          },
+          mission: {
+            en: "Read the loop program and work out what it really does.",
+            ar: "اقرأ برنامج الحلقة واكتشف ماذا يفعل حقًا.",
           },
           instructions: {
             en: "Read the program below. It uses a loop, just like every trail you've solved in this forest. Work out what it actually does, then pick the option that matches.",
