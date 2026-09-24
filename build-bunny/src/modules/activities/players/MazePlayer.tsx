@@ -24,6 +24,7 @@ import {
   writeLocalDesign,
 } from "./shared/local-draft";
 import { GridPlayer } from "./GridPlayer";
+import { NextStepHint } from "./shared/NextStepHint";
 import { GridScene } from "./shared/GridScene";
 import { IntroOverlay } from "./shared/IntroOverlay";
 import { MazeDesigner } from "./shared/MazeDesigner";
@@ -60,6 +61,7 @@ export function MazePlayer({
   payload: rawPayload,
   draft,
   revealHintAction,
+  nextStepAction,
   saveDraftAction,
 }: ActivityPlayerProps) {
   // Registry dispatch guarantees this matches intro.activityType.
@@ -159,6 +161,7 @@ export function MazePlayer({
         payload={gridPayload}
         draft={draft}
         revealHintAction={revealHintAction}
+        nextStepAction={nextStepAction}
         saveDraftAction={saveDraftAction}
         skipIntro
         attemptExtras={{ design }}
@@ -211,12 +214,21 @@ export function MazePlayer({
             </div>
           </div>
 
-          <MazeDesigner rules={rules} design={design} onChange={onDesignChange} issues={issues} />
+          <MazeDesigner rules={rules} design={design} onChange={onDesignChange} issues={issues} theme={intro.worldTheme} />
 
           <div className="sticky bottom-0 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border-token bg-surface-raised p-3 shadow-soft">
             <p role="status" className="text-sm font-semibold text-ink">
               {ready ? t("maze.ready") : t("maze.notReady")}
             </p>
+            {nextStepAction ? (
+              <NextStepHint
+                levelId={intro.levelId}
+                action={nextStepAction}
+                usedBefore={intro.hintsUsedTiers.includes(5)}
+                readyAction={`“${t("maze.build")}”`}
+                getState={() => ({ design })}
+              />
+            ) : null}
             <Button size="lg" onClick={startBuilding} disabled={!ready}>
               <span aria-hidden="true">▶</span>
               {t("maze.build")}

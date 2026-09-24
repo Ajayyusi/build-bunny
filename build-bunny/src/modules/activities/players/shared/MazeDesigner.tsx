@@ -13,6 +13,7 @@ import {
   type MazeRules,
 } from "@/modules/activities/maze";
 import { cn } from "@/ui";
+import { collectableGlyph, tintHex, worldColor } from "@/ui/worldColors";
 
 /**
  * The maze designer: pick a tile, tap the map. No dragging anywhere — a
@@ -27,27 +28,72 @@ import { cn } from "@/ui";
 
 type Brush = "." | "#" | "W" | "C" | "G" | "start";
 
-const TILE_GLYPH: Record<string, string> = { "#": "🪨", W: "🌊", C: "🥕", G: "🕳️" };
+const TILE_GLYPH: Record<string, string> = { "#": "🪨", W: "🌊", C: "🥕" };
 const DIR_ARROW: Record<Direction, string> = { N: "↑", E: "→", S: "↓", W: "←" };
+const DIR_TURN: Record<Direction, number> = { N: 0, E: 90, S: 180, W: 270 };
+
+/**
+ * The same Robo Bunny the game board draws (white shell, blue visor,
+ * glowing eyes, sunshine antenna bulbs), ears pointing the way it faces.
+ * The designer used to show a pink 🐰 emoji on flat grey-green squares, a
+ * different world from the board the child's maze then runs on.
+ */
+function RoboBunnyGlyph({ dir = "N", size = 30 }: { dir?: Direction; size?: number }) {
+  return (
+    <svg viewBox="-50 -70 100 110" width={size} height={size} style={{ transform: `rotate(${DIR_TURN[dir]}deg)` }} aria-hidden="true">
+      <g stroke="#173a63" strokeWidth="4.5" strokeLinejoin="round">
+        {[-20, 8].map((ex) => (
+          <g key={ex}>
+            <rect x={ex} y={-62} width={13} height={38} rx={6.5} fill="#ffffff" />
+            <rect x={ex + 3.5} y={-55} width={6} height={24} rx={3} fill="#ff9ec4" stroke="none" />
+            <circle cx={ex + 6.5} cy={-63} r={5.5} fill="#ffd23f" />
+          </g>
+        ))}
+        <rect x={-34} y={-30} width={68} height={60} rx={27} fill="#ffffff" />
+        <rect x={-27} y={-18} width={54} height={26} rx={13} fill="#1b64c6" />
+      </g>
+      <ellipse cx={-12} cy={-5} rx={5.5} ry={7.5} fill="#9ff7ff" />
+      <ellipse cx={12} cy={-5} rx={5.5} ry={7.5} fill="#9ff7ff" />
+    </svg>
+  );
+}
+
+/** The burrow as the board draws it: a dark hole with a little flag. */
+function BurrowGlyph({ size = 30 }: { size?: number }) {
+  return (
+    <svg viewBox="0 0 40 40" width={size} height={size} aria-hidden="true">
+      <ellipse cx="18" cy="28" rx="15" ry="8" fill="#2b1846" />
+      <ellipse cx="18" cy="27" rx="11" ry="5" fill="#140a24" />
+      <path d="M28 6v18" stroke="#8a5a2b" strokeWidth="2.5" strokeLinecap="round" />
+      <path d="M29 6l9 4-9 4z" fill="#ff3d6e" />
+    </svg>
+  );
+}
 
 export interface MazeDesignerProps {
   rules: MazeRules;
   design: GridVariantSpec;
   onChange: (design: GridVariantSpec) => void;
   issues: MazeIssue[];
+  /** World theme: the designer's squares wear the same colours as the board. */
+  theme?: string;
 }
 
-export function MazeDesigner({ rules, design, onChange, issues }: MazeDesignerProps) {
+export function MazeDesigner({ rules, design, onChange, issues, theme = "" }: MazeDesignerProps) {
+  const color = worldColor(theme);
+  const groundA = tintHex(color.fill, 0.2);
+  const groundB = tintHex(color.fill, 0.1);
+  const item = collectableGlyph(theme);
   const t = useTranslations("student.play.maze");
   const [brush, setBrush] = useState<Brush>(rules.palette[0] ?? "G");
   const [focus, setFocus] = useState({ x: 0, y: 0 });
 
-  const brushes: { id: Brush; glyph: string; label: string }[] = [
-    { id: "start", glyph: "🐰", label: t("brush.start") },
-    { id: "G", glyph: TILE_GLYPH["G"]!, label: t("brush.goal") },
+  const brushes: { id: Brush; glyph: React.ReactNode; label: string }[] = [
+    { id: "start", glyph: <RoboBunnyGlyph size={26} />, label: t("brush.start") },
+    { id: "G", glyph: <BurrowGlyph size={26} />, label: t("brush.goal") },
     ...rules.palette.map((tile) => ({
       id: tile as Brush,
-      glyph: TILE_GLYPH[tile]!,
+      glyph: tile === "C" ? item : TILE_GLYPH[tile]!,
       label: t(`brush.${tile === "#" ? "rock" : tile === "W" ? "water" : "carrot"}`),
     })),
     { id: ".", glyph: "✕", label: t("brush.clear") },
@@ -157,8 +203,13 @@ export function MazeDesigner({ rules, design, onChange, issues }: MazeDesignerPr
         // "grid" role would need row elements that this layout doesn't have.
         role="group"
         aria-label={t("gridLabel", { width: rules.board.width, height: rules.board.height })}
-        className="mx-auto grid w-fit gap-1 rounded-xl border border-border-token bg-surface-sunken p-2"
-        style={{ gridTemplateColumns: `repeat(${rules.board.width}, minmax(0, 1fr))` }}
+        className="mx-auto grid w-fit gap-1.5 rounded-2xl p-2.5"
+        // The board's frame: the world colour's dark ledge under a soft tint.
+        style={{
+          gridTemplateColumns: `repeat(${rules.board.width}, minmax(0, 1fr))`,
+          background: tintHex(color.fill, 0.35),
+          boxShadow: `0 6px 0 ${color.ledge}`,
+        }}
       >
         {design.rows.map((row, y) =>
           row.split("").map((tile, x) => {
@@ -174,23 +225,26 @@ export function MazeDesigner({ rules, design, onChange, issues }: MazeDesignerPr
                 onClick={() => paint(x, y)}
                 onKeyDown={(event) => onKeyDown(event, x, y)}
                 className={cn(
-                  "grid size-11 place-items-center rounded-md border text-2xl leading-none transition-colors sm:size-12",
-                  tile === "#" || tile === "W"
-                    ? "border-border-token bg-surface"
-                    : (x + y) % 2 === 0
-                      ? "border-border-token bg-[color-mix(in_oklab,var(--color-positive)_18%,white)]"
-                      : "border-border-token bg-[color-mix(in_oklab,var(--color-positive)_28%,white)]",
-                  "hover:ring-2 hover:ring-brand focus-visible:ring-2 focus-visible:ring-focus",
+                  "grid size-11 place-items-center rounded-[10px] text-2xl leading-none transition-transform sm:size-12",
+                  "hover:-translate-y-0.5 hover:ring-2 hover:ring-brand focus-visible:ring-2 focus-visible:ring-focus",
                 )}
+                style={{
+                  background: tile === "W" ? "#8fe0ff" : (x + y) % 2 === 0 ? groundA : groundB,
+                  boxShadow: `inset 0 -3px 0 ${tintHex(color.fill, 0.3)}`,
+                }}
               >
                 <span aria-hidden="true">
                   {isStart ? (
-                    <span className="relative inline-block">
-                      🐰
-                      <span className="absolute -end-2 -top-2 text-xs font-bold text-ink">
+                    <span className="relative inline-grid place-items-center">
+                      <RoboBunnyGlyph dir={design.start.dir} />
+                      <span className="absolute -end-2 -top-2 rounded-full bg-surface-raised px-1 text-xs font-bold text-ink shadow-sm">
                         {DIR_ARROW[design.start.dir]}
                       </span>
                     </span>
+                  ) : tile === "G" ? (
+                    <BurrowGlyph />
+                  ) : tile === "C" ? (
+                    item
                   ) : (
                     (TILE_GLYPH[tile] ?? "")
                   )}

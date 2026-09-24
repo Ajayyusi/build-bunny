@@ -142,3 +142,20 @@ export function tintCellFeatures(
   };
 }
 
+/**
+ * Where a feature value (0–1) sits on a board, as a percentage of its width
+ * or height. Values are plotted inside a margin: a reading at 0.98 used to
+ * sit on the board's very edge, half hidden under its rounded corner.
+ * Every mark (specimens, flags, lines, the tint) and every click goes
+ * through these two, so they cannot drift apart.
+ */
+export const BOARD_INSET = 0.06;
+
+export function boardPct(value: number): number {
+  return (BOARD_INSET + value * (1 - 2 * BOARD_INSET)) * 100;
+}
+
+/** The inverse of boardPct: a fraction of the board (0–1) back to a feature value. */
+export function boardValue(fraction: number): number {
+  return Math.min(1, Math.max(0, (fraction - BOARD_INSET) / (1 - 2 * BOARD_INSET)));
+}

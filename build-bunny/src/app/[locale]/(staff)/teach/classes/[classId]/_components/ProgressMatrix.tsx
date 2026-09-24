@@ -75,6 +75,15 @@ export async function ProgressMatrix({
   }
 
   const worldGroups = groupByWorld(matrix.levels, locale);
+  // Level numbers restart in every module, so without the module's name above
+  // them a column of "1 2 3 1 2 3 1 2 3 4 5 6" was only readable by hovering.
+  const moduleGroups: { key: string; name: string; count: number }[] = [];
+  for (const level of matrix.levels) {
+    const key = `${level.worldSlug}/${level.moduleSlug}`;
+    const last = moduleGroups[moduleGroups.length - 1];
+    if (last && last.key === key) last.count += 1;
+    else moduleGroups.push({ key, name: resolveText(level.moduleName, locale), count: 1 });
+  }
 
   return (
     <div className="overflow-auto rounded-lg border border-border-token" style={{ maxHeight: "70vh" }}>
@@ -82,9 +91,9 @@ export async function ProgressMatrix({
         <thead>
           <tr>
             <th
-              rowSpan={2}
+              rowSpan={3}
               scope="col"
-              className="sticky start-0 top-0 z-30 h-[4.5rem] w-44 border-b border-e border-border-token bg-surface-sunken px-3 text-start align-bottom text-xs font-semibold text-ink-muted"
+              className="sticky start-0 top-0 z-30 h-[6.75rem] w-44 border-b border-e border-border-token bg-surface-sunken px-3 text-start align-bottom text-xs font-semibold text-ink-muted"
             >
               {t("table.studentColumn")}
             </th>
@@ -100,12 +109,25 @@ export async function ProgressMatrix({
             ))}
           </tr>
           <tr>
+            {moduleGroups.map((group) => (
+              <th
+                key={group.key}
+                colSpan={group.count}
+                scope="colgroup"
+                title={group.name}
+                className="sticky top-9 z-20 h-9 max-w-0 border-b border-e border-border-token bg-surface-sunken px-2 text-center text-[11px] font-medium text-ink-muted"
+              >
+                <span className="block truncate">{group.name}</span>
+              </th>
+            ))}
+          </tr>
+          <tr>
             {matrix.levels.map((level) => (
               <th
                 key={level.id}
                 scope="col"
                 title={resolveText(level.title, locale)}
-                className="sticky top-9 z-20 h-9 w-12 border-b border-e border-border-token bg-surface-sunken px-1 text-center text-xs font-semibold tabular-nums text-ink-muted"
+                className="sticky top-[4.5rem] z-20 h-9 w-12 border-b border-e border-border-token bg-surface-sunken px-1 text-center text-xs font-semibold tabular-nums text-ink-muted"
               >
                 {level.order}
               </th>

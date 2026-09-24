@@ -6,6 +6,8 @@ import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import {
   DEFAULT_GLYPH_THEME,
+  boardPct,
+  boardValue,
   glyphFill,
   glyphPx,
   glyphShapeStyle,
@@ -17,6 +19,7 @@ import { BunnyMascot, Button, cn, useReducedMotion } from "@/ui";
 import { PlayerSoundControls } from "@/modules/audio/AudioControls";
 import { GroupScene } from "./GroupScene";
 import { Walkthrough } from "./shared/Walkthrough";
+import { NextStepHint } from "./shared/NextStepHint";
 import { postAttempt, runIdFor } from "./shared/attempt-outbox";
 import { HintDrawer } from "./shared/HintDrawer";
 import { RoboHelp, type HelpTopic } from "./shared/RoboHelp";
@@ -103,6 +106,7 @@ export function GroupPlayer({
   payload,
   draft,
   revealHintAction,
+  nextStepAction,
   saveDraftAction,
 }: ActivityPlayerProps) {
   // PATTERN_RECOGNITION levels had no hint drawer either — same fix as
@@ -128,6 +132,7 @@ export function GroupPlayer({
   // A reading in words, so the strike-out buttons are not thirteen identical
   // "Strike this reading out" to a screen reader.
   const tTeach = useTranslations("student.play.teach");
+  const tNext = useTranslations("student.play.nextStep");
   const featureNames = data.theme?.featureNames ?? {
     size: tTeach("sizeFallback"),
     color: tTeach("colorFallback"),
@@ -152,6 +157,10 @@ export function GroupPlayer({
   const [display, setDisplay] = useState<Marker[]>(restored.seed);
   const [selected, setSelected] = useState<number | null>(null);
   const [excluded, setExcluded] = useState<Set<string>>(restored.excluded);
+  // Where "Show me the next step" wants the next flag (a ghost on the board),
+  // or the reading it names.
+  const [ghost, setGhost] = useState<Marker | null>(null);
+  const [pointedReading, setPointedReading] = useState<string | null>(null);
   const [running, setRunning] = useState(false);
   const [hasRun, setHasRun] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -452,7 +461,7 @@ export function GroupPlayer({
                   const rect = event.currentTarget.getBoundingClientRect();
                   const size = (event.clientX - rect.left) / rect.width;
                   const colorFromTop = (event.clientY - rect.top) / rect.height;
-                  placeAt(size, 1 - colorFromTop);
+                  placeAt(boardValue(size), boardValue(1 - colorFromTop));
                 }}
               >
                 {/* Lines from each kept specimen to its owning flag. */}
@@ -468,10 +477,10 @@ export function GroupPlayer({
                       return (
                         <line
                           key={s.id}
-                          x1={s.size * 100}
-                          y1={(1 - s.color) * 100}
-                          x2={m.size * 100}
-                          y2={(1 - m.color) * 100}
+                          x1={boardPct(s.size)}
+                          y1={100 - boardPct(s.color)}
+                          x2={boardPct(m.size)}
+                          y2={100 - boardPct(m.color)}
                           stroke="currentColor"
                           strokeWidth="0.4"
                           className="text-ink/25"
@@ -505,7 +514,7 @@ export function GroupPlayer({
                     <span
                       key={s.id}
                       className="absolute -translate-x-1/2 translate-y-1/2"
-                      style={{ left: `${s.size * 100}%`, bottom: `${s.color * 100}%` }}
+                      style={{ left: `${boardPct(s.size)}%`, bottom: `${boardPct(s.color)}%` }}
                     >
                       {data.maxExclusions > 0 ? (
                         <button
@@ -516,7 +525,7 @@ export function GroupPlayer({
                             e.stopPropagation();
                             toggleExcluded(s.id);
                           }}
-                          className="relative block rounded-full"
+                          className={cn("relative block rounded-full", pointedReading === s.id && "ring-4 ring-accent ring-offset-2 ring-offset-surface")}
                         >
                           {dot}
                           {isExcluded ? (
@@ -541,6 +550,15 @@ export function GroupPlayer({
                   );
                 })}
 
+                {ghost ? (
+                  <span
+                    aria-hidden="true"
+                    className="pointer-events-none absolute grid size-11 -translate-x-1/2 translate-y-1/2 place-items-center rounded-full border-2 border-dashed border-accent bg-accent/20 text-lg opacity-80 motion-safe:animate-pulse"
+                    style={{ left: `${boardPct(ghost.size)}%`, bottom: `${boardPct(ghost.color)}%` }}
+                  >
+                    🚩
+                  </span>
+                ) : null}
                 {/* Flags: the display markers. Selected flag takes arrow keys. */}
                 {display.map((m, i) => (
                   <button
@@ -577,7 +595,7 @@ export function GroupPlayer({
                         ? "bg-brand/25 ring-2 ring-brand"
                         : "bg-transparent",
                     )}
-                    style={{ left: `${m.size * 100}%`, bottom: `${m.color * 100}%` }}
+                    style={{ left: `${boardPct(m.size)}%`, bottom: `${boardPct(m.color)}%` }}
                   >
                     <span aria-hidden="true">🚩</span>
                   </button>
@@ -686,6 +704,33 @@ export function GroupPlayer({
                 >
                   {t("check")}
                 </Button>
+                {nextStepAction && !submitting ? (
+                  <NextStepHint
+                    levelId={intro.levelId}
+                    action={nextStepAction}
+                    usedBefore={intro.hintsUsedTiers.includes(5)}
+                    readyAction={data.training ? `“${t("run")}”, “${t("check")}”` : `“${t("check")}”`}
+                    getState={() => ({ markers: seed, excluded: [...excluded] })}
+                    names={{
+                      specimen: (id) => {
+                        const sp = data.specimens.find((x) => x.id === id);
+                        return sp ? describe(sp) : id;
+                      },
+                      spot: (size, color) =>
+                        tNext("spot", {
+                          sizeName: featureNames.size,
+                          size: Math.round(size * 10),
+                          colorName: featureNames.color,
+                          color: Math.round(color * 10),
+                        }),
+                    }}
+                    onStep={(step) => {
+                      setGhost(step.code === "plantFlag" ? { size: step.size, color: step.color } : null);
+                      setPointedReading("specimenId" in step ? step.specimenId : null);
+                      if (step.code === "liftFlag") setSelected(step.index - 1);
+                    }}
+                  />
+                ) : null}
               </div>
               {data.training && !hasRun ? (
                 <p className="text-xs text-ink-muted">{t("runFirst")}</p>
@@ -728,6 +773,11 @@ export function GroupPlayer({
               ? t("improveFewerFlags", { max: data.starCriteria.threeStarMaxBlocks })
               : null
           }
+          onReplay={() => {
+            setResult(null);
+            setServer(null);
+          }}
+          certificate={server.certificate ?? null}
           nextHref={nextHref}
           reducedMotion={reducedMotion}
           extra={

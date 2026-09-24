@@ -41,6 +41,9 @@ export interface MatrixLevel {
   order: number;
   worldSlug: string;
   worldName: LocalizedText;
+  /** The module (lesson group) the level belongs to — the matrix's middle header row. */
+  moduleSlug: string;
+  moduleName: LocalizedText;
 }
 
 export type ProgressState = "LOCKED" | "UNLOCKED" | "IN_PROGRESS" | "COMPLETED";
@@ -321,6 +324,8 @@ async function loadSchoolLevels(schoolId: string): Promise<LoadedLevelRow[]> {
           modules: {
             orderBy: { order: "asc" },
             select: {
+              slug: true,
+              name: true,
               levels: {
                 where: { status: "PUBLISHED", publishedVersionId: { not: null } },
                 orderBy: { order: "asc" },
@@ -370,6 +375,8 @@ async function loadSchoolLevels(schoolId: string): Promise<LoadedLevelRow[]> {
             order: level.order,
             worldSlug: world.slug,
             worldName,
+            moduleSlug: mod.slug,
+            moduleName: asText(mod.name, mod.slug),
           },
           estimatedMinutes: level.estimatedMinutes,
           maxStars: level.maxStars,
