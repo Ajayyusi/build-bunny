@@ -73,12 +73,27 @@ export interface BlocklyWorkspaceProps {
   ref?: Ref<BlocklyWorkspaceHandle>;
 }
 
-/** The selected block, if it lives in this workspace and can be built on. */
-function selectedBlock(workspace: WorkspaceSvg): BlockSvg | null {
+/**
+ * The block the child is working on: Blockly's own selection, or — because
+ * Blockly's selection follows keyboard focus and vanishes the moment a
+ * button outside the canvas is tapped (Run, Add block, Ask Robo Bunny) —
+ * the block they selected last, as long as it still exists. It is cleared
+ * only by an explicit deselect (tapping the canvas background).
+ */
+function selectedBlock(workspace: WorkspaceSvg, lastId: string | null): BlockSvg | null {
   const selected = Blockly.getSelected();
-  if (!(selected instanceof Blockly.BlockSvg)) return null;
-  if (selected.workspace !== workspace || selected.isInFlyout) return null;
-  return selected;
+  if (
+    selected instanceof Blockly.BlockSvg &&
+    selected.workspace === workspace &&
+    !selected.isInFlyout
+  ) {
+    return selected;
+  }
+  if (lastId) {
+    const remembered = workspace.getBlockById(lastId);
+    if (remembered instanceof Blockly.BlockSvg && !remembered.isInFlyout) return remembered;
+  }
+  return null;
 }
 
 /** Fallback when a level ships no startWorkspace: just the locked hat. */
@@ -120,13 +135,15 @@ export default function BlocklyWorkspace({
   const onEditStateRef = useRef(onEditState);
   onEditStateRef.current = onEditState;
   const limitsRef = useRef<Record<string, number>>({});
+  // The last block the child selected (see selectedBlock).
+  const lastSelectedRef = useRef<string | null>(null);
 
   const reportEditState = (workspace: WorkspaceSvg) => {
     const counts: Record<string, number> = {};
     for (const block of workspace.getAllBlocks(false)) {
       counts[block.type] = (counts[block.type] ?? 0) + 1;
     }
-    const selected = selectedBlock(workspace);
+    const selected = selectedBlock(workspace, lastSelectedRef.current);
     const mouth = selected?.getInput("DO")?.connection ?? null;
     onEditStateRef.current?.({
       canUndo: workspace.getUndoStack().length > 0,
@@ -151,8 +168,9 @@ export default function BlocklyWorkspace({
     },
     deleteSelected() {
       const workspace = workspaceRef.current;
-      const block = workspace ? selectedBlock(workspace) : null;
+      const block = workspace ? selectedBlock(workspace, lastSelectedRef.current) : null;
       if (!block || !block.isDeletable()) return false;
+      lastSelectedRef.current = null;
       block.dispose(true);
       return true;
     },
@@ -166,7 +184,7 @@ export default function BlocklyWorkspace({
       const hat = workspace
         .getTopBlocks(false)
         .find((block) => block.type === BUNNY_HAT_BLOCK) as BlockSvg | undefined;
-      const anchor = selectedBlock(workspace);
+      const anchor = selectedBlock(workspace, lastSelectedRef.current);
 
       // One undo step for the whole insertion.
       Blockly.Events.setGroup(true);
@@ -200,6 +218,7 @@ export default function BlocklyWorkspace({
           block.moveBy(origin.x + 40, origin.y + 120);
         }
         block.select();
+        lastSelectedRef.current = block.id;
         workspace.scrollBoundsIntoView(block.getBoundingRectangle());
       } finally {
         Blockly.Events.setGroup(false);
@@ -272,8 +291,12 @@ export default function BlocklyWorkspace({
       type: string;
       newParentId?: string;
       oldParentId?: string;
+      newElementId?: string | null;
     }) => {
       if (event.type === Blockly.Events.SELECTED) {
+        // A real selection change: remember the block, or forget it on an
+        // explicit deselect (canvas tap). Focus loss fires no such event.
+        lastSelectedRef.current = event.newElementId ?? null;
         reportEditState(workspace);
         return;
       }

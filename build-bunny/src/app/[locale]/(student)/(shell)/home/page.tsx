@@ -8,6 +8,7 @@ import {
   computeAdventureState,
   type AdventureWorldNode,
 } from "@/modules/learning/server/adventure";
+import { recommendWarmUp } from "@/modules/learning/server/recommend";
 import { listMyStudentAssignments } from "@/modules/assignments/server/queries";
 import { isFeatureEnabled } from "@/modules/shared/features";
 import { getMyFeedback, getMyStudentSnapshot } from "@/modules/students/server/queries";
@@ -67,6 +68,9 @@ export default async function StudentHomePage({ params }: Props) {
   const currentLevelHref = state?.currentLevelId
     ? `/play/${state.currentLevelId}`
     : null;
+  // A warm-up is offered only when observable signals say the child is stuck
+  // on the current level (failed runs + hints); it never replaces the level.
+  const warmUp = state ? await recommendWarmUp(ctx, state) : null;
 
   const worldCards: WorldCardVM[] = playableWorlds.map(
     (w: AdventureWorldNode) => ({
@@ -90,6 +94,36 @@ export default async function StudentHomePage({ params }: Props) {
         userId={ctx.userId}
         firstMissionHref={currentLevelHref}
       />
+
+      {warmUp ? (
+        <section
+          aria-label={t("warmUpTitle", { level: resolveText(warmUp.stuckTitle, locale) })}
+          className="flex flex-col gap-3 rounded-2xl border-2 border-info/40 bg-info/10 p-5 sm:flex-row sm:items-center"
+        >
+          <BunnyMascot state="thinking" size="sm" className="shrink-0" />
+          <div className="flex min-w-0 flex-1 flex-col gap-1">
+            <h2 className="font-display text-base font-bold text-ink">
+              {t("warmUpTitle", { level: resolveText(warmUp.stuckTitle, locale) })}
+            </h2>
+            <p className="text-sm text-ink-muted">{t("warmUpBody")}</p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <Link
+              href={`/play/${warmUp.levelId}`}
+              className="inline-flex h-11 items-center gap-2 rounded-lg bg-info px-4 text-sm font-bold text-on-brand"
+            >
+              <span aria-hidden="true">🐰</span>
+              {t("warmUpCta", { level: resolveText(warmUp.title, locale) })}
+            </Link>
+            <Link
+              href={`/play/${warmUp.stuckLevelId}`}
+              className="inline-flex h-11 items-center rounded-lg px-3 text-sm font-semibold text-ink-muted underline-offset-4 hover:text-ink hover:underline"
+            >
+              {t("warmUpSkip")}
+            </Link>
+          </div>
+        </section>
+      ) : null}
 
       <AssignmentsCard assignments={assignments} locale={locale} />
 

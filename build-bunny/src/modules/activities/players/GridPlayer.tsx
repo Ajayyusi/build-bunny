@@ -11,7 +11,7 @@ import type {
   WorkspaceEditState,
 } from "@/modules/blockly/BlocklyWorkspace";
 import { CodeView } from "@/modules/blockly/CodeView";
-import { programShape } from "@/modules/blockly/serialization";
+import { programBlocks, programShape } from "@/modules/blockly/serialization";
 import SimulationCanvas from "@/modules/simulation/SimulationCanvas";
 import { Button, Dialog, cn, useReducedMotion } from "@/ui";
 
@@ -23,6 +23,7 @@ import { GridScene } from "./shared/GridScene";
 import { HintDrawer, type HintTierState } from "./shared/HintDrawer";
 import { IntroOverlay } from "./shared/IntroOverlay";
 import { MissionStrip } from "./shared/MissionStrip";
+import { RoboHelp, type HelpTopic, type RoboHelpFailure } from "./shared/RoboHelp";
 import { ResultBanner, useFeedbackText } from "./shared/ResultBanner";
 import { SuccessOverlay } from "./shared/SuccessOverlay";
 import { useGridSounds } from "./shared/useGridSounds";
@@ -102,6 +103,15 @@ export function GridPlayer({
   // Pre-run coaching (empty / unsnapped program). Never graded, never posted.
   const [coach, setCoach] = useState<ActivityFeedback | null>(null);
   const [briefingOpen, setBriefingOpen] = useState(false);
+  // "Ask Robo Bunny": explain a block, why the run failed, a smaller hint,
+  // a similar example — none of them the answer.
+  const [helpOpen, setHelpOpen] = useState(false);
+  const [helpTopic, setHelpTopic] = useState<HelpTopic | null>(null);
+  const [lastFailure, setLastFailure] = useState<RoboHelpFailure | null>(null);
+  const openHelp = (topic: HelpTopic | null) => {
+    setHelpTopic(topic);
+    setHelpOpen(true);
+  };
   const reducedMotion = useReducedMotion();
   const sounds = useGridSounds();
   const [hints, setHints] = useState<HintTierState[]>(() =>
@@ -201,6 +211,7 @@ export function GridPlayer({
     setAttempt(null);
     setHighlightId(null);
     setCoach(null);
+    setLastFailure(null);
     clearLocalDraft(draftKey);
     unsavedRef.current = null;
     if (phase === "result") setPhase("edit");
@@ -427,6 +438,33 @@ export function GridPlayer({
     ? resolveLocalized(attempt.server.worldCompleted.name, locale)
     : null;
 
+  // The last failed run, explained in terms of the child's own program:
+  // the located step from the engine's feedback, and the block that was
+  // running then (the run's highlight entries map steps to block ids).
+  // Kept as its own state — "Try again" clears the attempt, but the child
+  // asks "why?" AFTER pressing it — and refreshed when the server verdict
+  // lands. Reset clears it.
+  useEffect(() => {
+    if (phase !== "result" || !attempt || !resultFeedback || displayVerdict === "PASS") return;
+    const run = attempt.outcome.runs[attempt.outcome.playbackIndex] ?? null;
+    const rawStep = resultFeedback.data?.step;
+    const step = typeof rawStep === "number" ? rawStep : null;
+    let block: RoboHelpFailure["block"] = null;
+    if (run && step !== null) {
+      const active = run.highlights
+        .filter((entry) => entry.step <= step)
+        .sort((a, b) => b.step - a.step)[0];
+      const found = active
+        ? programBlocks(attempt.workspaceJson).find((b) => b.id === active.blockId)
+        : undefined;
+      if (found) block = { index: found.index, type: found.type };
+    }
+    setLastFailure({ feedback: resultFeedback, step, block });
+    // resultFeedback/displayVerdict derive from `attempt`, which is the
+    // identity that actually changes (client run, then server reply).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase, attempt]);
+
   const actionButtons = (
     <>
       <Button
@@ -449,11 +487,12 @@ export function GridPlayer({
       <Button
         variant="secondary"
         size="lg"
-        onClick={() => setHintOpen(true)}
+        onClick={() => openHelp(null)}
         disabled={phase === "running"}
+        aria-haspopup="dialog"
       >
         <span aria-hidden="true">💡</span>
-        {t("hint")}
+        {t("help.open")}
       </Button>
     </>
   );
@@ -680,9 +719,9 @@ export function GridPlayer({
               feedback={resultFeedback}
               onTryAgain={handleTryAgain}
               showHintNudge={failStreak >= 2}
-              onOpenHints={() => {
-                setHintOpen(true);
-              }}
+              onOpenHints={() => openHelp("hint")}
+              onWhy={() => openHelp("why")}
+              whyLabel={t("help.whyFailed")}
             />
           </div>
         ) : null}
@@ -782,6 +821,23 @@ export function GridPlayer({
           reducedMotion={reducedMotion}
         />
       ) : null}
+
+      <RoboHelp
+        open={helpOpen}
+        initialTopic={helpTopic}
+        onClose={() => setHelpOpen(false)}
+        worldTheme={intro.worldTheme}
+        tags={intro.tags}
+        selectedBlockType={editState?.selected?.type ?? null}
+        lastFailure={lastFailure}
+        hints={hints}
+        revealingTier={revealingTier}
+        onRevealTier1={() => void handleRevealHint(1)}
+        onOpenHints={() => {
+          setHelpOpen(false);
+          setHintOpen(true);
+        }}
+      />
 
       <HintDrawer
         open={hintOpen}

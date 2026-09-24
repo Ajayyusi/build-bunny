@@ -132,6 +132,13 @@ interface ResultBannerProps {
    * empty or unsnapped program): polite, calmer border, "Got it".
    */
   tone?: "fail" | "coach";
+  /**
+   * "Why did that fail?" — opens Robo Bunny's explanation of this run.
+   * Rendered whenever provided; the label is passed in because the help
+   * copy lives in its own namespace.
+   */
+  onWhy?: () => void;
+  whyLabel?: string;
 }
 
 export function ResultBanner({
@@ -141,6 +148,8 @@ export function ResultBanner({
   onOpenHints,
   overrideMessage,
   tone = "fail",
+  onWhy,
+  whyLabel,
 }: ResultBannerProps) {
   const t = useTranslations("student.play.feedback");
   const feedbackText = useFeedbackText();
@@ -182,6 +191,12 @@ export function ResultBanner({
               >
                 <span aria-hidden="true">💡</span>
                 {t("hintNudge")}
+              </Button>
+            ) : null}
+            {tone === "fail" && onWhy && whyLabel ? (
+              <Button variant="ghost" size="lg" onClick={onWhy} aria-haspopup="dialog">
+                <span aria-hidden="true">🐰</span>
+                {whyLabel}
               </Button>
             ) : null}
           </div>

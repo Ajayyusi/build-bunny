@@ -44,11 +44,15 @@ export interface PlayableLevel extends LevelIntro {
   starsBest: number;
   /** Hint tiers this student already revealed (ascending). */
   hintsUsedTiers: number[];
+  /** Concept tags from the published snapshot (never answer-bearing). */
+  tags: string[];
 }
 
 const snapshotExtrasSchema = z.object({
   explanation: localizedText.nullish(),
   payload: z.unknown(),
+  /** Concept tags — pick "a similar example" and the Learn step to revisit. */
+  tags: z.array(z.string()).default([]),
 });
 
 /**
@@ -97,6 +101,7 @@ export async function getPlayableLevel(
     startWorkspace,
     starsBest: progressRow.stars,
     hintsUsedTiers: hintRows.map((row) => row.tier),
+    tags: extras.data.tags,
   };
 }
 

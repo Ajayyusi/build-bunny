@@ -18,7 +18,7 @@ Status legend: **✅ implemented & tested** · **🟡 partial** · **⛔ blocked
 | `feat/audio` | §2 sound, music, narration | ready for review |
 | `feat/tablet-player-a11y` | §3 Blockly on touch, §7 accessibility | ready for review |
 | `feat/story-worlds` | §3 story, 8 worlds, cutscenes, finales | ready for review |
-| `feat/robo-help` | §5 help tools, adaptive hints | not started |
+| `feat/robo-help` | §5 help tools, adaptive hints | ready for review |
 | `feat/curriculum-expansion` | §4 activities, age bands, levels toward 100 | not started |
 | `feat/classroom-parent` | §6 classroom + parent | not started |
 | `feat/offline-perf-polish` | §7 offline, performance, privacy review | not started |
@@ -110,9 +110,10 @@ they should be reviewed and merged in the order above.
 
 | Item | Status | Evidence / files |
 |---|---|---|
-| "Explain this block" / "Why did that fail?" / "Smaller hint" / "Similar example" | ⬜ | |
-| Optional spoken instructions and hints | ⬜ | |
-| AI tutor (school-controlled, off by default, non-AI fallback) | ⬜ | will not send child text to any external model by default |
+| "Explain this block" / "Why did that fail?" / "Smaller hint" / "Similar example" | 🟡 | `players/shared/RoboHelp.tsx` ("Ask Robo Bunny" in the block-coding player; "Why did that fail?" also on the failure banner): block explanations for all 11 blocks (en/ar), failure explained by step + block from the run's own highlights, tier-1 hint with a path to the ladder, a concept example played by the real engine (`concept-examples.ts`, gate-tested). e2e `help.spec.ts`. **Not yet:** the same panel in the non-grid players (they keep the hint drawer) |
+| Adaptive help from observable signals | ✅ | `learning/server/recommend.ts` — failed runs + hint tier on the current level → a completed same-concept level offered as a warm-up on home (never replaces the level; no labels/ranks). Integration test + tenant-isolation case. In-level: the failure banner offers "Why did that fail?" every time and "Try a hint" after two fails |
+| Optional spoken instructions and hints | ✅ | Narration (feat/audio) reads briefings, hints, feedback and every help answer; read-aloud buttons throughout |
+| AI tutor (school-controlled, off by default, non-AI fallback) | ⬜ | Not built. Everything above is deterministic and local; no child text goes to any external model. If a school-controlled LLM tutor is added later it must stay opt-in with this panel as the fallback |
 
 ## §6 Classroom and parent
 
@@ -137,6 +138,14 @@ they should be reviewed and merged in the order above.
 ---
 
 ## Checkpoint log
+
+### Checkpoint 5 — 2026-09-23 (Robo Bunny's help)
+
+- **Live:** nothing new.
+- **On branches:** `feat/robo-help` (stacked on `feat/story-worlds`).
+- **Tested:** unit (`programBlocks`, example selection, every example through the real gates), integration (warm-up triggers only when stuck; isolation), e2e `help.spec.ts` on laptop + tablet landscape, full suites.
+- **Also fixed here:** Blockly 13 clears its selection whenever focus leaves the canvas, so "delete selected" / "add after the selected block" / "explain this block" silently lost the block on every button tap; the player now remembers the last tapped block until an explicit deselect.
+- **Next step:** `feat/curriculum-expansion`.
 
 ### Checkpoint 4 — 2026-09-23 (story + eight worlds)
 

@@ -961,6 +961,17 @@ async function assertQueryIsolated(entry: RegistryEntry): Promise<void> {
       expect(stripped["prompt"]).toEqual({ en: "Sort" });
       break;
     }
+    case "recommendWarmUp": {
+      // Reads the caller's own attempts/hints on their own current level;
+      // a student with no failed runs gets no recommendation at all, in
+      // either school, and nothing foreign can be in what comes back.
+      const recA = await query(studentCtxA);
+      expect(recA).toBeNull();
+      expectNoForeignIds(recA, name);
+      const recB = await query(studentCtxB);
+      expect(recB).toBeNull();
+      break;
+    }
     default: {
       // Unknown registry key: still deep-scan for leakage, then fail so the
       // author of the new query must add explicit assertions above.
