@@ -1,6 +1,7 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { redirect } from "@/i18n/navigation";
+import { MusicScene } from "@/modules/audio/scene";
 import { resolveText } from "@/modules/curriculum/schemas";
 import {
   computeAdventureState,
@@ -178,6 +179,7 @@ export default async function AdventurePage({ params }: Props) {
 
   return (
     <div className="flex flex-col gap-6">
+      <MusicScene track="map" />
       <PageHeader title={t("pathTitle")} description={t("pathSubtitle")} />
       <AdventureTrail worlds={trailWorlds} />
       <HorizonBand worlds={horizonWorlds} />

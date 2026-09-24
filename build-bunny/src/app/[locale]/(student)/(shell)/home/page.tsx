@@ -1,6 +1,7 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { Link } from "@/i18n/navigation";
+import { MusicScene } from "@/modules/audio/scene";
 import { requireRole } from "@/modules/auth/server/session";
 import { resolveText } from "@/modules/curriculum/schemas";
 import {
@@ -81,6 +82,7 @@ export default async function StudentHomePage({ params }: Props) {
 
   return (
     <div className="flex flex-col gap-6">
+      <MusicScene track="map" />
       {/* A student who has never earned XP has never finished a level, so
           this is their first visit — Bunny introduces the place. */}
       <Onboarding

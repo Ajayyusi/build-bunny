@@ -11,12 +11,14 @@ import { blockTypeAt, findFadedGap } from "@/modules/blockly/serialization";
 import SimulationCanvas from "@/modules/simulation/SimulationCanvas";
 import { Button, cn, useReducedMotion } from "@/ui";
 
+import { PlayerSoundControls } from "@/modules/audio/AudioControls";
 import { runForPlayback } from "./client-run";
 import { HintDrawer, type HintTierState } from "./shared/HintDrawer";
 import { LearnScene } from "./shared/LearnScene";
 import { IntroOverlay } from "./shared/IntroOverlay";
 import { MissionStrip } from "./shared/MissionStrip";
 import { LearnDoneOverlay } from "./shared/LearnDoneOverlay";
+import { useGridSounds } from "./shared/useGridSounds";
 import type {
   ActivityPlayerProps,
   AttemptResponse,
@@ -90,6 +92,7 @@ export function LearnPlayer({
   const [revealingTier, setRevealingTier] = useState<number | null>(null);
   const [lastCheckAt, setLastCheckAt] = useState<number | null>(null);
   const reducedMotion = useReducedMotion();
+  const sounds = useGridSounds();
   const [hints, setHints] = useState<HintTierState[]>(() =>
     [1, 2, 3, 4].map((tier) => ({
       tier,
@@ -340,6 +343,8 @@ export function LearnPlayer({
         <h1 className="min-w-0 flex-1 truncate font-display text-base font-bold text-ink sm:text-lg">
           {intro.title}
         </h1>
+        {/* Instant mute + sound settings, in every level. */}
+        <PlayerSoundControls />
         {/* No star row: a Learn step awards none. The two-step progress
             indicator takes that slot instead, so the child always knows how
             much lesson is left. */}
@@ -369,6 +374,7 @@ export function LearnPlayer({
               playing={showing && playing}
               onPlaybackEnd={handlePlaybackEnd}
               onStepChange={(_, blockId) => setHighlightId(blockId)}
+              onEvent={sounds.onEvent}
               reducedMotion={reducedMotion}
               ariaLabel={t("simLabel")}
             />
@@ -413,6 +419,7 @@ export function LearnPlayer({
                 initialWorkspaceJson={payload.faded.blocks}
                 locale={blockLocale}
                 rtl={locale === "ar"}
+                onBlockGesture={sounds.onBlockGesture}
                 onChange={() => {
                   // Editing is its own answer to a wrong guess — clear the
                   // re-prompt the moment the student acts on it.

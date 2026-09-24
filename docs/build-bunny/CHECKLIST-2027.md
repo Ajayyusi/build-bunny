@@ -14,8 +14,8 @@ Status legend: **✅ implemented & tested** · **🟡 partial** · **⛔ blocked
 
 | Branch (stacked, in order) | Scope | State |
 |---|---|---|
-| `fix/first-run-core-bugs` | §1 core bugs + first five minutes | in progress |
-| `feat/audio` | §2 sound, music, narration | not started |
+| `fix/first-run-core-bugs` | §1 core bugs + first five minutes | ready for review |
+| `feat/audio` | §2 sound, music, narration | ready for review |
 | `feat/tablet-player-a11y` | §3 Blockly on touch, §7 accessibility | not started |
 | `feat/story-worlds` | §3 story, 8 worlds, cutscenes, finales | not started |
 | `feat/robo-help` | §5 help tools, adaptive hints | not started |
@@ -64,19 +64,20 @@ they should be reviewed and merged in the order above.
 | Home CTA goes to map instead of the next level | ✅ | `home/page.tsx` |
 | Streak pressure on home ("keep your streak going", 🔥 tile) | ✅ | Replaced with "levels done" |
 | Playable tutorial / intro to Robo Bunny / early success / obvious next action | 🟡 | Onboarding + level 1 flow done; interactive in-level tutorial pointer planned in `feat/tablet-player-a11y` |
-| Automated end-to-end test of the first-run flow | ⬜ | planned on this branch |
+| Automated end-to-end test of the first-run flow | ✅ | `e2e/first-run.spec.ts` — 3 flows × 3 viewports, en + ar; CI `e2e` job |
 
 ## §2 Sound and music
 
 | Item | Status | Evidence / files |
 |---|---|---|
-| Separate SFX / Music / Voice toggles, volumes, per-device persistence | ⬜ | |
-| Prominent mute in the level player | ⬜ | |
-| Off by default, starts only after a gesture, iPad Safari unlock | ⬜ | |
-| Pause on hidden tab, stop on leaving game area, no overlap, smooth ramps | ⬜ | |
-| SFX: block place, run, move, collect, success, star, unlock, achievement, hint, mistake | ⬜ | |
-| Music: map + per-world loops with crossfades | ⬜ | |
-| Licence/source documented for every asset | ⬜ | |
+| Separate SFX / Music / Voice toggles, volumes, per-device persistence | ✅ | `src/ui/audio/prefs.ts`, `src/modules/audio/AudioControls.tsx`; unit tests (defaults silent, migration, clamping); e2e checks `localStorage` |
+| Prominent mute in the level player | ✅ | `PlayerSoundControls` in all 8 players; e2e toggles it and proves music stops |
+| Off by default, starts only after a gesture, iPad Safari unlock | 🟡 | Policy implemented + pinned by `e2e/audio.spec.ts` (no context before a tap). **iPad Safari not verified on hardware** |
+| Pause on hidden tab, stop on leaving game area, no overlap, smooth ramps | ✅ | `sound.tsx` (visibilitychange suspend/resume, scene stack), `SfxPlayer` gap + 6-voice cap, ramps everywhere; e2e covers hidden/visible and map→profile |
+| SFX: block place, run, move, collect, success, star, unlock, achievement, hint, mistake | ✅ | 16 synthesized effects wired: Blockly snap/remove, Run, hop/turn/collect/bump/splash per engine event, coach + hint chime, oops, success + per-star sparkle, unlock, badge, whoosh |
+| Voice / narration toggle with spoken briefings, hints, feedback | ✅ | `src/ui/audio/voice.ts` (local voices only), `useNarrateOnShow`, read-aloud buttons; unit tests for voice choice. Unavailable-voice state shown in settings |
+| Music: map + per-world loops with crossfades | ✅ | `src/ui/audio/music.ts` — 9 original generated tracks, 1.2 s/1.8 s crossfades; offline loudness test `e2e/audio-levels.spec.ts` |
+| Licence/source documented for every asset | ✅ | `build-bunny/docs/audio.md` — everything synthesized in-repo, no third-party assets, no placeholders |
 
 ## §3 Gameplay, story, progression, touch
 
@@ -135,6 +136,14 @@ they should be reviewed and merged in the order above.
 ---
 
 ## Checkpoint log
+
+### Checkpoint 2 — 2026-09-23 (audio)
+
+- **Live:** nothing new.
+- **On branches:** `feat/audio` (stacked on `fix/first-run-core-bugs`).
+- **Tested:** unit (15 new audio tests), full suite, e2e incl. WebAudio policy test and offline loudness measurement of every track/effect.
+- **Not tested:** real iPad Safari; the actual sound has been measured, not listened to.
+- **Next step:** `feat/tablet-player-a11y`.
 
 ### Checkpoint 1 — 2026-09-23
 

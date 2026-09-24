@@ -30,6 +30,8 @@ export interface SimulationCanvasProps {
   speedMs?: number;
   onPlaybackEnd: (result: RunResult) => void;
   onStepChange?: (step: number, blockId: string | null) => void;
+  /** Each engine event as its segment starts playing (sound effects). */
+  onEvent?: (event: EngineEvent) => void;
   reducedMotion: boolean;
   className?: string;
   /** Localized description of the map for assistive tech. */
@@ -317,6 +319,7 @@ export default function SimulationCanvas({
   speedMs = 350,
   onPlaybackEnd,
   onStepChange,
+  onEvent,
   reducedMotion,
   className,
   ariaLabel,
@@ -335,6 +338,8 @@ export default function SimulationCanvas({
   const onStepRef = useRef(onStepChange);
   onEndRef.current = onPlaybackEnd;
   onStepRef.current = onStepChange;
+  const onEventRef = useRef(onEvent);
+  onEventRef.current = onEvent;
 
   // Drawing lives in a ref so resize + playback share one renderer without
   // re-creating closures per frame.
@@ -552,6 +557,7 @@ export default function SimulationCanvas({
       if (seg && onStepRef.current && seg.step !== null) {
         onStepRef.current(seg.step, seg.blockId);
       }
+      if (seg) onEventRef.current?.(seg.event);
     };
 
     const tick = (now: number) => {

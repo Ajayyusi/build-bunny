@@ -14,6 +14,7 @@ import {
 import { assign, lloydStep, tightness } from "@/modules/ai/grouping";
 import { BunnyMascot, Button, cn, useReducedMotion } from "@/ui";
 
+import { PlayerSoundControls } from "@/modules/audio/AudioControls";
 import { GroupScene } from "./GroupScene";
 import { Walkthrough } from "./shared/Walkthrough";
 import { HintDrawer } from "./shared/HintDrawer";
@@ -352,6 +353,8 @@ export function GroupPlayer({
         <h1 className="min-w-0 flex-1 truncate font-display text-base font-bold text-ink sm:text-lg">
           {intro.title}
         </h1>
+        {/* Instant mute + sound settings, in every level. */}
+        <PlayerSoundControls />
         <span
           role="img"
           aria-label={tPlay("starsBest", { stars: intro.starsBest, maxStars: intro.maxStars })}

@@ -10,11 +10,13 @@ export { useReducedMotion } from "./useReducedMotion";
 export { StarBurst, type StarBurstProps } from "./StarBurst";
 export {
   SoundProvider,
-  SoundToggle,
+  useMusicScene,
   useSound,
+  type AudioPrefs,
   type SoundName,
-  type SoundToggleProps,
+  type TrackId,
 } from "./sound";
+export { trackForTheme } from "./audio/music";
 
 export { Avatar, type AvatarProps, type AvatarSize } from "./Avatar";
 export { Badge, type BadgeProps, type BadgeVariant } from "./Badge";

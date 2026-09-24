@@ -47,7 +47,7 @@ export const auth = betterAuth({
     window: 60,
     max: 100,
     customRules: {
-      "/sign-in/*": { window: 60 * 15, max: 10 },
+      "/sign-in/*": { window: 60 * 15, max: env.AUTH_SIGNIN_RATE_MAX },
       "/change-password": { window: 60 * 15, max: 5 },
     },
   },

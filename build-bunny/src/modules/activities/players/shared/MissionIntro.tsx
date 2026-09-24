@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-import { BunnyMascot, cn, useReducedMotion } from "@/ui";
+import { BunnyMascot, cn, useReducedMotion, useSound } from "@/ui";
 
 import { WorldBackdrop } from "./WorldBackdrop";
 import styles from "./mission-intro.module.css";
@@ -35,19 +35,21 @@ const RUN_MS = 1500;
 export function MissionIntro({ worldTheme, title, onDone }: MissionIntroProps) {
   const reducedMotion = useReducedMotion();
   const [titleIn, setTitleIn] = useState(false);
+  const { play } = useSound();
 
   useEffect(() => {
     if (reducedMotion) {
       onDone();
       return;
     }
+    play("whoosh");
     const titleTimer = window.setTimeout(() => setTitleIn(true), RUN_MS * 0.55);
     const doneTimer = window.setTimeout(onDone, RUN_MS);
     return () => {
       window.clearTimeout(titleTimer);
       window.clearTimeout(doneTimer);
     };
-  }, [reducedMotion, onDone]);
+  }, [reducedMotion, onDone, play]);
 
   if (reducedMotion) return null;
 

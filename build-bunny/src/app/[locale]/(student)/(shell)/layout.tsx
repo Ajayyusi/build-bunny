@@ -8,7 +8,8 @@ import {
   getMyStudentSnapshot,
   getMyUnreadFeedbackCount,
 } from "@/modules/students/server/queries";
-import { Avatar, BunnyMascot, SkipLink, SoundToggle } from "@/ui";
+import { AudioSettingsButton } from "@/modules/audio/AudioControls";
+import { Avatar, BunnyMascot, SkipLink } from "@/ui";
 
 import {
   HomeIcon,
@@ -108,11 +109,7 @@ export default async function StudentShellLayout({ children, params }: Props) {
           page, so the one control that fixes it must never be behind text. */}
       <div className="mt-auto flex flex-col gap-1 border-t border-border-token pt-3">
         <LocaleSwitcher size="lg" className="w-full justify-start" />
-        <SoundToggle
-          labelOn={t("sound.on")}
-          labelOff={t("sound.off")}
-          className="w-full justify-start"
-        />
+        <AudioSettingsButton className="w-full justify-start" />
         <SidebarNavItem href="/profile" icon={<ProfileIcon />}>
           {t("nav.profile")}
         </SidebarNavItem>

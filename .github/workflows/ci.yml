@@ -130,6 +130,10 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       - name: Start the app
+        # The suite signs in a brand-new child per test from one address;
+        # raise only the sign-in ceiling (the limiter itself stays on).
+        env:
+          AUTH_SIGNIN_RATE_MAX: "1000"
         run: |
           npm run start > next.log 2>&1 &
           for i in $(seq 1 60); do
