@@ -1171,6 +1171,29 @@
           "revoke": "Switch off",
           "revoked": "Family link switched off",
           "error": "That didn't work — please try again."
+        },
+        "familyEmail": {
+          "heading": "Weekly family email",
+          "body": "Email {name}'s family a short summary at the end of each school week: the same things the family view shows. The family confirms from their own inbox first, and can stop at any time. Weeks with nothing played are skipped.",
+          "notConfigured": "Email isn't set up for Build Bunny yet, so this can't be switched on.",
+          "emailLabel": "Family email address",
+          "languageLabel": "Email language",
+          "invite": "Send invitation",
+          "reinvite": "Send to a different address",
+          "remove": "Remove",
+          "noneBadge": "Off",
+          "pendingBadge": "Waiting for the family",
+          "activeBadge": "Emails on",
+          "stoppedBadge": "Family stopped emails",
+          "pending": "Invitation sent to {email} on {date}. Nothing about {name} is sent until they confirm.",
+          "active": "Sending to {email}.",
+          "lastSent": "Last sent {date}.",
+          "notYetSent": "The first summary goes out at the end of this school week.",
+          "stopped": "{email} stopped these emails on {date}.",
+          "invited": "Invitation sent",
+          "removed": "Family email removed",
+          "invalidEmail": "That doesn't look like an email address.",
+          "error": "That didn't work. Please try again."
         }
       },
       "replay": {
@@ -2153,5 +2176,46 @@
     "privacy": "This is a private, read-only link shared by the school. It shows no scores against other children and changes nothing. It stops working on {date}, or sooner if the teacher switches it off.",
     "inactiveTitle": "This link isn't active",
     "inactiveBody": "It may have expired or been switched off. Ask your child's teacher for a new one."
+  },
+  "familyEmail": {
+    "invite": {
+      "subject": "Confirm weekly Build Bunny updates",
+      "heading": "Would you like weekly updates?",
+      "body": "{school} would like to send this address a short weekly summary of your child's progress in Build Bunny, the coding game they play at school.",
+      "nothingYet": "Nothing about your child is sent until you confirm.",
+      "button": "Confirm weekly updates",
+      "ignore": "Not expecting this? Just ignore this email. You won't hear from us again.",
+      "expires": "This invitation works for 14 days."
+    },
+    "weekly": {
+      "subject": "{name}'s week in Build Bunny",
+      "heading": "{name}'s week in Build Bunny",
+      "intro": "{school} · the 7 days to {date}",
+      "levelsThisWeek": "Levels finished this week",
+      "activeDays": "Days played this week",
+      "stars": "Stars earned so far",
+      "learningNow": "Learning now",
+      "thisWeek": "Finished this week",
+      "quietWeek": "No levels finished this week. Ask what they're building next!",
+      "worlds": "The adventure so far",
+      "worldProgress": "{completed} of {total, plural, one {# level} other {# levels}}",
+      "powerEarned": "Earned the {power}",
+      "footer": "You get this email because you asked {school} for weekly Build Bunny updates. It shows no scores against other children.",
+      "stop": "Stop these emails",
+      "more": "…and {count} more"
+    },
+    "page": {
+      "pendingTitle": "Weekly updates from school",
+      "pendingBody": "{school} would like to email you a short weekly summary of your child's progress in Build Bunny: levels finished, days played, and what they're learning now.",
+      "confirm": "Yes, send me weekly updates",
+      "decline": "No thanks",
+      "activeTitle": "Weekly updates are on",
+      "activeBody": "You'll get {name}'s summary once a week, at the end of the school week. You can stop at any time.",
+      "stop": "Stop these emails",
+      "stoppedTitle": "Emails stopped",
+      "stoppedBody": "You won't get any more weekly updates. If you change your mind, ask your child's teacher.",
+      "inactiveTitle": "This link isn't active",
+      "inactiveBody": "It may have expired or been replaced. Ask your child's teacher to send a new invitation."
+    }
   }
 }

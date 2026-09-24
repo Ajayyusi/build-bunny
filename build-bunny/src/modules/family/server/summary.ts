@@ -68,21 +68,37 @@ export async function getFamilySummary(token: string, now = new Date()): Promise
   if (!/^[A-Za-z0-9_-]{20,100}$/.test(token)) return null;
   const link = await db.familyLink.findUnique({
     where: { tokenHash: hashFamilyToken(token) },
-    select: {
-      id: true,
-      schoolId: true,
-      studentUserId: true,
-      revokedAt: true,
-      expiresAt: true,
-      school: { select: { name: true, status: true } },
-    },
+    select: { id: true, schoolId: true, studentUserId: true, revokedAt: true, expiresAt: true },
   });
   if (!link || link.revokedAt || link.expiresAt <= now) return null;
-  if (link.school.status !== "ACTIVE") return null;
-  // A suspended or expired licence closes the family view too.
-  if (!(await resolveEntitlement(link.schoolId)).canAccess) return null;
+  const summary = await summarizeChildWeek(link.schoolId, link.studentUserId, now);
+  if (!summary) return null;
 
-  const { schoolId, studentUserId } = link;
+  // Best-effort "seen" stamp so a teacher knows the link was opened.
+  await db.familyLink
+    .update({ where: { id: link.id }, data: { lastViewedAt: now } })
+    .catch(() => {});
+
+  return { ...summary, expiresAt: link.expiresAt };
+}
+
+export type ChildWeek = Omit<FamilySummary, "expiresAt">;
+
+/**
+ * One child's week, shared by the family page and the weekly family email.
+ * Null when the school is not active, its licence has lapsed, or the child
+ * is disabled: in all three cases nothing is shared with the family.
+ */
+export async function summarizeChildWeek(
+  schoolId: string,
+  studentUserId: string,
+  now = new Date(),
+): Promise<ChildWeek | null> {
+  const school = await db.school.findUnique({ where: { id: schoolId }, select: { name: true, status: true } });
+  if (!school || school.status !== "ACTIVE") return null;
+  // A suspended or expired licence closes the family view too.
+  if (!(await resolveEntitlement(schoolId)).canAccess) return null;
+
   const weekStart = new Date(now.getTime() - WEEK_MS);
 
   const [student, progress, activeDays] = await Promise.all([
@@ -185,14 +201,9 @@ export async function getFamilySummary(token: string, now = new Date()): Promise
     .filter((row) => row.firstCompletedAt && row.firstCompletedAt >= weekStart)
     .sort((a, b) => (b.firstCompletedAt!.getTime() - a.firstCompletedAt!.getTime()));
 
-  // Best-effort "seen" stamp so a teacher knows the link was opened.
-  await db.familyLink
-    .update({ where: { id: link.id }, data: { lastViewedAt: now } })
-    .catch(() => {});
-
   return {
     displayName: student.displayName,
-    schoolName: link.school.name,
+    schoolName: school.name,
     weekStart,
     thisWeek: {
       levelsCompleted: thisWeekRows.length,
@@ -210,6 +221,5 @@ export async function getFamilySummary(token: string, now = new Date()): Promise
     },
     worlds,
     learningNow,
-    expiresAt: link.expiresAt,
   };
 }

@@ -30,8 +30,10 @@ verbatim. Every field below is a real column in `prisma/schema.prisma`
 | Sessions | `Session` (token, expiry, IP, user agent) | Sign-in state. IP/user-agent are Better Auth's own security fields (anomaly detection, session listing), not analytics. |
 | Learning events | `LearningEvent` (login, level started/completed, hint used, achievement earned) | The append-only analytics stream behind every dashboard number. Payloads are minimal by design — **never** workspace content or free text (schema comment: "Minimal payloads only"). |
 
-**What we deliberately do not collect, anywhere in the schema:** email
-address (synthetic placeholder only, see §3), phone number, home address,
+**What we deliberately do not collect, anywhere in the schema:** the
+child's own email address (synthetic placeholder only, see §3; a family's
+address for the weekly email is the family's, not the child's, and is
+opt-in: see §8b), phone number, home address,
 date of birth, a real photo, biometric data, precise location, or any
 payment/financial detail from a student. There is no student-facing free-text
 field at all except the Blockly `say(...)` block's author-authored dialogue
@@ -193,6 +195,37 @@ parent data is collected.
   device, no cookie — so a teacher can see the link was opened.
 - Family links are deleted with the student (cascade) and with the school.
 
+### The weekly family email (Resend)
+
+The one place the product stores an address that is not a staff member's.
+
+- **Who adds it:** the child's teacher (or a school admin), one address per
+  child (`FamilyEmail.email`), plus the language to write in. Nothing else
+  about the family is stored: no name, no phone, no account.
+- **Nothing before consent:** adding the address sends one invitation
+  that names the school but **not the child**, so a mistyped address learns
+  nothing about anyone. No summary is sent until the family presses Confirm
+  on the page the invitation links to. An unconfirmed invitation lapses
+  after 14 days. Opening a link never changes anything; only the buttons do,
+  so mail scanners can't confirm or stop on a family's behalf.
+- **What the weekly email carries:** the same facts as the family page
+  above, nothing more. Weeks with nothing played send nothing.
+- **Stopping:** every weekly email has a visible stop link and a one-click
+  `List-Unsubscribe` header. Stopping is immediate; starting again takes a
+  new invitation from the teacher.
+- **Deletion:** the row is deleted when the teacher removes the address,
+  when a new address replaces it, when the child is disabled or erased
+  (cascade), and with the school. The address is never written to the audit
+  log (`family_email.invite/confirm/stop/remove` record only that it
+  happened).
+- **Processor:** emails are sent through Resend (resend.com), which
+  receives the recipient address and the email content in order to deliver
+  it. Resend is the only third party that receives any child-related data,
+  and only for families who confirmed. Schools should list it as a
+  sub-processor.
+- **Links** carry the row id and an HMAC signature, not a stored secret;
+  replacing the address retires every link sent to the old one.
+
 ## 8c. What stays on the child's device
 
 Browser `localStorage`, never sent to the server except where noted:
@@ -214,7 +247,9 @@ tablet never restores one child's work for another.
 A review of everything the product records about play, against the rule
 "collect what a teacher or the child needs, nothing else":
 
-- **No third-party analytics, tracking or advertising.** No analytics SDK,
+- **No third-party analytics, tracking or advertising.** (The weekly family
+  email's delivery service, Resend, is a processor for opted-in families
+  only, see §8b.) No analytics SDK,
   pixel or session recorder is installed (checked `package.json`), and no
   child's words are sent to any AI model — Robo Bunny's help is authored copy
   plus the child's own run, computed in the page.

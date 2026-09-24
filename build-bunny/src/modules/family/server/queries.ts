@@ -1,5 +1,6 @@
 import "server-only";
 
+import { getFamilyEmailStatus } from "./email";
 import { getFamilyLinkStatus } from "./links";
 
 /**
@@ -8,8 +9,9 @@ import { getFamilyLinkStatus } from "./links";
  * is the credential) and is guarded by the token hash instead, the same way
  * the public certificate check is.
  */
-export { getFamilyLinkStatus };
+export { getFamilyEmailStatus, getFamilyLinkStatus };
 
 export const tenantScopedQueries = {
   getFamilyLinkStatus,
+  getFamilyEmailStatus,
 } as const;

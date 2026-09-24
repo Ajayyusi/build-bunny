@@ -3,7 +3,8 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { requireRole } from "@/modules/auth/server/session";
 import { getStudentDetail } from "@/modules/analytics/server/queries";
-import { getFamilyLinkStatus } from "@/modules/family/server/queries";
+import { getFamilyEmailStatus, getFamilyLinkStatus } from "@/modules/family/server/queries";
+import { FamilyEmailPanel } from "./_components/FamilyEmailPanel";
 import { FamilyLinkPanel } from "./_components/FamilyLinkPanel";
 import { resolveText } from "@/modules/curriculum/schemas";
 import {
@@ -46,9 +47,10 @@ export default async function StudentDetailPage({ params }: Props) {
   const { locale, classId, studentId } = await params;
   setRequestLocale(locale);
   const ctx = await requireRole("TEACHER", "SCHOOL_ADMIN");
-  const [detail, familyLink, t, tCommon] = await Promise.all([
+  const [detail, familyLink, familyEmail, t, tCommon] = await Promise.all([
     getStudentDetail(ctx, studentId),
     getFamilyLinkStatus(ctx, studentId),
+    getFamilyEmailStatus(ctx, studentId),
     getTranslations("staff.teach.student"),
     getTranslations("common"),
   ]);
@@ -324,6 +326,22 @@ export default async function StudentDetailPage({ params }: Props) {
             active: familyLink.active,
             expiresAt: familyLink.expiresAt?.toISOString() ?? null,
             lastViewedAt: familyLink.lastViewedAt?.toISOString() ?? null,
+          }}
+        />
+      ) : null}
+
+      {familyEmail ? (
+        <FamilyEmailPanel
+          studentUserId={detail.studentUserId}
+          studentName={detail.displayName}
+          status={{
+            configured: familyEmail.configured,
+            state: familyEmail.state,
+            email: familyEmail.email,
+            locale: familyEmail.locale,
+            inviteSentAt: familyEmail.inviteSentAt?.toISOString() ?? null,
+            lastSentAt: familyEmail.lastSentAt?.toISOString() ?? null,
+            stoppedAt: familyEmail.stoppedAt?.toISOString() ?? null,
           }}
         />
       ) : null}
