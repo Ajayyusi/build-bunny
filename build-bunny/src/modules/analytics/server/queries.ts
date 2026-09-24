@@ -4,6 +4,7 @@ import {
   getAttemptReplay,
   getClassHardestLevels,
   getClassMatrix,
+  getClassMisconceptions,
   getStudentDetail,
   getTeacherOverview,
 } from "./teacher";
@@ -24,6 +25,7 @@ export {
   getAttemptReplay,
   getClassHardestLevels,
   getClassMatrix,
+  getClassMisconceptions,
   getStudentDetail,
   getTeacherOverview,
   getSchoolAnalytics,
@@ -33,6 +35,7 @@ export {
 export const tenantScopedQueries = {
   getClassMatrix,
   getClassHardestLevels,
+  getClassMisconceptions,
   getTeacherOverview,
   getStudentDetail,
   getAttemptReplay,

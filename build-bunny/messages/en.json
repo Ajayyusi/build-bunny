@@ -762,7 +762,8 @@
       "label": "Main",
       "teach": "My classes",
       "assignments": "Assignments",
-      "school": "School"
+      "school": "School",
+      "curriculum": "Curriculum"
     },
     "header": {
       "noSchool": "No school assigned"
@@ -837,6 +838,77 @@
           "caveat": "Levels with the highest fail rate across this class. A teaching signal about the content, not about individual students.",
           "attempts": "{attempts, plural, one {# attempt} other {# attempts}}",
           "failRate": "{pct}% fail rate"
+        },
+        "misconceptions": {
+          "heading": "Common mistakes to reteach",
+          "caveat": "The ideas behind this class's failed runs in the last 30 days, with a suggestion for the board. Aggregates only — no child is named.",
+          "meta": "{attempts, plural, one {# run} other {# runs}} · {students, plural, one {# child} other {# children}}",
+          "kind": {
+            "turnDirection": {
+              "label": "Left and right from the bunny's view",
+              "reteach": "Runs ended in a bump right after a turn. Have children stand and turn their own bodies the way Robo Bunny faces, then say the turn before placing the block."
+            },
+            "hazardAhead": {
+              "label": "Not checking the tile ahead",
+              "reteach": "Robo Bunny hopped into water. Trace the route on the map with a finger before building, one tile per hop."
+            },
+            "countingHops": {
+              "label": "Counting the tiles",
+              "reteach": "Every block ran and the bunny stopped short or went past. Count squares aloud, not including the one it stands on, and match the count to blocks."
+            },
+            "missedStop": {
+              "label": "Routes that skip an item",
+              "reteach": "The burrow was reached but something was left behind. Plan the route as legs — first stop, second stop, then the burrow — before the first block."
+            },
+            "loopNeverEnds": {
+              "label": "Loops with no way to end",
+              "reteach": "'Repeat until I reach the goal' kept going because the goal was never reachable from that program. Ask: what has to be true for the loop to stop?"
+            },
+            "repeatNotUsed": {
+              "label": "Repetition written out by hand",
+              "reteach": "Passes over the block budget: the same blocks in a row instead of a Repeat. Circle the repeating stretch on a printed program and rewrite it as one loop."
+            },
+            "sayPlacement": {
+              "label": "Where a block sits in a loop",
+              "reteach": "The bunny said the wrong words — usually a 'say' inside the loop instead of after it. Act it out: inside the loop means every time round."
+            },
+            "counterTrace": {
+              "label": "Following the counter",
+              "reteach": "The counter ended on the wrong number. Trace on paper: write its value after every block, starting from what it was set to."
+            },
+            "requiredBlock": {
+              "label": "The block the level asked for",
+              "reteach": "Solved another way, without the block being practised. Show both solutions side by side and ask which one still works if the map gets longer."
+            },
+            "readingCode": {
+              "label": "Reading a program before it runs",
+              "reteach": "Wrong predictions in Code City. Read a short program aloud as a class, one line at a time, and move a bunny on a paper grid."
+            },
+            "sequencing": {
+              "label": "Putting steps in order",
+              "reteach": "Steps were placed out of order. Try an unplugged version: sequence a snack recipe on cards, then check what breaks when two swap."
+            },
+            "mazeDesign": {
+              "label": "Designing a maze that can be solved",
+              "reteach": "Maze designs broke a checklist rule. Have pairs swap paper mazes and test each other's before building on screen."
+            },
+            "learnGap": {
+              "label": "The Learn-step gap",
+              "reteach": "The wrong block was tried in a lesson's gap. Replay the worked example on the projector and ask what the missing block changes."
+            },
+            "classifierExamples": {
+              "label": "Choosing teaching examples",
+              "reteach": "The taught machine misread the held-out berries. Discuss which examples were missing — the rare ones decide."
+            },
+            "trendFit": {
+              "label": "Fitting a line to points",
+              "reteach": "Trend lines missed the least-squares fit by too much. Ask where the line should sit so as many points are above as below."
+            },
+            "groupingFlags": {
+              "label": "Placing group flags",
+              "reteach": "Flags landed between crowds. Look at the board before placing: how many crowds, and where is the middle of each?"
+            }
+          }
         }
       },
       "student": {
@@ -921,6 +993,24 @@
               "suggestion": "Sitting with them through the first level tends to be enough. Check they can sign in before assuming they chose not to."
             }
           }
+        },
+        "family": {
+          "heading": "Family view",
+          "body": "Share a private, read-only weekly summary of {name}'s progress with their family — no parent account needed. It shows levels finished, days played, worlds and Powers, and what they're learning now; never attempts, hints, flags or your notes.",
+          "activeBadge": "Link active",
+          "noneBadge": "No link",
+          "expires": "Expires {date}",
+          "lastViewed": "last opened {date}",
+          "linkLabel": "Private family link",
+          "onceNote": "Copy it now — for privacy it is shown only once. Creating a new link switches this one off.",
+          "copy": "Copy link",
+          "copied": "Link copied",
+          "copyFailed": "Couldn't copy — select the link and copy it by hand.",
+          "create": "Create family link",
+          "replace": "Create a new link",
+          "revoke": "Switch off",
+          "revoked": "Family link switched off",
+          "error": "That didn't work — please try again."
         }
       },
       "replay": {
@@ -996,7 +1086,46 @@
         "refreshNote": "Updates every 20 seconds",
         "staleNote": "Not updating — check the connection. Showing the last known status.",
         "emptyTitle": "No students in this class yet",
-        "liveRegionLabel": "Class status, updates automatically"
+        "liveRegionLabel": "Class status, updates automatically",
+        "challengePick": "Class challenge",
+        "challengeNone": "No challenge",
+        "challengeHeading": "Today's challenge",
+        "challengeCount": "{finished} of {total} finished",
+        "hideNames": "Hide names",
+        "showNames": "Show names"
+      },
+      "curriculum": {
+        "title": "Curriculum guide",
+        "subtitle": "{levels} levels across {worlds} worlds — about {lessons} lessons of {minutes} minutes. Objectives, concepts, age bands, timing and teacher notes for every level, in the order children play them.",
+        "print": "Print guide",
+        "emptyTitle": "No curriculum enabled",
+        "emptyBody": "Your school has not enabled a programme yet.",
+        "worldPacing": "{levels} levels · about {lessons, plural, one {# lesson} other {# lessons}} of {minutes} min",
+        "modulePacing": "{levels} levels · {total} min · about {lessons, plural, one {# lesson} other {# lessons}} of {minutes} min",
+        "power": "Earns the {power}",
+        "teacherNotes": "Teacher notes",
+        "col": {
+          "level": "Level",
+          "type": "Type",
+          "concepts": "Concepts",
+          "ages": "Ages",
+          "minutes": "Min",
+          "objective": "Learning objective"
+        },
+        "type": {
+          "BLOCK_CODING": "Block coding",
+          "DEBUGGING": "Debugging",
+          "CODE_PREDICTION": "Predict the code",
+          "SEQUENCING": "Sequencing",
+          "CONCEPT_CARDS": "Learn step",
+          "CREATIVE_PROJECT": "Build your own",
+          "AI_CLASSIFICATION": "Teach by example",
+          "PATTERN_RECOGNITION": "Grouping",
+          "AI_ETHICS": "Choices & safety",
+          "AI_SIM": "AI simulation",
+          "QUIZ": "Quiz",
+          "REAL_ML": "Real ML"
+        }
       }
     },
     "school": {
@@ -1733,5 +1862,23 @@
     "notFoundTitle": "This page hopped away",
     "notFoundBody": "We couldn't find the page you were looking for.",
     "goHome": "Back to the home page"
+  },
+  "family": {
+    "title": "{name}'s week in Build Bunny",
+    "subtitle": "{school} · the 7 days since {date}",
+    "stat": {
+      "levelsThisWeek": "Levels finished this week",
+      "activeDays": "Days played this week",
+      "stars": "Stars earned so far"
+    },
+    "learningNow": "Learning now",
+    "thisWeek": "Finished this week",
+    "quietWeek": "No levels finished this week — that's fine. Ask what they're building next!",
+    "worlds": "The adventure so far",
+    "worldProgress": "{completed} of {total} levels",
+    "powerEarned": "Earned the {power}",
+    "privacy": "This is a private, read-only link shared by the school. It shows no scores against other children and changes nothing. It stops working on {date}, or sooner if the teacher switches it off.",
+    "inactiveTitle": "This link isn't active",
+    "inactiveBody": "It may have expired or been switched off. Ask your child's teacher for a new one."
   }
 }

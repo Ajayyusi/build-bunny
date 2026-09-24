@@ -13,6 +13,8 @@ export const SYSTEM_ACTOR = { userId: "system", role: "SYSTEM" } as const;
  * this in beforeAll so each file starts from a known-empty test database.
  */
 export async function wipeDatabase(): Promise<void> {
+  // Family links reference students and staff.
+  await db.familyLink.deleteMany();
   // M4 teaching/certificates tables first (children before parents).
   await db.teacherFeedback.deleteMany();
   await db.assignment.deleteMany();

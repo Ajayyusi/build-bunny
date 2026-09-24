@@ -6,21 +6,9 @@ import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { EmptyState } from "@/ui";
 
-export interface LiveStudent {
-  userId: string;
-  displayName: string;
-  currentLevelTitle: string | null;
-  completed: boolean;
-}
+import type { LiveSnapshot } from "@/modules/analytics/live";
 
-export interface LiveSnapshot {
-  className: string;
-  grade: number;
-  completionPct: number;
-  activeThisWeek: number;
-  studentCount: number;
-  students: LiveStudent[];
-}
+export type { LiveSnapshot };
 
 const POLL_MS = 20_000;
 const RING_RADIUS = 80;
@@ -73,12 +61,17 @@ export function LiveView({
    * as "they have all stopped".
    */
   const [failures, setFailures] = useState(0);
+  // The lesson's challenge level: kept in the URL so a reload keeps it.
+  const [challengeId, setChallengeId] = useState<string | null>(initial.challenge?.levelId ?? null);
+  // On a shared screen a teacher may not want names up at all.
+  const [hideNames, setHideNames] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
     const poll = async () => {
       try {
-        const response = await fetch(`/api/teach/classes/${classId}/live?locale=${locale}`, {
+        const challenge = challengeId ? `&challenge=${encodeURIComponent(challengeId)}` : "";
+        const response = await fetch(`/api/teach/classes/${classId}/live?locale=${locale}${challenge}`, {
           cache: "no-store",
         });
         if (cancelled) return;
@@ -102,7 +95,26 @@ export function LiveView({
       cancelled = true;
       window.clearInterval(id);
     };
-  }, [classId, locale]);
+  }, [classId, locale, challengeId]);
+
+  const pickChallenge = (levelId: string) => {
+    const next = levelId || null;
+    setChallengeId(next);
+    const url = new URL(window.location.href);
+    if (next) url.searchParams.set("challenge", next);
+    else url.searchParams.delete("challenge");
+    window.history.replaceState(null, "", url);
+    // Show the new count straight away rather than after the next poll.
+    void fetch(
+      `/api/teach/classes/${classId}/live?locale=${locale}${next ? `&challenge=${encodeURIComponent(next)}` : ""}`,
+      { cache: "no-store" },
+    )
+      .then((response) => (response.ok ? (response.json() as Promise<LiveSnapshot>) : null))
+      .then((data) => {
+        if (data) setSnapshot(data);
+      })
+      .catch(() => {});
+  };
 
   // Two consecutive misses (~40s) before saying anything: one dropped poll
   // on classroom wifi is normal and a banner that flickers would be worse
@@ -139,6 +151,49 @@ export function LiveView({
         </Link>
       </header>
 
+      <div className="flex flex-wrap items-end gap-4">
+        <label className="flex flex-col gap-1 text-base font-semibold text-ink">
+          {t("challengePick")}
+          <select
+            value={challengeId ?? ""}
+            onChange={(event) => pickChallenge(event.target.value)}
+            className="h-12 min-w-64 rounded-md border border-border-token bg-surface-raised px-3 text-base text-ink"
+          >
+            <option value="">{t("challengeNone")}</option>
+            {snapshot.levels.map((level) => (
+              <option key={level.id} value={level.id}>
+                {level.title}
+              </option>
+            ))}
+          </select>
+        </label>
+        <button
+          type="button"
+          role="switch"
+          aria-checked={hideNames}
+          onClick={() => setHideNames((value) => !value)}
+          className="h-12 rounded-md border border-border-token px-4 text-base font-semibold text-ink hover:bg-surface-sunken"
+        >
+          {hideNames ? t("showNames") : t("hideNames")}
+        </button>
+      </div>
+
+      {snapshot.challenge ? (
+        <section
+          aria-live="polite"
+          className="flex flex-wrap items-center gap-6 rounded-2xl border-2 border-brand/40 bg-brand/5 px-8 py-6"
+        >
+          <span aria-hidden="true" className="text-5xl">🏁</span>
+          <div className="flex flex-col">
+            <span className="text-lg font-semibold text-ink-muted">{t("challengeHeading")}</span>
+            <span className="font-display text-3xl font-bold text-ink">{snapshot.challenge.title}</span>
+          </div>
+          <span className="ms-auto font-display text-5xl font-bold tabular-nums text-ink">
+            {t("challengeCount", { finished: snapshot.challenge.finished, total: snapshot.challenge.total })}
+          </span>
+        </section>
+      ) : null}
+
       <div className="flex flex-wrap items-center gap-10">
         <CompletionRing pct={snapshot.completionPct} label={t("completionLabel")} />
         <div className="flex flex-col gap-1">
@@ -149,7 +204,7 @@ export function LiveView({
         </div>
       </div>
 
-      {snapshot.students.length === 0 ? (
+      {hideNames ? null : snapshot.students.length === 0 ? (
         <EmptyState icon={<span className="text-3xl">🧑‍🎓</span>} title={t("emptyTitle")} />
       ) : (
         // aria-atomic="false": a 20s poll re-renders the whole list, but only

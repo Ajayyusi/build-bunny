@@ -67,6 +67,8 @@ model User {
   feedbackGiven    TeacherFeedback[]      @relation("FeedbackByTeacher")
   assignmentsMade  Assignment[]
   certificates     Certificate[]
+  familyLinks      FamilyLink[]      @relation("FamilyLinkStudent")
+  familyLinksMade  FamilyLink[]      @relation("FamilyLinkCreator")
 
   @@index([schoolId, role])
 }
@@ -157,6 +159,7 @@ model School {
   feedback         TeacherFeedback[]
   assignments      Assignment[]
   certificates     Certificate[]
+  familyLinks      FamilyLink[]
 }
 
 enum LicenceStatus {
@@ -824,4 +827,25 @@ model LearningEvent {
   @@index([schoolId, createdAt])
   @@index([studentUserId, createdAt])
   @@index([schoolId, type, createdAt])
+}
+
+// Read-only family view (brief §6): a teacher shares a private link with a
+// child's family — no parent accounts, no logins. Only a SHA-256 hash of
+// the token is stored; the link itself is shown once. Revocable, expiring,
+// one active link per child (creating a new one revokes the old).
+model FamilyLink {
+  id            String    @id @default(cuid())
+  schoolId      String
+  school        School    @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  studentUserId String
+  student       User      @relation("FamilyLinkStudent", fields: [studentUserId], references: [id], onDelete: Cascade)
+  createdById   String
+  createdBy     User      @relation("FamilyLinkCreator", fields: [createdById], references: [id], onDelete: Cascade)
+  tokenHash     String    @unique
+  createdAt     DateTime  @default(now())
+  expiresAt     DateTime
+  revokedAt     DateTime?
+  lastViewedAt  DateTime?
+
+  @@index([schoolId, studentUserId])
 }

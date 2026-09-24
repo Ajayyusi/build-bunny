@@ -20,7 +20,7 @@ Status legend: **✅ implemented & tested** · **🟡 partial** · **⛔ blocked
 | `feat/story-worlds` | §3 story, 8 worlds, cutscenes, finales | ready for review |
 | `feat/robo-help` | §5 help tools, adaptive hints | ready for review |
 | `feat/curriculum-expansion` | §4 variables/functions, build-your-own maze, age bands, 71 levels | ready for review |
-| `feat/classroom-parent` | §6 classroom + parent | not started |
+| `feat/classroom-parent` | §6 misconception report, curriculum guide, projector challenge, family view | ready for review |
 | `feat/offline-perf-polish` | §7 offline, performance, privacy review | not started |
 
 Nothing is merged or deployed. Each branch is based on the previous one, so
@@ -119,11 +119,11 @@ they should be reviewed and merged in the order above.
 
 | Item | Status | Evidence / files |
 |---|---|---|
-| Projector mode improvements, live challenges, pacing | ⬜ | |
-| Lesson objectives, curriculum mapping, teacher guides, printables | ⬜ | |
-| Assignment templates, group missions, reflections | ⬜ | |
-| Misconception reports | ⬜ | |
-| Read-only parent view + weekly summary | ⬜ | |
+| Projector mode improvements, live challenges, pacing | ✅ | projector: pick a class challenge level, the board shows "N of M finished" (a count, never a ranking), "Hide names" switch for shared screens; one shared builder for page + poll (`src/modules/analytics/live.ts`, unit `live-snapshot.test.ts`). Pacing: per-world and per-module minutes and "about N lessons of 40 min" in the guide |
+| Lesson objectives, curriculum mapping, teacher guides, printables | 🟡 | new **Curriculum** page for teachers/admins (`/teach/curriculum`): every published level in play order with objective, child-facing mission, concepts, age band, minutes and teacher notes; printable. Published snapshots only; integration `classroom.test.ts`, isolation case. **Not done:** mapping to a named external standard (needs the school's chosen framework), separate worksheets |
+| Assignment templates, group missions, reflections | ⬜ | existing assignments (world/module/level, due dates) unchanged; templates, group missions and student reflections not built |
+| Misconception reports | ✅ | class page card "Common mistakes to reteach": last 30 days of located feedback grouped into 16 teaching ideas, each with runs, number of children, the levels it shows on and a reteach suggestion; aggregates only, no child named (`src/modules/analytics/misconceptions.ts`, unit + integration + isolation) |
+| Read-only parent view + weekly summary | ✅ | teacher creates a private read-only **family link** on the student page (no parent accounts): 32-byte token, only its SHA-256 hash stored, shown once, 90-day expiry, one live link per child, revocable, audited. Public page `/family/[token]`: the week's finished levels, days played, stars, worlds + Powers, what they are learning now; never attempts, hints, flags or teacher notes; unknown/expired/revoked all read "not active"; noindex. Migration `20260924090000_family_links`; integration covers access, hashing, replace, revoke, expiry. A weekly **email** is not sent: no email provider is configured (your choice) |
 
 ## §7 Accessibility, language, safety, performance
 
@@ -138,6 +138,15 @@ they should be reviewed and merged in the order above.
 ---
 
 ## Checkpoint log
+
+### Checkpoint 7 — 2026-09-24 (classroom + family)
+
+- **Live:** nothing new; nothing merged, deployed or pushed.
+- **On branches:** `feat/classroom-parent` (stacked on `feat/curriculum-expansion`).
+- **Tested:** unit + integration 738 passing (new: misconceptions, live snapshot, classroom/family integration, three tenant-isolation cases); lint and type-check clean; screenshots of the class page, curriculum guide (EN/AR), family panel, projector challenge, family page at phone width in EN/AR and the "not active" state.
+- **Also fixed here:** the new report and family code first read level titles from the draft row; the test fixtures' DRAFT markers caught it, now published snapshots only.
+- **Not done in §6:** assignment templates, group missions, reflections, external standards mapping, weekly email.
+- **Next step:** `feat/offline-perf-polish` (§7).
 
 ### Checkpoint 6 — 2026-09-23 (curriculum expansion)
 
