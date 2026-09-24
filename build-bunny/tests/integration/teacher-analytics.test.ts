@@ -600,6 +600,22 @@ describe("the assignment loop — both halves", () => {
     expect(rows[0]!.nextLevelId).toBe(l1Id);
   });
 
+  it("shows the class mission as counts, never names", async () => {
+    const roster = await db.classMembership.findMany({
+      where: { classId: classAId, role: "STUDENT" },
+      select: { userId: true },
+    });
+    const finished = await db.studentProgress.count({
+      where: { levelId: l1Id, status: "COMPLETED", studentUserId: { in: roster.map((m) => m.userId) } },
+    });
+    expect(finished).toBeGreaterThan(0);
+    const ctxStudent = createCtx({ userId: studentNotStartedId, role: "STUDENT", schoolId });
+    const [row] = await listMyStudentAssignments(ctxStudent);
+    expect(row).toMatchObject({ classFinished: finished, classSize: roster.length });
+    const serialized = JSON.stringify(row);
+    for (const member of roster) expect(serialized).not.toContain(member.userId);
+  });
+
   it("shows nothing to a student in another class", async () => {
     const ctxStudent = createCtx({ userId: studentInClassBId, role: "STUDENT", schoolId });
     expect(await listMyStudentAssignments(ctxStudent)).toEqual([]);

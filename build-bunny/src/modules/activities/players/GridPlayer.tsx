@@ -133,6 +133,12 @@ export function GridPlayer({
   const [lastRunAt, setLastRunAt] = useState<number | null>(null);
   // Pre-run coaching (empty / unsnapped program). Never graded, never posted.
   const [coach, setCoach] = useState<ActivityFeedback | null>(null);
+  // First steps for a brand-new child: point at "Add block", then at Run,
+  // then get out of the way for good (the first run ends it).
+  const [attachedBlocks, setAttachedBlocks] = useState(
+    () => programShape(payload.initialWorkspace ?? {}).attached,
+  );
+  const [firstRunDone, setFirstRunDone] = useState(false);
   const [briefingOpen, setBriefingOpen] = useState(false);
   // "Ask Robo Bunny": explain a block, why the run failed, a smaller hint,
   // a similar example — none of them the answer.
@@ -221,6 +227,7 @@ export function GridPlayer({
   const handleWorkspaceChange = (json: Record<string, unknown>) => {
     jsonRef.current = json;
     setCoach(null);
+    if (intro.firstSteps) setAttachedBlocks(programShape(json).attached);
     writeLocalDraft(draftKey, json);
     onWorkspaceJson?.(json);
     unsavedRef.current = json;
@@ -340,6 +347,8 @@ export function GridPlayer({
       return;
     }
     setCoach(null);
+    // A real run (not an empty-program nudge) ends the first-steps pointer.
+    setFirstRunDone(true);
     sounds.play("run");
     const maxHintTier = hints.reduce(
       (max, hint) => (hint.revealed ? Math.max(max, hint.tier) : max),
@@ -516,13 +525,21 @@ export function GridPlayer({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, attempt]);
 
+  const tourStep: "add" | "run" | null =
+    intro.firstSteps && !firstRunDone && phase === "edit" && view === "blocks"
+      ? attachedBlocks === 0
+        ? "add"
+        : "run"
+      : null;
+  const tourRing = "ring-4 ring-accent ring-offset-2 ring-offset-surface motion-safe:animate-pulse";
+
   const actionButtons = (
     <>
       <Button
         size="lg"
         onClick={handleRun}
         disabled={phase === "running"}
-        className="min-w-0 flex-1 sm:flex-none sm:min-w-36"
+        className={cn("min-w-0 flex-1 sm:flex-none sm:min-w-36", tourStep === "run" && tourRing)}
       >
         <span aria-hidden="true">▶</span>
         {t(phase === "running" ? "running" : "run")}
@@ -687,6 +704,15 @@ export function GridPlayer({
               aria-label={t("tools.addBlock")}
               className="flex shrink-0 flex-wrap items-center justify-end gap-1"
             >
+              {tourStep ? (
+                <p
+                  role="status"
+                  className="me-auto flex items-center gap-1.5 rounded-lg bg-accent/15 px-3 py-2 text-sm font-semibold text-ink"
+                >
+                  <span aria-hidden="true">👉</span>
+                  {t(tourStep === "add" ? "firstSteps.add" : "firstSteps.run")}
+                </p>
+              ) : null}
               {extraAction ? (
                 <button
                   type="button"
@@ -702,7 +728,10 @@ export function GridPlayer({
                 type="button"
                 onClick={() => setPaletteOpen(true)}
                 aria-haspopup="dialog"
-                className="inline-flex h-11 items-center gap-1 rounded-lg bg-brand px-3 text-sm font-bold text-on-brand hover:bg-brand-strong"
+                className={cn(
+                  "inline-flex h-11 items-center gap-1 rounded-lg bg-brand px-3 text-sm font-bold text-on-brand hover:bg-brand-strong",
+                  tourStep === "add" && tourRing,
+                )}
               >
                 <span aria-hidden="true" className="text-lg leading-none">
                   +

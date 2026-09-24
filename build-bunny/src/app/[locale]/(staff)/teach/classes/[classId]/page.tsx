@@ -8,6 +8,7 @@ import {
   getClassHardestLevels,
   getClassMatrix,
   getClassMisconceptions,
+  getClassReflections,
 } from "@/modules/analytics/server/queries";
 import {
   getClassAssignmentProgress,
@@ -29,10 +30,11 @@ export default async function ClassPage({ params, searchParams }: Props) {
   const { tab } = await searchParams;
   setRequestLocale(locale);
   const ctx = await requireRole("TEACHER", "SCHOOL_ADMIN");
-  const [matrix, hardestLevels, misconceptions, t, tCommon] = await Promise.all([
+  const [matrix, hardestLevels, misconceptions, reflections, t, tCommon] = await Promise.all([
     getClassMatrix(ctx, classId),
     getClassHardestLevels(ctx, classId),
     getClassMisconceptions(ctx, classId),
+    getClassReflections(ctx, classId),
     getTranslations("staff.teach.matrix"),
     getTranslations("common"),
   ]);
@@ -150,6 +152,37 @@ export default async function ClassPage({ params, searchParams }: Props) {
                   ) : null}
                   <span className="text-sm text-ink">
                     {t(`misconceptions.kind.${item.id}.reteach`)}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </CardBody>
+        </Card>
+      ) : null}
+
+      {/* How the class felt: the one-tap reflection after each level. Counts
+          only, never who said what. */}
+      {reflections.length > 0 ? (
+        <Card>
+          <CardBody className="flex flex-col gap-3">
+            <div className="flex flex-col gap-0.5">
+              <h2 className="font-display text-base font-semibold text-ink">{t("reflections.heading")}</h2>
+              <p className="text-sm text-ink-muted">{t("reflections.caveat")}</p>
+            </div>
+            <ul className="flex flex-col gap-2">
+              {reflections.map((level) => (
+                <li
+                  key={level.levelId}
+                  className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-surface-sunken px-3 py-2"
+                >
+                  <span className="flex flex-col">
+                    <span className="text-sm font-semibold text-ink">{resolveText(level.title, locale)}</span>
+                    <span className="text-xs text-ink-muted">{resolveText(level.worldName, locale)}</span>
+                  </span>
+                  <span className="flex flex-wrap items-center gap-2 text-xs tabular-nums text-ink">
+                    <Badge variant="neutral">{t("reflections.easy", { count: level.easy })}</Badge>
+                    <Badge variant="neutral">{t("reflections.justRight", { count: level.justRight })}</Badge>
+                    <Badge variant="warning">{t("reflections.tricky", { count: level.tricky })}</Badge>
                   </span>
                 </li>
               ))}

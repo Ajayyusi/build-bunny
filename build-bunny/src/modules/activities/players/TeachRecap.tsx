@@ -84,7 +84,7 @@ export function TeachRecap({
       {/* What they taught it with. */}
       <div className="flex flex-col gap-1.5">
         <p className="text-xs text-ink-muted">
-          {t("recapTaught", { count: examples.length })}
+          {t("recapTaught", { count: examples.length, kind: glyph })}
         </p>
         <ul className="flex flex-wrap items-center gap-2">
           {examples.map((example) => (

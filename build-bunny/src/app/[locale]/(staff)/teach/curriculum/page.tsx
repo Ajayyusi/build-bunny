@@ -3,9 +3,12 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { requireRole } from "@/modules/auth/server/session";
 import { resolveText } from "@/modules/curriculum/schemas";
 import { getTeacherCurriculumGuide, LESSON_MINUTES, lessonsFor } from "@/modules/curriculum/server/guide";
+import { standardsForTags } from "@/modules/curriculum/standards";
 import { ageBandFor } from "@/modules/learning/age-band";
+import { listMyClasses } from "@/modules/schools/server/queries";
 import { Badge, Card, CardBody, EmptyState, PageHeader } from "@/ui";
 
+import { AssignModuleButton } from "../_components/AssignModuleButton";
 import { PrintButton } from "../_components/PrintButton";
 
 interface Props {
@@ -23,8 +26,11 @@ export default async function CurriculumGuidePage({ params }: Props) {
   const { locale } = await params;
   setRequestLocale(locale);
   const ctx = await requireRole("TEACHER", "SCHOOL_ADMIN");
-  const [worlds, t, tIntro] = await Promise.all([
+  const [worlds, classes, t, tIntro] = await Promise.all([
     getTeacherCurriculumGuide(ctx),
+    // Only teachers assign (and only to classes they teach); an admin reading
+    // the guide sees no assign buttons.
+    ctx.role === "TEACHER" ? listMyClasses(ctx) : Promise.resolve([]),
     getTranslations("staff.teach.curriculum"),
     getTranslations("student.adventure.intro"),
   ]);
@@ -44,6 +50,8 @@ export default async function CurriculumGuidePage({ params }: Props) {
         })}
         actions={<PrintButton label={t("print")} />}
       />
+
+      {worlds.length > 0 ? <p className="text-xs text-ink-muted">{t("cstaNote")}</p> : null}
 
       {worlds.length === 0 ? (
         <EmptyState title={t("emptyTitle")} description={t("emptyBody")} />
@@ -75,18 +83,46 @@ export default async function CurriculumGuidePage({ params }: Props) {
                   <h3 className="font-display text-base font-semibold text-ink">
                     {resolveText(mod.name, locale)}
                   </h3>
-                  <span className="text-xs text-ink-muted">
-                    {t("modulePacing", {
-                      levels: mod.levels.length,
-                      total: mod.totalMinutes,
-                      lessons: lessonsFor(mod.totalMinutes),
-                      minutes: LESSON_MINUTES,
-                    })}
+                  <span className="flex flex-wrap items-center gap-3">
+                    <span className="text-xs text-ink-muted">
+                      {t("modulePacing", {
+                        levels: mod.levels.length,
+                        total: mod.totalMinutes,
+                        lessons: lessonsFor(mod.totalMinutes),
+                        minutes: LESSON_MINUTES,
+                      })}
+                    </span>
+                    <AssignModuleButton
+                      worldId={world.id}
+                      moduleId={mod.id}
+                      moduleName={resolveText(mod.name, locale)}
+                      classes={classes.map((c) => ({ id: c.id, name: c.name }))}
+                    />
                   </span>
                 </div>
                 {mod.description ? (
                   <p className="text-sm text-ink-muted">{resolveText(mod.description, locale)}</p>
                 ) : null}
+                {(() => {
+                  const codes = standardsForTags(mod.levels.flatMap((level) => level.tags));
+                  if (codes.length === 0) return null;
+                  return (
+                    <p className="flex flex-wrap items-center gap-1.5 text-xs text-ink-muted">
+                      <span>{t("cstaLabel")}</span>
+                      {codes.map((code) => (
+                        <abbr
+                          key={code}
+                          title={t(`csta.${code}`)}
+                          tabIndex={0}
+                          dir="ltr"
+                          className="rounded bg-surface-sunken px-1.5 py-0.5 font-mono text-ink no-underline print:bg-transparent"
+                        >
+                          {code}
+                        </abbr>
+                      ))}
+                    </p>
+                  );
+                })()}
                 <div className="overflow-x-auto">
                   <table className="w-full min-w-[40rem] border-collapse text-sm">
                     <thead>

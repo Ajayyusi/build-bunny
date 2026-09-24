@@ -595,6 +595,13 @@ async function assertQueryIsolated(entry: RegistryEntry): Promise<void> {
       expectNoForeignIds(own, name);
       break;
     }
+    case "getClassReflections": {
+      // Same access rule as the misconception report beside it.
+      expect(await query(teacherCtxA, B.classId)).toEqual([]);
+      expect(await query(teacherCtxB, classTwoBId)).toEqual([]);
+      expectNoForeignIds(await query(teacherCtxA, A.classId), name);
+      break;
+    }
     case "getClassMisconceptions": {
       // Same access rule as the hardest-levels list beside it: a foreign
       // class is unreachable and an empty list is the only safe answer.

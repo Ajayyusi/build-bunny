@@ -5,6 +5,7 @@ import { WorldMusic } from "@/modules/audio/scene";
 import type { ActivityPlayerProps } from "../types";
 import { getActivityPlayer } from "./registry";
 import { useAttemptOutbox } from "./shared/attempt-outbox";
+import { LevelContext } from "./shared/level-context";
 
 interface Props extends ActivityPlayerProps {
   activityType: string;
@@ -30,7 +31,9 @@ export function ActivityPlayer({ activityType, ...props }: Props) {
     <>
       {/* Each world has its own tune while its levels are being played. */}
       <WorldMusic theme={props.intro.worldTheme} />
-      <Player {...props} />
+      <LevelContext.Provider value={{ levelId: props.intro.levelId }}>
+        <Player {...props} />
+      </LevelContext.Provider>
     </>
   );
 }

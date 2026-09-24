@@ -5,6 +5,7 @@ import {
   getClassHardestLevels,
   getClassMatrix,
   getClassMisconceptions,
+  getClassReflections,
   getStudentDetail,
   getTeacherOverview,
 } from "./teacher";
@@ -26,6 +27,7 @@ export {
   getClassHardestLevels,
   getClassMatrix,
   getClassMisconceptions,
+  getClassReflections,
   getStudentDetail,
   getTeacherOverview,
   getSchoolAnalytics,
@@ -36,6 +38,7 @@ export const tenantScopedQueries = {
   getClassMatrix,
   getClassHardestLevels,
   getClassMisconceptions,
+  getClassReflections,
   getTeacherOverview,
   getStudentDetail,
   getAttemptReplay,

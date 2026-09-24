@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import { beforeAll, describe, expect, it } from "vitest";
 
 import { db } from "@/lib/db";
-import { getClassMisconceptions } from "@/modules/analytics/server/queries";
+import { getClassMisconceptions, getClassReflections } from "@/modules/analytics/server/queries";
 import { createStaff, createStudent } from "@/modules/auth/server/provisioning";
 import type { SessionContext } from "@/modules/auth/server/session";
 import { getTeacherCurriculumGuide } from "@/modules/curriculum/server/guide";
@@ -14,6 +14,7 @@ import {
 import { getFamilySummary } from "@/modules/family/server/summary";
 import { submitAttempt } from "@/modules/grading/server/submit";
 import { recomputeUnlocks } from "@/modules/learning/server/adventure";
+import { saveReflectionCore } from "@/modules/learning/server/play";
 import {
   addWorldToProgram,
   createCtx,
@@ -206,5 +207,45 @@ describe("family link", () => {
     const { token } = await createFamilyLinkCore(teacherCtx, { studentUserId: studentIds[1]! });
     const later = new Date(Date.now() + 91 * 24 * 60 * 60 * 1000);
     expect(await getFamilySummary(token, later)).toBeNull();
+  });
+});
+
+describe("one-tap reflections", () => {
+  it("say nothing until three children have answered, then show counts only", async () => {
+    await saveReflectionCore(studentCtxs[0]!, { levelId, feeling: "EASY" });
+    // Changing your mind replaces the answer; it never counts twice.
+    await saveReflectionCore(studentCtxs[0]!, { levelId, feeling: "TRICKY" });
+    await saveReflectionCore(studentCtxs[1]!, { levelId, feeling: "TRICKY" });
+    expect(await db.levelReflection.count({ where: { levelId } })).toBe(2);
+    expect(await getClassReflections(teacherCtx, classId)).toEqual([]);
+
+    const schoolId = studentCtxs[0]!.schoolId!;
+    const school = await db.school.findUniqueOrThrow({ where: { id: schoolId } });
+    const cam = await createStudent(SYSTEM_ACTOR, {
+      schoolId,
+      schoolCode: school.code,
+      username: "camcls",
+      displayName: "CAM K.",
+      studentIdentifier: "CL-2",
+      grade: 5,
+    });
+    await db.classMembership.create({ data: { schoolId, classId, userId: cam.userId, role: "STUDENT" } });
+    await recomputeUnlocks(cam.userId);
+    const camCtx = createCtx({ userId: cam.userId, role: "STUDENT", schoolId });
+    await saveReflectionCore(camCtx, { levelId, feeling: "JUST_RIGHT" });
+
+    const report = await getClassReflections(teacherCtx, classId);
+    expect(report).toEqual([
+      expect.objectContaining({ levelId, title: { en: "Two Hops" }, easy: 0, justRight: 1, tricky: 2 }),
+    ]);
+    const serialized = JSON.stringify(report);
+    for (const id of [...studentIds, cam.userId]) expect(serialized).not.toContain(id);
+    expect(await getClassReflections(otherTeacherCtx, classId)).toEqual([]);
+  });
+
+  it("a level the child cannot open cannot be reflected on", async () => {
+    await expect(
+      saveReflectionCore(studentCtxs[0]!, { levelId: randomUUID(), feeling: "EASY" }),
+    ).rejects.toThrow();
   });
 });

@@ -7,6 +7,7 @@ import { RateLimitedError, withAuth, type ActionResult } from "@/modules/auth/se
 import {
   markLevelStartedCore,
   revealHintCore,
+  saveReflectionCore,
   saveWorkspaceDraftCore,
   type RevealedHint,
 } from "./play";
@@ -67,4 +68,16 @@ export async function markLevelStarted(
   return withAuth("attempts:submit", markStartedSchema, (ctx, data) =>
     markLevelStartedCore(ctx, data),
   )(input);
+}
+
+const reflectionSchema = z.object({
+  levelId: z.string().min(1),
+  feeling: z.enum(["EASY", "JUST_RIGHT", "TRICKY"]),
+});
+
+/** One-tap "How did that feel?" after a level. */
+export async function saveReflection(
+  input: unknown,
+): Promise<ActionResult<{ feeling: "EASY" | "JUST_RIGHT" | "TRICKY" }>> {
+  return withAuth("attempts:submit", reflectionSchema, (ctx, data) => saveReflectionCore(ctx, data))(input);
 }

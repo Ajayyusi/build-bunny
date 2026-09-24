@@ -235,6 +235,21 @@ A review of everything the product records about play, against the rule
   schema); nothing reads it, and it should stay unwritten until a feature
   genuinely needs it.
 
+## 8e. Reflections and class missions (2026-09-24)
+
+- **LevelReflection** stores one of three fixed values (EASY, JUST_RIGHT,
+  TRICKY) per child per level, plus school, child and level ids and
+  timestamps. There is no free-text field, so a child cannot type anything
+  into it. Answering is optional, and answering again replaces the value.
+- Teachers see only class totals per level, and only once at least three
+  children have answered, so one answer cannot be traced back to a child.
+  The child's own answer is never shown to anyone by name.
+- **Class missions** show a child how many classmates finished an
+  assignment ("3 of 20"), computed from existing progress rows. No names,
+  no ranking, nothing new stored.
+- Deleting a child deletes their reflections with them (foreign key to the
+  user, like every other child row).
+
 ## 9. Where this is enforced in code (for an auditor who wants to verify, not just read)
 
 - Tenant scoping: every data-layer query lives in `src/modules/*/server/**`,

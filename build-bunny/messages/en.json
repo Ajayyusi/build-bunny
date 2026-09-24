@@ -206,7 +206,9 @@
         "done": "Done",
         "start": "Start",
         "continue": "Continue",
-        "progress": "{done} of {total}"
+        "progress": "{done} of {total}",
+        "mission": "Class mission: {done} of {total} in your class have finished",
+        "missionNone": "Class mission: be one of the first in your class to finish"
       },
       "heroCtaDone": "Open the map",
       "openMap": "See the map",
@@ -426,37 +428,37 @@
         "retry": "Retry"
       },
       "teach": {
-        "trayHeading": "Berries the bunny already tried",
-        "trayEmpty": "You have taught the bunny with every berry.",
-        "guessHeading": "New berries — the bunny has never seen these",
-        "needMore": "Teach it at least {count} safe and {count} unsafe berries, then it will start guessing.",
-        "removeExample": "Take this berry back",
+        "trayHeading": "{kind, select, grain {Seeds} cell {Cells} blip {Readings} other {Berries}} the bunny already knows about",
+        "trayEmpty": "You have taught the bunny with every {kind, select, grain {seed} cell {cell} blip {reading} other {berry}}.",
+        "guessHeading": "New {kind, select, grain {seeds} cell {cells} blip {readings} other {berries}} — the bunny has never seen these",
+        "needMore": "Teach it at least {count} of each kind first, then it will start guessing.",
+        "removeExample": "Take this {kind, select, grain {seed} cell {cell} blip {reading} other {berry}} back",
         "check": "Test the bunny",
         "taughtCount": "{count} taught",
         "passed": "The bunny got them all right! You taught it well.",
-        "missed": "The bunny got {correct} of {total} right. Teach it a berry that looks like the one it got wrong.",
+        "missed": "The bunny got {correct} of {total} right. Teach it {kind, select, grain {a seed} cell {a cell} blip {a reading} other {a berry}} that looks like the one it got wrong.",
         "trayHelp": "The bunny ate these before, so we know what happened. Pick which ones to teach it with.",
         "teachThis": "Teach this one",
-        "guessHelp": "These are the mystery berries. The bunny has to work them out from what you taught it.",
-        "tryAgain": "Not quite yet — teach the bunny a berry like the one it got wrong.",
+        "guessHelp": "These are the mystery {kind, select, grain {seeds} cell {cells} blip {readings} other {berries}}. The bunny has to work them out from what you taught it.",
+        "tryAgain": "Not quite yet — teach the bunny {kind, select, grain {a seed} cell {a cell} blip {a reading} other {a berry}} like the one it got wrong.",
         "submitFailed": "Something went wrong sending that to the bunny. Try pressing Test again.",
         "exit": "Back to map",
         "howItWorks": "How it works",
         "looksLike": "looks most like",
         "walk1Title": "Robo Bunny cannot read",
-        "walk1Body": "It has no rule for which berries are safe. You are not going to write one either — there is no code in this level at all.",
+        "walk1Body": "It has no rule for sorting these {kind, select, grain {seeds} cell {cells} blip {readings} other {berries}}. You are not going to write one either — there is no code in this level at all.",
         "walk2Title": "You show it examples",
-        "walk2Body": "Each berry here has already been eaten once, so we know what happened. Put some into the baskets. That is all 'teaching' means.",
-        "walk3Title": "Then it meets new berries",
-        "walk3Body": "The ? berries are ones it has never seen. To guess, it finds the berry YOU taught it that looks most like the new one, and copies that answer.",
+        "walk2Body": "We already know the answer for each {kind, select, grain {seed} cell {cell} blip {reading} other {berry}} here. Put some into the baskets. That is all 'teaching' means.",
+        "walk3Title": "Then it meets new {kind, select, grain {seeds} cell {cells} blip {readings} other {berries}}",
+        "walk3Body": "The ? ones are new to it. To guess, it finds the example YOU taught it that looks most like the new one, and copies that answer.",
         "walk4Title": "So your choice decides",
-        "walk4Body": "If you only ever show it small berries, a big one will look most like the wrong thing — and it will be confidently wrong. Pick examples that cover every kind.",
+        "walk4Body": "If you only ever show it one kind — only small ones, only light ones — a different-looking one will fool it, and it will be confidently wrong. Pick examples that cover every kind.",
         "bucketsHeading": "The bunny's two baskets",
-        "bucketsHelp": "Everything you teach it lands here. Click a berry to take it back out.",
+        "bucketsHelp": "Everything you teach it lands here. Click {kind, select, grain {a seed} cell {a cell} blip {a reading} other {a berry}} to take it back out.",
         "tooManyExamples": "That is {used} examples, and you may only use {max}. Take some back out and pick the ones that teach it the most.",
         "capUsed": "{used} of {max} used",
         "recapHeading": "How you taught it",
-        "recapTaught": "You showed it {count} berries, and nothing else:",
+        "recapTaught": "You showed it {count} {kind, select, grain {seeds} cell {cells} blip {readings} other {berries}}, and nothing else:",
         "recapDecided": "Then it worked out the new ones by copying whichever of yours each one looked most like:",
         "improveFewer": "The bunny can be taught with as few as {max} examples. Fewer, better-chosen ones earn the last star.",
         "keepForTesting": "Keep for testing",
@@ -693,6 +695,17 @@
         "build": "Build my program",
         "edit": "Change my maze",
         "designRegion": "Maze designer"
+      },
+      "reflection": {
+        "question": "How did that feel?",
+        "easy": "Easy",
+        "justRight": "Just right",
+        "tricky": "Tricky",
+        "thanks": "Thanks — your teacher will see how the class found this level."
+      },
+      "firstSteps": {
+        "add": "Tap “+ Add block” and pick a block to start your program.",
+        "run": "Nice! Now press ▶ Run to see what Bunny does."
       }
     },
     "profile": {
@@ -909,6 +922,13 @@
               "reteach": "Flags landed between crowds. Look at the board before placing: how many crowds, and where is the middle of each?"
             }
           }
+        },
+        "reflections": {
+          "heading": "How the class felt",
+          "caveat": "From the one-tap question after each level. The levels most often called tricky, with at least 3 answers. Counts only — no child is named.",
+          "easy": "😀 {count} easy",
+          "justRight": "🙂 {count} just right",
+          "tricky": "😣 {count} tricky"
         }
       },
       "student": {
@@ -1125,6 +1145,44 @@
           "AI_SIM": "AI simulation",
           "QUIZ": "Quiz",
           "REAL_ML": "Real ML"
+        },
+        "assign": {
+          "button": "Assign to a class",
+          "title": "Assign “{module}”",
+          "classLabel": "Class",
+          "dueLabel": "Due date (optional)",
+          "dueHint": "Children see it on their home screen, with no countdown.",
+          "confirm": "Assign",
+          "cancel": "Cancel",
+          "done": "Assigned to {className} ✓",
+          "error": "That did not work. Check you teach this class and try again."
+        },
+        "cstaLabel": "Suggested CSTA alignment:",
+        "cstaNote": "Standards codes are our suggested alignment with the CSTA K–12 Computer Science Standards (1B = grades 3–5, 2 = grades 6–8), not an endorsement by CSTA. Hover or focus a code to read it.",
+        "csta": {
+          "1B-AP-08": "Compare and refine different algorithms for the same task",
+          "1B-AP-09": "Use variables to store and change data in a program",
+          "1B-AP-10": "Build programs with sequences, events, loops and conditionals",
+          "1B-AP-11": "Break a problem into smaller parts",
+          "1B-AP-13": "Plan and build a program step by step, improving it as you go",
+          "1B-AP-15": "Test and debug a program so it works as intended",
+          "1B-AP-17": "Explain the choices made while building a program",
+          "1B-CS-02": "Model how hardware and software work together",
+          "1B-DA-06": "Organise data and show it visually",
+          "1B-DA-07": "Use data to spot patterns, predict outcomes and explain ideas",
+          "1B-IC-20": "Seek different perspectives to improve what we build",
+          "1B-NI-05": "Discuss online safety and how to protect personal information",
+          "2-AP-11": "Create clearly named variables and operate on their values",
+          "2-AP-12": "Combine control structures, including nested loops and conditionals",
+          "2-AP-13": "Decompose problems into parts to design programs",
+          "2-AP-17": "Test and refine programs systematically with different cases",
+          "2-CS-02": "Combine hardware and software to collect and exchange data",
+          "2-DA-07": "Represent data in more than one way",
+          "2-DA-08": "Collect and clean data to make it more useful and reliable",
+          "2-DA-09": "Refine a model using the data it produces",
+          "2-IC-20": "Weigh how technology affects people's everyday lives",
+          "2-IC-21": "Discuss bias and accessibility in technology design",
+          "2-IC-23": "Weigh keeping information public versus private and secure"
         }
       }
     },
