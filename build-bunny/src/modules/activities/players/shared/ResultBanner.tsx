@@ -93,6 +93,9 @@ export function useFeedbackText(): (feedback: ActivityFeedback | null) => string
     const data = feedback?.data ?? {};
     switch (code) {
       case "bumped":
+        // Off the map is not "a rock": say which, or the child hunts for a
+        // rock that is not there.
+        return t(data.edge === true ? "bumpedEdge" : "bumped", { step: asNumber(data.step, 1) });
       case "splashed":
         return t(code, { step: asNumber(data.step, 1) });
       case "carrotsLeft":

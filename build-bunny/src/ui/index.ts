@@ -62,4 +62,4 @@ export {
   type ToastVariant,
 } from "./Toast";
 export { useFocusTrap } from "./useFocusTrap";
-export { tintHex, worldColor, type WorldColor } from "./worldColors";
+export { collectableGlyph, tintHex, worldColor, type WorldColor } from "./worldColors";

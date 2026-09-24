@@ -181,7 +181,10 @@ function terminationFailure(result: RunResult): {
     case "BUMPED": {
       const bump = result.events.find((e) => e.type === "bump");
       return bump
-        ? { code: "bumped", data: { step: bump.step, x: bump.x, y: bump.y } }
+        ? {
+            code: "bumped",
+            data: { step: bump.step, x: bump.x, y: bump.y, ...(bump.edge ? { edge: true } : {}) },
+          }
         : { code: "bumped" };
     }
     case "SPLASHED": {
