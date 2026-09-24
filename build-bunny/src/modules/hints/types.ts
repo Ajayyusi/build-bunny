@@ -1,6 +1,13 @@
 import type { MazeIssue } from "@/modules/activities/maze";
 
 /**
+ * "Show me the next step" is recorded as this hint tier: above the authored
+ * ladder (1–4), so computeStars' existing tier-3+ rule caps the level at two
+ * stars, and a teacher's attempt view can tell it apart from the ladder.
+ */
+export const NEXT_STEP_TIER = 5;
+
+/**
  * "Show me the next step" results, shared by the server that computes them
  * (hints/server/next-step.ts) and the players that render them.
  */

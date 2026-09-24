@@ -32,6 +32,8 @@ import { GridScene } from "./shared/GridScene";
 import { HintDrawer, type HintTierState } from "./shared/HintDrawer";
 import { IntroOverlay } from "./shared/IntroOverlay";
 import { MissionStrip } from "./shared/MissionStrip";
+import { NEXT_STEP_TIER } from "@/modules/hints/types";
+
 import { NextStepHint } from "./shared/NextStepHint";
 import { RoboHelp, type HelpTopic, type RoboHelpFailure } from "./shared/RoboHelp";
 import { ResultBanner, useFeedbackText } from "./shared/ResultBanner";
@@ -196,6 +198,7 @@ export function GridPlayer({
   );
 
   const workspaceHandleRef = useRef<BlocklyWorkspaceHandle | null>(null);
+  const nextStepUsedRef = useRef(intro.hintsUsedTiers.includes(NEXT_STEP_TIER));
   const jsonRef = useRef<unknown>(payload.initialWorkspace);
   const saveTimerRef = useRef<number | null>(null);
   // JSON edited since the last server save — what a pagehide flush sends.
@@ -405,9 +408,11 @@ export function GridPlayer({
     // A real run (not an empty-program nudge) ends the first-steps pointer.
     setFirstRunDone(true);
     sounds.play("run");
+    // A next-step hint caps the level like the ladder's top tiers do; count
+    // it here too, so the card never shows 3 stars the server will take back.
     const maxHintTier = hints.reduce(
       (max, hint) => (hint.revealed ? Math.max(max, hint.tier) : max),
-      0,
+      nextStepUsedRef.current ? NEXT_STEP_TIER : 0,
     );
     let outcome: LocalRunOutcome;
     try {
@@ -798,7 +803,7 @@ export function GridPlayer({
                 <NextStepHint
                   levelId={intro.levelId}
                   action={nextStepAction}
-                  usedBefore={intro.hintsUsedTiers.includes(5)}
+                  usedBefore={intro.hintsUsedTiers.includes(NEXT_STEP_TIER)}
                   readyAction={`“${t("run")}”`}
                   disabled={phase === "running"}
                   getState={() => ({
@@ -806,6 +811,7 @@ export function GridPlayer({
                     ...(attemptExtras ?? {}),
                   })}
                   onStep={(step) => {
+                    nextStepUsedRef.current = true;
                     // Point at what the hint names, so "+ Add block" lands
                     // exactly where it said.
                     const handle = workspaceHandleRef.current;
