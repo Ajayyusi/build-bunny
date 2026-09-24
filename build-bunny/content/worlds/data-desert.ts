@@ -40,6 +40,42 @@ const NIGHT_CAMERA_THEME = {
 
 export const dataDesert: WorldFixture = {
   slug: "data-desert",
+  // Story beats, friend and Power — docs/build-bunny/STORY.md.
+  story: {
+    beats: [
+      {
+        pose: "thinking",
+        text: {
+          en: "A sandstorm scrambled Fenn's records. Twelve creatures came to the waterhole, and nobody wrote down what they were.",
+          ar: "عاصفة رملية بعثرت سجلّات فِنّ. جاء اثنا عشر مخلوقًا إلى بركة الماء، ولم يكتب أحد ما كانت.",
+        },
+      },
+      {
+        pose: "pointing",
+        text: {
+          en: "Fenn says the groups are already in the data. We just have to find them — and not trust a number that can't be true.",
+          ar: "يقول فِنّ إن المجموعات موجودة في البيانات أصلًا. علينا فقط أن نجدها — وألا نصدّق رقمًا يستحيل أن يكون صحيحًا.",
+        },
+      },
+      {
+        pose: "excited",
+        text: {
+          en: "Patterns, and the courage to doubt. Let's read the dunes.",
+          ar: "أنماط، وشجاعة الشك. لنقرأ الكثبان.",
+        },
+      },
+    ],
+  },
+  character: {
+    name: { en: "Fenn the Fennec", ar: "الفنك فِنّ" },
+    role: { en: "Keeper of the caravan's numbers", ar: "حارس أرقام القافلة" },
+    glyph: "🦊",
+  },
+  power: {
+    name: { en: "Pattern Power", ar: "قوة الأنماط" },
+    idea: { en: "Groups hide in data — and some numbers lie.", ar: "المجموعات تختبئ في البيانات — وبعض الأرقام تكذب." },
+    glyph: "📊",
+  },
   name: { en: "Data Desert", ar: "صحراء البيانات" },
   tagline: {
     en: "Patterns hide in the dunes. Learn to spot them.",

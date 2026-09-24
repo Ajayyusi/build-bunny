@@ -357,6 +357,12 @@ model World {
   // Horizon worlds appear as roadmap art on the map with no interactive area
   // (plan §0.1-4: no fake product areas).
   horizon Boolean       @default(false)
+  /// Opening cutscene (3 lines with bunny poses), the world's friend, and the
+  /// Power earned at its finale — see docs/build-bunny/STORY.md. Nullable so
+  /// worlds authored before the story shipped still import.
+  story     Json?
+  character Json?
+  power     Json?
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt
 

@@ -768,6 +768,7 @@ export function GridPlayer({
           explanation={intro.explanation}
           achievements={achievements}
           worldCompletedName={worldCompletedName}
+          worldPower={attempt.server?.worldCompleted?.power ?? null}
           gradeMismatch={attempt.server?.gradeMismatch ?? false}
           saving={!attempt.server && !attempt.saveFailed}
           saveFailed={attempt.saveFailed}

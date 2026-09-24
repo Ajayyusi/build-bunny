@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, type ReactNode } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 
 import { Link } from "@/i18n/navigation";
 import { ReadAloudButton } from "@/modules/audio/AudioControls";
@@ -18,6 +18,7 @@ import {
 } from "@/ui";
 
 import styles from "./player.module.css";
+import { resolveLocalized } from "../../types";
 
 /**
  * The celebration beat: a short star burst (skippable, skipped entirely
@@ -41,6 +42,8 @@ interface SuccessOverlayProps {
   explanation: string;
   achievements: SuccessAchievement[];
   worldCompletedName: string | null;
+  /** The Power earned by finishing this world (only on the finishing run). */
+  worldPower?: { name: unknown; idea: unknown; glyph: string } | null;
   gradeMismatch: boolean;
   saving: boolean;
   saveFailed: boolean;
@@ -67,6 +70,7 @@ export function SuccessOverlay({
   explanation,
   achievements,
   worldCompletedName,
+  worldPower = null,
   gradeMismatch,
   saving,
   saveFailed,
@@ -77,6 +81,7 @@ export function SuccessOverlay({
   extra,
 }: SuccessOverlayProps) {
   const t = useTranslations("student.play.success");
+  const locale = useLocale();
   const { play } = useSound();
   const [stage, setStage] = useState<"burst" | "card">(
     reducedMotion ? "card" : "burst",
@@ -270,6 +275,27 @@ export function SuccessOverlay({
           <p className="text-center text-sm font-bold text-brand">
             {t("worldCompleted", { world: worldCompletedName })}
           </p>
+        ) : null}
+
+        {/* The Power: what Robo Bunny keeps from this world — the idea, in
+            one line, said back to the child as the story's reward. */}
+        {worldCompletedName && worldPower ? (
+          <div className="flex items-center gap-3 rounded-xl border-2 border-accent/60 bg-accent/15 p-4">
+            <span aria-hidden="true" className="text-3xl leading-none">
+              {worldPower.glyph}
+            </span>
+            <div className="flex min-w-0 flex-col gap-0.5">
+              <p className="font-display text-base font-bold text-ink">
+                {t("powerEarned", {
+                  power: resolveLocalized(worldPower.name, locale),
+                })}
+              </p>
+              <p className="text-sm text-ink-muted">{t("powerIdea")}</p>
+              <p className="text-sm font-semibold text-ink">
+                {resolveLocalized(worldPower.idea, locale)}
+              </p>
+            </div>
+          </div>
         ) : null}
 
         <div className="flex flex-col-reverse gap-2 pt-1 sm:flex-row sm:justify-end">

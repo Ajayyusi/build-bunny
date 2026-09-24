@@ -256,7 +256,17 @@
       "requiresPrefix": "يتطلب: {name}",
       "worldProgressPct": "{pct}٪",
       "reviewModule": "راجع العالم",
-      "lockedHintWorldPartial": "بعض المستويات هنا مفتوحة الآن — والباقي يُفتح بعد العالم السابق"
+      "lockedHintWorldPartial": "بعض المستويات هنا مفتوحة الآن — والباقي يُفتح بعد العالم السابق",
+      "story": {
+        "title": "{world} — القصة",
+        "skip": "تخطٍّ",
+        "next": "التالي",
+        "go": "هيا بنا!",
+        "replay": "القصة",
+        "friend": "صديقك هنا",
+        "power": "القوة التي ستكسبها",
+        "powerEarned": "قوة مكتسبة"
+      }
     },
     "play": {
       "backToMap": "العودة إلى الخريطة",
@@ -362,7 +372,9 @@
         "achievementsHeading": "شارات جديدة",
         "worldCompleted": "أنهيت {world}! عمل رائع!",
         "next": "المستوى التالي",
-        "backToMap": "العودة إلى الخريطة"
+        "backToMap": "العودة إلى الخريطة",
+        "powerEarned": "لقد كسبت {power}!",
+        "powerIdea": "سيتذكّر الأرنب الآلي هذا إلى الأبد:"
       },
       "blockNames": {
         "bb_whenStart": "عند البدء",

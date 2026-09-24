@@ -33,6 +33,42 @@ const POWER_CELL_THEME = {
 
 export const mlLab: WorldFixture = {
   slug: "ml-lab",
+  // Story beats, friend and Power — docs/build-bunny/STORY.md.
+  story: {
+    beats: [
+      {
+        pose: "surprised",
+        text: {
+          en: "Dr. Nova wants me to train a checker that decides which power cells are safe. And she wants proof it works.",
+          ar: "تريد الدكتورة نوفا أن أدرّب فاحصًا يقرّر أي خلايا الطاقة آمنة. وتريد دليلًا على أنه يعمل.",
+        },
+      },
+      {
+        pose: "thinking",
+        text: {
+          en: "So I'll keep some cells back to test with. And I'll remember: some mistakes cost more than others.",
+          ar: "لذا سأحتفظ ببعض الخلايا للاختبار. وسأتذكّر: بعض الأخطاء أغلى ثمنًا من غيرها.",
+        },
+      },
+      {
+        pose: "excited",
+        text: {
+          en: "Train, test, and choose the safe kind of wrong. Let's earn Nova's trust.",
+          ar: "درّب، واختبر، واختر الخطأ الآمن. لنكسب ثقة نوفا.",
+        },
+      },
+    ],
+  },
+  character: {
+    name: { en: "Dr. Nova", ar: "الدكتورة نوفا" },
+    role: { en: "A robot owl who tests everything twice", ar: "بومة آلية تختبر كل شيء مرتين" },
+    glyph: "🤖",
+  },
+  power: {
+    name: { en: "Train & Test Power", ar: "قوة التدريب والاختبار" },
+    idea: { en: "Hold some back. Weigh the cost of each mistake.", ar: "احتفظ ببعضها. وزِن ثمن كل خطأ." },
+    glyph: "🧪",
+  },
   name: { en: "Machine Learning Lab", ar: "مختبر تعلّم الآلة" },
   tagline: {
     en: "Train a real model with your own hands.",

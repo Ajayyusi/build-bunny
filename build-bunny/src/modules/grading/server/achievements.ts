@@ -26,12 +26,16 @@ interface CriteriaShapes {
   STARS_TOTAL: { count: number };
   WORLD_COMPLETED: { worldSlug?: string };
   STREAK_DAYS: { days: number };
+  /** Distinct days with any activity — never consecutive, never resetting. */
+  ACTIVE_DAYS: { days: number };
   ACTIVITY_TYPE_PASSED: { activityType: string };
 }
 
 interface StudentRewardState {
   starsTotal: number;
   streakBest: number;
+  /** Number of distinct calendar days the student did anything at all. */
+  activeDays: number;
   /** COMPLETED levels with the facts criteria evaluate over. */
   completedLevels: { levelId: string; tags: string[]; activityType: string; worldId: string }[];
   /** Worlds where every published level is COMPLETED, by slug. */
@@ -77,6 +81,12 @@ function criteriaSatisfied(criteria: unknown, state: StudentRewardState): boolea
       // even after the streak later breaks.
       return days !== null && state.streakBest >= days;
     }
+    case "ACTIVE_DAYS": {
+      // Days played, not days in a row: a badge for coming back, with no
+      // streak to protect and nothing that resets over a holiday.
+      const days = asNumber(record["days"]);
+      return days !== null && state.activeDays >= days;
+    }
     case "ACTIVITY_TYPE_PASSED": {
       const activityType = record["activityType"];
       return (
@@ -93,10 +103,13 @@ async function loadState(
   tx: Prisma.TransactionClient,
   student: { studentUserId: string; schoolId: string },
 ): Promise<StudentRewardState> {
-  const [profile, completedRows] = await Promise.all([
+  const [profile, activeDays, completedRows] = await Promise.all([
     tx.studentProfile.findFirst({
       where: { userId: student.studentUserId, schoolId: student.schoolId },
       select: { starsTotal: true, streakBest: true },
+    }),
+    tx.studentDailyActivity.count({
+      where: { studentUserId: student.studentUserId, schoolId: student.schoolId },
     }),
     tx.studentProgress.findMany({
       where: {
@@ -157,6 +170,7 @@ async function loadState(
   return {
     starsTotal: profile?.starsTotal ?? 0,
     streakBest: profile?.streakBest ?? 0,
+    activeDays,
     completedLevels,
     completedWorldSlugs,
   };

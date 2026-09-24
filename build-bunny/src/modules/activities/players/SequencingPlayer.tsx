@@ -419,6 +419,7 @@ export function SequencingPlayer({
           explanation={intro.explanation}
           achievements={achievements}
           worldCompletedName={worldCompletedName}
+          worldPower={submission?.server?.worldCompleted?.power ?? null}
           gradeMismatch={false}
           saving={false}
           saveFailed={false}

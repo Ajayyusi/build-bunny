@@ -155,6 +155,11 @@ work** and no longer describe the product:
 - Ongoing sequencing is tracked in `IMPLEMENTATION-PLAN-2026-08.md` (polish
   and productionization phases); this plan stays authoritative for the
   original architecture decisions and their adjudication.
+- **2026-09 addendum — horizon worlds superseded.** Code City and Inventor
+  Island are playable (8 worlds / 50 levels; no horizon art remains), and
+  every world carries an authored story scene, friend and Power
+  (`docs/build-bunny/STORY.md`, `World.story/character/power`). The 2027
+  brief's own tracking lives in `CHECKLIST-2027.md`.
 
 ---
 

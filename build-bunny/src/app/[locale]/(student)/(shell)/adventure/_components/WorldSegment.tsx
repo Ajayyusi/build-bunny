@@ -16,6 +16,8 @@ interface WorldSegmentProps {
   /** Position in the trail — drives which side of the spine the card sits on. */
   index: number;
   onOpenLevel: (level: TrailLevelVM) => void;
+  /** Replays the world's opening scene (only offered when one is authored). */
+  onReplayStory: () => void;
 }
 
 function ProgressChip({
@@ -46,7 +48,7 @@ function ProgressChip({
  * individually openable inside it, so this is a restyle of the trail rather
  * than a change to how a student reaches a level.
  */
-export function WorldSegment({ world, index, onOpenLevel }: WorldSegmentProps) {
+export function WorldSegment({ world, index, onOpenLevel, onReplayStory }: WorldSegmentProps) {
   const t = useTranslations("student.adventure");
   const headingId = useId();
 
@@ -164,6 +166,44 @@ export function WorldSegment({ world, index, onOpenLevel }: WorldSegmentProps) {
           </h2>
           {world.tagline ? (
             <p className="text-sm text-ink-muted">{world.tagline}</p>
+          ) : null}
+
+          {/* The story layer: who the child meets here, the Power this
+              world earns, and a way to hear the opening scene again. */}
+          {world.character || world.power || (world.story && !locked) ? (
+            <div className="flex flex-wrap items-center gap-2 text-xs">
+              {world.character ? (
+                <span className="inline-flex h-7 items-center gap-1.5 rounded-full bg-surface-raised/80 px-2.5 font-semibold text-ink">
+                  <span aria-hidden="true">{world.character.glyph}</span>
+                  <span className="sr-only">{t("story.friend")}: </span>
+                  {world.character.name}
+                </span>
+              ) : null}
+              {world.power ? (
+                <span
+                  className={cn(
+                    "inline-flex h-7 items-center gap-1.5 rounded-full px-2.5 font-semibold",
+                    complete ? "bg-brand text-on-brand" : "bg-surface-raised/80 text-ink-muted",
+                  )}
+                >
+                  <span aria-hidden="true">{world.power.glyph}</span>
+                  <span className="sr-only">
+                    {complete ? t("story.powerEarned") : t("story.power")}:{" "}
+                  </span>
+                  {world.power.name}
+                </span>
+              ) : null}
+              {world.story && !locked ? (
+                <button
+                  type="button"
+                  onClick={onReplayStory}
+                  className="inline-flex h-11 items-center gap-1 rounded-lg px-2 font-semibold text-ink-muted underline-offset-2 hover:text-ink hover:underline"
+                >
+                  <span aria-hidden="true">🎬</span>
+                  {t("story.replay")}
+                </button>
+              ) : null}
+            </div>
           ) : null}
 
           {locked ? (

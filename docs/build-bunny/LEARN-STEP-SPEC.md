@@ -4,7 +4,7 @@ Status: **implemented** (2026-08 — `LearnPlayer.tsx`, the CONCEPT_CARDS
 server engine, and five coding-concept Learn levels shipped; see
 `build-bunny/docs/ai-data-flow.md` and BUILD-BUNNY-PLAN §0.2). Kept as the
 design rationale record. Level counts below predate the AI worlds (the
-curriculum now defines 37 levels).
+curriculum now defines 50 levels).
 
 ## Why
 

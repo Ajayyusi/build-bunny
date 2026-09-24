@@ -256,7 +256,17 @@
       "requiresPrefix": "Requires: {name}",
       "worldProgressPct": "{pct}%",
       "reviewModule": "Review world",
-      "lockedHintWorldPartial": "Some levels here are already open — the rest open after the previous world"
+      "lockedHintWorldPartial": "Some levels here are already open — the rest open after the previous world",
+      "story": {
+        "title": "{world} — the story",
+        "skip": "Skip",
+        "next": "Next",
+        "go": "Let's go!",
+        "replay": "Story",
+        "friend": "Your friend here",
+        "power": "Power to earn",
+        "powerEarned": "Power earned"
+      }
     },
     "play": {
       "backToMap": "Back to map",
@@ -362,7 +372,9 @@
         "achievementsHeading": "New badges",
         "worldCompleted": "You finished {world}! Amazing work!",
         "next": "Next level",
-        "backToMap": "Back to map"
+        "backToMap": "Back to map",
+        "powerEarned": "You earned the {power}!",
+        "powerIdea": "Robo Bunny will remember this forever:"
       },
       "blockNames": {
         "bb_whenStart": "when start",

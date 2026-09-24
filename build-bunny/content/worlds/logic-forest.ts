@@ -42,6 +42,42 @@ const startWorkspace = {
 
 export const logicForest: WorldFixture = {
   slug: "logic-forest",
+  // Story beats, friend and Power — docs/build-bunny/STORY.md.
+  story: {
+    beats: [
+      {
+        pose: "pointing",
+        text: {
+          en: "The forest lanterns went dark, and the trails move every night. Oona the Owl says only a pattern can find the way.",
+          ar: "انطفأت فوانيس الغابة، والدروب تتبدّل كل ليلة. تقول البومة أونا إن النمط وحده يجد الطريق.",
+        },
+      },
+      {
+        pose: "thinking",
+        text: {
+          en: "Some trails repeat. Some split. I'll need to check before I hop — and to keep going until I get there.",
+          ar: "بعض الدروب تتكرّر. وبعضها يتفرّع. سأحتاج أن أتحقّق قبل أن أقفز — وأن أواصل حتى أصل.",
+        },
+      },
+      {
+        pose: "excited",
+        text: {
+          en: "Loops and decisions. Let's light the lanterns back up!",
+          ar: "حلقات وقرارات. لنُضئ الفوانيس من جديد!",
+        },
+      },
+    ],
+  },
+  character: {
+    name: { en: "Oona the Owl", ar: "البومة أونا" },
+    role: { en: "Answers every question with a question", ar: "تجيب عن كل سؤال بسؤال" },
+    glyph: "🦉",
+  },
+  power: {
+    name: { en: "Loop & Decision Power", ar: "قوة الحلقات والقرارات" },
+    idea: { en: "Repeat what repeats. Check before you hop.", ar: "كرّر ما يتكرّر. وتحقّق قبل أن تقفز." },
+    glyph: "🔁",
+  },
   name: { en: "Logic Forest", ar: "غابة المنطق" },
   tagline: {
     en: "The forest is tricky. Your brain is trickier.",

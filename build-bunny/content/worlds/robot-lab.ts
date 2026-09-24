@@ -47,6 +47,42 @@ const startWorkspace = {
 
 export const robotLab: WorldFixture = {
   slug: "robot-lab",
+  // Story beats, friend and Power — docs/build-bunny/STORY.md.
+  story: {
+    beats: [
+      {
+        pose: "surprised",
+        text: {
+          en: "This is the lab where I was built! But the lights are out, the power cells are everywhere, and the night-shift robot keeps crashing.",
+          ar: "هذا هو المختبر الذي صُنعت فيه! لكن الأضواء مطفأة، وخلايا الطاقة متناثرة في كل مكان، وروبوت المناوبة الليلية يصطدم بالجدران باستمرار.",
+        },
+      },
+      {
+        pose: "thinking",
+        text: {
+          en: "Professor Pip gave me a sensor. Now I can feel what's ahead before I move — and read a broken program to find its bug.",
+          ar: "أعطاني البروفيسور بيب مستشعرًا. الآن أستطيع أن أستشعر ما أمامي قبل أن أتحرك — وأن أقرأ برنامجًا معطّلًا لأجد خطأه.",
+        },
+      },
+      {
+        pose: "excited",
+        text: {
+          en: "Sense, decide, act. Let's fix the lab.",
+          ar: "استشعر، قرّر، تصرّف. لنُصلح المختبر.",
+        },
+      },
+    ],
+  },
+  character: {
+    name: { en: "Professor Pip", ar: "البروفيسور بيب" },
+    role: { en: "A hedgehog inventor who loves a bug report", ar: "قنفذ مخترع يحبّ تقارير الأخطاء" },
+    glyph: "🦔",
+  },
+  power: {
+    name: { en: "Sensor & Debug Power", ar: "قوة الاستشعار والتصحيح" },
+    idea: { en: "Read what's there. Find the mistake.", ar: "اقرأ ما هو موجود. واعثر على الخطأ." },
+    glyph: "🔍",
+  },
   name: { en: "Robot Lab", ar: "مختبر الروبوتات" },
   tagline: {
     en: "Machines that sense, decide, and act — taught by you.",

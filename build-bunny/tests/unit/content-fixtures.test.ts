@@ -69,10 +69,9 @@ function collectBlockTypes(node: unknown, out: Set<string>): void {
 }
 
 describe("content bundle shape", () => {
-  it("contains the six playable worlds and two horizon worlds", () => {
-    // Worlds graduate from horizon art to real content when their engine
-    // lands: AI Island with AI_CLASSIFICATION, Data Desert and ML Lab with
-    // PATTERN_RECOGNITION + the classifier's holdout/passRule extensions.
+  it("contains the eight playable worlds, in story order, and no horizon art", () => {
+    // Worlds graduated from horizon art to real content as their engines
+    // landed; Code City and Inventor Island were the last two (STORY.md).
     expect(playableWorlds.map((w) => w.slug)).toEqual([
       "bunny-meadow",
       "logic-forest",
@@ -80,11 +79,25 @@ describe("content bundle shape", () => {
       "ai-island",
       "data-desert",
       "ml-lab",
-    ]);
-    expect(horizonWorlds.map((w) => w.slug)).toEqual([
       "code-city",
       "inventor-island",
     ]);
+    expect(horizonWorlds).toEqual([]);
+  });
+
+  it("every world tells its story: three short beats, a friend and a Power, in both languages", () => {
+    for (const world of playableWorlds) {
+      expect(world.story?.beats.length, `${world.slug} beats`).toBeGreaterThanOrEqual(2);
+      expect(world.story?.beats.length, `${world.slug} beats`).toBeLessThanOrEqual(4);
+      for (const beat of world.story?.beats ?? []) {
+        expect(beat.text.en.length, `${world.slug} beat en`).toBeGreaterThan(20);
+        expect(beat.text.en.length, `${world.slug} beat en too long`).toBeLessThan(200);
+        expect((beat.text.ar ?? "").length, `${world.slug} beat ar`).toBeGreaterThan(10);
+      }
+      expect(world.character?.name.ar, `${world.slug} friend ar`).toBeTruthy();
+      expect(world.power?.name.ar, `${world.slug} power ar`).toBeTruthy();
+      expect(world.power?.idea.en, `${world.slug} power idea`).toBeTruthy();
+    }
   });
 
   it("every world passes worldFixtureSchema", () => {
@@ -125,7 +138,7 @@ describe("content bundle shape", () => {
     }
   });
 
-  it("horizon worlds carry no modules; playable worlds carry the 38 levels", () => {
+  it("horizon worlds carry no modules; playable worlds carry the 50 levels", () => {
     for (const world of horizonWorlds) {
       expect(world.modules, `horizon ${world.slug}`).toHaveLength(0);
     }
@@ -146,8 +159,14 @@ describe("content bundle shape", () => {
     // (AI_ETHICS) in ai-island's seeing-and-secrets;
     // you-be-the-classifier (AI_SIM boundary-builder) and fortune-teller
     // (AI_SIM trend-line) in data-desert's lines-in-the-sand.
+    // + Code City (8: 3 CODE_PREDICTION, 1 BLOCK_CODING, 3 DEBUGGING,
+    // 1 SEQUENCING) and Inventor Island's Workbench (4 open BLOCK_CODING).
     const levelCount = playableWorlds.reduce((n, w) => n + allLevels(w).length, 0);
-    expect(levelCount).toBe(38);
+    expect(levelCount).toBe(50);
+    const codeCity = playableWorlds.find((w) => w.slug === "code-city");
+    expect(allLevels(codeCity as WorldFixture)).toHaveLength(8);
+    const inventorIsland = playableWorlds.find((w) => w.slug === "inventor-island");
+    expect(allLevels(inventorIsland as WorldFixture)).toHaveLength(4);
     const robotLab = playableWorlds.find((w) => w.slug === "robot-lab");
     expect(allLevels(robotLab as WorldFixture)).toHaveLength(8);
     const aiIsland = playableWorlds.find((w) => w.slug === "ai-island");
@@ -271,9 +290,12 @@ describe("level payloads and hints", () => {
         `${world.slug}/${level.slug} core check`,
       ).toBe(true);
       // Adjudications: Worlds 1–2 auto-collect ON; Robot Lab teaches the
-      // explicit Collect block, so auto-collect is OFF for the whole world.
+      // explicit Collect block, so auto-collect is OFF for the whole world —
+      // and OFF again in any later level that puts Collect in the toolbox
+      // (Code City's bug bounty), because a Collect nobody needs is a trap.
+      const offersCollect = payload.toolbox.some((entry) => entry.type === "bb_collect");
       expect(payload.autoCollect, `${world.slug}/${level.slug} autoCollect`).toBe(
-        world.slug !== "robot-lab",
+        world.slug !== "robot-lab" && !offersCollect,
       );
       expect(payload.nonFatalBumps, `${world.slug}/${level.slug} nonFatalBumps`).toBe(false);
     }

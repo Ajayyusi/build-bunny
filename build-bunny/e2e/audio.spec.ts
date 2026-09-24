@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 
-import { provisionStudent, signIn, studentName } from "./helpers";
+import { openMap, provisionStudent, signIn, studentName } from "./helpers";
 
 /**
  * Audio behaviour, verified by instrumenting WebAudio in the page: the
@@ -69,7 +69,7 @@ test("silent by default, starts on a tap, music stops on mute / hidden tab / lea
   await instrument(page);
 
   // Nothing is created, let alone played, on arrival — even after clicks.
-  await page.goto("/en/adventure");
+  await openMap(page);
   await page.getByRole("heading", { name: "My path" }).click();
   expect(await audio(page)).toMatchObject({ contexts: 0, oscillators: 0 });
 

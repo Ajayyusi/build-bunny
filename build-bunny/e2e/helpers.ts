@@ -27,6 +27,18 @@ export function provisionStudent(name: string): ProvisionedStudent {
 }
 
 /**
+ * Fast-forward a provisioned student to a level (dev-only script: every
+ * earlier level is marked complete, the target reset to its first beat).
+ */
+export function skipTo(levelSlug: string, username: string): void {
+  const bare = username.replace(/^demo__/, "");
+  if (!/^[a-z0-9-]+$/.test(levelSlug) || !/^[a-z0-9]+$/.test(bare)) {
+    throw new Error(`unsafe skipTo arguments: ${levelSlug} ${username}`);
+  }
+  execSync(`npm run dev:skip-to -- ${levelSlug} ${bare}`, { encoding: "utf8", stdio: "ignore" });
+}
+
+/**
  * Signs in through the auth API (the same endpoint the student login form
  * calls). The session cookie lands in the page's browser context.
  */
@@ -80,4 +92,19 @@ export async function dragBlockUnderStack(page: Page, blockType: string): Promis
   await page.mouse.move(sx + 30, sy + 10, { steps: 5 });
   await page.mouse.move(target.x + 14, target.bottom + 10, { steps: 15 });
   await page.mouse.up();
+}
+
+/**
+ * Open the adventure map and dismiss the world's story scene if it opens
+ * (a newly reached world plays its scene once, a beat after the map
+ * mounts). For specs that are not about the story.
+ */
+export async function openMap(page: Page): Promise<void> {
+  await page.goto("/en/adventure");
+  const scene = page.getByRole("dialog", { name: /the story/ });
+  await scene.waitFor({ state: "visible", timeout: 5000 }).catch(() => {});
+  if (await scene.isVisible().catch(() => false)) {
+    await scene.getByRole("button", { name: "Skip" }).click();
+    await expect(scene).toHaveCount(0);
+  }
 }

@@ -821,12 +821,55 @@ export const moduleFixtureSchema = z.object({
   levels: z.array(levelFixtureSchema).min(1),
 });
 
+/** One cutscene line, spoken by Robo Bunny in a pose. */
+export const storyBeatSchema = z.object({
+  pose: z.enum([
+    "idle",
+    "thinking",
+    "excited",
+    "celebrating",
+    "confused",
+    "pointing",
+    "jumping",
+    "running",
+    "waving",
+    "sleeping",
+    "surprised",
+  ]),
+  text: localizedText,
+});
+export type StoryBeat = z.infer<typeof storyBeatSchema>;
+
+/** The world's opening scene: short and skippable — three lines. */
+export const worldStorySchema = z.object({
+  beats: z.array(storyBeatSchema).min(1).max(4),
+});
+/** The friend the child meets in this world. */
+export const worldCharacterSchema = z.object({
+  name: localizedText,
+  role: localizedText,
+  /** A single emoji — the character's map glyph. */
+  glyph: z.string().min(1).max(8),
+});
+/** The Power (the idea) earned by finishing the world. */
+export const worldPowerSchema = z.object({
+  name: localizedText,
+  idea: localizedText,
+  glyph: z.string().min(1).max(8),
+});
+export type WorldStory = z.infer<typeof worldStorySchema>;
+export type WorldCharacter = z.infer<typeof worldCharacterSchema>;
+export type WorldPower = z.infer<typeof worldPowerSchema>;
+
 export const worldFixtureSchema = z.object({
   slug: z.string().regex(/^[a-z0-9-]+$/),
   name: localizedText,
   tagline: localizedTextOptional,
   theme: z.string().min(1),
   horizon: z.boolean().default(false),
+  story: worldStorySchema.optional(),
+  character: worldCharacterSchema.optional(),
+  power: worldPowerSchema.optional(),
   modules: z.array(moduleFixtureSchema).default([]),
 });
 
