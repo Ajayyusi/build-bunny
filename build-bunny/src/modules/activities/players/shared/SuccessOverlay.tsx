@@ -376,7 +376,19 @@ export function SuccessOverlay({
           >
             {t("backToMap")}
           </Link>
-          {nextHref ? (
+          {nextHref && (saving || saveFailed) ? (
+            // The next level unlocks when the server confirms this one. Going
+            // on before then lands on a level that is still locked (and back
+            // on the map), so wait: normally a fraction of a second.
+            <button
+              type="button"
+              disabled
+              className="inline-flex h-11 cursor-not-allowed items-center justify-center gap-2 rounded-lg bg-brand/60 px-5 text-base font-semibold text-on-brand"
+            >
+              {saving ? <Spinner size="sm" /> : null}
+              {t("next")}
+            </button>
+          ) : nextHref ? (
             <Link
               href={nextHref}
               className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-brand px-5 text-base font-semibold text-on-brand transition-colors hover:bg-brand-strong"

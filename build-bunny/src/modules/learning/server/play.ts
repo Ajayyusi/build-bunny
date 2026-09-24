@@ -19,7 +19,10 @@ import {
 } from "@/modules/curriculum/server/queries";
 import { getActivityEngine } from "@/modules/activities/server/registry";
 import { computeNextStep, type NextStep, type NextStepState } from "@/modules/hints/server/next-step";
+import { NEXT_STEP_TIER } from "@/modules/hints/types";
 import { getLevelIntro, type LevelIntro } from "./adventure";
+
+export { NEXT_STEP_TIER };
 
 /**
  * Level-player data layer (m3 contract): the playable payload query plus the
@@ -32,12 +35,6 @@ import { getLevelIntro, type LevelIntro } from "./adventure";
 /** Wait a failed attempt OR 60 s before the next hint tier unlocks. */
 export const HINT_COOLDOWN_MS = 60_000;
 
-/**
- * "Show me the next step" is recorded as this hint tier: above the authored
- * ladder (1–4), so computeStars' existing tier-3+ rule caps the level at two
- * stars, and a teacher's attempt view can tell it apart from the ladder.
- */
-export const NEXT_STEP_TIER = 5;
 
 // ── getPlayableLevel (registered in ./queries.ts tenantScopedQueries) ────
 
