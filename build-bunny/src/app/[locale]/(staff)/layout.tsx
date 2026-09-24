@@ -57,17 +57,24 @@ export default async function StaffLayout({ children, params }: Props) {
             <span className="hidden max-w-56 truncate text-sm font-medium text-ink-muted md:inline">
               {school?.name ?? t("header.noSchool")}
             </span>
-            <nav aria-label={t("nav.label")} className="flex items-center gap-1">
-              <NavLink href="/teach" exact>{t("nav.teach")}</NavLink>
-              <NavLink href="/teach/curriculum">{t("nav.curriculum")}</NavLink>
-              {ctx.role === "TEACHER" ? (
-                <NavLink href="/teach/assignments">{t("nav.assignments")}</NavLink>
-              ) : null}
-              {ctx.role === "SCHOOL_ADMIN" ? (
-                <NavLink href="/school">{t("nav.school")}</NavLink>
-              ) : null}
-            </nav>
           </div>
+          {/* On a phone the nav takes its own full-width row (scrolling
+              sideways if a translation runs long) instead of pushing the
+              whole page wider than the screen; from md it sits beside the
+              brand again. */}
+          <nav
+            aria-label={t("nav.label")}
+            className="order-last -mx-1 flex w-full items-center gap-1 overflow-x-auto px-1 md:order-none md:mx-0 md:me-auto md:w-auto md:overflow-visible md:px-0"
+          >
+            <NavLink href="/teach" exact>{t("nav.teach")}</NavLink>
+            <NavLink href="/teach/curriculum">{t("nav.curriculum")}</NavLink>
+            {ctx.role === "TEACHER" ? (
+              <NavLink href="/teach/assignments">{t("nav.assignments")}</NavLink>
+            ) : null}
+            {ctx.role === "SCHOOL_ADMIN" ? (
+              <NavLink href="/school">{t("nav.school")}</NavLink>
+            ) : null}
+          </nav>
           <div className="flex items-center gap-2">
             <LocaleSwitcher />
             <span className="flex items-center gap-2">
