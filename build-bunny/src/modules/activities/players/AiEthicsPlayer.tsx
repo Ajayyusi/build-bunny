@@ -438,8 +438,8 @@ export function AiEthicsPlayer({
             levelId={intro.levelId}
             action={nextStepAction}
             usedBefore={intro.hintsUsedTiers.includes(5)}
-            readyAction={`“${tEthics(chosenChoiceId && sceneIndex < payload.scenes.length - 1 ? "continueStory" : "finish")}”`}
-            getState={() => ({ sceneId: chosenChoiceId ? null : (scene?.id ?? null) })}
+            readyAction={`“${tEthics(phase === "scene" && chosenChoiceId && sceneIndex < payload.scenes.length - 1 ? "continueStory" : "finish")}”`}
+            getState={() => ({ sceneId: phase === "scene" && !chosenChoiceId ? (scene?.id ?? null) : null })}
             names={{
               choice: (id) => {
                 const c = scene?.choices.find((x) => x.id === id);

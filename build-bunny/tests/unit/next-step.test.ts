@@ -127,6 +127,12 @@ function located(p: Program): { node: Node; list: Node[]; at: number }[] {
   return out;
 }
 
+/**
+ * Only what the tap-to-add palette can do (BlocklyWorkspace.addBlock): fill
+ * an EMPTY mouth (do, then else) or question slot, or go after a block. A
+ * hint asking for anything else is one a child could not follow by tapping,
+ * and fails the test.
+ */
 function insertAt(p: Program, place: BlockPlace, node: Node): void {
   const blocks = located(p);
   const byIndex = (i: number) => blocks[i - 1]!;
@@ -139,18 +145,28 @@ function insertAt(p: Program, place: BlockPlace, node: Node): void {
       list.splice(at + 1, 0, node);
       return;
     }
-    case "inside":
-      byIndex(place.index).node[place.mouth].unshift(node);
+    case "inside": {
+      const host = byIndex(place.index).node;
+      const firstEmpty = host.DO.length === 0 ? "DO" : host.ELSE.length === 0 ? "ELSE" : null;
+      if (firstEmpty !== place.mouth) throw new Error(`unfollowable: ${place.mouth} of block ${place.index} is not the palette's next empty mouth`);
+      host[place.mouth].push(node);
       return;
-    case "condition":
-      byIndex(place.index).node.CONDITION = [node];
+    }
+    case "condition": {
+      const host = byIndex(place.index).node;
+      if (host.CONDITION.length) throw new Error(`unfollowable: block ${place.index}'s question slot is full`);
+      host.CONDITION = [node];
       return;
+    }
     case "newTrick":
       p.tricks.push([]);
       return;
-    case "insideTrick":
-      p.tricks[p.tricks.length - 1]!.unshift(node);
+    case "insideTrick": {
+      const trick = p.tricks[p.tricks.length - 1]!;
+      if (trick.length) throw new Error("unfollowable: my trick is not empty");
+      trick.push(node);
       return;
+    }
   }
 }
 
@@ -197,10 +213,26 @@ const levels = bundle.programs[0]!.worlds.flatMap((slug) => {
   return [...w.modules].sort((a, b) => a.order - b.order).flatMap((m) => [...m.levels].sort((a, b) => a.order - b.order));
 });
 
+/**
+ * Postgres jsonb does not keep key order: it stores shorter keys first
+ * (then byte order). A published payload comes back with a block's "DO"
+ * before its "CONDITION", while a child's program arrives from Blockly
+ * with CONDITION first — the mismatch that once sent the hints in circles.
+ * Reorder exactly as the database would.
+ */
+function asJsonb(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(asJsonb);
+  if (value && typeof value === "object") {
+    const keys = Object.keys(value).sort((a, b) => a.length - b.length || (a < b ? -1 : a > b ? 1 : 0));
+    return Object.fromEntries(keys.map((k) => [k, asJsonb((value as Record<string, unknown>)[k])]));
+  }
+  return value;
+}
+
 function snapshotOf(level: (typeof levels)[number]): LevelSnapshot {
   const parsed = validatePayload(level.activityType, level.payload);
   if (!parsed.ok) throw new Error(level.slug + ": " + parsed.issues.join("; "));
-  const payload = parsed.data;
+  const payload = asJsonb(parsed.data);
   return { activityType: level.activityType, payload } as unknown as LevelSnapshot;
 }
 
@@ -286,7 +318,7 @@ describe("following 'Show me the next step' finishes every level, through the ro
       let nudge = 1;
       let lastNudge = "";
       for (let guard = 0; guard < 400; guard += 1) {
-        const step = computeNextStep(type, level.payload, state, passes);
+        const step = computeNextStep(type, snapshot.payload, state, passes);
         seen.push(step.code);
         if (step.code === "ready") break;
         switch (step.code) {

@@ -98,8 +98,11 @@ function flatten(json: unknown): { entries: Entry[]; loose: string[] } {
       const entry: Entry = { type, ord: isSensor ? null : ++ord, value: numberOf(b), place };
       entries.push(entry);
       const self = entry.ord ?? 0;
-      for (const [name, input] of Object.entries(b.inputs ?? {})) {
-        const child = input?.block;
+      // A fixed order, not the JSON's key order: an authored solution may
+      // list DO before CONDITION while Blockly saves CONDITION first, and
+      // comparing the two in different orders sent a child round in circles.
+      for (const name of ["CONDITION", "DO", "ELSE"] as const) {
+        const child = b.inputs?.[name]?.block;
         if (!child) continue;
         if (name === "CONDITION") {
           walkChain(child, { kind: "condition", index: self, block: type });
@@ -154,8 +157,10 @@ export function nextBlockEdit(childJson: unknown, solutionJson: unknown): NextSt
     if (!c || !s) break;
     if (c.type === s.type) {
       if (!samePlace(c.place, s.place)) {
+        // In the wrong place. Moving a block needs a drag; taking it away and
+        // letting the next hint re-add it where it belongs is all taps.
         return c.ord !== null
-          ? { code: "moveBlock", index: c.ord, block: c.type, place: s.place }
+          ? { code: "removeBlock", index: c.ord, block: c.type }
           : { code: "addBlock", block: s.type, place: s.place };
       }
       if (s.value !== null && c.value !== s.value && c.ord !== null) {
@@ -165,6 +170,13 @@ export function nextBlockEdit(childJson: unknown, solutionJson: unknown): NextSt
     }
     // Types differ at i. One block missing, one extra, or one wrong?
     if (target[i + 1]?.type === c.type) {
+      // A block missing at the TOP of a mouth that already holds something
+      // cannot be added there by tapping (the palette only fills an empty
+      // mouth, or goes after the selected block). Clear the way instead: the
+      // next hints then add the blocks in order.
+      if ((s.place.kind === "inside" || s.place.kind === "insideTrick") && samePlace(c.place, s.place) && c.ord !== null) {
+        return { code: "removeBlock", index: c.ord, block: c.type };
+      }
       return { code: "addBlock", block: s.type, place: s.place, ...(s.value !== null ? { value: s.value } : {}) };
     }
     if (have[i + 1]?.type === s.type && c.ord !== null) {
