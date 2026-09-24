@@ -79,6 +79,7 @@ export function Walkthrough({ beats, step, onStep, onDone, renderScene }: Walkth
         <div className="flex items-center justify-between gap-3">
           <div
             className="flex items-center gap-1.5"
+            role="img"
             aria-label={t("stepLabel", { step, total: stepCount })}
           >
             {Array.from({ length: stepCount }, (_, i) => i + 1).map((n) => (

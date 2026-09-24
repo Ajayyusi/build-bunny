@@ -20,6 +20,7 @@ import { useDraftAutosave } from "./shared/useDraftAutosave";
 import { ResultBanner } from "./shared/ResultBanner";
 import { SuccessOverlay } from "./shared/SuccessOverlay";
 import { Walkthrough } from "./shared/Walkthrough";
+import { NextStepHint } from "./shared/NextStepHint";
 import type { ActivityPlayerProps, AiSimActivityPayload, AttemptResponse } from "../types";
 import { resolveLocalized } from "../types";
 
@@ -50,6 +51,7 @@ export function AiSimPlayer({
   payload: rawPayload,
   draft,
   revealHintAction,
+  nextStepAction,
   saveDraftAction,
 }: ActivityPlayerProps) {
   // Registry dispatch guarantees this matches intro.activityType.
@@ -59,6 +61,7 @@ export function AiSimPlayer({
 
   const t = useTranslations("student.play");
   const tSim = useTranslations("student.play.aiSim");
+  const tNext = useTranslations("student.play.nextStep");
   const locale = useLocale();
 
   const beats = payload.walkthrough ?? null;
@@ -352,6 +355,33 @@ export function AiSimPlayer({
           <span aria-hidden="true">💡</span>
           {t("help.open")}
         </Button>
+        {nextStepAction && phase !== "result" ? (
+          <NextStepHint
+            levelId={intro.levelId}
+            action={nextStepAction}
+            usedBefore={intro.hintsUsedTiers.includes(5)}
+            readyAction={`“${tSim("submit")}”`}
+            getState={() => {
+              const w = (work ?? {}) as { line?: { slope: number; intercept: number }; prediction?: number; rounds?: Record<string, string> };
+              if (widgetId === "pixel-playground") return { rounds: w.rounds ?? {} };
+              if (widgetId === "trend-line") {
+                return { line: w.line, phase: ready ? "predict" : "fit", prediction: w.prediction ?? null };
+              }
+              return { line: w.line };
+            }}
+            names={{
+              round: (id) => {
+                const rounds = (payload.widget.rounds as { id: string }[] | undefined) ?? [];
+                return tNext("round", { n: rounds.findIndex((r) => r.id === id) + 1 });
+              },
+              image: (id) => {
+                const images = (payload.widget.images as { id: string; name: Parameters<typeof resolveLocalized>[0] }[] | undefined) ?? [];
+                const image = images.find((x) => x.id === id);
+                return image ? resolveLocalized(image.name, locale) : id;
+              },
+            }}
+          />
+        ) : null}
       </div>
 
       {/* ── Overlays ── */}
@@ -391,6 +421,8 @@ export function AiSimPlayer({
           saveFailed={false}
           onRetrySave={handleRetrySubmit}
           improveNote={null}
+          onReplay={handleTryAgain}
+          certificate={submission?.server?.certificate ?? null}
           nextHref={nextHref}
           reducedMotion={reducedMotion}
         />

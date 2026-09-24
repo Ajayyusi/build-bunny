@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 
 import { glyphFill, glyphPx, glyphTheme, MYSTERY_FILL } from "@/modules/ai/glyph";
-import { tintCellFeatures } from "@/modules/ai/glyph";
+import { boardPct, boardValue, tintCellFeatures } from "@/modules/ai/glyph";
 import { classify, nearest, type LabelledSpecimen } from "@/modules/ai/knn";
 import { cn } from "@/ui";
 
@@ -76,7 +76,12 @@ export function FeatureBoard({
     const cells: ("positive" | "negative" | null)[] = [];
     for (let row = 0; row < TINT_STEPS; row += 1) {
       for (let col = 0; col < TINT_STEPS; col += 1) {
-        cells.push(classify(examples, tintCellFeatures(row, col, TINT_STEPS)));
+        {
+          // The tint covers the whole board; each cell stands for the value
+          // plotted at its centre (see boardPct's margin).
+          const at = tintCellFeatures(row, col, TINT_STEPS);
+          cells.push(classify(examples, { size: boardValue(at.size), color: boardValue(at.color) }));
+        }
       }
     }
     return cells;
@@ -135,8 +140,8 @@ export function FeatureBoard({
                 title={probe.id}
                 className="absolute grid -translate-x-1/2 translate-y-1/2 place-items-center rounded-full border-2 border-dashed border-ink/50"
                 style={{
-                  left: `${probe.size * 100}%`,
-                  bottom: `${probe.color * 100}%`,
+                  left: `${boardPct(probe.size)}%`,
+                  bottom: `${boardPct(probe.color)}%`,
                   width: px,
                   height: px,
                   background: MYSTERY_FILL,
@@ -170,8 +175,8 @@ export function FeatureBoard({
                   disabled ? "" : "hover:scale-110",
                 )}
                 style={{
-                  left: `${specimen.size * 100}%`,
-                  bottom: `${specimen.color * 100}%`,
+                  left: `${boardPct(specimen.size)}%`,
+                  bottom: `${boardPct(specimen.color)}%`,
                   width: px,
                   height: px,
                   background: glyphFill(theme, specimen.color),

@@ -402,7 +402,11 @@
         "powerEarned": "You earned the {power}!",
         "powerIdea": "Robo Bunny will remember this forever:",
         "stretchHeading": "Stretch idea",
-        "stretch": "Three stars, first try or not — now can you do it with even fewer blocks, or without opening a hint? Try the Code tab and predict every line before you run."
+        "stretch": "Three stars, first try or not — now can you do it with even fewer blocks, or without opening a hint? Try the Code tab and predict every line before you run.",
+        "replay": "Play again for {stars} stars",
+        "certificateEarned": "You earned this world's certificate!",
+        "certificateSee": "See it on your Achievements page",
+        "improveFirstTry": "Get it right on your first try for the third star."
       },
       "blockNames": {
         "bb_whenStart": "when start",
@@ -426,7 +430,8 @@
         "codeHeading": "The program",
         "submit": "Check my answer",
         "submitFailed": "We couldn't save your answer.",
-        "retry": "Retry"
+        "retry": "Retry",
+        "ruledOut": "crossed off"
       },
       "sequencing": {
         "moveUp": "Move “{item}” up",
@@ -772,6 +777,75 @@
       "firstSteps": {
         "add": "Tap “+ Add block” and pick a block to start your program.",
         "run": "Nice! Now press ▶ Run to see what Robo Bunny does."
+      },
+      "nextStep": {
+        "button": "Show me the next step",
+        "thinking": "Thinking…",
+        "title": "Your next step",
+        "again": "Next step",
+        "close": "Got it",
+        "capNote": "With next-step help, this level gives up to 2 stars.",
+        "failed": "Robo Bunny couldn't work that out just now. Try again in a moment.",
+        "confirmTitle": "Want Robo Bunny to show you?",
+        "confirmBody": "Robo Bunny will tell you exactly what to do next, one step at a time. You can still finish the level, but the most you can earn here becomes 2 stars.",
+        "confirmYes": "Show me",
+        "confirmNo": "Not now",
+        "ready": "That already works! Press {action} to check it.",
+        "readyBetter": "That works! Press {action}. For the third star, try it with fewer blocks.",
+        "addBlock": "Add “{block}” {place}.",
+        "addBlockValue": "Add “{block}” {place}, and set its number to {value}.",
+        "removeBlock": "Take away block {index} (“{block}”).",
+        "removeSensor": "Take “{block}” out of the question slot.",
+        "changeBlock": "Swap block {index} (“{from}”) for “{to}”.",
+        "changeBlockValue": "Swap block {index} (“{from}”) for “{to}” with the number {value}.",
+        "setNumber": "Change the number in block {index} (“{block}”) to {value}.",
+        "moveBlock": "Move block {index} (“{block}”) {place}.",
+        "looseBlock": "A “{block}” block isn't joined to your program. Snap it on, or drag it to the bin.",
+        "fillGap": "Put “{block}” into the empty gap, then press Check.",
+        "ruleOut": "It's not “{option}”. Cross that one off.",
+        "answerIs": "The answer is “{option}”.",
+        "moveItem": "Move “{item}” to number {position}.",
+        "teach": "Teach it this one: {specimen} ({label}).",
+        "takeBack": "Take this one back out of the basket: {specimen}.",
+        "keepForTesting": "Keep this one for testing: {specimen}.",
+        "plantFlag": "Plant a flag {spot}.",
+        "liftFlag": "Pick up flag {index}. It isn't helping there.",
+        "strikeReading": "Strike out this reading: {specimen}.",
+        "restoreReading": "Put this reading back: {specimen}.",
+        "chooseSafe": "A safe choice here: “{choice}”.",
+        "nudgeLine": "Drag the {end} end of the line {dir} a little.",
+        "revealComputer": "Your line is good! Press “Computer's turn”, then “Continue to prediction”.",
+        "setPrediction": "Set your guess to about {value}.",
+        "pickPicture": "{round} is the {image}.",
+        "designAdd": "Put a {tile} on row {row}, column {col}.",
+        "designRemove": "Clear the square on row {row}, column {col}.",
+        "designGoal": "Put the burrow on row {row}, column {col}.",
+        "designFix": "Look at the checklist: the first line without a tick is the one to fix.",
+        "none": "There's no next step to show here. Try the hints.",
+        "spot": "where {sizeName} is about {size} out of 10 and {colorName} is about {color} out of 10",
+        "place": {
+          "start": "right under “when start”",
+          "after": "after block {index} (“{anchor}”)",
+          "inside": "inside block {index} (“{anchor}”)",
+          "insideElse": "in the “else” part of block {index} (“{anchor}”)",
+          "condition": "into the question slot of block {index} (“{anchor}”)",
+          "newTrick": "as a new “my trick” block on the canvas",
+          "insideTrick": "inside “my trick”"
+        },
+        "end": {
+          "left": "left",
+          "right": "right"
+        },
+        "dir": {
+          "up": "up",
+          "down": "down"
+        },
+        "tile": {
+          "rock": "rock",
+          "water": "water tile",
+          "carrot": "carrot"
+        },
+        "round": "Round {n}"
       }
     },
     "profile": {
@@ -1024,7 +1098,8 @@
           "duration": "Duration",
           "when": "When",
           "empty": "No attempts yet.",
-          "viewReplay": "View replay"
+          "viewReplay": "View replay",
+          "nextStepHelp": "Next-step help"
         },
         "achievements": {
           "heading": "Achievements",

@@ -14,6 +14,7 @@ import { Button, cn, useReducedMotion } from "@/ui";
 import { PlayerSoundControls } from "@/modules/audio/AudioControls";
 import { runForPlayback } from "./client-run";
 import { BlockPalette } from "./shared/BlockPalette";
+import { NextStepHint } from "./shared/NextStepHint";
 import { HintDrawer, type HintTierState } from "./shared/HintDrawer";
 import { postAttempt, runIdFor } from "./shared/attempt-outbox";
 import { LearnScene } from "./shared/LearnScene";
@@ -70,6 +71,7 @@ export function LearnPlayer({
   intro,
   payload: rawPayload,
   revealHintAction,
+  nextStepAction,
 }: ActivityPlayerProps) {
   // Registry dispatch guarantees this matches intro.activityType.
   const payload = rawPayload as LearnActivityPayload;
@@ -321,6 +323,19 @@ export function LearnPlayer({
         <span aria-hidden="true">+</span>
         {t("tools.addBlock")}
       </Button>
+      {nextStepAction ? (
+        <NextStepHint
+          levelId={intro.levelId}
+          action={nextStepAction}
+          usedBefore={intro.hintsUsedTiers.includes(5)}
+          readyAction={`“${tLearn("check")}”`}
+          disabled={checking}
+          getState={() => {
+            const current = workspaceHandleRef.current?.getWorkspaceJson() ?? {};
+            return { gapBlock: gapPath ? blockTypeAt(current, gapPath) : null };
+          }}
+        />
+      ) : null}
       <Button variant="secondary" size="lg" onClick={handleReset} disabled={checking}>
         {t("reset")}
       </Button>

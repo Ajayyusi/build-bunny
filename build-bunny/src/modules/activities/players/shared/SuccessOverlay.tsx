@@ -62,6 +62,14 @@ interface SuccessOverlayProps {
    * from them — because "you passed" tells a child nothing about WHY.
    */
   extra?: ReactNode;
+  /**
+   * Back into the level to go for the stars this run missed. The card used
+   * to offer only "Next level" and "Back to map", so a child who wanted the
+   * third star had to find the level again on the map.
+   */
+  onReplay?: () => void;
+  /** Set on the run that finished a world and earned its certificate. */
+  certificate?: { serial: string; verifySlug: string } | null;
 }
 
 /** How often a failed save is quietly retried while the success card is open. */
@@ -85,6 +93,8 @@ export function SuccessOverlay({
   nextHref,
   reducedMotion,
   extra,
+  onReplay,
+  certificate = null,
 }: SuccessOverlayProps) {
   const t = useTranslations("student.play.success");
   const locale = useLocale();
@@ -335,7 +345,31 @@ export function SuccessOverlay({
           </div>
         ) : null}
 
-        <div className="flex flex-col-reverse gap-2 pt-1 sm:flex-row sm:justify-end">
+        {certificate ? (
+          <div className="flex items-center gap-3 rounded-xl border-2 border-brand/40 bg-brand/10 p-4">
+            <span aria-hidden="true" className="text-3xl leading-none">
+              🎓
+            </span>
+            <div className="flex min-w-0 flex-col gap-1">
+              <p className="font-display text-base font-bold text-ink">{t("certificateEarned")}</p>
+              <Link href="/achievements" className="text-sm font-semibold text-brand underline-offset-2 hover:underline">
+                {t("certificateSee")}
+              </Link>
+            </div>
+          </div>
+        ) : null}
+
+        <div className="flex flex-col-reverse gap-2 pt-1 sm:flex-row sm:flex-wrap sm:justify-end">
+          {onReplay && maxStars > 0 && stars < maxStars && !saving ? (
+            <button
+              type="button"
+              onClick={onReplay}
+              className="inline-flex h-11 items-center justify-center gap-2 rounded-lg border-2 border-accent bg-accent/15 px-5 text-base font-semibold text-ink transition-colors hover:bg-accent/30"
+            >
+              <span aria-hidden="true">↺</span>
+              {t("replay", { stars: maxStars })}
+            </button>
+          ) : null}
           <Link
             href="/adventure"
             className="inline-flex h-11 items-center justify-center gap-2 rounded-lg border border-border-token bg-surface-raised px-5 text-base font-semibold text-ink transition-colors hover:bg-surface-sunken"

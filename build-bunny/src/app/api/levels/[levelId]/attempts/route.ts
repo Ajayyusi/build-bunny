@@ -1,105 +1,20 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { z } from "zod";
 
 import { generateRequestId, logger, setRequestContext, withRequestContext } from "@/lib/logger";
 import { createRateLimiter } from "@/lib/rate-limit";
-import { aiClassificationAnswerSchema } from "@/modules/activities/server/ai-classification";
-import { aiEthicsAnswerSchema } from "@/modules/activities/server/ai-ethics";
-import { aiSimAnswerSchema } from "@/modules/activities/server/ai-sim";
-import { patternRecognitionAnswerSchema } from "@/modules/activities/server/pattern-recognition";
 import { hasPermission } from "@/modules/auth/permissions";
 import { getSessionContext } from "@/modules/auth/server/session";
-import { gridVariantSchema } from "@/modules/curriculum/schemas";
 import { getPublishedLevelSnapshot } from "@/modules/curriculum/server/queries";
+import { parseAttemptBody } from "@/modules/grading/server/attempt-body";
 import { submitAttempt, type AttemptInput } from "@/modules/grading/server/submit";
 
 /**
  * POST /api/levels/[levelId]/attempts — the only write path for gameplay
  * results (m3/m4 contract). The client's optimistic run is UI sugar;
  * whatever this endpoint returns is the authority on verdict/stars/XP/
- * unlocks. All heavy lifting lives in modules/grading/server/submit.ts.
- *
- * The body is a discriminated union on the level's activityType (m4 task 4):
- * grid types (BLOCK_CODING/DEBUGGING) send the raw workspace; CODE_PREDICTION
- * sends `{ answer: { optionId } }`; SEQUENCING sends `{ answer: { order } }`;
- * CONCEPT_CARDS sends `{ answer: { blockType } }`. .strict() on every branch
- * means a body shaped for one type is rejected — not silently accepted —
- * when sent against a level of another type.
+ * unlocks. All heavy lifting lives in modules/grading/server/submit.ts; the
+ * accepted body shapes, per level type, in modules/grading/server/attempt-body.ts.
  */
-
-const gridBodySchema = z
-  .object({
-    attemptRunId: z.string().uuid(),
-    workspaceJson: z.unknown(),
-    clientVerdict: z.enum(["PASS", "PARTIAL", "FAIL"]).optional(),
-    durationMs: z.number().int().nonnegative().optional(),
-  })
-  .strict();
-
-/** CREATIVE_PROJECT (build-your-own maze): the program AND the child's design. */
-const creativeProjectBodySchema = gridBodySchema
-  .extend({ design: gridVariantSchema })
-  .strict();
-
-const codePredictionBodySchema = z
-  .object({
-    attemptRunId: z.string().uuid(),
-    answer: z.object({ optionId: z.string().min(1) }).strict(),
-  })
-  .strict();
-
-const sequencingBodySchema = z
-  .object({
-    attemptRunId: z.string().uuid(),
-    answer: z.object({ order: z.array(z.string().min(1)).min(1) }).strict(),
-  })
-  .strict();
-
-const conceptCardsBodySchema = z
-  .object({
-    attemptRunId: z.string().uuid(),
-    answer: z.object({ blockType: z.string().min(1) }).strict(),
-  })
-  .strict();
-
-/**
- * The answer half is imported, never re-typed: this shape existed as four
- * hand-maintained copies and adding a field to three of them is exactly the
- * bug that made every submission a silent 400.
- */
-const aiClassificationBodySchema = z
-  .object({
-    attemptRunId: z.string().uuid(),
-    answer: aiClassificationAnswerSchema,
-  })
-  .strict();
-
-const patternRecognitionBodySchema = z
-  .object({
-    attemptRunId: z.string().uuid(),
-    answer: patternRecognitionAnswerSchema,
-  })
-  .strict();
-
-const aiEthicsBodySchema = z
-  .object({
-    attemptRunId: z.string().uuid(),
-    answer: aiEthicsAnswerSchema,
-  })
-  .strict();
-
-// AI_SIM answers differ per widget (line/prediction/rounds); the imported
-// union covers all three shapes, and the engine adapter
-// (activities/server/ai-sim.ts) re-validates against the level's OWN widget
-// schema before grading, so a body shaped for the wrong widget still fails.
-const aiSimBodySchema = z
-  .object({
-    attemptRunId: z.string().uuid(),
-    answer: aiSimAnswerSchema,
-  })
-  .strict();
-
-const GRID_ACTIVITY_TYPES = new Set(["BLOCK_CODING", "DEBUGGING"]);
 
 /** 30 submissions per minute per student (anti-hammering, not a quota). */
 const limiter = createRateLimiter({ limit: 30, windowMs: 60_000 });
@@ -170,48 +85,9 @@ export async function POST(
       const published = await getPublishedLevelSnapshot(levelId);
       const activityType = published?.snapshot.activityType;
 
-      let input: AttemptInput;
-      if (activityType === "CODE_PREDICTION") {
-        const parsed = codePredictionBodySchema.safeParse(raw);
-        if (!parsed.success) return validationError(parsed.error.flatten().fieldErrors);
-        input = parsed.data;
-      } else if (activityType === "SEQUENCING") {
-        const parsed = sequencingBodySchema.safeParse(raw);
-        if (!parsed.success) return validationError(parsed.error.flatten().fieldErrors);
-        input = parsed.data;
-      } else if (activityType === "AI_CLASSIFICATION") {
-        const parsed = aiClassificationBodySchema.safeParse(raw);
-        if (!parsed.success) return validationError(parsed.error.flatten().fieldErrors);
-        input = parsed.data;
-      } else if (activityType === "PATTERN_RECOGNITION") {
-        const parsed = patternRecognitionBodySchema.safeParse(raw);
-        if (!parsed.success) return validationError(parsed.error.flatten().fieldErrors);
-        input = parsed.data;
-      } else if (activityType === "CONCEPT_CARDS") {
-        const parsed = conceptCardsBodySchema.safeParse(raw);
-        if (!parsed.success) return validationError(parsed.error.flatten().fieldErrors);
-        input = parsed.data;
-      } else if (activityType === "AI_ETHICS") {
-        const parsed = aiEthicsBodySchema.safeParse(raw);
-        if (!parsed.success) return validationError(parsed.error.flatten().fieldErrors);
-        input = parsed.data;
-      } else if (activityType === "AI_SIM") {
-        const parsed = aiSimBodySchema.safeParse(raw);
-        if (!parsed.success) return validationError(parsed.error.flatten().fieldErrors);
-        input = parsed.data;
-      } else if (activityType === "CREATIVE_PROJECT") {
-        const parsed = creativeProjectBodySchema.safeParse(raw);
-        if (!parsed.success) return validationError(parsed.error.flatten().fieldErrors);
-        input = { ...parsed.data, workspaceJson: parsed.data.workspaceJson ?? null };
-      } else if (!activityType || GRID_ACTIVITY_TYPES.has(activityType)) {
-        const parsed = gridBodySchema.safeParse(raw);
-        if (!parsed.success) return validationError(parsed.error.flatten().fieldErrors);
-        input = { ...parsed.data, workspaceJson: parsed.data.workspaceJson ?? null };
-      } else {
-        // A registered ActivityType with no V1 engine yet (e.g. QUIZ) — no
-        // body shape is valid.
-        return validationError();
-      }
+      const parsed = parseAttemptBody(activityType, raw);
+      if (!parsed.ok) return validationError(parsed.issues);
+      const input: AttemptInput = parsed.input;
 
       try {
         let outcome;

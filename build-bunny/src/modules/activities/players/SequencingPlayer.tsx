@@ -12,6 +12,7 @@ import { RoboHelp, type HelpTopic } from "./shared/RoboHelp";
 import { postAttempt, runIdFor } from "./shared/attempt-outbox";
 import { SequenceScene } from "./shared/SequenceScene";
 import { IntroOverlay } from "./shared/IntroOverlay";
+import { NextStepHint } from "./shared/NextStepHint";
 import { MissionStrip } from "./shared/MissionStrip";
 import { ResultBanner } from "./shared/ResultBanner";
 import { SuccessOverlay } from "./shared/SuccessOverlay";
@@ -45,6 +46,7 @@ export function SequencingPlayer({
   intro,
   payload: rawPayload,
   revealHintAction,
+  nextStepAction,
 }: ActivityPlayerProps) {
   // Registry dispatch guarantees this matches intro.activityType.
   const payload = rawPayload as SequencingActivityPayload;
@@ -57,6 +59,8 @@ export function SequencingPlayer({
   // The briefing reopened from the mission strip, mid-level.
   const [briefingOpen, setBriefingOpen] = useState(false);
   const [order, setOrder] = useState<string[]>(() => payload.items.map((item) => item.id));
+  // The step "Show me the next step" last named, ringed in the list.
+  const [pointed, setPointed] = useState<string | null>(null);
   const [announcement, setAnnouncement] = useState("");
   const [submission, setSubmission] = useState<Submission | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -313,6 +317,7 @@ export function SequencingPlayer({
                   onDragOver={handleDragOver}
                   onDrop={handleDrop(index)}
                   className={cn(
+                    pointed === id && "ring-4 ring-accent ring-offset-2 ring-offset-surface",
                     "flex items-center gap-2 rounded-xl border-2 border-border-token bg-surface-raised p-3",
                     !locked && "cursor-grab",
                   )}
@@ -402,6 +407,17 @@ export function SequencingPlayer({
           <span aria-hidden="true">💡</span>
           {t("help.open")}
         </Button>
+        {nextStepAction && phase !== "result" ? (
+          <NextStepHint
+            levelId={intro.levelId}
+            action={nextStepAction}
+            usedBefore={intro.hintsUsedTiers.includes(5)}
+            readyAction={`“${tSeq("submit")}”`}
+            getState={() => ({ order })}
+            names={{ item: (id) => (textById.get(id) ?? id).trim() }}
+            onStep={(step) => setPointed(step.code === "moveItem" ? step.itemId : null)}
+          />
+        ) : null}
       </div>
 
       {/* ── Overlays ── */}
@@ -441,7 +457,9 @@ export function SequencingPlayer({
           saving={false}
           saveFailed={false}
           onRetrySave={handleRetrySubmit}
-          improveNote={null}
+          improveNote={(submission?.server?.stars ?? intro.maxStars) < intro.maxStars ? t("success.improveFirstTry") : null}
+          onReplay={handleTryAgain}
+          certificate={submission?.server?.certificate ?? null}
           nextHref={nextHref}
           reducedMotion={reducedMotion}
         />

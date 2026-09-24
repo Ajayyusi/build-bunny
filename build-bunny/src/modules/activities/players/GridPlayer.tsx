@@ -32,6 +32,7 @@ import { GridScene } from "./shared/GridScene";
 import { HintDrawer, type HintTierState } from "./shared/HintDrawer";
 import { IntroOverlay } from "./shared/IntroOverlay";
 import { MissionStrip } from "./shared/MissionStrip";
+import { NextStepHint } from "./shared/NextStepHint";
 import { RoboHelp, type HelpTopic, type RoboHelpFailure } from "./shared/RoboHelp";
 import { ResultBanner, useFeedbackText } from "./shared/ResultBanner";
 import { SuccessOverlay } from "./shared/SuccessOverlay";
@@ -92,6 +93,7 @@ export function GridPlayer({
   intro,
   payload: rawPayload,
   revealHintAction,
+  nextStepAction,
   saveDraftAction,
   skipIntro = false,
   attemptExtras,
@@ -119,7 +121,11 @@ export function GridPlayer({
     recordDraftVersion({ playerKey: intro.playerKey, levelId: intro.levelId }, version);
   };
   const saveDraftQuietly = (input: { levelId: string; workspaceJson: unknown }) => {
-    saveDraftAction(input)
+    // A plain JSON copy. Blockly's serialized workspace is not built from
+    // plain objects, and React hands a non-plain object to a server action
+    // as an opaque reference: the server could not read it, the save threw,
+    // and the draft never reached the server (only this device's mirror).
+    saveDraftAction({ levelId: input.levelId, workspaceJson: JSON.parse(JSON.stringify(input.workspaceJson ?? null)) })
       .then((result) => {
         if (result.ok) noteSaved((result.data as { savedAt?: unknown } | null)?.savedAt);
       })
@@ -788,6 +794,44 @@ export function GridPlayer({
                 </span>
                 {t("tools.addBlock")}
               </button>
+              {nextStepAction ? (
+                <NextStepHint
+                  levelId={intro.levelId}
+                  action={nextStepAction}
+                  usedBefore={intro.hintsUsedTiers.includes(5)}
+                  readyAction={`“${t("run")}”`}
+                  disabled={phase === "running"}
+                  getState={() => ({
+                    workspaceJson: workspaceHandleRef.current?.getWorkspaceJson() ?? {},
+                    ...(attemptExtras ?? {}),
+                  })}
+                  onStep={(step) => {
+                    // Point at what the hint names, so "+ Add block" lands
+                    // exactly where it said.
+                    const handle = workspaceHandleRef.current;
+                    if (!handle) return;
+                    if (step.code === "addBlock" || step.code === "moveBlock") {
+                      const place = step.place;
+                      if (step.code === "moveBlock") handle.selectFor({ kind: "index", index: step.index });
+                      else
+                        handle.selectFor(
+                          place.kind === "start"
+                            ? { kind: "hat" }
+                            : place.kind === "newTrick"
+                              ? { kind: "none" }
+                              : place.kind === "insideTrick"
+                                ? { kind: "trick" }
+                                : { kind: "index", index: place.index },
+                        );
+                    } else if (
+                      (step.code === "removeBlock" || step.code === "changeBlock" || step.code === "setNumber") &&
+                      step.index > 0
+                    ) {
+                      handle.selectFor({ kind: "index", index: step.index });
+                    }
+                  }}
+                />
+              ) : null}
               <ToolButton
                 label={t("tools.undo")}
                 disabled={!editState?.canUndo}
@@ -974,6 +1018,8 @@ export function GridPlayer({
               ? t("success.stretch")
               : null
           }
+          onReplay={handleTryAgain}
+          certificate={attempt?.server?.certificate ?? null}
           nextHref={nextHref}
           reducedMotion={reducedMotion}
         />

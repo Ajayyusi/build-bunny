@@ -198,6 +198,8 @@ export interface AttemptResponse {
   } | null;
   feedback: ActivityFeedback | null;
   gradeMismatch: boolean;
+  /** Set on the run that finished a world and earned its certificate. */
+  certificate?: { serial: string; verifySlug: string } | null;
 }
 
 /** Loose structural ActionResult — accepts the guard module's richer union. */
@@ -209,6 +211,33 @@ export type RevealHintAction = (input: {
   levelId: string;
   tier: number;
 }) => Promise<PlayerActionResult<{ tier: number; text: unknown }>>;
+
+/**
+ * "Show me the next step": the child's current work in, the one next move
+ * out (modules/hints). State fields are per activity type; see
+ * nextStepStateSchema for the full shape the server accepts.
+ */
+export interface NextStepStateInput {
+  workspaceJson?: unknown;
+  design?: unknown;
+  ruledOut?: string[];
+  order?: string[];
+  gapBlock?: string | null;
+  examples?: { id: string; label: "positive" | "negative" }[];
+  held?: string[];
+  markers?: { size: number; color: number }[];
+  excluded?: string[];
+  sceneId?: string | null;
+  line?: { slope: number; intercept: number };
+  phase?: "fit" | "predict";
+  prediction?: number | null;
+  rounds?: Record<string, string>;
+}
+
+export type NextStepAction = (input: {
+  levelId: string;
+  state: NextStepStateInput;
+}) => Promise<PlayerActionResult<import("@/modules/hints/types").NextStep>>;
 
 export type SaveDraftAction = (input: {
   levelId: string;
@@ -329,5 +358,7 @@ export interface ActivityPlayerProps {
    */
   draft: unknown;
   revealHintAction: RevealHintAction;
+  /** "Show me the next step" (optional so tests and older call sites still type-check). */
+  nextStepAction?: NextStepAction;
   saveDraftAction: SaveDraftAction;
 }

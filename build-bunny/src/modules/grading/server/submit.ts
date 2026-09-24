@@ -36,6 +36,9 @@ import { applyDailyActivity } from "./streak";
  * registry (src/modules/activities) — this file never assumes a grid.
  */
 
+/** Levels where a guess is cheap to retry: the third star is for the first try. */
+const FIRST_TRY_TYPES = new Set(["CODE_PREDICTION", "SEQUENCING"]);
+
 /** Grid types (BLOCK_CODING/DEBUGGING) submit the raw Blockly workspace. */
 export interface GridAttemptInput {
   attemptRunId: string;
@@ -260,13 +263,24 @@ export async function submitAttempt(
     _max: { tier: true },
   });
   const hintTierUsed = hintAgg._max.tier ?? 0;
+  // Picking an answer from a short list, or reordering a few cards, can be
+  // retried until it lands — so on those levels the third star means "right
+  // first time". A wrong answer before this pass caps it at two, exactly as a
+  // late hint does. (A replay after a clean first pass keeps its best stars.)
+  const firstTryOnly = FIRST_TRY_TYPES.has(activityType);
+  const earlierMiss =
+    firstTryOnly && grade.verdict === "PASS"
+      ? (await db.activityAttempt.count({
+          where: { studentUserId: ctx.userId, schoolId, levelId, kind: "NORMAL", verdict: "FAIL" },
+        })) > 0
+      : false;
   // Clamped to the level's own star budget: the 0/1/2/3 scale and the hint
   // cap stay exactly as they were for puzzles (maxStars 3 makes this a
   // no-op), while a level that declares fewer stars can never award more than
   // it advertises. This is what makes a Learn step (maxStars 0) reward XP but
   // no stars, with computeStars and the star criteria untouched.
   const stars = Math.min(
-    computeStars(grade.verdict, grade.qualityPassed, hintTierUsed),
+    computeStars(grade.verdict, grade.qualityPassed && !earlierMiss, hintTierUsed),
     maxStarsOf(published.snapshot),
   );
   const gradeMismatch = clientVerdict !== undefined && clientVerdict !== grade.verdict;

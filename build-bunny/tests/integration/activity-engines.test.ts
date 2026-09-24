@@ -314,6 +314,18 @@ describe("CODE_PREDICTION grading (through submitAttempt, the real pipeline)", (
     expect(progress?.status).not.toBe("COMPLETED");
     expect(await db.xpEvent.count({ where: { studentUserId: ctx.userId } })).toBe(0);
   });
+
+  it("right after a wrong answer: PASS, but the third star is for the first try", async () => {
+    const ctx = await makeStudent(predictScenario.school, 3);
+    await submitAttempt(ctx, predictLevelId, { attemptRunId: uuid(), answer: { optionId: "one" } });
+    const outcome = await submitAttempt(ctx, predictLevelId, {
+      attemptRunId: uuid(),
+      answer: { optionId: "two" },
+    });
+    const body = outcome.body as AttemptResponse;
+    expect(body.verdict).toBe("PASS");
+    expect(body.stars).toBe(2);
+  });
 });
 
 // ── SEQUENCING ───────────────────────────────────────────────────────────

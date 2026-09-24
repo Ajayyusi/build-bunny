@@ -4,8 +4,10 @@ import { z } from "zod";
 
 import { createRateLimiter } from "@/lib/rate-limit";
 import { RateLimitedError, withAuth, type ActionResult } from "@/modules/auth/server/guard";
+import { nextStepStateSchema, type NextStep } from "@/modules/hints/server/next-step";
 import {
   markLevelStartedCore,
+  nextStepHintCore,
   revealHintCore,
   saveReflectionCore,
   saveWorkspaceDraftCore,
@@ -41,6 +43,29 @@ export async function revealHint(
       throw new RateLimitedError("Too many hint requests");
     }
     return revealHintCore(ctx, data);
+  })(input);
+}
+
+const nextStepSchema = z.object({
+  levelId: z.string().min(1),
+  state: nextStepStateSchema,
+});
+
+/**
+ * Its own, roomier limit: a child following next steps asks once per block,
+ * so a quick one on a long level can pass 20 in a minute honestly — sharing
+ * the ladder's 20/min limit refused them mid-level. 60/min still stops a
+ * script hammering the endpoint.
+ */
+const nextStepLimiter = createRateLimiter({ limit: 60, windowMs: 60_000 });
+
+/** "Show me the next step" — see nextStepHintCore. */
+export async function nextStepHint(input: unknown): Promise<ActionResult<NextStep>> {
+  return withAuth("attempts:submit", nextStepSchema, (ctx, data) => {
+    if (!nextStepLimiter.allow(ctx.userId)) {
+      throw new RateLimitedError("Too many hint requests");
+    }
+    return nextStepHintCore(ctx, data);
   })(input);
 }
 

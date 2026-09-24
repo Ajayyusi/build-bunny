@@ -64,7 +64,10 @@ export default async function AttemptReplayPage({ params }: Props) {
       />
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label={tStudent("header.xp")} value={`+${attempt.xpAwarded}`} />
-        <StatCard label={tStudent("attempts.hints")} value={attempt.hintTierUsed || "—"} />
+        <StatCard
+          label={tStudent("attempts.hints")}
+          value={attempt.hintTierUsed === 5 ? tStudent("attempts.nextStepHelp") : attempt.hintTierUsed || "—"}
+        />
         <StatCard label={tStudent("attempts.duration")} value={<span dir="ltr">{durationLabel}</span>} />
         <StatCard label={tStudent("attempts.blocks")} value={attempt.blockCount ?? "—"} />
       </div>
