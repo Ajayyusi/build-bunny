@@ -121,9 +121,17 @@ relying on it for production:
   `NEXT_PUBLIC_APP_URL` (must exactly match the public origin — it is also
   Better Auth's trusted origin; a scheme/domain mismatch breaks all
   sign-ins). `src/lib/env.ts` fails the build loudly if any are missing.
-- **Migrations:** run `npx prisma migrate deploy` as a separate release
-  step against the production database *before* promoting a deployment —
-  never inside the Vercel build (builds must not touch production data).
+- **Migrations:** applied automatically as the first step of every
+  **production** Vercel build (`scripts/migrate-on-deploy.mjs`, via
+  `vercel-build`), over the direct (unpooled) connection. Preview builds
+  skip it — they share the production `DATABASE_URL`, and an unmerged branch
+  must not change the live schema. A failed migration fails the build, so
+  the live site keeps the previous deployment. This replaced the earlier
+  manual release step because the database credentials are Vercel
+  "sensitive" variables that no person or tool can read back. Rule this
+  depends on: migrations stay **additive** (new tables and nullable
+  columns), so the version still serving traffic keeps working while the
+  next one builds. A destructive change needs a two-step release instead.
 - **Database:** a Vercel deployment still needs an external PostgreSQL 16
   (UAE-region notes in §4 apply). Connection pooling (e.g. pgbouncer or a
   pooled provider URL) is recommended because serverless functions
