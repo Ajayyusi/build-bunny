@@ -11,7 +11,7 @@ const variantClasses = {
   neutral: "bg-ink/8 text-ink-muted",
   brand: "bg-brand/8 text-brand",
   positive: "bg-positive/8 text-positive",
-  warning: "bg-warning/14 text-warning",
+  warning: "bg-warning/14 text-warning-strong",
   danger: "bg-danger/12 text-danger",
   accent: "bg-accent/25 text-ink",
 } as const;

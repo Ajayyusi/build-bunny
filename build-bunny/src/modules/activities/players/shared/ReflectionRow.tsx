@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 
 import { saveReflection as saveReflectionAction } from "@/modules/learning/server/actions";
@@ -18,21 +18,47 @@ const OPTIONS: { feeling: Feeling; emoji: string; key: string }[] = [
 
 /**
  * "How did that feel?" — one optional tap on the success card. Nothing to
- * type (no child text is stored); the teacher only ever sees class counts.
- * Tapping again changes the answer. Renders nothing outside a level.
+ * type (no child text is stored); the teacher only ever sees a rough class
+ * share. Tapping again changes the answer: saves go one at a time and
+ * always end on the latest tap. Renders nothing outside a level.
  */
 export function ReflectionRow() {
   const t = useTranslations("student.play.reflection");
   const level = useLevelContext();
   const [chosen, setChosen] = useState<Feeling | null>(null);
   const [saved, setSaved] = useState(false);
+  const [failed, setFailed] = useState(false);
+  const desired = useRef<Feeling | null>(null);
+  const busy = useRef(false);
   if (!level) return null;
 
-  const pick = async (feeling: Feeling) => {
+  const flush = async () => {
+    if (busy.current) return;
+    busy.current = true;
+    try {
+      let sent: Feeling | null = null;
+      while (desired.current !== null && desired.current !== sent) {
+        const feeling: Feeling = desired.current;
+        sent = feeling;
+        const result = await runAction(() => saveReflectionAction({ levelId: level.levelId, feeling }));
+        if (!result.ok) {
+          setFailed(true);
+          return;
+        }
+      }
+      setSaved(true);
+      setFailed(false);
+    } finally {
+      busy.current = false;
+    }
+  };
+
+  const pick = (feeling: Feeling) => {
     setChosen(feeling);
     setSaved(false);
-    const result = await runAction(() => saveReflectionAction({ levelId: level.levelId, feeling }));
-    setSaved(result.ok);
+    setFailed(false);
+    desired.current = feeling;
+    void flush();
   };
 
   return (
@@ -63,7 +89,7 @@ export function ReflectionRow() {
         ))}
       </div>
       <p role="status" className="min-h-4 text-xs text-ink-muted">
-        {saved ? t("thanks") : ""}
+        {saved ? t("thanks") : failed ? t("notSaved") : ""}
       </p>
     </div>
   );

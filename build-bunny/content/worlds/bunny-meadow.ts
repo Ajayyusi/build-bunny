@@ -13,7 +13,8 @@ import { practicePaddock } from "./bunny-meadow-practice";
  * ".#CGW" grid legend, camelCase check ids. Every student-facing field
  * (title, story, objective, instructions, explanation, all 4 hint tiers)
  * carries real Arabic (m5-contracts §1, content/i18n-glossary.md governs
- * terminology) — teacherNotes stays English-only (staff-facing).
+ * terminology). teacherNotes carries Arabic too, for the Arabic curriculum
+ * guide (staff-facing; flagged for review).
  */
 
 type BlockCodingDraft = z.input<typeof blockCodingPayload>;
@@ -122,6 +123,7 @@ export const bunnyMeadow: WorldFixture = {
           },
           teacherNotes: {
             en: "Watch for students pressing Run with a disconnected block — the #1 friction at minute one. The tier-3 hint targets it.",
+            ar: "انتبه إلى الطلاب الذين يضغطون «تشغيل» وفي برنامجهم لبنة غير موصولة — فهذه أكثر عقبة شيوعًا في الدقيقة الأولى. والتلميح الثالث يعالجها تحديدًا.",
           },
           difficulty: "EASY",
           recommendedGradeMin: 3,
@@ -222,6 +224,7 @@ export const bunnyMeadow: WorldFixture = {
           },
           teacherNotes: {
             en: "Ask students to predict the number of hops before running — this is the seed of the code-prediction habit.",
+            ar: "اطلب من الطلاب توقّع عدد القفزات قبل التشغيل — فهذه بذرة عادة توقّع ما ستفعله الشيفرة قبل تشغيلها.",
           },
           difficulty: "EASY",
           recommendedGradeMin: 3,
@@ -328,6 +331,7 @@ export const bunnyMeadow: WorldFixture = {
           },
           teacherNotes: {
             en: "The left/right-from-whose-view confusion is the classic misconception here. Have students physically stand and turn if stuck (unplugged moment). Challenge extension: solve it again using Turn Right three times instead of Turn Left once — which program is shorter?",
+            ar: "الخلط في اليمين واليسار (من وجهة نظر مَن؟) هو المفهوم الخاطئ الشائع هنا. إذا تعثّر الطلاب فاطلب منهم أن يقفوا ويستديروا بأجسادهم فعلًا (نشاط بلا حاسوب). توسعة للتحدي: حُلّ المستوى مرة أخرى باستخدام «استدر يمينًا» ثلاث مرات بدلًا من «استدر يسارًا» مرة واحدة — أيّ البرنامجين أقصر؟",
           },
           difficulty: "EASY",
           recommendedGradeMin: 3,
@@ -470,6 +474,7 @@ export const bunnyMeadow: WorldFixture = {
           },
           teacherNotes: {
             en: "First level where PARTIAL results appear (reaching the burrow with missed carrots). Show the class the feedback message — reading grader feedback is a skill. Challenge extension: re-run a winning program and call out which hop collects each carrot before it happens.",
+            ar: "أول مستوى تظهر فيه نتيجة «جزئي» (PARTIAL)، أي الوصول إلى الجُحر مع تفويت بعض الجزر. اعرض رسالة التغذية الراجعة على الصف كله — فقراءة التغذية الراجعة من المصحّح الآلي مهارة بحد ذاتها. توسعة للتحدي: أعد تشغيل برنامج ناجح، واطلب من الطلاب أن يحدّدوا بصوت عالٍ أيّ قفزة ستلتقط كل جزرة قبل أن يحدث ذلك.",
           },
           difficulty: "EASY",
           recommendedGradeMin: 3,
@@ -624,6 +629,7 @@ export const bunnyMeadow: WorldFixture = {
           },
           teacherNotes: {
             en: "The worked-example step for loops: students study a solved program, then complete a faded copy of it. It awards no stars on purpose — this is instruction, not assessment, so there is nothing to lose by guessing and no reason to rush it. A confident class can skip the Watch beat with 'My turn'. The number to watch afterwards is the fail rate on Repeat After Me, which this step exists to move.",
+            ar: "هذه خطوة المثال المحلول للحلقات: يدرس الطلاب برنامجًا محلولًا، ثم يكملون نسخة منه حُذفت منها أجزاء. لا تمنح هذه الخطوة نجومًا عن قصد — فهي تعليم لا تقييم، ولذلك لا يخسر الطالب شيئًا بالتخمين ولا داعي للاستعجال فيها. يستطيع الصف الواثق تخطّي مرحلة «شاهد» بالضغط على «دوري». والرقم الذي يجب متابعته بعد ذلك هو نسبة الإخفاق في مستوى «كرّر بعدي»، فهذه الخطوة موجودة أصلًا لتحسين هذه النسبة.",
           },
           difficulty: "EASY",
           recommendedGradeMin: 3,
@@ -780,6 +786,7 @@ export const bunnyMeadow: WorldFixture = {
           },
           teacherNotes: {
             en: "The 'same result, shorter program' comparison is the lesson — after success, the explanation screen shows both versions side by side. Don't rush students past it. Challenge extension: change the Repeat number to 3, predict where Robo Bunny stops, then run it.",
+            ar: "المقارنة بين «النتيجة نفسها، والبرنامج أقصر» هي جوهر الدرس — فبعد النجاح تعرض شاشة الشرح النسختين جنبًا إلى جنب. لا تستعجل الطلاب في تجاوزها. توسعة للتحدي: غيّر رقم «كرّر» إلى 3، وتوقّع أين سيتوقف الأرنب الآلي، ثم شغّل البرنامج.",
           },
           difficulty: "EASY",
           recommendedGradeMin: 3,

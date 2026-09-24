@@ -17,8 +17,8 @@ import { FlagList } from "../../../_components/FlagBadges";
 const STATUS_STYLE: Record<ProgressState, { glyph: string; className: string }> = {
   LOCKED: { glyph: "🔒", className: "bg-ink/5 text-ink-faint" },
   UNLOCKED: { glyph: "○", className: "bg-brand/8 text-brand" },
-  IN_PROGRESS: { glyph: "◐", className: "bg-warning/12 text-warning" },
-  COMPLETED: { glyph: "✓", className: "bg-positive/14 text-positive" },
+  IN_PROGRESS: { glyph: "◐", className: "bg-warning/12 text-warning-strong" },
+  COMPLETED: { glyph: "✓", className: "bg-positive/14 text-positive-strong" },
 };
 
 interface WorldGroup {

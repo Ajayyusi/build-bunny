@@ -257,6 +257,15 @@ export async function setAccountDisabled(
         : { banned: false, banReason: null, banExpires: null },
     }),
     ...(disabled ? [db.session.deleteMany({ where: { userId: target.userId } })] : []),
+    // Disabling a child also switches off any family link to their progress.
+    ...(disabled && target.isStudent
+      ? [
+          db.familyLink.updateMany({
+            where: { studentUserId: target.userId, revokedAt: null },
+            data: { revokedAt: new Date() },
+          }),
+        ]
+      : []),
   ]);
 
   const group = target.isStudent ? AUDIT.students : AUDIT.staff;

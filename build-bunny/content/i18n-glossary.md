@@ -77,11 +77,13 @@ for translator consistency across the shipped levels)
 | Logic Forest (world)              | غابة المنطق              |
 | Robot Lab (world)                 | مختبر الروبوتات          |
 
-## 5. teacherNotes stay English
+## 5. teacherNotes: Arabic provided, not required
 
-`teacherNotes` is a staff-only field (never shown to students, never
-localized in the player UI) and is intentionally left English-only across
-every level, per the M5 brief. The import pipeline's `hasArabic()` check
+`teacherNotes` is a staff-only field (never shown to students or in the
+player UI). It was first left English-only (M5 brief). Since the 2027 work
+the teacher curriculum guide renders in Arabic too, so every bundled level
+now carries an Arabic teacher note, flagged for native review like the rest
+of the Arabic. Arabic stays *optional* for this field. The import pipeline's `hasArabic()` check
 originally required Arabic in every populated localized field including
 `teacherNotes`, which made `arComplete: true` impossible while honouring
 that decision — `computeArComplete` in
@@ -102,11 +104,11 @@ fixed. Two rules govern this table:
    this section exists to prevent.
 2. **Student-facing copy never uses the technical term.** A child reads "the
    bunny guesses" and "the ones you showed it". The technical column records
-   what a teacher would recognise, and belongs only in `teacherNotes`, which
-   is English-only by §5 — so the two columns can never get swapped by
-   accident.
+   what a teacher would recognise, and belongs only in `teacherNotes` — so
+   the two columns can never get swapped by accident. Arabic teacher notes
+   keep the English technical term in brackets after the Arabic one.
 
-| English (student-facing)  | Arabic                    | Technical (teacherNotes, EN only) |
+| English (student-facing)  | Arabic                    | Technical (teacherNotes only) |
 |----------------------------|----------------------------|------------------------------------|
 | teach (a machine)          | علّم                       | train |
 | example (one you show it)  | مثال (ج. أمثلة)            | training example |

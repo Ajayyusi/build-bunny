@@ -67,7 +67,7 @@ export function LevelIntroSheet({ level, onClose }: LevelIntroSheetProps) {
             {t("intro.minutes", { minutes: intro.estimatedMinutes })}
           </Badge>
           {intro.ageBand ? (
-            <Badge variant="neutral">{t(`intro.ageBand.${intro.ageBand}`)}</Badge>
+            <Badge variant="neutral">{t(`intro.bandName.${intro.ageBand}`)}</Badge>
           ) : null}
           <span
             className="ms-auto inline-flex items-center gap-1"

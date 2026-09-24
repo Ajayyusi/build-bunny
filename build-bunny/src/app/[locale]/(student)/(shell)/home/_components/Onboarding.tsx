@@ -138,7 +138,7 @@ export function Onboarding({ show, userId, firstMissionHref }: OnboardingProps) 
               size="lg"
               onClick={close}
             >
-              {firstMissionHref ? t("later") : t("next")}
+              {firstMissionHref ? t("later") : t("letsGo")}
             </Button>
           </div>
         ) : (
@@ -146,7 +146,7 @@ export function Onboarding({ show, userId, firstMissionHref }: OnboardingProps) 
             <Button variant="ghost" size="lg" onClick={close}>
               {t("skip")}
             </Button>
-            <Button size="lg" onClick={() => setStep(step + 1)}>
+            <Button size="lg" data-autofocus onClick={() => setStep(step + 1)}>
               {t("next")}
             </Button>
           </div>

@@ -9,12 +9,12 @@ import { LiveView } from "./_components/LiveView";
 
 interface Props {
   params: Promise<{ locale: string; classId: string }>;
-  searchParams: Promise<{ challenge?: string }>;
+  searchParams: Promise<{ challenge?: string; names?: string }>;
 }
 
 export default async function ClassLivePage({ params, searchParams }: Props) {
   const { locale, classId } = await params;
-  const { challenge } = await searchParams;
+  const { challenge, names } = await searchParams;
   setRequestLocale(locale);
   const ctx = await requireRole("TEACHER", "SCHOOL_ADMIN");
   const [matrix, t] = await Promise.all([
@@ -31,5 +31,5 @@ export default async function ClassLivePage({ params, searchParams }: Props) {
   }
 
   const initial = buildLiveSnapshot(matrix, locale, challenge ?? null);
-  return <LiveView classId={classId} locale={locale} initial={initial} />;
+  return <LiveView classId={classId} locale={locale} initial={initial} initialShowNames={names === "1"} />;
 }

@@ -65,7 +65,7 @@ export function Leaderboard({
                 <span className="line-clamp-1 text-xs font-bold text-ink">
                   {row.isMe ? youLabel : row.displayName}
                 </span>
-                <span className="text-[11px] font-bold tabular-nums text-ink-muted">
+                <span className="text-xs font-bold tabular-nums text-ink-muted">
                   {xpLabel(row.xpTotal)}
                 </span>
               </li>

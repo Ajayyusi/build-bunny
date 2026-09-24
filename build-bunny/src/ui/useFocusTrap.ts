@@ -40,7 +40,9 @@ export function useFocusTrap<T extends HTMLElement>(
     // The container itself is the fallback focus target (it carries
     // tabIndex={-1} at every call site) for a dialog with no focusable
     // controls yet (e.g. a loading state).
-    (focusables()[0] ?? container).focus();
+    // A dialog can name the control a step should land on (data-autofocus),
+    // e.g. "Next" rather than "Skip", so pressing Enter twice never skips.
+    (container.querySelector<HTMLElement>("[data-autofocus]") ?? focusables()[0] ?? container).focus();
 
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key !== "Tab") return;

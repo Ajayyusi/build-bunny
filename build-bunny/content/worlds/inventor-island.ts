@@ -116,6 +116,7 @@ export const inventorIsland: WorldFixture = {
           },
           teacherNotes: {
             en: "Deliberately open: compare two students' different routes on the projector and ask the class whether both are correct (yes) and which is shorter to WRITE. The 8-block limit for three stars allows a hop-by-hop route with one turn (7 blocks) as well as the loop version (5).",
+            ar: "مفتوح عمدًا: اعرض مسارَي طالبين مختلفين على جهاز العرض واسأل الصف هل كلاهما صحيح (نعم) وأيهما أقصر في الكتابة. حدّ 8 لبنات للنجوم الثلاث يسمح بمسار قفزة بقفزة مع استدارة واحدة (7 لبنات) كما يسمح بنسخة الحلقة (5).",
           },
           difficulty: "EASY",
           recommendedGradeMin: 3,
@@ -242,6 +243,7 @@ export const inventorIsland: WorldFixture = {
           },
           teacherNotes: {
             en: "Three carrots at (1,0), (0,1) and (2,1) on a 3x3 board; the finish is bottom-right. Several tours fit in the 12-block limit. Good projector discussion: which order needs the fewest turns?",
+            ar: "ثلاث جزرات عند (1,0) و(0,1) و(2,1) على لوحة 3x3؛ والنهاية في الزاوية السفلية اليمنى. عدة جولات تتسع ضمن حدّ 12 لبنة. نقاش جيد على جهاز العرض: أي ترتيب يحتاج إلى أقل عدد من الاستدارات؟",
           },
           difficulty: "MEDIUM",
           recommendedGradeMin: 3,
@@ -410,6 +412,7 @@ export const inventorIsland: WorldFixture = {
           },
           teacherNotes: {
             en: "Both loops earn three stars (limit 2 blocks). Ask: which program would still work if the pier were longer? That contrast — counted vs. condition-controlled — is the Logic Forest idea revisited as a design choice.",
+            ar: "كلتا الحلقتين تكسبان ثلاث نجوم (الحد لبنتان). اسأل: أي برنامج سيظل يعمل لو كان الرصيف أطول؟ هذه المقارنة — الحلقة المعدودة مقابل الحلقة المضبوطة بشرط — هي فكرة غابة المنطق نفسها، تُستعاد هنا بوصفها خيارًا في التصميم.",
           },
           difficulty: "MEDIUM",
           recommendedGradeMin: 4,
@@ -521,6 +524,7 @@ export const inventorIsland: WorldFixture = {
           },
           teacherNotes: {
             en: "Most students go along the top first because the bot faces East. Both routes pass; only the 3-block route earns three stars. Let a student who found the long way present it, THEN ask the class for a shorter one — the comparison is the lesson.",
+            ar: "يذهب معظم الطلاب على الصف العلوي أولًا لأن الروبوت يواجه الشرق. كلا المسارين ينجح؛ لكن مسار اللبنات الثلاث وحده يكسب ثلاث نجوم. دع طالبًا وجد الطريق الطويل يعرضه، ثم اسأل الصف عن طريق أقصر — فالمقارنة هي الدرس.",
           },
           difficulty: "MEDIUM",
           recommendedGradeMin: 3,

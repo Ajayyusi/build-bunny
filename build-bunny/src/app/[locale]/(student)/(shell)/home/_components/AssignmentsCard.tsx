@@ -59,10 +59,16 @@ export async function AssignmentsCard({ assignments, locale }: Props) {
                 <div className="flex min-w-0 flex-col gap-1">
                   <span className="flex flex-wrap items-center gap-2">
                     <span className="font-display text-base font-bold text-ink">
-                      {assignment.title}
+                      {/* Assigned straight from the curriculum guide, the
+                          title is the module's name in the teacher's
+                          language; show it in the child's instead. */}
+                      {assignment.title === resolveText(assignment.targetLabel, "en") ||
+                      assignment.title === resolveText(assignment.targetLabel, "ar")
+                        ? resolveText(assignment.targetLabel, locale)
+                        : assignment.title}
                     </span>
                     {assignment.done ? (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-positive/15 px-2 py-0.5 text-xs font-bold text-positive">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-positive/15 px-2 py-0.5 text-xs font-bold text-positive-strong">
                         <span aria-hidden="true">✓</span>
                         {t("done")}
                       </span>
@@ -99,14 +105,18 @@ export async function AssignmentsCard({ assignments, locale }: Props) {
                 )}
               </div>
 
-              {/* Class mission: together, not a race. Shown once a second
-                  child is in the class, and never names anyone. */}
+              {/* Class mission: together, not a race. A child still working
+                  never sees how many classmates are ahead of them; a child who
+                  has finished sees the class total (never names, and only in
+                  classes big enough that a count can't point at anyone). */}
               {assignment.classSize > 1 ? (
                 <p className="mt-2 flex items-center gap-1.5 text-xs font-semibold text-ink-muted">
                   <span aria-hidden="true">🤝</span>
-                  {assignment.classFinished === 0
-                    ? t("missionNone")
-                    : t("mission", { done: assignment.classFinished, total: assignment.classSize })}
+                  {!assignment.done
+                    ? t("missionTogether")
+                    : assignment.classFinished !== null
+                      ? t("missionDone", { done: assignment.classFinished, total: assignment.classSize })
+                      : t("missionDoneSmall")}
                 </p>
               ) : null}
 

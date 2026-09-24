@@ -130,6 +130,7 @@ export const codeCity: WorldFixture = {
           },
           teacherNotes: {
             en: "First code-reading level with no grid. The common slip is treating turnRight() as a move (answering 4 tiles) or forgetting the heading change (answering East). Have students act it out on the floor: two steps, quarter turn to the right, one step.",
+            ar: "أول مستوى لقراءة الشيفرة بلا شبكة. الخطأ الشائع هو اعتبار turnRight() حركة (فتكون الإجابة 4 مربعات) أو نسيان تغيّر الاتجاه (فتكون الإجابة الشرق). اطلب من الطلاب تمثيلها على الأرض: خطوتان، ثم ربع دورة إلى اليمين، ثم خطوة واحدة.",
           },
           difficulty: "EASY",
           recommendedGradeMin: 4,
@@ -218,6 +219,7 @@ export const codeCity: WorldFixture = {
           },
           teacherNotes: {
             en: "The route is easy on purpose (three hops, a turn, two hops); the lesson is the Code tab. Ask students to predict the code BEFORE opening the tab, then compare. Students who use Repeat see a for loop — a good moment to connect to Loop Detective.",
+            ar: "المسار سهل عن قصد (ثلاث قفزات، ثم استدارة، ثم قفزتان)؛ أما الدرس فهو تبويب «الكود». اطلب من الطلاب توقّع الشيفرة قبل فتح التبويب، ثم المقارنة. الطلاب الذين يستخدمون «كرّر» يرون حلقة for — وهي لحظة مناسبة للربط بمستوى «محقق الحلقات».",
           },
           difficulty: "EASY",
           recommendedGradeMin: 4,
@@ -355,6 +357,7 @@ export const codeCity: WorldFixture = {
           },
           teacherNotes: {
             en: "Builds on Loop Detective (Logic Forest). The new element is code AFTER the loop: students who answer '4 in total' stopped reading at the closing bracket. Pair with Read the Sign for a two-level 'read before you run' routine.",
+            ar: "يبني على «محقق الحلقات» (غابة المنطق). العنصر الجديد هو الشيفرة التي تأتي بعد الحلقة: الطلاب الذين يجيبون «4 في المجموع» توقفوا عن القراءة عند القوس الختامي. اقرنه بمستوى «اقرأ اللافتة» لتكوين روتين من مستويين عنوانه «اقرأ قبل أن تشغّل».",
           },
           difficulty: "EASY",
           recommendedGradeMin: 4,
@@ -443,6 +446,7 @@ export const codeCity: WorldFixture = {
           },
           teacherNotes: {
             en: "Two common misreadings: ignoring the ! (so the turn 'doesn't happen'), and thinking the program stops after an if (missing the final hop). The code shown is the exact text the Code tab produces for the 'path ahead is blocked' block, so students can verify it themselves in Choose the Path.",
+            ar: "قراءتان خاطئتان شائعتان: تجاهل علامة ! (فتبدو الاستدارة كأنها «لا تحدث»)، والظن بأن البرنامج يتوقف بعد «إذا» (فتُفقد القفزة الأخيرة). الشيفرة المعروضة هي النص نفسه تمامًا الذي يُنتجه تبويب «الكود» للبنة «الطريق أمامي مسدود»، لذا يستطيع الطلاب التحقق منها بأنفسهم في مستوى «اختر الطريق».",
           },
           difficulty: "MEDIUM",
           recommendedGradeMin: 5,
@@ -541,6 +545,7 @@ export const codeCity: WorldFixture = {
           },
           teacherNotes: {
             en: "Single-bug warm-up before the three-bug finale. Encourage 'finger tracing' on the board before Run; the failure message names the exact step (bumped at step 4), which students can match to the fourth block.",
+            ar: "تمهيد بخطأ واحد قبل الختام ذي الأخطاء الثلاثة. شجّع «التتبّع بالإصبع» على السبورة قبل التشغيل؛ فرسالة الفشل تسمّي الخطوة بعينها (اصطدم عند الخطوة 4)، ويستطيع الطلاب مطابقتها مع اللبنة الرابعة.",
           },
           difficulty: "EASY",
           recommendedGradeMin: 4,
@@ -697,6 +702,7 @@ export const codeCity: WorldFixture = {
           },
           teacherNotes: {
             en: "Students often 'fix' this by deleting the loop and adding four Move blocks — it passes but drops to fewer stars (block limit 2). Steer them to edit the number: the point is that a loop's count is part of the program's meaning.",
+            ar: "كثيرًا ما «يصلح» الطلاب هذا بحذف الحلقة وإضافة أربع لبنات «تقدّم للأمام» — فينجح الحل لكنه ينال نجومًا أقل (حدّ اللبنات 2). وجّههم إلى تعديل الرقم: المقصود أن عدد مرات تكرار الحلقة جزء من معنى البرنامج.",
           },
           difficulty: "MEDIUM",
           recommendedGradeMin: 4,
@@ -829,6 +835,7 @@ export const codeCity: WorldFixture = {
           },
           teacherNotes: {
             en: "Finale of Code City. The bugs surface in order: the wrong turn crashes at step 4; after that fix, the loop count crashes off the bottom; after that, the run reaches the market but is PARTIAL because the crate was never collected (autoCollect is off here, as in Robot Lab). Students who get PARTIAL and stop have found two of three — the 'For more stars' note points at the third.",
+            ar: "ختام مدينة الشيفرة. تظهر الأخطاء بالترتيب: الاستدارة الخاطئة تسبّب اصطدامًا عند الخطوة 4؛ وبعد إصلاحها يسبّب عدد الحلقة الخروج من أسفل الخريطة؛ وبعد ذلك يصل التشغيل إلى السوق لكن النتيجة PARTIAL (جزئية) لأن الصندوق لم يُلتقط قط (autoCollect معطّل هنا، كما في مختبر الروبوتات). الطلاب الذين يحصلون على PARTIAL ويتوقفون قد وجدوا خطأين من ثلاثة — وملاحظة «لمزيد من النجوم» تشير إلى الثالث.",
           },
           difficulty: "HARD",
           recommendedGradeMin: 5,
@@ -1026,6 +1033,7 @@ export const codeCity: WorldFixture = {
           },
           teacherNotes: {
             en: "Every step depends strictly on the previous one, so there is exactly one correct order and no reasonable alternative — deliberately unambiguous. Extension: ask students to write a seventh step and argue where it must go.",
+            ar: "كل خطوة تعتمد اعتمادًا صارمًا على الخطوة السابقة، لذا يوجد ترتيب صحيح واحد فقط ولا بديل معقول — وهذا الوضوح مقصود. للتوسّع: اطلب من الطلاب كتابة خطوة سابعة وتقديم الحجة على الموضع الذي يجب أن توضع فيه.",
           },
           difficulty: "EASY",
           recommendedGradeMin: 4,

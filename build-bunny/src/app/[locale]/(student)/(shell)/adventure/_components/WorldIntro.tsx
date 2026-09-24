@@ -122,7 +122,7 @@ export function WorldIntro({ worlds, userId, replaySlug, onReplayDone }: WorldIn
         )}
       >
         <div className="flex items-center justify-between gap-2">
-          <span className="rounded-full bg-brand px-3 py-1 text-[11px] font-bold tracking-wide text-on-brand">
+          <span className="rounded-full bg-brand px-3 py-1 text-xs font-bold tracking-wide text-on-brand">
             {world.name}
           </span>
           {world.character ? (
@@ -137,6 +137,7 @@ export function WorldIntro({ worlds, userId, replaySlug, onReplayDone }: WorldIn
           <BunnyMascot state={current.pose} size="md" className="shrink-0" />
           <p
             key={beat}
+            aria-live="polite"
             className="relative flex-1 rounded-2xl rounded-es-sm border border-border-token bg-surface-sunken px-4 py-3 text-base leading-relaxed text-ink"
           >
             {current.text}
@@ -159,7 +160,7 @@ export function WorldIntro({ worlds, userId, replaySlug, onReplayDone }: WorldIn
           <Button variant="ghost" size="lg" onClick={close}>
             {t("skip")}
           </Button>
-          <Button size="lg" onClick={() => (last ? close() : setBeat(beat + 1))}>
+          <Button size="lg" data-autofocus onClick={() => (last ? close() : setBeat(beat + 1))}>
             {last ? t("go") : t("next")}
           </Button>
         </div>

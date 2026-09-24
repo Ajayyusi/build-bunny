@@ -137,6 +137,7 @@ export default async function PlayLevelPage({ params }: Props) {
     support: supportFor(snapshot?.grade ?? null),
     nextLevel: next,
     firstSteps: adventure.worlds.every((world) => world.completedLevels === 0),
+    draftVersion: playable.draftSavedAt,
   };
 
   // Re-parse the (student-stripped) payload per activity type so schema
@@ -184,6 +185,8 @@ export default async function PlayLevelPage({ params }: Props) {
       board: parsed.board,
       palette: parsed.palette,
       mustInclude: parsed.mustInclude,
+      minGoalHops: parsed.minGoalHops,
+      requiredBlocks: parsed.requiredBlocks,
       toolbox: parsed.toolbox,
       budgets: parsed.budgets,
       starCriteria: parsed.starCriteria,

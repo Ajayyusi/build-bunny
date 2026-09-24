@@ -179,11 +179,9 @@ export default async function ClassPage({ params, searchParams }: Props) {
                     <span className="text-sm font-semibold text-ink">{resolveText(level.title, locale)}</span>
                     <span className="text-xs text-ink-muted">{resolveText(level.worldName, locale)}</span>
                   </span>
-                  <span className="flex flex-wrap items-center gap-2 text-xs tabular-nums text-ink">
-                    <Badge variant="neutral">{t("reflections.easy", { count: level.easy })}</Badge>
-                    <Badge variant="neutral">{t("reflections.justRight", { count: level.justRight })}</Badge>
-                    <Badge variant="warning">{t("reflections.tricky", { count: level.tricky })}</Badge>
-                  </span>
+                  <Badge variant={level.band === "most" ? "warning" : "neutral"}>
+                    {t(level.band === "most" ? "reflections.most" : "reflections.some")}
+                  </Badge>
                 </li>
               ))}
             </ul>

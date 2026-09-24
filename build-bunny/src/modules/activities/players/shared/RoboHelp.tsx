@@ -27,6 +27,10 @@ import type { ActivityFeedback } from "../../types";
  *  - Show a similar example — a tiny puzzle on the same idea, played by the
  *    real engine, never this level's solution.
  *
+ * Players that are not block programs (prediction, sequencing, the AI
+ * players) show a subset — "why", "hint" — plus "concept": what the idea
+ * behind the level is, in child words, from the level's concept tags.
+ *
  * Everything is on screen as text; narration reads it when voice is on.
  */
 
@@ -41,9 +45,11 @@ export interface RoboHelpFailure {
 interface RoboHelpProps {
   open: boolean;
   onClose: () => void;
-  worldTheme: string;
+  /** Which helpers to offer, in order. Defaults to the block-coding four. */
+  topics?: readonly HelpTopic[];
+  worldTheme?: string;
   tags: readonly string[];
-  selectedBlockType: string | null;
+  selectedBlockType?: string | null;
   lastFailure: RoboHelpFailure | null;
   hints: HintTierState[];
   revealingTier: number | null;
@@ -53,15 +59,18 @@ interface RoboHelpProps {
   initialTopic?: HelpTopic | null;
 }
 
-export type HelpTopic = "block" | "why" | "hint" | "example";
+export type HelpTopic = "block" | "why" | "hint" | "example" | "concept";
+
+const GRID_TOPICS: readonly HelpTopic[] = ["block", "why", "hint", "example"];
 type Topic = HelpTopic;
 
 export function RoboHelp({
   open,
   onClose,
-  worldTheme,
+  topics = GRID_TOPICS,
+  worldTheme = "",
   tags,
-  selectedBlockType,
+  selectedBlockType = null,
   lastFailure,
   hints,
   revealingTier,
@@ -85,11 +94,14 @@ export function RoboHelp({
     if (!open) return;
     setTopic(initialTopic);
     setPlaying(false);
-    if (initialTopic === "hint" && tier1 && !tier1.revealed) onRevealTier1();
+    if (initialTopic === "hint" && tier1 && (!tier1.revealed || tier1.text === null)) onRevealTier1();
     // eslint-disable-next-line react-hooks/exhaustive-deps -- on open only
   }, [open, initialTopic]);
 
   const blockName = (type: string) => (tBlocks.has(type) ? tBlocks(type) : type);
+  // Block programs locate a failure on a step and block; other players
+  // explain the kind of mistake only.
+  const programs = topics.includes("block");
 
   // What Robo Bunny says for the chosen topic — one string, so narration and
   // the read-aloud button always match the card.
@@ -101,7 +113,10 @@ export function RoboHelp({
         : t("explainBlockNone");
   } else if (topic === "why") {
     if (!lastFailure) {
-      answer = t("whyFailedNone");
+      answer = programs ? t("whyFailedNone") : t("whyWrongNone");
+    } else if (!programs) {
+      const code = lastFailure.feedback.code;
+      answer = t.has(`why.${code}`) ? t(`why.${code}`) : t("why.genericAnswer");
     } else {
       const code = lastFailure.feedback.code;
       const reason = t.has(`why.${code}`) ? t(`why.${code}`) : t("why.generic");
@@ -119,6 +134,9 @@ export function RoboHelp({
     answer = tier1?.revealed && tier1.text ? tier1.text : null;
   } else if (topic === "example") {
     answer = example ? t("similarIntro") : t("similarNone");
+  } else if (topic === "concept") {
+    const tag = tags.find((candidate) => t.has(`concept.${candidate}`));
+    answer = tag ? t(`concept.${tag}`) : t("concept.generic");
   }
   useNarrateOnShow(open ? answer : null);
 
@@ -139,14 +157,22 @@ export function RoboHelp({
         <div className="flex items-end gap-3">
           <BunnyMascot state={topic ? "pointing" : "thinking"} size="sm" className="shrink-0" />
           <div className="grid flex-1 grid-cols-1 gap-2 sm:grid-cols-2">
-            {(
-              [
-                ["block", t("explainBlock")],
-                ["why", t("whyFailed")],
-                ["hint", t("smallerHint")],
-                ["example", t("similar")],
-              ] as [Topic, string][]
-            ).map(([key, label]) => (
+            {topics
+              .map((key): [Topic, string] => [
+                key,
+                key === "block"
+                  ? t("explainBlock")
+                  : key === "why"
+                    ? programs
+                      ? t("whyFailed")
+                      : t("whyWrong")
+                    : key === "hint"
+                      ? t("smallerHint")
+                      : key === "example"
+                        ? t("similar")
+                        : t("whatIsThis"),
+              ])
+              .map(([key, label]) => (
               <button
                 key={key}
                 type="button"
@@ -154,7 +180,7 @@ export function RoboHelp({
                 onClick={() => {
                   setTopic(key);
                   setPlaying(false);
-                  if (key === "hint" && tier1 && !tier1.revealed) onRevealTier1();
+                  if (key === "hint" && tier1 && (!tier1.revealed || tier1.text === null)) onRevealTier1();
                 }}
                 className={cn(
                   "min-h-12 rounded-xl border-2 px-3 text-start text-sm font-bold transition-colors",
@@ -173,7 +199,7 @@ export function RoboHelp({
           <div className="flex flex-col gap-3 rounded-2xl rounded-ss-sm border border-border-token bg-surface-sunken p-4">
             {topic === "hint" && !answer ? (
               <p className="text-sm text-ink-muted">
-                {revealingTier === 1 ? "…" : t("whyFailedNone")}
+                {revealingTier === 1 ? "…" : t("hintUnavailable")}
               </p>
             ) : null}
             {answer ? (

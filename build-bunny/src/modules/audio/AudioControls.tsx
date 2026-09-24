@@ -281,6 +281,8 @@ export function AudioSettingsButton({ className }: { className?: string }) {
         type="button"
         onClick={() => setOpen(true)}
         aria-haspopup="dialog"
+        // It opens settings: say so, with the current state after it.
+        aria-label={`${t("settingsButton")}: ${audible ? t("on") : t("off")}`}
         className={cn(
           "inline-flex h-11 items-center gap-2 rounded-lg px-3 text-sm font-semibold text-ink-muted transition-colors hover:bg-surface-sunken hover:text-ink",
           className,
@@ -307,7 +309,8 @@ export function PlayerSoundControls() {
       <button
         type="button"
         onClick={quickToggle}
-        aria-pressed={audible}
+        // The label names the action ("Mute sound" / "Turn sound on");
+        // aria-pressed on top of a changing label read as a contradiction.
         aria-label={audible ? t("mute") : t("unmute")}
         title={audible ? t("mute") : t("unmute")}
         className={cn(

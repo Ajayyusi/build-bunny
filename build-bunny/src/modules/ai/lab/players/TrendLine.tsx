@@ -275,7 +275,7 @@ export function TrendLine({
           aria-live="polite"
           className={cn(
             "inline-flex items-center gap-1.5 rounded-full px-3 py-1 tabular-nums",
-            reachedTarget ? "bg-positive/15 text-positive" : "bg-surface-sunken",
+            reachedTarget ? "bg-positive/15 text-positive-strong" : "bg-surface-sunken",
           )}
         >
           {reachedTarget
@@ -286,7 +286,7 @@ export function TrendLine({
               })}
         </span>
         {computerRevealed ? (
-          <span className={cn("inline-flex items-center gap-1.5 rounded-full bg-warning/14 px-3 py-1 text-warning tabular-nums", !reducedMotion && styles.popIn)}>
+          <span className={cn("inline-flex items-center gap-1.5 rounded-full bg-warning/14 px-3 py-1 text-warning-strong tabular-nums", !reducedMotion && styles.popIn)}>
             {t("computerMiss", { score: round1(optimumSSE) })}
           </span>
         ) : null}

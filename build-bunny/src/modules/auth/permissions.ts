@@ -19,6 +19,9 @@ export const PERMISSIONS = [
   "staff:manage",
   "students:manage",
   "students:write",
+  // Switching off a family link only ever REDUCES who can see a child's
+  // progress, so it stays available under a read-only licence.
+  "family:revoke",
   "classes:manage",
   "classes:write",
   "imports:run",
@@ -75,6 +78,7 @@ const GRANTS: Record<Role, readonly Permission[]> = {
     "staff:manage",
     "students:manage",
     "students:write",
+    "family:revoke",
     "classes:manage",
     "classes:write",
     "imports:run",
@@ -90,6 +94,7 @@ const GRANTS: Record<Role, readonly Permission[]> = {
   ],
   TEACHER: [
     "students:write",
+    "family:revoke",
     "classes:write",
     "credentials:reset",
     "curriculum:read",
@@ -124,6 +129,7 @@ const READ_ONLY_PERMISSIONS: readonly Permission[] = [
   "analytics:classes",
   "exports:school",
   "certificates:read",
+  "family:revoke",
 ];
 
 export function isReadOnlyPermission(permission: Permission): boolean {

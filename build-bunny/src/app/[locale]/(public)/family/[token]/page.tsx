@@ -1,17 +1,21 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { Link } from "@/i18n/navigation";
 import { resolveText } from "@/modules/curriculum/schemas";
-import { getFamilySummary } from "@/modules/family/server/summary";
+import { allowFamilyView, getFamilySummary } from "@/modules/family/server/summary";
 import { BunnyMascot, Card, CardBody, formatDisplayDate } from "@/ui";
+
+import { LocaleSwitcher } from "../../../_components/LocaleSwitcher";
 
 interface Props {
   params: Promise<{ locale: string; token: string }>;
 }
 
 // A private link: never indexed, never cached for anyone else.
-export const metadata: Metadata = { robots: { index: false, follow: false } };
+// The token is in the path: never send it on as a referrer, never index it.
+export const metadata: Metadata = { robots: { index: false, follow: false }, referrer: "no-referrer" };
 export const dynamic = "force-dynamic";
 
 /**
@@ -28,16 +32,18 @@ export default async function FamilyPage({ params }: Props) {
   const [t, tCommon, summary] = await Promise.all([
     getTranslations("family"),
     getTranslations("common"),
-    getFamilySummary(token),
+    loadSummary(token),
   ]);
 
   return (
     <div data-theme="play" className="flex min-h-dvh flex-col bg-surface text-ink">
-      <header className="bb-container flex h-16 items-center">
+      <header className="bb-container flex h-16 items-center justify-between">
         <Link href="/" className="inline-flex items-center gap-2 font-display text-lg font-bold">
           <BunnyMascot size="xs" />
           {tCommon("appName")}
         </Link>
+        {/* A family reads this in its own language, whatever the teacher used. */}
+        <LocaleSwitcher />
       </header>
       <main className="bb-container flex flex-1 flex-col gap-6 py-8">
         {!summary ? (
@@ -154,4 +160,13 @@ function Stat({ label, value }: { label: string; value: number }) {
       </CardBody>
     </Card>
   );
+}
+
+async function loadSummary(token: string) {
+  const forwarded = (await headers()).get("x-forwarded-for");
+  const clientKey = forwarded?.split(",")[0]?.trim();
+  // Without a proxy header there is no per-visitor key; limiting one shared
+  // bucket would lock every family out together, so don't.
+  if (clientKey && !allowFamilyView(clientKey)) return null;
+  return getFamilySummary(token);
 }

@@ -132,7 +132,8 @@
       "settings": "Sound settings",
       "readAloud": "Read aloud",
       "everythingOnScreen": "Everything important is always written on screen too.",
-      "close": "Close"
+      "close": "Close",
+      "settingsButton": "Sound settings"
     },
     "header": {
       "xpChip": "{value} XP",
@@ -185,11 +186,12 @@
             "body": "Snap blocks together to make a program. Press Run, and I'll follow your blocks one by one."
           },
           "2": {
-            "title": "Stuck? Tap Hint.",
+            "title": "Stuck? Tap Ask Robo Bunny.",
             "body": "I'll give you a small clue first, then a bigger one. Every coder gets stuck — hints are how we get unstuck."
           }
         },
-        "later": "Look around first"
+        "later": "Look around first",
+        "letsGo": "Let's go!"
       },
       "feedback": {
         "heading": "From your teacher",
@@ -207,8 +209,9 @@
         "start": "Start",
         "continue": "Continue",
         "progress": "{done} of {total}",
-        "mission": "Class mission: {done} of {total} in your class have finished",
-        "missionNone": "Class mission: be one of the first in your class to finish"
+        "missionTogether": "Class mission: your class is working on this together",
+        "missionDone": "You finished! {done} of {total} in your class have finished this mission.",
+        "missionDoneSmall": "You finished! You're helping your class mission."
       },
       "heroCtaDone": "Open the map",
       "openMap": "See the map",
@@ -254,6 +257,11 @@
           "starter": "Ages 7–8",
           "explorer": "Ages 9–10",
           "inventor": "Ages 11–13"
+        },
+        "bandName": {
+          "starter": "Starter",
+          "explorer": "Explorer",
+          "inventor": "Inventor"
         }
       },
       "horizonHeading": "On the horizon",
@@ -345,7 +353,9 @@
         "wrongVariable": "The counter ended on {actual}, but it should be {expected}. Follow the counter blocks one by one.",
         "noValue": "nothing",
         "noTrick": "“Do my trick” needs a trick to do — add a “my trick” block and put some blocks inside it.",
-        "mazeInvalid": "Your maze can't be solved yet — open the maze checklist and fix what's missing."
+        "mazeInvalid": "Your maze can't be solved yet. Tap “Change my maze” and fix the line without a tick.",
+        "emptyTrick": "Your trick has no blocks inside yet. Put the steps in “my trick”, then use “do my trick”.",
+        "didNotRunEnough": "The counter has to count each one as it happens. Put the “add” block inside the loop, so it runs every time."
       },
       "learn": {
         "stepWatch": "Step 1 of 2 · Watch",
@@ -458,7 +468,7 @@
         "tooManyExamples": "That is {used} examples, and you may only use {max}. Take some back out and pick the ones that teach it the most.",
         "capUsed": "{used} of {max} used",
         "recapHeading": "How you taught it",
-        "recapTaught": "You showed it {count} {kind, select, grain {seeds} cell {cells} blip {readings} other {berries}}, and nothing else:",
+        "recapTaught": "You showed it {count} {kind, select, grain {{count, plural, one {seed} other {seeds}}} cell {{count, plural, one {cell} other {cells}}} blip {{count, plural, one {reading} other {readings}}} other {{count, plural, one {berry} other {berries}}}}, and nothing else:",
         "recapDecided": "Then it worked out the new ones by copying whichever of yours each one looked most like:",
         "improveFewer": "The bunny can be taught with as few as {max} examples. Fewer, better-chosen ones earn the last star.",
         "keepForTesting": "Keep for testing",
@@ -626,7 +636,20 @@
           "forbiddenBlock": "The program used a block this level asks you to do without.",
           "generic": "The run didn't reach the goal. Watch it again and find the first step where Robo Bunny goes somewhere you didn't expect.",
           "wrongVariable": "Each counter block changes the number by a fixed amount, in order. Write the number after each block and see where it drifts from the target.",
-          "mazeInvalid": "The program never ran: the maze itself broke a rule of the checklist. Change my maze, fix the line without a tick, and build again."
+          "mazeInvalid": "The program never ran, because the maze itself broke a rule on the checklist. Tap “Change my maze”, fix the line without a tick, and build again.",
+          "genericAnswer": "Not quite yet. Read the question again slowly, and check each part of your answer one at a time.",
+          "wrongOutput": "Robo Bunny said something different from what was needed. Check the words in each say block, and whether they happen in the right order.",
+          "wrongOption": "The program does something a little different from the answer you picked. Pretend you are the computer: follow it one line at a time, and keep track of where things are after each line.",
+          "wrongOrder": "Computers do steps in exactly the order they are written. Find the first step that couldn't happen yet, and ask what has to come before it.",
+          "teachBothBuckets": "The bunny learns only from examples. With too few in one basket, it has nothing to compare with, so it can't learn that kind yet.",
+          "modelGuessedWrong": "The bunny copies the answer of the example that looks most like the new one. It guessed wrong because nothing you taught it looks like the ones it missed. Teach it one that does.",
+          "classifierErrors": "Your line decides which side each point belongs to. Some points ended up on the wrong side. Move or turn the line a little and watch which points change sides.",
+          "trendMissTooHigh": "The miss score adds up how far each point is from your line. A line that runs through the middle of the points, not above or below them, misses less.",
+          "mysteryRoundsWrong": "A computer only sees a picture as tiny squares of colour. Look at the pattern of squares, not at what you think the picture shows.",
+          "pilesNotTight": "Things in the same group should be close together. If a group is spread out, it is probably really two groups, or its centre is in the wrong place.",
+          "tooManyExamples": "This level is about teaching well with only a few examples. Choose the ones that cover every kind, and leave the rest out.",
+          "emptyTrick": "A trick is a set of steps with a name. Calling an empty trick does nothing, so fill “my trick” with the steps you want to repeat.",
+          "didNotRunEnough": "A counter only counts when its “add” block runs. If “add” runs once, the counter changes once, even if Robo Bunny hops many times. Put “add” where it runs once for each thing you count."
         },
         "blocks": {
           "bb_whenStart": "The start. Everything snapped under this block runs when you press Run — from the top, one block at a time.",
@@ -645,6 +668,41 @@
           "bb_sayCounter": "Robo Bunny says the number that is in the counter right now.",
           "bb_defineTrick": "Teaches Robo Bunny a trick: the blocks inside get a name, but they don't run yet. Use “do my trick” to run them — as many times as you like.",
           "bb_doTrick": "Runs the trick you taught, once, right here. Teach it once, use it anywhere."
+        },
+        "whyWrong": "Why was that wrong?",
+        "whyWrongNone": "Nothing has gone wrong yet. Give it a try, and if it doesn't work I'll explain why.",
+        "whatIsThis": "What is this about?",
+        "hintUnavailable": "I couldn't fetch the hint just now. Try again in a moment.",
+        "concept": {
+          "generic": "Every level practises one idea. Read the mission again. It tells you what to aim for, and the hint ladder helps one step at a time.",
+          "sequencing": "Sequencing means putting steps in the right order. A computer does exactly what it is told, one step after another, and never skips ahead.",
+          "loops": "A loop repeats the steps inside it. When you see the same steps again and again, a loop says it once and repeats it for you.",
+          "conditionals": "An if block makes a choice: if something is true, do this, otherwise do that. It lets one program cope with different situations.",
+          "logic": "Logic is thinking step by step about what must be true. Work out what you know for sure first, then what follows from it.",
+          "variables": "A variable is a box with a name that remembers a number. You can put a number in, add to it, and read it back later.",
+          "functions": "A function, or trick, is a set of steps you name once and use many times. Teach the trick once, then call it wherever you need it.",
+          "debugging": "Debugging means finding and fixing a mistake in a program. Run it, find the first place it does something unexpected, and fix just that.",
+          "reading-code": "Reading code means working out what a program does before it runs. Follow it line by line, like the computer would.",
+          "algorithms": "An algorithm is a clear list of steps that always solves a problem. Some algorithms are shorter or faster than others.",
+          "classification": "Classification means sorting things into groups. An AI learns to sort by looking at examples that people have already sorted.",
+          "clustering": "Clustering finds groups without being told the answers. Things that are close together probably belong together.",
+          "features": "Features are the clues a computer uses to decide, like size or colour. Good clues make good decisions.",
+          "prediction": "A prediction is a careful guess about something new, based on patterns in what we have already seen.",
+          "regression": "A trend line shows the general direction of the data. It won't touch every point, but it should stay close to most of them.",
+          "boundary": "A boundary is the line where a decision changes. Points on one side get one answer, and points on the other side get the other.",
+          "outliers": "An outlier is a data point that doesn't fit with the rest, often a mistake in measuring. It can pull a whole answer off course.",
+          "pixels": "A picture on a screen is made of tiny squares called pixels. Computers find patterns in those squares.",
+          "computer-vision": "Computer vision is how computers 'see'. They don't understand a picture like we do. They compare patterns of pixels.",
+          "ethics": "Ethics means asking what is fair and kind, and who could be helped or hurt when a computer makes a decision.",
+          "bias": "Bias happens when an AI learns from examples that leave some people or things out. Then it works less well for them.",
+          "privacy": "Privacy means keeping your personal information, like your address or passwords, safe and shared only with people you trust.",
+          "cyber-safety": "Staying safe online means stopping to think before you click, share or reply, and telling a trusted adult when something feels wrong.",
+          "misinformation": "Not everything online is true, and some of it is made by AI. Check who made it, and whether other trusted places say the same.",
+          "data": "Data is information we collect, like measurements or answers. Good data is careful and complete. Messy data gives messy answers.",
+          "sensors": "A sensor lets a robot notice the world, like whether the path ahead is blocked. The program decides what to do with what it senses.",
+          "robot": "A robot follows its program exactly. It can't guess what you meant, so every step has to be there.",
+          "creative": "This is your own creation. There is more than one good answer. Plan it, try it, and improve it.",
+          "evaluation": "Testing an AI means checking it on examples it has never seen. That is the only fair way to know how well it learned."
         }
       },
       "maze": {
@@ -684,11 +742,12 @@
           "done": "Done:",
           "todo": "Still to do:",
           "oneGoal": "Exactly one burrow to reach",
-          "obstacles": "At least {need} rocks or water ({have} so far)",
-          "carrots": "At least {need} carrots ({have} so far)",
+          "obstacles": "At least {need, plural, one {# rock or water tile} other {# rocks or water tiles}} ({have} so far)",
+          "carrots": "At least {need, plural, one {# carrot} other {# carrots}} ({have} so far)",
           "startFree": "Robo Bunny is standing on a clear square",
           "reachGoal": "Robo Bunny can reach the burrow",
-          "reachCarrots": "Every carrot can be reached"
+          "reachCarrots": "Every carrot can be reached",
+          "farEnough": "The burrow is at least {need} hops from the bunny"
         },
         "ready": "Your maze is ready — now program Robo Bunny through it!",
         "notReady": "Finish the checklist, then build your program.",
@@ -701,11 +760,12 @@
         "easy": "Easy",
         "justRight": "Just right",
         "tricky": "Tricky",
-        "thanks": "Thanks — your teacher will see how the class found this level."
+        "thanks": "Thanks — your teacher will see how the class found this level.",
+        "notSaved": "That didn't save. Tap your answer again when you're back online."
       },
       "firstSteps": {
         "add": "Tap “+ Add block” and pick a block to start your program.",
-        "run": "Nice! Now press ▶ Run to see what Bunny does."
+        "run": "Nice! Now press ▶ Run to see what Robo Bunny does."
       }
     },
     "profile": {
@@ -925,10 +985,9 @@
         },
         "reflections": {
           "heading": "How the class felt",
-          "caveat": "From the one-tap question after each level. The levels most often called tricky, with at least 3 answers. Counts only — no child is named.",
-          "easy": "😀 {count} easy",
-          "justRight": "🙂 {count} just right",
-          "tricky": "😣 {count} tricky"
+          "caveat": "From the one-tap question after each level: the levels this class most often called tricky, once at least 5 children have answered. Shown as a rough share and updated once a day, so no child's answer can be worked out.",
+          "most": "😣 Most found it tricky",
+          "some": "🙂 Some found it tricky"
         }
       },
       "student": {
@@ -1111,17 +1170,18 @@
         "challengeNone": "No challenge",
         "challengeHeading": "Today's challenge",
         "challengeCount": "{finished} of {total} finished",
-        "hideNames": "Hide names",
-        "showNames": "Show names"
+        "showNames": "Show names",
+        "on": "on",
+        "off": "off"
       },
       "curriculum": {
         "title": "Curriculum guide",
-        "subtitle": "{levels} levels across {worlds} worlds — about {lessons} lessons of {minutes} minutes. Objectives, concepts, age bands, timing and teacher notes for every level, in the order children play them.",
+        "subtitle": "{levels, plural, one {# level} other {# levels}} across {worlds, plural, one {# world} other {# worlds}} — about {lessons, plural, one {# lesson} other {# lessons}} of {minutes} minutes. Objectives, concepts, age bands, timing and teacher notes for every level, in the order children play them.",
         "print": "Print guide",
         "emptyTitle": "No curriculum enabled",
         "emptyBody": "Your school has not enabled a programme yet.",
-        "worldPacing": "{levels} levels · about {lessons, plural, one {# lesson} other {# lessons}} of {minutes} min",
-        "modulePacing": "{levels} levels · {total} min · about {lessons, plural, one {# lesson} other {# lessons}} of {minutes} min",
+        "worldPacing": "{levels, plural, one {# level} other {# levels}} · about {lessons, plural, one {# lesson} other {# lessons}} of {minutes} min",
+        "modulePacing": "{levels, plural, one {# level} other {# levels}} · {total} min · about {lessons, plural, one {# lesson} other {# lessons}} of {minutes} min",
         "power": "Earns the {power}",
         "teacherNotes": "Teacher notes",
         "col": {
@@ -1158,7 +1218,7 @@
           "error": "That did not work. Check you teach this class and try again."
         },
         "cstaLabel": "Suggested CSTA alignment:",
-        "cstaNote": "Standards codes are our suggested alignment with the CSTA K–12 Computer Science Standards (1B = grades 3–5, 2 = grades 6–8), not an endorsement by CSTA. Hover or focus a code to read it.",
+        "cstaNote": "Standards codes are our suggested alignment with the CSTA K–12 Computer Science Standards (1B = grades 3–5, 2 = grades 6–8), not an endorsement by CSTA.",
         "csta": {
           "1B-AP-08": "Compare and refine different algorithms for the same task",
           "1B-AP-09": "Use variables to store and change data in a program",
@@ -1183,7 +1243,80 @@
           "2-IC-20": "Weigh how technology affects people's everyday lives",
           "2-IC-21": "Discuss bias and accessibility in technology design",
           "2-IC-23": "Weigh keeping information public versus private and secure"
+        },
+        "worksheetLink": "Worksheet",
+        "tagLabel": {
+          "sequencing": "sequencing",
+          "loops": "loops",
+          "conditionals": "conditionals",
+          "logic": "logic",
+          "variables": "variables",
+          "functions": "functions",
+          "debugging": "debugging",
+          "reading-code": "reading code",
+          "algorithms": "algorithms",
+          "creative": "creative project",
+          "robot": "robots",
+          "sensors": "sensors",
+          "ai": "AI",
+          "ml": "machine learning",
+          "learn": "worked example",
+          "classification": "classification",
+          "clustering": "clustering",
+          "kmeans": "k-means",
+          "features": "features",
+          "prediction": "prediction",
+          "regression": "trend lines",
+          "evaluation": "testing a model",
+          "training-loop": "training loop",
+          "train-test-split": "training vs testing data",
+          "model-selection": "choosing a model",
+          "boundary": "decision boundary",
+          "boundaries": "decision boundaries",
+          "cost-sensitivity": "cost of mistakes",
+          "local-optima": "local optima",
+          "spurious-correlation": "misleading patterns",
+          "data": "data",
+          "data-quality": "data quality",
+          "data-cleaning": "cleaning data",
+          "outliers": "outliers",
+          "pixels": "pixels",
+          "computer-vision": "computer vision",
+          "ethics": "ethics",
+          "bias": "bias",
+          "privacy": "privacy",
+          "cyber-safety": "online safety",
+          "misinformation": "misinformation",
+          "media-literacy": "media literacy"
         }
+      },
+      "worksheet": {
+        "back": "Curriculum guide",
+        "print": "Print worksheet",
+        "showAnswers": "Add answer key",
+        "hideAnswers": "Remove answer key",
+        "nameLine": "Name:",
+        "dateLine": "Date:",
+        "legendLabel": "What the pictures on the boards mean",
+        "legend": "Key",
+        "legendStart": "the bunny and the way it faces",
+        "legendGoal": "burrow (the goal)",
+        "legendCarrot": "carrot",
+        "legendRock": "rock",
+        "legendWater": "water",
+        "boardLabel": "A board {cols} squares wide and {rows} squares tall",
+        "writeProgram": "Write the program, one block per line:",
+        "blocksYouCanUse": "Blocks you can use",
+        "numberSteps": "Write 1, 2, 3… in the boxes to put the steps in order.",
+        "onTablet": "Play these on the tablet (they need the live game):",
+        "noPaper": "Every level in this module needs the live game, so there is nothing to print.",
+        "answerKey": "Answer key (for the teacher)",
+        "gridAnswer": "more than one program can work. Check it by acting it out or running it on the tablet.",
+        "givenBroken": "This program has mistakes. Circle them:",
+        "givenStarter": "Your program starts with these blocks:",
+        "writeFixed": "Write the fixed program, one block per line:",
+        "elseLine": "else",
+        "allBoards": "One program must work on all {count} boards."
       }
     },
     "school": {
@@ -1933,7 +2066,7 @@
     "thisWeek": "Finished this week",
     "quietWeek": "No levels finished this week — that's fine. Ask what they're building next!",
     "worlds": "The adventure so far",
-    "worldProgress": "{completed} of {total} levels",
+    "worldProgress": "{completed} of {total, plural, one {# level} other {# levels}}",
     "powerEarned": "Earned the {power}",
     "privacy": "This is a private, read-only link shared by the school. It shows no scores against other children and changes nothing. It stops working on {date}, or sooner if the teacher switches it off.",
     "inactiveTitle": "This link isn't active",

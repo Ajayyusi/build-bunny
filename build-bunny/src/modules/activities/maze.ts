@@ -21,6 +21,8 @@ export interface MazeRules {
   board: { width: number; height: number };
   palette: MazePaletteTile[];
   mustInclude: { obstacles: number; carrots: number };
+  /** Defaults to MIN_GOAL_HOPS. */
+  minGoalHops?: number;
 }
 
 export type MazeIssue =
@@ -33,6 +35,7 @@ export type MazeIssue =
   | { code: "fewObstacles"; have: number; need: number }
   | { code: "fewCarrots"; have: number; need: number }
   | { code: "unreachableGoal" }
+  | { code: "goalTooClose"; need: number }
   | { code: "unreachableCarrot"; x: number; y: number };
 
 /** Stored draft for a maze level: the design and the program, together. */
@@ -51,6 +54,13 @@ export function emptyDesign(board: MazeRules["board"]): GridVariantSpec {
 }
 
 export const DIRECTIONS: Direction[] = ["N", "E", "S", "W"];
+
+/**
+ * The burrow must be at least this many hops from the start along the
+ * shortest path — otherwise one "move forward" earns three stars and XP,
+ * and the level teaches nothing.
+ */
+export const MIN_GOAL_HOPS = 3;
 
 export function nextDirection(dir: Direction): Direction {
   return DIRECTIONS[(DIRECTIONS.indexOf(dir) + 1) % DIRECTIONS.length]!;
@@ -132,27 +142,36 @@ export function analyzeMazeDesign(rules: MazeRules, design: GridVariantSpec): Ma
 
   // BFS from the start over non-fatal tiles (the same rule as the publish
   // reachability gate): the goal and every carrot must be reachable.
-  const seen = new Set<string>([`${start.x},${start.y}`]);
+  const seen = new Map<string, number>([[`${start.x},${start.y}`, 0]]);
   const queue = [{ x: start.x, y: start.y }];
   while (queue.length > 0) {
     const { x, y } = queue.shift()!;
+    const hops = seen.get(`${x},${y}`)!;
     for (const [dx, dy] of [[0, -1], [1, 0], [0, 1], [-1, 0]] as const) {
       const nx = x + dx;
       const ny = y + dy;
       const key = `${nx},${ny}`;
       if (seen.has(key) || !walkable(rows, nx, ny)) continue;
-      seen.add(key);
+      seen.set(key, hops + 1);
       queue.push({ x: nx, y: ny });
     }
   }
   const grid = parseGrid(rows);
   let goalReachable = goals === 0;
+  let goalHops = Infinity;
   grid.tiles.forEach((row, y) =>
     row.forEach((tile, x) => {
-      if (tile === "G" && seen.has(`${x},${y}`)) goalReachable = true;
+      const hops = seen.get(`${x},${y}`);
+      if (tile === "G" && hops !== undefined) {
+        goalReachable = true;
+        goalHops = Math.min(goalHops, hops);
+      }
     }),
   );
   if (!goalReachable) issues.push({ code: "unreachableGoal" });
+  else if (goals === 1 && goalHops < (rules.minGoalHops ?? MIN_GOAL_HOPS)) {
+    issues.push({ code: "goalTooClose", need: rules.minGoalHops ?? MIN_GOAL_HOPS });
+  }
   for (const carrot of grid.collectables) {
     if (!seen.has(`${carrot.x},${carrot.y}`)) {
       issues.push({ code: "unreachableCarrot", x: carrot.x, y: carrot.y });
@@ -164,6 +183,8 @@ export function analyzeMazeDesign(rules: MazeRules, design: GridVariantSpec): Ma
 /** The parts of a maze payload the generated grid level needs. */
 export interface MazeProgramRules {
   toolbox: { type: string; limit?: number }[];
+  /** "bb_doTrick" means a taught trick that is actually called. */
+  requiredBlocks?: string[];
   budgets: { maxCommands: number };
   starCriteria: { threeStarMaxBlocks?: number };
 }
@@ -177,6 +198,13 @@ export function mazeGridPayload(rules: MazeProgramRules, design: GridVariantSpec
   const hasCarrots = design.rows.some((row) => row.includes("C"));
   const checks: Check[] = [{ id: "reachedGoal", severity: "core" }];
   if (hasCarrots) checks.push({ id: "collectedAll", severity: "secondary" });
+  for (const block of rules.requiredBlocks ?? []) {
+    checks.push(
+      block === "bb_doTrick"
+        ? { id: "usedTrick", severity: "secondary" }
+        : { id: "usedBlock", severity: "secondary", params: { block } },
+    );
+  }
   return {
     toolbox: rules.toolbox,
     variants: [design],

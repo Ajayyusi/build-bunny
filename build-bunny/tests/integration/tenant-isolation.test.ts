@@ -964,6 +964,16 @@ async function assertQueryIsolated(entry: RegistryEntry): Promise<void> {
       expect(await query(studentCtxA)).toEqual([]);
       break;
     }
+    case "getModuleWorksheet": {
+      // Staff of a school whose programme holds the module only; a student,
+      // an unknown module or a module outside the school's programmes → null.
+      const level = await db.level.findUniqueOrThrow({ where: { id: levelOneId }, select: { moduleId: true } });
+      expect(await query(studentCtxA, level.moduleId)).toBeNull();
+      expect(await query(teacherCtxA, "no-such-module")).toBeNull();
+      const sheet = await query(teacherCtxA, level.moduleId);
+      if (sheet) expectNoForeignIds(sheet, name);
+      break;
+    }
     case "getCurriculumLevelDetail": {
       await expect(query(ctxA, levelOneId)).rejects.toThrow();
       await expect(query(studentCtxA, levelOneId)).rejects.toThrow();

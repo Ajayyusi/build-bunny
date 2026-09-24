@@ -1,5 +1,6 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
 
+import { Link } from "@/i18n/navigation";
 import { requireRole } from "@/modules/auth/server/session";
 import { resolveText } from "@/modules/curriculum/schemas";
 import { getTeacherCurriculumGuide, LESSON_MINUTES, lessonsFor } from "@/modules/curriculum/server/guide";
@@ -35,6 +36,7 @@ export default async function CurriculumGuidePage({ params }: Props) {
     getTranslations("student.adventure.intro"),
   ]);
 
+  const tagList = new Intl.ListFormat(locale, { style: "short", type: "unit" });
   const totalLevels = worlds.reduce((sum, w) => sum + w.levelCount, 0);
   const totalMinutes = worlds.reduce((sum, w) => sum + w.totalMinutes, 0);
 
@@ -92,6 +94,13 @@ export default async function CurriculumGuidePage({ params }: Props) {
                         minutes: LESSON_MINUTES,
                       })}
                     </span>
+                    <Link
+                      href={`/teach/curriculum/worksheet/${mod.id}`}
+                      className="inline-flex h-8 items-center gap-1.5 rounded-sm border border-border-token bg-surface-raised px-3 text-sm font-semibold text-ink hover:bg-surface-sunken print:hidden"
+                    >
+                      <span aria-hidden="true">📝</span>
+                      {t("worksheetLink")}
+                    </Link>
                     <AssignModuleButton
                       worldId={world.id}
                       moduleId={mod.id}
@@ -107,20 +116,24 @@ export default async function CurriculumGuidePage({ params }: Props) {
                   const codes = standardsForTags(mod.levels.flatMap((level) => level.tags));
                   if (codes.length === 0) return null;
                   return (
-                    <p className="flex flex-wrap items-center gap-1.5 text-xs text-ink-muted">
-                      <span>{t("cstaLabel")}</span>
-                      {codes.map((code) => (
-                        <abbr
-                          key={code}
-                          title={t(`csta.${code}`)}
-                          tabIndex={0}
-                          dir="ltr"
-                          className="rounded bg-surface-sunken px-1.5 py-0.5 font-mono text-ink no-underline print:bg-transparent"
-                        >
-                          {code}
-                        </abbr>
-                      ))}
-                    </p>
+                    // Visible, not a hover tooltip: tablets, keyboards and
+                    // printed guides have no hover.
+                    <div className="flex flex-col gap-1 text-xs text-ink-muted">
+                      <span className="font-semibold">{t("cstaLabel")}</span>
+                      <ul className="flex flex-col gap-0.5">
+                        {codes.map((code) => (
+                          <li key={code} className="flex flex-wrap items-baseline gap-2">
+                            <span
+                              dir="ltr"
+                              className="rounded bg-surface-sunken px-1.5 py-0.5 font-mono text-ink print:bg-transparent print:px-0"
+                            >
+                              {code}
+                            </span>
+                            <span>{t(`csta.${code}`)}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
                   );
                 })()}
                 <div className="overflow-x-auto">
@@ -157,7 +170,13 @@ export default async function CurriculumGuidePage({ params }: Props) {
                                   : level.activityType}
                               </Badge>
                             </td>
-                            <td className="py-2 pe-3 text-ink-muted">{level.tags.join(", ")}</td>
+                            <td className="py-2 pe-3 text-ink-muted">
+                              {tagList.format(
+                                level.tags.map((tag) =>
+                                  t.has(`tagLabel.${tag}`) ? t(`tagLabel.${tag}`) : tag,
+                                ),
+                              )}
+                            </td>
                             <td className="py-2 pe-3 whitespace-nowrap text-ink-muted">
                               {band ? tIntro(`ageBand.${band}`) : "—"}
                             </td>

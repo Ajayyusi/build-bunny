@@ -34,16 +34,16 @@ test("design a maze, get refused until it is winnable, then solve it", async ({
   // The designer: two rocks are required, the build button waits for them.
   const build = page.getByRole("button", { name: "Build my program" });
   await expect(build).toBeDisabled();
-  await expect(page.getByText("At least 2 rocks or water (0 so far)")).toBeVisible();
+  await expect(page.getByText("At least 2 rocks or water tiles (0 so far)")).toBeVisible();
 
   await page.getByRole("radio", { name: "Rock" }).click();
   // Wall off the burrow at (4,3) — rocks on both its neighbours — and the
   // checklist says so in words while Build stays off.
   const cell = (x: number, y: number) =>
-    page.getByRole("gridcell", { name: new RegExp(`^Row ${y + 1}, column ${x + 1}:`) });
+    page.getByRole("button", { name: new RegExp(`^Row ${y + 1}, column ${x + 1}:`) });
   await cell(3, 3).click();
   await cell(4, 2).click();
-  await expect(page.getByText("At least 2 rocks or water (2 so far)")).toBeVisible();
+  await expect(page.getByText("At least 2 rocks or water tiles (2 so far)")).toBeVisible();
   await expect(build).toBeDisabled();
   await expect(page.getByText(/Still to do: Robo Bunny can reach the burrow/)).toBeVisible();
 

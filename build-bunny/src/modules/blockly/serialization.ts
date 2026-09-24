@@ -259,7 +259,30 @@ export function computeBlockStats(workspaceJson: unknown): BlockStats {
     countsByType[type] = count;
     totalBlocks += count;
   }
-  return { totalBlocks, countsByType };
+  let trickBodyBlocks = 0;
+  let callsInsideTrick = 0;
+  for (const top of topBlocksOf(workspaceJson)) {
+    if (top.type !== BUNNY_DEFINE_BLOCK) continue;
+    visitBlocks(top.inputs?.["DO"]?.block, (type) => {
+      if (STATEMENT_TYPES.has(type)) trickBodyBlocks += 1;
+      if (type === "bb_doTrick") callsInsideTrick += 1;
+    });
+  }
+  // A trick that only calls itself is not a call from the program.
+  const trickCalls = (countsByType["bb_doTrick"] ?? 0) - callsInsideTrick;
+  const typeById: Record<string, string> = {};
+  const record = (value: unknown) => {
+    if (Array.isArray(value)) return value.forEach(record);
+    if (!value || typeof value !== "object") return;
+    const block = value as { id?: unknown; type?: unknown; fields?: Record<string, unknown> };
+    if (typeof block.id === "string" && typeof block.type === "string" && STATEMENT_TYPES.has(block.type)) {
+      const noChange = block.type === "bb_changeCounter" && Number(block.fields?.["DELTA"] ?? 1) === 0;
+      if (!noChange) typeById[block.id] = block.type;
+    }
+    for (const child of Object.values(value as Record<string, unknown>)) record(child);
+  };
+  record(workspaceJson);
+  return { totalBlocks, countsByType, trickBodyBlocks, trickCalls, typeById };
 }
 
 /**
@@ -275,6 +298,16 @@ export function validateWhitelist(
   for (const ref of toolbox) allowed.set(ref.type, ref.limit);
 
   const violations: string[] = [];
+  // Block ids are pasted into the generated program (the step-highlight
+  // prefix quotes them), so an id that could close that quote would let a
+  // hand-made request run code no block produced. Blockly's own ids never
+  // contain quotes, backslashes or line breaks.
+  for (const id of blockIds(workspaceJson)) {
+    if (typeof id !== "string" || id.length > 64 || UNSAFE_ID.test(id)) {
+      violations.push("invalid block id");
+      break;
+    }
+  }
   for (const [type, count] of countTypes(workspaceJson)) {
     if (type === BUNNY_HAT_BLOCK) continue;
     if (!allowed.has(type)) {
@@ -289,4 +322,26 @@ export function validateWhitelist(
     }
   }
   return violations;
+}
+
+/** Characters that could end or escape the quoted id in generated code. */
+// quote, double quote, backslash, LF, CR, and the two JS line separators
+const UNSAFE_ID_CHARS = [39, 34, 92, 10, 13, 0x2028, 0x2029].map((code) => String.fromCharCode(code));
+const UNSAFE_ID = { test: (id: string) => UNSAFE_ID_CHARS.some((ch) => id.includes(ch)) };
+
+/** Every block's id anywhere in a serialized workspace (nested included). */
+function blockIds(workspaceJson: unknown): unknown[] {
+  const ids: unknown[] = [];
+  const walk = (value: unknown) => {
+    if (Array.isArray(value)) {
+      for (const item of value) walk(item);
+      return;
+    }
+    if (!value || typeof value !== "object") return;
+    const record = value as Record<string, unknown>;
+    if (typeof record["type"] === "string" && "id" in record) ids.push(record["id"]);
+    for (const child of Object.values(record)) walk(child);
+  };
+  walk(workspaceJson);
+  return ids;
 }

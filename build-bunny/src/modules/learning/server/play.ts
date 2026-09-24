@@ -39,6 +39,8 @@ export interface PlayableLevel extends LevelIntro {
   payload: unknown;
   /** Autosaved workspace, wins over startWorkspace when present. */
   draftWorkspace: unknown;
+  /** When the server draft was saved (ISO), or null — the draft's version. */
+  draftSavedAt: string | null;
   /** Author-provided starting workspace from the payload (convenience). */
   startWorkspace: unknown;
   starsBest: number;
@@ -77,7 +79,7 @@ export async function getPlayableLevel(
   const [progressRow, hintRows] = await Promise.all([
     db.studentProgress.findFirst({
       where: { studentUserId: ctx.userId, schoolId: ctx.schoolId, levelId },
-      select: { stars: true, draftWorkspace: true },
+      select: { stars: true, draftWorkspace: true, draftSavedAt: true },
     }),
     db.hintUsage.findMany({
       where: { studentUserId: ctx.userId, schoolId: ctx.schoolId, levelId },
@@ -98,6 +100,7 @@ export async function getPlayableLevel(
     explanation: extras.data.explanation ?? null,
     payload,
     draftWorkspace: progressRow.draftWorkspace ?? null,
+    draftSavedAt: progressRow.draftSavedAt?.toISOString() ?? null,
     startWorkspace,
     starsBest: progressRow.stars,
     hintsUsedTiers: hintRows.map((row) => row.tier),
@@ -214,10 +217,19 @@ export async function revealHintCore(
 }
 
 /** Autosave — only when the progress row exists (locked levels save nothing). */
+/**
+ * A child's biggest real program is a few hundred blocks — tens of KB. The
+ * cap stops a script from storing megabytes that every page load would then
+ * send back.
+ */
+export const MAX_DRAFT_BYTES = 200_000;
+
 export async function saveWorkspaceDraftCore(
   ctx: SessionContext,
   input: { levelId: string; workspaceJson: unknown },
 ): Promise<{ savedAt: Date }> {
+  const size = JSON.stringify(input.workspaceJson ?? null).length;
+  if (size > MAX_DRAFT_BYTES) throw new ConflictError("Draft is too large");
   const row = await requireProgressRow(ctx, input.levelId);
   const savedAt = new Date();
   await db.studentProgress.update({
@@ -268,12 +280,17 @@ export type ReflectionFeeling = "EASY" | "JUST_RIGHT" | "TRICKY";
  * level (tapping again changes it). Only levels the child can reach: the
  * same progress-row + entitlement gate as hints and drafts. No free text.
  */
+/**
+ * While a platform admin views as a student nothing is recorded as the
+ * child's own answer (the same rule submitAttempt follows for progress).
+ */
 export async function saveReflectionCore(
   ctx: SessionContext,
   input: { levelId: string; feeling: ReflectionFeeling },
 ): Promise<{ feeling: ReflectionFeeling }> {
   const schoolId = requireSchool(ctx);
   await requireProgressRow(ctx, input.levelId);
+  if (ctx.impersonatedBy) return { feeling: input.feeling };
   await db.levelReflection.upsert({
     where: { studentUserId_levelId: { studentUserId: ctx.userId, levelId: input.levelId } },
     create: { schoolId, studentUserId: ctx.userId, levelId: input.levelId, feeling: input.feeling },

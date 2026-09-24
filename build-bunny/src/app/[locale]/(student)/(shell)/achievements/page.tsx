@@ -98,7 +98,7 @@ export default async function AchievementsPage({ params }: Props) {
             </p>
 
             <div className="mt-1 max-w-sm">
-              <div className="flex items-center justify-between text-[11px] font-bold uppercase tracking-wide opacity-90">
+              <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wide opacity-90">
                 <span>{t("legacyProgressLabel")}</span>
                 <span className="tabular-nums">{badgePct}%</span>
               </div>
@@ -113,7 +113,7 @@ export default async function AchievementsPage({ params }: Props) {
 
             <dl className="mt-3 flex gap-8">
               <div>
-                <dt className="text-[11px] font-bold uppercase tracking-wide opacity-80">
+                <dt className="text-xs font-bold uppercase tracking-wide opacity-80">
                   {t("rank")}
                 </dt>
                 <dd className="font-display text-xl font-bold tabular-nums">
@@ -121,7 +121,7 @@ export default async function AchievementsPage({ params }: Props) {
                 </dd>
               </div>
               <div>
-                <dt className="text-[11px] font-bold uppercase tracking-wide opacity-80">
+                <dt className="text-xs font-bold uppercase tracking-wide opacity-80">
                   {t("badgesCount")}
                 </dt>
                 <dd className="font-display text-xl font-bold tabular-nums">

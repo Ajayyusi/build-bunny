@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 
 import { Link } from "@/i18n/navigation";
@@ -43,10 +43,12 @@ export function LiveView({
   classId,
   locale,
   initial,
+  initialShowNames = false,
 }: {
   classId: string;
   locale: string;
   initial: LiveSnapshot;
+  initialShowNames?: boolean;
 }) {
   const t = useTranslations("staff.teach.live");
   const [snapshot, setSnapshot] = useState(initial);
@@ -63,8 +65,12 @@ export function LiveView({
   const [failures, setFailures] = useState(0);
   // The lesson's challenge level: kept in the URL so a reload keeps it.
   const [challengeId, setChallengeId] = useState<string | null>(initial.challenge?.levelId ?? null);
-  // On a shared screen a teacher may not want names up at all.
-  const [hideNames, setHideNames] = useState(false);
+  // A projector is a shared screen: names stay off until the teacher turns
+  // them on, and that choice is kept in the URL like the challenge.
+  const [showNames, setShowNames] = useState(initialShowNames);
+  const hideNames = !showNames;
+  // Only the latest challenge pick may update the board.
+  const pickSeq = useRef(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -97,8 +103,18 @@ export function LiveView({
     };
   }, [classId, locale, challengeId]);
 
+  const toggleNames = () => {
+    const next = !showNames;
+    setShowNames(next);
+    const url = new URL(window.location.href);
+    if (next) url.searchParams.set("names", "1");
+    else url.searchParams.delete("names");
+    window.history.replaceState(null, "", url);
+  };
+
   const pickChallenge = (levelId: string) => {
     const next = levelId || null;
+    const seq = ++pickSeq.current;
     setChallengeId(next);
     const url = new URL(window.location.href);
     if (next) url.searchParams.set("challenge", next);
@@ -111,7 +127,7 @@ export function LiveView({
     )
       .then((response) => (response.ok ? (response.json() as Promise<LiveSnapshot>) : null))
       .then((data) => {
-        if (data) setSnapshot(data);
+        if (data && seq === pickSeq.current) setSnapshot(data);
       })
       .catch(() => {});
   };
@@ -170,11 +186,13 @@ export function LiveView({
         <button
           type="button"
           role="switch"
-          aria-checked={hideNames}
-          onClick={() => setHideNames((value) => !value)}
+          aria-checked={showNames}
+          // A switch keeps one name; aria-checked carries on/off.
+          aria-label={t("showNames")}
+          onClick={toggleNames}
           className="h-12 rounded-md border border-border-token px-4 text-base font-semibold text-ink hover:bg-surface-sunken"
         >
-          {hideNames ? t("showNames") : t("hideNames")}
+          {t("showNames")}: {showNames ? t("on") : t("off")}
         </button>
       </div>
 

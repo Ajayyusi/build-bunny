@@ -34,6 +34,8 @@ const KNOWN_CODES = new Set([
   "forbiddenBlock",
   "wrongOutput",
   "wrongVariable",
+  "emptyTrick",
+  "didNotRunEnough",
   "wrongOption",
   "wrongOrder",
   "tryAnotherBlock",

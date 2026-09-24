@@ -32,8 +32,9 @@ import { TeachScene } from "./TeachScene";
 const BUILT_IN_BEATS = [1, 2, 3, 4] as const;
 
 import { Walkthrough } from "./shared/Walkthrough";
-import { postAttempt } from "./shared/attempt-outbox";
+import { postAttempt, runIdFor } from "./shared/attempt-outbox";
 import { HintDrawer } from "./shared/HintDrawer";
+import { RoboHelp, type HelpTopic } from "./shared/RoboHelp";
 import { SuccessOverlay } from "./shared/SuccessOverlay";
 import { useHints } from "./shared/useHints";
 import styles from "./teach.module.css";
@@ -167,6 +168,16 @@ export function TeachPlayer({
   // Hints authored on AI_CLASSIFICATION levels used to be unreachable: this
   // player rendered no drawer at all.
   const hints = useHints(intro.levelId, intro.hintsUsedTiers, revealHintAction);
+  // The last run whose save has not been confirmed (see runIdFor).
+  const lastRunRef = useRef<{ id: string; saveFailed: boolean; answer: unknown } | null>(null);
+  // "Ask Robo Bunny": why an answer was wrong, the smallest hint, and what
+  // the level's idea is. Opens on a topic from the failure banner.
+  const [roboOpen, setRoboOpen] = useState(false);
+  const [roboTopic, setRoboTopic] = useState<HelpTopic | null>(null);
+  const openRobo = (topic: HelpTopic | null) => {
+    setRoboTopic(topic);
+    setRoboOpen(true);
+  };
   const t = useTranslations("student.play.teach");
   const tPlay = useTranslations("student.play");
   const locale = useLocale();
@@ -347,23 +358,25 @@ export function TeachPlayer({
     // Feeds the hint drawer's cooldown: a real attempt unlocks the next tier
     // without waiting out the timer, same rule as every other player.
     setLastSubmitAt(Date.now());
+    // Only the fields the route accepts. Pool specimens also carry
+    // `truth` (what happened when the bunny ate it), and the route
+    // schema is .strict(), so spreading the whole specimen made every
+    // submission 400 — silently, because the failure surfaced as the
+    // generic "not quite yet" line rather than an error.
+    const answer = {
+      examples: examples.map(toTrainingExample),
+      ...(data.holdout ? { checkSet: [...heldBack] } : {}),
+    };
+    // Tapping again after a failed save resends the same run.
+    const runId = runIdFor(lastRunRef.current, answer);
+    lastRunRef.current = { id: runId, saveFailed: true, answer };
     try {
       const res = await postAttempt(intro.playerKey, `/api/levels/${intro.levelId}/attempts`, {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          attemptRunId: crypto.randomUUID(),
-          // Only the fields the route accepts. Pool specimens also carry
-          // `truth` (what happened when the bunny ate it), and the route
-          // schema is .strict(), so spreading the whole specimen made every
-          // submission 400 — silently, because the failure surfaced as the
-          // generic "not quite yet" line rather than an error.
-          answer: {
-            examples: examples.map(toTrainingExample),
-            ...(data.holdout ? { checkSet: [...heldBack] } : {}),
-          },
-        }),
+        body: JSON.stringify({ attemptRunId: runId, answer }),
       });
+      if (res.ok) lastRunRef.current = null;
       if (!res.ok) {
         // A rejected submission is NOT a wrong answer. Saying "not quite
         // yet" here told a child to rethink work that never reached the
@@ -459,18 +472,19 @@ export function TeachPlayer({
         <button
           type="button"
           onClick={() => setStep(1)}
-          className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-lg border border-border-token bg-surface-raised px-3 text-sm font-bold text-ink-muted transition-colors hover:bg-surface-sunken hover:text-ink"
+          className="inline-flex h-11 shrink-0 items-center gap-1.5 rounded-lg border border-border-token bg-surface-raised px-3 text-sm font-bold text-ink-muted transition-colors hover:bg-surface-sunken hover:text-ink"
         >
           <span aria-hidden="true">💡</span>
           {t("howItWorks")}
         </button>
         <button
           type="button"
-          onClick={() => hints.setOpen(true)}
-          className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-lg border border-border-token bg-surface-raised px-3 text-sm font-bold text-ink-muted transition-colors hover:bg-surface-sunken hover:text-ink"
+          onClick={() => openRobo(null)}
+          aria-haspopup="dialog"
+          className="inline-flex h-11 shrink-0 items-center gap-1.5 rounded-lg border border-border-token bg-surface-raised px-3 text-sm font-bold text-ink-muted transition-colors hover:bg-surface-sunken hover:text-ink"
         >
           <span aria-hidden="true">🧭</span>
-          {tPlay("hint")}
+          {tPlay("help.open")}
         </button>
       </header>
 
@@ -886,6 +900,26 @@ export function TeachPlayer({
           }
         />
       ) : null}
+
+      <RoboHelp
+        open={roboOpen}
+        onClose={() => setRoboOpen(false)}
+        topics={["why", "hint", "concept"]}
+        tags={intro.tags}
+        lastFailure={
+          result && result.verdict !== "PASS" && result.code
+            ? { feedback: { code: result.code, data: result.data }, step: null, block: null }
+            : null
+        }
+        hints={hints.hints}
+        revealingTier={hints.revealingTier}
+        onRevealTier1={() => void hints.reveal(1)}
+        onOpenHints={() => {
+          setRoboOpen(false);
+          hints.setOpen(true);
+        }}
+        initialTopic={roboTopic}
+      />
 
       <HintDrawer
         open={hints.open}

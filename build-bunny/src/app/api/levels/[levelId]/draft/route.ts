@@ -3,8 +3,8 @@ import { z } from "zod";
 
 import { createRateLimiter } from "@/lib/rate-limit";
 import { requireApiPermission } from "@/modules/auth/server/api-guard";
-import { NotFoundError } from "@/modules/auth/server/guard";
-import { saveWorkspaceDraftCore } from "@/modules/learning/server/play";
+import { ConflictError, NotFoundError } from "@/modules/auth/server/guard";
+import { MAX_DRAFT_BYTES, saveWorkspaceDraftCore } from "@/modules/learning/server/play";
 
 /**
  * POST /api/levels/[levelId]/draft — the "leaving the page" draft flush.
@@ -34,9 +34,18 @@ export async function POST(
   if (!limiter.allow(ctx.userId)) {
     return NextResponse.json({ error: "RATE_LIMITED" }, { status: 429 });
   }
+  // Refuse oversized bodies before reading them (the core checks again).
+  const declared = Number(request.headers.get("content-length") ?? "0");
+  if (declared > MAX_DRAFT_BYTES + 1_000) {
+    return NextResponse.json({ error: "TOO_LARGE" }, { status: 413 });
+  }
   let raw: unknown;
   try {
-    raw = await request.json();
+    const text = await request.text();
+    if (text.length > MAX_DRAFT_BYTES + 1_000) {
+      return NextResponse.json({ error: "TOO_LARGE" }, { status: 413 });
+    }
+    raw = JSON.parse(text);
   } catch {
     return NextResponse.json({ error: "VALIDATION" }, { status: 400 });
   }
@@ -51,6 +60,9 @@ export async function POST(
   } catch (error) {
     if (error instanceof NotFoundError) {
       return NextResponse.json({ error: "NOT_FOUND" }, { status: 404 });
+    }
+    if (error instanceof ConflictError) {
+      return NextResponse.json({ error: "TOO_LARGE" }, { status: 413 });
     }
     console.error("[draft] flush failed:", error);
     return NextResponse.json({ error: "INTERNAL" }, { status: 500 });

@@ -30,10 +30,19 @@ export function useNarrateOnShow(text: string | null | undefined, enabled = true
   const spoken = useRef<string | null>(null);
   const voiceOn = prefs.voice.on && !prefs.muted;
   useEffect(() => {
-    if (!enabled || !voiceOn || !text || !text.trim()) return;
+    // The text went away (a panel closed, a card dismissed): stop talking,
+    // and forget it, so the same text reopened is read again.
+    if (!text || !text.trim()) {
+      if (spoken.current !== null) {
+        spoken.current = null;
+        stopNarration();
+      }
+      return;
+    }
+    if (!enabled || !voiceOn) return;
     if (spoken.current === text) return;
     spoken.current = text;
     narrate(text);
-  }, [text, enabled, voiceOn, narrate]);
+  }, [text, enabled, voiceOn, narrate, stopNarration]);
   useEffect(() => () => stopNarration(), [stopNarration]);
 }

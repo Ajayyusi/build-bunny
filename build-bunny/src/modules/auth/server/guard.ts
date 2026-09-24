@@ -93,6 +93,11 @@ export function withAuth<Schema extends z.ZodTypeAny, Result>(
           return { ok: true, data };
         } catch (err) {
           const durationMs = Date.now() - startedAt;
+          // A core may refuse on its own (e.g. not while impersonating).
+          if (err instanceof AuthError) {
+            logger.warn("action.denied", { action: permission, error: err.code, durationMs });
+            return { ok: false, error: err.code };
+          }
           if (err instanceof NotFoundError) {
             logger.warn("action.not_found", { action: permission, durationMs });
             return { ok: false, error: "NOT_FOUND", message: err.message };
