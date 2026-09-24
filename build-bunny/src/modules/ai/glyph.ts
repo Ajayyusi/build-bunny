@@ -15,7 +15,7 @@
  * theme is the same grammar in a different costume.
  */
 
-export type GlyphShape = "circle" | "diamond" | "hex";
+export type GlyphShape = "circle" | "diamond" | "hex" | "shell";
 
 export interface GlyphTheme {
   shape: GlyphShape;
@@ -56,6 +56,13 @@ export const GLYPH_THEMES = {
    * theme.
    */
   blip: { shape: "circle", hueFrom: 210, hueSpan: 190, pxMin: 22, pxMax: 44 },
+  /**
+   * Beach crabs (AI Island, "Two Things at Once"). That level is about crabs
+   * but drew berries and called them berries, because it had no theme of its
+   * own. Coral 20° down through red to magenta (−40° ≡ 320°): pale-to-dark
+   * without touching the green/yellow band.
+   */
+  crab: { shape: "shell", hueFrom: 20, hueSpan: -60, pxMin: 26, pxMax: 52 },
 } satisfies Record<string, GlyphTheme>;
 
 export type GlyphThemeName = keyof typeof GLYPH_THEMES;
@@ -100,6 +107,12 @@ export function glyphShapeStyle(theme: GlyphTheme): React.CSSProperties {
     case "hex":
       return {
         clipPath: "polygon(25% 5%, 75% 5%, 100% 50%, 75% 95%, 25% 95%, 0% 50%)",
+      };
+    case "shell":
+      // A wide carapace with a claw tip either side.
+      return {
+        clipPath:
+          "polygon(0% 22%, 12% 40%, 26% 20%, 50% 12%, 74% 20%, 88% 40%, 100% 22%, 97% 55%, 84% 80%, 50% 92%, 16% 80%, 3% 55%)",
       };
     default:
       return { borderRadius: "9999px" };

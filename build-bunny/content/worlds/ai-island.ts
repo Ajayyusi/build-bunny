@@ -610,7 +610,7 @@ export const aiIsland: WorldFixture = {
               },
             },
             theme: {
-              glyph: "berry",
+              glyph: "crab",
               featureNames: {
                 size: {
                   en: "Crab size",

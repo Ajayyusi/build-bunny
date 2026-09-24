@@ -125,6 +125,20 @@ export function GroupPlayer({
   const locale = useLocale();
 
   const glyph = data.theme?.glyph ?? DEFAULT_GLYPH_THEME;
+  // A reading in words, so the strike-out buttons are not thirteen identical
+  // "Strike this reading out" to a screen reader.
+  const tTeach = useTranslations("student.play.teach");
+  const featureNames = data.theme?.featureNames ?? {
+    size: tTeach("sizeFallback"),
+    color: tTeach("colorFallback"),
+  };
+  const describe = (s: { size: number; color: number }) =>
+    tTeach("specimenDescription", {
+      sizeName: featureNames.size,
+      size: Math.round(s.size * 10),
+      colorName: featureNames.color,
+      color: Math.round(s.color * 10),
+    });
   const beats = data.walkthrough ?? BUILT_IN_BEATS.map((n) => ({
     title: t(`walk${n}Title`),
     body: t(`walk${n}Body`),
@@ -497,7 +511,7 @@ export function GroupPlayer({
                         <button
                           type="button"
                           aria-pressed={isExcluded}
-                          aria-label={t(isExcluded ? "includeReading" : "excludeReading")}
+                          aria-label={`${t(isExcluded ? "includeReading" : "excludeReading")}: ${describe(s)}`}
                           onClick={(e) => {
                             e.stopPropagation();
                             toggleExcluded(s.id);
@@ -533,6 +547,9 @@ export function GroupPlayer({
                     key={i}
                     type="button"
                     aria-label={t("flagLabel", { n: i + 1 })}
+                    // First tap chooses the flag (arrow keys then move it),
+                    // a second tap picks it up — say which state it is in.
+                    aria-pressed={selected === i}
                     onClick={(e) => {
                       e.stopPropagation();
                       if (selected === i) removeFlag(i);
@@ -554,7 +571,8 @@ export function GroupPlayer({
                       nudge(i, d[0]!, d[1]!);
                     }}
                     className={cn(
-                      "absolute grid size-8 -translate-x-1/2 translate-y-1/2 place-items-center rounded-full text-lg transition-all duration-500",
+                      // 44px: a child's finger, not a mouse pointer (was 32px).
+                      "absolute grid size-11 -translate-x-1/2 translate-y-1/2 place-items-center rounded-full text-lg transition-all duration-500",
                       selected === i && !running
                         ? "bg-brand/25 ring-2 ring-brand"
                         : "bg-transparent",

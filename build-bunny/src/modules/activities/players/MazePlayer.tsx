@@ -198,7 +198,7 @@ export function MazePlayer({
         <PlayerSoundControls />
       </header>
 
-      <main
+      <section
         aria-label={t("maze.designRegion")}
         className="min-h-0 flex-1 overflow-y-auto bg-surface p-4 pb-[max(1rem,env(safe-area-inset-bottom))]"
       >
@@ -223,7 +223,7 @@ export function MazePlayer({
             </Button>
           </div>
         </div>
-      </main>
+      </section>
 
       {phase === "intro" ? (
         <IntroOverlay
