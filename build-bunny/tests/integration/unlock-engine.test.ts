@@ -50,6 +50,7 @@ let l6Id: string;
 let draftId: string;
 let archivedId: string;
 let horizonLevelId: string;
+let m2Id: string;
 
 beforeAll(async () => {
   await wipeDatabase();
@@ -113,6 +114,7 @@ beforeAll(async () => {
   draftId = draft.id;
   archivedId = archived.id;
   horizonLevelId = lh.id;
+  m2Id = m2.id;
 
   await enableProgramForSchool(schoolId, program.id);
 });
@@ -516,5 +518,23 @@ describe("getLevelIntros matches getLevelIntro for every level in the graph", ()
 
   it("is empty for an empty request, without touching the database", async () => {
     expect(await getLevelIntros(ctx, [])).toEqual(new Map());
+  });
+});
+
+describe("new content never re-locks a world a child already reached", () => {
+  it("adding a level to a completed world keeps the next world open for a child already in it", async () => {
+    // World 1 was completed and world 2 opened (above); the child plays in
+    // world 2. Then the curriculum gains a new level in world 1, so world 1
+    // is no longer complete.
+    await completeLevel(l6Id, 2);
+    await createTestLevel(m2Id, 2, { title: "New Practice Level" });
+    await recomputeUnlocks(studentId);
+    const state = await computeAdventureState(ctx);
+    expect(world(state, w1Id).state).not.toBe("COMPLETED");
+    // The child already has progress in world 2: it must stay open.
+    expect(world(state, w2Id).state).not.toBe("LOCKED");
+    // A child who never reached world 2 still meets the normal gate.
+    const fresh = await computeAdventureState(freshCtx);
+    expect(world(fresh, w2Id).state).toBe("LOCKED");
   });
 });
