@@ -22,6 +22,7 @@ import { BunnyMascot, Button, cn, useReducedMotion } from "@/ui";
 import { PlayerSoundControls } from "@/modules/audio/AudioControls";
 import { FeatureBoard } from "./FeatureBoard";
 import { TeachRecap } from "./TeachRecap";
+import { TeachRuleRound } from "./TeachRuleRound";
 import { TeachScene } from "./TeachScene";
 
 /**
@@ -40,7 +41,7 @@ import { SuccessOverlay } from "./shared/SuccessOverlay";
 import { useHints } from "./shared/useHints";
 import styles from "./teach.module.css";
 
-import type { ActivityPlayerProps, AttemptResponse } from "../types";
+import type { ActivityPlayerProps, AttemptResponse, TeachRuleRound as RuleRound } from "../types";
 import { resolveLocalized } from "../types";
 
 /**
@@ -97,6 +98,7 @@ interface TeachPayload {
     | { kind: "allCorrect" }
     | { kind: "safetyFirst"; neverMisclassify: "positive" | "negative"; maxOtherErrors: number };
   starCriteria: { threeStarMaxBlocks?: number };
+  ruleRound?: RuleRound;
 }
 
 /** Specimen glyph: diameter is one feature, hue is the other. */
@@ -131,9 +133,9 @@ function Berry({
  * than putting a specimen in a bucket that no longer exists.
  */
 function restoreDraft(draft: unknown, data: TeachPayload) {
-  const empty = { assigned: {} as Record<string, ClassLabel>, heldBack: new Set<string>() };
+  const empty = { assigned: {} as Record<string, ClassLabel>, heldBack: new Set<string>(), ruleDone: false };
   if (draft === null || typeof draft !== "object") return empty;
-  const source = draft as { assigned?: unknown; heldBack?: unknown };
+  const source = draft as { assigned?: unknown; heldBack?: unknown; ruleDone?: unknown };
   const poolIds = new Set(data.pool.map((specimen) => specimen.id));
 
   const assigned: Record<string, ClassLabel> = {};
@@ -154,7 +156,7 @@ function restoreDraft(draft: unknown, data: TeachPayload) {
       }
     }
   }
-  return { assigned, heldBack };
+  return { assigned, heldBack, ruleDone: source.ruleDone === true };
 }
 
 export function TeachPlayer({
@@ -196,6 +198,13 @@ export function TeachPlayer({
   // taught. Kept separate from `assigned` so a specimen physically cannot
   // be in both — moving it to one side removes it from the other.
   const [heldBack, setHeldBack] = useState<Set<string>>(restored.heldBack);
+  // Rule or Examples?: the rule round runs before teaching, once. A child
+  // who already finished it (or the level) goes straight to teaching.
+  const [ruleStage, setRuleStage] = useState<"pick" | "today" | "done">(
+    data.ruleRound && !restored.ruleDone && intro.starsBest === 0 ? "pick" : "done",
+  );
+  const [ruleChosen, setRuleChosen] = useState<string | null>(null);
+  const [ruleTested, setRuleTested] = useState<string | null>(null);
   // The specimen "Show me the next step" last named, ringed wherever it sits.
   const [pointed, setPointed] = useState<string | null>(null);
   const ring = (id: string) => (pointed === id ? "ring-4 ring-accent ring-offset-2 ring-offset-surface" : "");
@@ -301,13 +310,13 @@ export function TeachPlayer({
     draftTimerRef.current = window.setTimeout(() => {
       void saveDraftAction({
         levelId: intro.levelId,
-        workspaceJson: { assigned, heldBack: [...heldBack] },
+        workspaceJson: { assigned, heldBack: [...heldBack], ...(data.ruleRound ? { ruleDone: ruleStage === "done" } : {}) },
       });
     }, 2000);
     return () => {
       if (draftTimerRef.current !== null) window.clearTimeout(draftTimerRef.current);
     };
-  }, [assigned, heldBack, intro.levelId, saveDraftAction]);
+  }, [assigned, heldBack, ruleStage, data.ruleRound, intro.levelId, saveDraftAction]);
 
   const assign = (id: string, label: ClassLabel) => {
     // Frozen only once the bunny has actually got them all right. Freezing
@@ -437,6 +446,44 @@ export function TeachPlayer({
   // otherwise breathes. The changing key is what restarts the animation.
   const failed = result !== null && result.verdict !== "PASS";
   const bunnyKey = failed ? `shake-${hopKey}` : `hop-${hopKey}`;
+
+  const inRuleRound = Boolean(data.ruleRound) && ruleStage !== "done";
+  const ruleButton = (button: "testRule" | "seeToday" | "teachInstead") =>
+    button === "testRule" ? t("ruleTest") : button === "seeToday" ? tk("ruleSeeToday") : t("ruleTeach");
+  const nextStepHint =
+    nextStepAction && !submitting ? (
+      <NextStepHint
+        levelId={intro.levelId}
+        action={nextStepAction}
+        usedBefore={intro.hintsUsedTiers.includes(5)}
+        readyAction={`“${t("check")}”`}
+        getState={() => ({
+          examples: examples.map((e) => ({ id: e.id, label: e.label })),
+          held: [...heldBack],
+          ...(data.ruleRound ? { rule: { stage: ruleStage, chosen: ruleChosen, tested: ruleTested } } : {}),
+        })}
+        names={{
+          specimen: (id) => {
+            const sp = data.pool.find((x) => x.id === id);
+            return sp ? describe(sp) : id;
+          },
+          label: (l) => data.labels[l],
+          rule: (id) => data.ruleRound?.rules.find((rule) => rule.id === id)?.label ?? id,
+          button: ruleButton,
+        }}
+        onStep={(step) =>
+          setPointed(
+            "specimenId" in step
+              ? step.specimenId
+              : step.code === "tryRule"
+                ? step.ruleId
+                : step.code === "pressButton"
+                  ? step.button
+                  : null,
+          )
+        }
+      />
+    ) : null;
   const bunnyClass = failed ? styles.shake : hopKey > 0 ? styles.hop : styles.bob;
 
   return (
@@ -523,384 +570,402 @@ export function TeachPlayer({
                 "flex-1 rounded-2xl border border-border-token bg-surface-raised p-3 text-sm leading-relaxed text-ink-muted sm:p-4",
               )}
             >
-              {intro.instructions}
+              {/* The rule round tells yesterday's and today's story; the
+                  teaching board gives the usual instructions. */}
+              {inRuleRound ? intro.story : intro.instructions}
             </p>
           </div>
 
-          <div className="grid items-start gap-5 lg:grid-cols-2">
-            {/* Left column: what the child controls. */}
-            <div className="flex flex-col gap-5">
-              {/* Tray of berries still to teach with */}
-              <section className="flex flex-col gap-3">
-                <StepHeading n={1} title={tk("trayHeading")} help={t("trayHelp")} />
-                <ul className="flex flex-wrap gap-3">
-                  {unassigned.map((s) => (
-                    <li
-                      key={s.id}
-                      className={cn(
-                        "flex w-32 flex-col items-center gap-2 rounded-xl border border-border-token bg-surface-raised p-3 transition-all hover:-translate-y-0.5 hover:border-brand/40 hover:shadow-md",
-                        ring(s.id),
-                      )}
-                    >
-                      {/* Fixed-height berry row: berries differ in diameter by
-                          design, and without this the cards ended up ragged and
-                          the labels collided with the glyphs. */}
-                      <span className="grid h-14 place-items-center">
-                        <Berry specimen={s} theme={glyph} />
-                      </span>
-                      {/* What ALREADY happened when the bunny ate it. Without
-                          this a child has no way to know which berries are safe
-                          and the whole activity collapses into guessing. */}
-                      <span
-                        className={cn(
-                          "whitespace-nowrap rounded-full px-2 py-0.5 text-[11px] font-bold",
-                          s.truth === "positive"
-                            ? "bg-brand/15 text-brand"
-                            : "bg-danger/15 text-danger",
-                        )}
-                      >
-                        {truthEmoji[s.truth]} {data.labels[s.truth]}
-                      </span>
-                      <span id={`specimen-${s.id}`} className="sr-only">
-                        {describe(s)}, {data.labels[s.truth]}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => assign(s.id, s.truth)}
-                        disabled={atCap}
-                        aria-describedby={`specimen-${s.id}`}
-                        className="w-full rounded-md bg-ink px-2 py-1.5 text-[11px] font-bold text-surface-raised transition-colors hover:bg-brand disabled:opacity-40 disabled:hover:bg-ink"
-                      >
-                        {t("teachThis")}
-                      </button>
-                      {data.holdout ? (
-                        <button
-                          type="button"
-                          onClick={() => holdBack(s.id)}
-                          aria-describedby={`specimen-${s.id}`}
-                          className="w-full rounded-md border border-info/50 bg-info/10 px-2 py-1.5 text-[11px] font-bold text-info transition-colors hover:bg-info/20"
-                        >
-                          {t("keepForTesting")}
-                        </button>
-                      ) : null}
-                    </li>
-                  ))}
-                  {unassigned.length === 0 ? (
-                    <li className="text-sm text-ink-muted">{tk("trayEmpty")}</li>
-                  ) : null}
-                </ul>
-              </section>
-
-              {/* The two taught buckets */}
-              <section className="flex flex-col gap-3">
-                <StepHeading n={2} title={t("bucketsHeading")} help={tk("bucketsHelp")} />
-                <div className="grid gap-3 sm:grid-cols-2">
-                  {(["positive", "negative"] as const).map((label) => (
-                    <div
-                      key={label}
-                      className={cn(
-                        "flex min-h-24 flex-col gap-2 rounded-xl border-2 border-dashed p-3",
-                        label === "positive"
-                          ? "border-brand/40 bg-brand/5"
-                          : "border-danger/40 bg-danger/5",
-                      )}
-                    >
-                      <h3 className="font-display text-sm font-bold text-ink">
-                        {/* The basket the walkthrough animation already showed
-                            them — the board speaks the same picture language. */}
-                        <span aria-hidden="true" className="me-1">
-                          🧺
-                        </span>
-                        {data.labels[label]}{" "}
-                        <span className="font-normal text-ink-muted">
-                          ({label === "positive" ? positives : negatives})
-                        </span>
-                      </h3>
-                      <ul className="flex flex-wrap gap-2">
-                        {examples
-                          .filter((e) => e.label === label)
-                          .map((e) => (
-                            <li key={e.id} className={styles.popIn}>
-                              <button
-                                type="button"
-                                onClick={() => assign(e.id, label)}
-                                aria-label={`${tk("removeExample")}: ${describe(e)}`}
-                                className={cn("rounded-full p-0.5 transition-transform hover:scale-110", ring(e.id))}
-                              >
-                                <Berry specimen={e} theme={glyph} />
-                              </button>
-                            </li>
-                          ))}
-                      </ul>
-                    </div>
-                  ))}
-                </div>
-              </section>
-
-              {/* The student's own test pile (holdout levels). */}
-              {data.holdout ? (
+          {inRuleRound && data.ruleRound ? (
+            <TeachRuleRound
+              round={data.ruleRound}
+              stage={ruleStage === "today" ? "today" : "pick"}
+              labels={data.labels}
+              truthEmoji={truthEmoji}
+              kind={glyph}
+              renderGlyph={(specimen) => <Berry specimen={specimen} theme={glyph} />}
+              describe={describe}
+              chosen={ruleChosen}
+              tested={ruleTested}
+              pointed={pointed}
+              onChoose={(id) => {
+                setRuleChosen(id);
+                // A new card clears the last card's result: its ticks and
+                // crosses would otherwise sit under a rule they aren't about.
+                if (id !== ruleTested) setRuleTested(null);
+                setPointed(null);
+              }}
+              onTest={() => {
+                setRuleTested(ruleChosen);
+                setPointed(null);
+              }}
+              onSeeToday={() => {
+                setRuleStage("today");
+                setPointed(null);
+              }}
+              onTeach={() => {
+                setRuleStage("done");
+                setPointed(null);
+              }}
+              hint={nextStepHint}
+            />
+          ) : (
+            <>
+            <div className="grid items-start gap-5 lg:grid-cols-2">
+              {/* Left column: what the child controls. */}
+              <div className="flex flex-col gap-5">
+                {/* Tray of berries still to teach with */}
                 <section className="flex flex-col gap-3">
-                  <StepHeading
-                    n={3}
-                    title={t("holdHeading")}
-                    help={t("holdHelp", { min: data.holdout.min })}
-                  />
-                  <div className="flex min-h-20 flex-col gap-2 rounded-xl border-2 border-dashed border-info/50 bg-info/5 p-3">
-                    <h3 className="font-display text-sm font-bold text-ink">
-                      <span aria-hidden="true" className="me-1">
-                        🔬
-                      </span>
-                      {t("holdCount", { used: heldBack.size, min: data.holdout.min })}
-                    </h3>
-                    <ul className="flex flex-wrap gap-2">
-                      {data.pool
-                        .filter((s) => heldBack.has(s.id))
-                        .map((s) => (
-                          <li key={s.id} className={styles.popIn}>
-                            <button
-                              type="button"
-                              onClick={() => holdBack(s.id)}
-                              aria-label={`${t("removeFromHold")}: ${describe(s)}`}
-                              className="rounded-full p-0.5 transition-transform hover:scale-110"
-                            >
-                              <Berry specimen={s} theme={glyph} />
-                            </button>
-                          </li>
-                        ))}
-                    </ul>
-                    {selfScore ? (
-                      <p className="text-sm font-semibold text-ink">
-                        {t("selfScore", { right: selfScore.right, total: selfScore.total })}
-                      </p>
-                    ) : null}
-                  </div>
-                </section>
-              ) : null}
-            </div>
-
-            {/* Right column: what the machine does with it. */}
-            <div className="flex flex-col gap-5">
-              {/* The feature space. Optional per level: a tray is enough when
-                  the lesson is "cover both kinds", but useless once the lesson
-                  is about WHERE in the space your examples sit. */}
-              {data.board?.show ? (
-                <FeatureBoard
-                  pool={data.pool}
-                  testSet={data.testSet}
-                  examples={examples}
-                  assigned={assigned}
-                  axisLabels={data.board.axisLabels}
-                  showBoundary={data.board.showBoundary}
-                  glyph={glyph}
-                  missed={result?.missed ?? []}
-                  onToggle={assign}
-                  labels={data.labels}
-                  disabled={result?.verdict === "PASS"}
-                />
-              ) : null}
-
-              {/* What the bunny currently thinks — the heart of the activity.
-                  This is the one panel where the MACHINE does the work, and
-                  the lab dressing (corner brackets, dot matrix) marks exactly
-                  that boundary and nothing else. */}
-              {data.passRule.kind === "safetyFirst" ? (
-                <section className="flex flex-col gap-2 rounded-xl border-2 border-warning/40 bg-accent/10 p-3">
-                  <h2 className="font-display text-sm font-bold text-ink">
-                    <span aria-hidden="true" className="me-1">
-                      ⚠️
-                    </span>
-                    {t("safetyRule", {
-                      danger: data.labels[data.passRule.neverMisclassify === "positive" ? "positive" : "negative"],
-                      allowed: data.passRule.maxOtherErrors,
-                    })}
-                  </h2>
-                  {result?.data && typeof result.data.dangerousMisses === "number" ? (
-                    <div className="flex flex-wrap gap-2 text-sm font-semibold">
-                      <span
-                        className={cn(
-                          "rounded-full px-3 py-1",
-                          (result.data.dangerousMisses as number) > 0
-                            ? "bg-danger/15 text-danger"
-                            : "bg-brand/15 text-brand",
-                        )}
-                      >
-                        {t("dangerTally", { count: result.data.dangerousMisses as number })}
-                      </span>
-                      <span
-                        className={cn(
-                          "rounded-full px-3 py-1",
-                          (result.data.falseAlarms as number) > (data.passRule.maxOtherErrors ?? 0)
-                            ? "bg-danger/15 text-danger"
-                            : "bg-brand/15 text-brand",
-                        )}
-                      >
-                        {t("alarmTally", {
-                          count: result.data.falseAlarms as number,
-                          max: data.passRule.maxOtherErrors,
-                        })}
-                      </span>
-                    </div>
-                  ) : null}
-                </section>
-              ) : null}
-
-              <section
-                className={cn(
-                  styles.techPanel,
-                  styles.dotGrid,
-                  "flex flex-col gap-3 rounded-xl border border-border-token bg-surface-raised p-3 sm:p-4",
-                )}
-              >
-                <StepHeading
-                  n={data.holdout ? 4 : 3}
-                  title={tk("guessHeading")}
-                  help={tk("guessHelp")}
-                />
-                {!ready ? (
-                  <p className="text-sm text-ink-muted">
-                    {/* Name the rule that is actually unmet: with both baskets
-                        full, "teach 2 of each first" sent the child looking in
-                        the wrong place when the test pile was what was short. */}
-                    {positives >= data.minPerLabel && negatives >= data.minPerLabel && !holdOk
-                      ? t("needMoreHeldBack", { need: data.holdout?.min ?? 0 })
-                      : tk("needMore", { count: data.minPerLabel })}
-                  </p>
-                ) : (
-                  <ul className="flex flex-col gap-2">
-                    {guesses.map(({ probe, match, guess }) => (
+                  <StepHeading n={1} title={tk("trayHeading")} help={t("trayHelp")} />
+                  <ul className="flex flex-wrap gap-3">
+                    {unassigned.map((s) => (
                       <li
-                        key={probe.id}
-                        className="flex items-center gap-2 rounded-xl border border-border-token bg-surface p-3"
-                      >
-                        <span className="relative shrink-0">
-                          <Berry specimen={probe} theme={glyph} />
-                          <span
-                            aria-hidden="true"
-                            className={cn(
-                              "absolute -end-1 -top-1 grid size-5 place-items-center rounded-full text-[11px] font-bold text-surface-raised",
-                              result?.missed?.includes(probe.id) ? "bg-danger" : "bg-ink",
-                            )}
-                          >
-                            {result?.missed?.includes(probe.id) ? "✗" : "?"}
-                          </span>
-                        </span>
-                        {/* The reason, not just the verdict: the dashes drift
-                            from the mystery berry to the taught berry it
-                            copies, which is the 1-NN decision drawn as data
-                            flow rather than asserted in prose. */}
-                        {match ? (
-                          <>
-                            <span className={styles.flowLine} aria-hidden="true" />
-                            <span className="flex shrink-0 items-center gap-1.5 text-[11px] text-ink-muted">
-                              <span>{t("looksLike")}</span>
-                              <Berry specimen={match} theme={glyph} className="scale-75" />
-                            </span>
-                            <span className={styles.flowLine} aria-hidden="true" />
-                          </>
-                        ) : (
-                          <span className="flex-1" />
+                        key={s.id}
+                        className={cn(
+                          "flex w-32 flex-col items-center gap-2 rounded-xl border border-border-token bg-surface-raised p-3 transition-all hover:-translate-y-0.5 hover:border-brand/40 hover:shadow-md",
+                          ring(s.id),
                         )}
+                      >
+                        {/* Fixed-height berry row: berries differ in diameter by
+                            design, and without this the cards ended up ragged and
+                            the labels collided with the glyphs. */}
+                        <span className="grid h-14 place-items-center">
+                          <Berry specimen={s} theme={glyph} />
+                        </span>
+                        {/* What ALREADY happened when the bunny ate it. Without
+                            this a child has no way to know which berries are safe
+                            and the whole activity collapses into guessing. */}
                         <span
-                          key={`${probe.id}-${match?.id ?? "none"}-${guess ?? "none"}`}
                           className={cn(
-                            styles.popIn,
-                            "shrink-0 rounded-md px-2 py-0.5 text-[11px] font-bold",
-                            guess === "positive"
+                            "whitespace-nowrap rounded-full px-2 py-0.5 text-[11px] font-bold",
+                            s.truth === "positive"
                               ? "bg-brand/15 text-brand"
                               : "bg-danger/15 text-danger",
                           )}
                         >
-                          {guess ? data.labels[guess] : "—"}
+                          {truthEmoji[s.truth]} {data.labels[s.truth]}
                         </span>
+                        <span id={`specimen-${s.id}`} className="sr-only">
+                          {describe(s)}, {data.labels[s.truth]}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => assign(s.id, s.truth)}
+                          disabled={atCap}
+                          aria-describedby={`specimen-${s.id}`}
+                          className="w-full rounded-md bg-ink px-2 py-1.5 text-[11px] font-bold text-surface-raised transition-colors hover:bg-brand disabled:opacity-40 disabled:hover:bg-ink"
+                        >
+                          {t("teachThis")}
+                        </button>
+                        {data.holdout ? (
+                          <button
+                            type="button"
+                            onClick={() => holdBack(s.id)}
+                            aria-describedby={`specimen-${s.id}`}
+                            className="w-full rounded-md border border-info/50 bg-info/10 px-2 py-1.5 text-[11px] font-bold text-info transition-colors hover:bg-info/20"
+                          >
+                            {t("keepForTesting")}
+                          </button>
+                        ) : null}
                       </li>
                     ))}
+                    {unassigned.length === 0 ? (
+                      <li className="text-sm text-ink-muted">{tk("trayEmpty")}</li>
+                    ) : null}
                   </ul>
-                )}
-              </section>
-            </div>
-          </div>
+                </section>
 
-          {result ? (
-            <p
-              key={result.verdict}
-              role="status"
-              className={cn(
-                styles.popIn,
-                "rounded-lg px-3 py-2 text-sm font-semibold",
-                result.verdict === "PASS"
-                  ? "bg-brand/15 text-brand"
-                  : "bg-accent/20 text-warning",
-              )}
-            >
-              {result.verdict === "PASS"
-                ? t("passed")
-                : result.verdict === "ERROR"
-                  ? t("submitFailed")
-                  : result.code === "calledADangerousOneSafe"
-                    ? t("calledADangerousOneSafe", {
-                        danger:
-                          data.labels[
-                            data.passRule.kind === "safetyFirst" &&
-                            data.passRule.neverMisclassify === "positive"
-                              ? "positive"
-                              : "negative"
-                          ],
-                      })
-                    : result.code === "tooManyFalseAlarms"
-                      ? t("tooManyFalseAlarms", {
-                          max: data.passRule.kind === "safetyFirst" ? data.passRule.maxOtherErrors : 0,
-                        })
-                      : result.code === "needMoreHeldBack"
+                {/* The two taught buckets */}
+                <section className="flex flex-col gap-3">
+                  <StepHeading n={2} title={t("bucketsHeading")} help={tk("bucketsHelp")} />
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    {(["positive", "negative"] as const).map((label) => (
+                      <div
+                        key={label}
+                        className={cn(
+                          "flex min-h-24 flex-col gap-2 rounded-xl border-2 border-dashed p-3",
+                          label === "positive"
+                            ? "border-brand/40 bg-brand/5"
+                            : "border-danger/40 bg-danger/5",
+                        )}
+                      >
+                        <h3 className="font-display text-sm font-bold text-ink">
+                          {/* The basket the walkthrough animation already showed
+                              them — the board speaks the same picture language. */}
+                          <span aria-hidden="true" className="me-1">
+                            🧺
+                          </span>
+                          {data.labels[label]}{" "}
+                          <span className="font-normal text-ink-muted">
+                            ({label === "positive" ? positives : negatives})
+                          </span>
+                        </h3>
+                        <ul className="flex flex-wrap gap-2">
+                          {examples
+                            .filter((e) => e.label === label)
+                            .map((e) => (
+                              <li key={e.id} className={styles.popIn}>
+                                <button
+                                  type="button"
+                                  onClick={() => assign(e.id, label)}
+                                  aria-label={`${tk("removeExample")}: ${describe(e)}`}
+                                  className={cn("rounded-full p-0.5 transition-transform hover:scale-110", ring(e.id))}
+                                >
+                                  <Berry specimen={e} theme={glyph} />
+                                </button>
+                              </li>
+                            ))}
+                        </ul>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+
+                {/* The student's own test pile (holdout levels). */}
+                {data.holdout ? (
+                  <section className="flex flex-col gap-3">
+                    <StepHeading
+                      n={3}
+                      title={t("holdHeading")}
+                      help={t("holdHelp", { min: data.holdout.min })}
+                    />
+                    <div className="flex min-h-20 flex-col gap-2 rounded-xl border-2 border-dashed border-info/50 bg-info/5 p-3">
+                      <h3 className="font-display text-sm font-bold text-ink">
+                        <span aria-hidden="true" className="me-1">
+                          🔬
+                        </span>
+                        {t("holdCount", { used: heldBack.size, min: data.holdout.min })}
+                      </h3>
+                      <ul className="flex flex-wrap gap-2">
+                        {data.pool
+                          .filter((s) => heldBack.has(s.id))
+                          .map((s) => (
+                            <li key={s.id} className={styles.popIn}>
+                              <button
+                                type="button"
+                                onClick={() => holdBack(s.id)}
+                                aria-label={`${t("removeFromHold")}: ${describe(s)}`}
+                                className="rounded-full p-0.5 transition-transform hover:scale-110"
+                              >
+                                <Berry specimen={s} theme={glyph} />
+                              </button>
+                            </li>
+                          ))}
+                      </ul>
+                      {selfScore ? (
+                        <p className="text-sm font-semibold text-ink">
+                          {t("selfScore", { right: selfScore.right, total: selfScore.total })}
+                        </p>
+                      ) : null}
+                    </div>
+                  </section>
+                ) : null}
+              </div>
+
+              {/* Right column: what the machine does with it. */}
+              <div className="flex flex-col gap-5">
+                {/* The feature space. Optional per level: a tray is enough when
+                    the lesson is "cover both kinds", but useless once the lesson
+                    is about WHERE in the space your examples sit. */}
+                {data.board?.show ? (
+                  <FeatureBoard
+                    pool={data.pool}
+                    testSet={data.testSet}
+                    examples={examples}
+                    assigned={assigned}
+                    axisLabels={data.board.axisLabels}
+                    showBoundary={data.board.showBoundary}
+                    glyph={glyph}
+                    missed={result?.missed ?? []}
+                    onToggle={assign}
+                    labels={data.labels}
+                    disabled={result?.verdict === "PASS"}
+                  />
+                ) : null}
+
+                {/* What the bunny currently thinks — the heart of the activity.
+                    This is the one panel where the MACHINE does the work, and
+                    the lab dressing (corner brackets, dot matrix) marks exactly
+                    that boundary and nothing else. */}
+                {data.passRule.kind === "safetyFirst" ? (
+                  <section className="flex flex-col gap-2 rounded-xl border-2 border-warning/40 bg-accent/10 p-3">
+                    <h2 className="font-display text-sm font-bold text-ink">
+                      <span aria-hidden="true" className="me-1">
+                        ⚠️
+                      </span>
+                      {t("safetyRule", {
+                        danger: data.labels[data.passRule.neverMisclassify === "positive" ? "positive" : "negative"],
+                        allowed: data.passRule.maxOtherErrors,
+                      })}
+                    </h2>
+                    {result?.data && typeof result.data.dangerousMisses === "number" ? (
+                      <div className="flex flex-wrap gap-2 text-sm font-semibold">
+                        <span
+                          className={cn(
+                            "rounded-full px-3 py-1",
+                            (result.data.dangerousMisses as number) > 0
+                              ? "bg-danger/15 text-danger"
+                              : "bg-brand/15 text-brand",
+                          )}
+                        >
+                          {t("dangerTally", { count: result.data.dangerousMisses as number })}
+                        </span>
+                        <span
+                          className={cn(
+                            "rounded-full px-3 py-1",
+                            (result.data.falseAlarms as number) > (data.passRule.maxOtherErrors ?? 0)
+                              ? "bg-danger/15 text-danger"
+                              : "bg-brand/15 text-brand",
+                          )}
+                        >
+                          {t("alarmTally", {
+                            count: result.data.falseAlarms as number,
+                            max: data.passRule.maxOtherErrors,
+                          })}
+                        </span>
+                      </div>
+                    ) : null}
+                  </section>
+                ) : null}
+
+                <section
+                  className={cn(
+                    styles.techPanel,
+                    styles.dotGrid,
+                    "flex flex-col gap-3 rounded-xl border border-border-token bg-surface-raised p-3 sm:p-4",
+                  )}
+                >
+                  <StepHeading
+                    n={data.holdout ? 4 : 3}
+                    title={tk("guessHeading")}
+                    help={tk("guessHelp")}
+                  />
+                  {!ready ? (
+                    <p className="text-sm text-ink-muted">
+                      {/* Name the rule that is actually unmet: with both baskets
+                          full, "teach 2 of each first" sent the child looking in
+                          the wrong place when the test pile was what was short. */}
+                      {positives >= data.minPerLabel && negatives >= data.minPerLabel && !holdOk
                         ? t("needMoreHeldBack", { need: data.holdout?.min ?? 0 })
-                  : result.code === "tooManyExamples"
-                    ? t("tooManyExamples", {
-                        used: examples.length,
-                        max: data.maxExamples ?? 0,
-                      })
-                    : typeof result.correct === "number" && typeof result.total === "number"
-                      ? tk("missed", { correct: result.correct, total: result.total })
-                      : tk("tryAgain")}
-            </p>
-          ) : null}
+                        : tk("needMore", { count: data.minPerLabel })}
+                    </p>
+                  ) : (
+                    <ul className="flex flex-col gap-2">
+                      {guesses.map(({ probe, match, guess }) => (
+                        <li
+                          key={probe.id}
+                          className="flex items-center gap-2 rounded-xl border border-border-token bg-surface p-3"
+                        >
+                          <span className="relative shrink-0">
+                            <Berry specimen={probe} theme={glyph} />
+                            <span
+                              aria-hidden="true"
+                              className={cn(
+                                "absolute -end-1 -top-1 grid size-5 place-items-center rounded-full text-[11px] font-bold text-surface-raised",
+                                result?.missed?.includes(probe.id) ? "bg-danger" : "bg-ink",
+                              )}
+                            >
+                              {result?.missed?.includes(probe.id) ? "✗" : "?"}
+                            </span>
+                          </span>
+                          {/* The reason, not just the verdict: the dashes drift
+                              from the mystery berry to the taught berry it
+                              copies, which is the 1-NN decision drawn as data
+                              flow rather than asserted in prose. */}
+                          {match ? (
+                            <>
+                              <span className={styles.flowLine} aria-hidden="true" />
+                              <span className="flex shrink-0 items-center gap-1.5 text-[11px] text-ink-muted">
+                                <span>{t("looksLike")}</span>
+                                <Berry specimen={match} theme={glyph} className="scale-75" />
+                              </span>
+                              <span className={styles.flowLine} aria-hidden="true" />
+                            </>
+                          ) : (
+                            <span className="flex-1" />
+                          )}
+                          <span
+                            key={`${probe.id}-${match?.id ?? "none"}-${guess ?? "none"}`}
+                            className={cn(
+                              styles.popIn,
+                              "shrink-0 rounded-md px-2 py-0.5 text-[11px] font-bold",
+                              guess === "positive"
+                                ? "bg-brand/15 text-brand"
+                                : "bg-danger/15 text-danger",
+                            )}
+                          >
+                            {guess ? data.labels[guess] : "—"}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </section>
+              </div>
+            </div>
 
-          <div className="flex items-center gap-3 pb-2">
-            <Button
-              size="lg"
-              onClick={submit}
-              disabled={!ready}
-              loading={submitting}
-              className={ready && !result && !submitting ? styles.pulseReady : undefined}
-            >
-              {t("check")}
-            </Button>
-            {nextStepAction && !submitting ? (
-              <NextStepHint
-                levelId={intro.levelId}
-                action={nextStepAction}
-                usedBefore={intro.hintsUsedTiers.includes(5)}
-                readyAction={`“${t("check")}”`}
-                getState={() => ({
-                  examples: examples.map((e) => ({ id: e.id, label: e.label })),
-                  held: [...heldBack],
-                })}
-                names={{
-                  specimen: (id) => {
-                    const sp = data.pool.find((x) => x.id === id);
-                    return sp ? describe(sp) : id;
-                  },
-                  label: (l) => data.labels[l],
-                }}
-                onStep={(step) =>
-                  setPointed("specimenId" in step ? step.specimenId : null)
-                }
-              />
+            {result ? (
+              <p
+                key={result.verdict}
+                role="status"
+                className={cn(
+                  styles.popIn,
+                  "rounded-lg px-3 py-2 text-sm font-semibold",
+                  result.verdict === "PASS"
+                    ? "bg-brand/15 text-brand"
+                    : "bg-accent/20 text-warning",
+                )}
+              >
+                {result.verdict === "PASS"
+                  ? t("passed")
+                  : result.verdict === "ERROR"
+                    ? t("submitFailed")
+                    : result.code === "calledADangerousOneSafe"
+                      ? t("calledADangerousOneSafe", {
+                          danger:
+                            data.labels[
+                              data.passRule.kind === "safetyFirst" &&
+                              data.passRule.neverMisclassify === "positive"
+                                ? "positive"
+                                : "negative"
+                            ],
+                        })
+                      : result.code === "tooManyFalseAlarms"
+                        ? t("tooManyFalseAlarms", {
+                            max: data.passRule.kind === "safetyFirst" ? data.passRule.maxOtherErrors : 0,
+                          })
+                        : result.code === "needMoreHeldBack"
+                          ? t("needMoreHeldBack", { need: data.holdout?.min ?? 0 })
+                    : result.code === "tooManyExamples"
+                      ? t("tooManyExamples", {
+                          used: examples.length,
+                          max: data.maxExamples ?? 0,
+                        })
+                      : typeof result.correct === "number" && typeof result.total === "number"
+                        ? tk("missed", { correct: result.correct, total: result.total })
+                        : tk("tryAgain")}
+              </p>
             ) : null}
-            <span className="text-xs text-ink-muted">
-              {data.maxExamples === undefined
-                ? t("taughtCount", { count: examples.length })
-                : t("capUsed", { used: examples.length, max: data.maxExamples })}
-            </span>
-          </div>
+
+            <div className="flex items-center gap-3 pb-2">
+              <Button
+                size="lg"
+                onClick={submit}
+                disabled={!ready}
+                loading={submitting}
+                className={ready && !result && !submitting ? styles.pulseReady : undefined}
+              >
+                {t("check")}
+              </Button>
+              {nextStepHint}
+              <span className="text-xs text-ink-muted">
+                {data.maxExamples === undefined
+                  ? t("taughtCount", { count: examples.length })
+                  : t("capUsed", { used: examples.length, max: data.maxExamples })}
+              </span>
+            </div>
+            </>
+          )}
         </div>
       </div>
 

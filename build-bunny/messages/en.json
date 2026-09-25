@@ -180,7 +180,7 @@
         "steps": {
           "0": {
             "title": "Hi! I'm Robo Bunny.",
-            "body": "I just woke up in Bunny Meadow, and I can't do anything on my own. I need a coder to tell me what to do. That's you!"
+            "body": "I just woke up in Bunny Meadow, and I can't do anything on my own. You can code me, step by step, or teach me with examples in Explore AI. Either way, it's you!"
           },
           "1": {
             "title": "You give the instructions",
@@ -497,7 +497,25 @@
         "dangerTally": "Dangerous misses: {count} (must be 0)",
         "alarmTally": "False alarms: {count} of {max} allowed",
         "calledADangerousOneSafe": "The robot called a {danger} cell fine. That is the one mistake the lab cannot allow — teach it more cells like the one it missed.",
-        "tooManyFalseAlarms": "Too many false alarms — more than {max}. Careful is good, but a robot that rejects everything is useless too."
+        "tooManyFalseAlarms": "Too many false alarms — more than {max}. Careful is good, but a robot that rejects everything is useless too.",
+        "ruleYesterdayHeading": "Yesterday's {kind, select, grain {seeds} cell {cells} blip {readings} crab {crabs} other {berries}}",
+        "ruleYesterdayHelp": "What happened when the bunny tried them.",
+        "rulePickHeading": "Write a rule",
+        "rulePickHelp": "Pick the rule you think fits every one from yesterday, then test it.",
+        "ruleTest": "Test the rule",
+        "ruleFits": "This rule fits every one from yesterday!",
+        "ruleMisses": "This rule is wrong about {count} of them. Try another rule.",
+        "ruleSeeToday": "See today's {kind, select, grain {seeds} cell {cells} blip {readings} crab {crabs} other {berries}}",
+        "ruleTodayHeading": "Today: something new",
+        "ruleTodayHelp": "New ones have appeared. Your rule decides first, then you find out what they really are.",
+        "ruleYours": "Your rule: {rule}",
+        "ruleSays": "Rule says: {label}",
+        "ruleReally": "Really: {label}",
+        "ruleTodayMisses": "Your rule got {count} of the new ones wrong. A rule only does what it says, and nobody told it about the new kind.",
+        "ruleTodayAllRight": "Your rule got every one right today.",
+        "ruleTeach": "Teach with examples instead",
+        "ruleRight": "Right",
+        "ruleWrong": "Wrong"
       },
       "group": {
         "howItWorks": "How it works",
@@ -851,7 +869,9 @@
           "water": "water tile",
           "carrot": "carrot"
         },
-        "round": "Round {n}"
+        "round": "Round {n}",
+        "tryRule": "Pick the rule “{rule}”, then press “{button}”.",
+        "pressButton": "Press “{button}”."
       },
       "check": {
         "title": "Quick check",
@@ -989,7 +1009,7 @@
           "hook": "Show a robot some berries. Can it sort ones it has never seen?"
         },
         "rules": {
-          "name": "Rule or examples?",
+          "name": "Rules vs learning",
           "hook": "Write a rule, then teach with examples. Which one copes with something new?"
         },
         "vision": {

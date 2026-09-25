@@ -21,6 +21,9 @@ export type BlockPlace =
   | { kind: "newTrick" }
   | { kind: "insideTrick" };
 
+/** The rule round's buttons, in the order a child meets them. */
+export type RuleRoundButton = "testRule" | "seeToday" | "teachInstead";
+
 export type NextStep =
   /** Nothing to change: the current work already passes. `better` = passes without the top star. */
   | { code: "ready"; better?: boolean }
@@ -37,6 +40,10 @@ export type NextStep =
   | { code: "teach"; specimenId: string; label: "positive" | "negative" }
   | { code: "takeBack"; specimenId: string }
   | { code: "keepForTesting"; specimenId: string }
+  /** Rule or Examples?: try this rule card (then test it). */
+  | { code: "tryRule"; ruleId: string }
+  /** Rule or Examples?: the next button to press in the rule round. */
+  | { code: "pressButton"; button: RuleRoundButton }
   | { code: "plantFlag"; size: number; color: number }
   | { code: "liftFlag"; index: number }
   | { code: "strikeReading"; specimenId: string }

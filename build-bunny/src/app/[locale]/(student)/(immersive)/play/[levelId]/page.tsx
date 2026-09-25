@@ -260,6 +260,13 @@ export default async function PlayLevelPage({ params }: Props) {
       holdout: raw.holdout,
       passRule: raw.passRule,
       starCriteria: raw.starCriteria,
+      ruleRound: raw.ruleRound
+        ? {
+            rules: raw.ruleRound.rules.map((rule) => ({ ...rule, label: resolveText(rule.label, locale) })),
+            yesterday: raw.ruleRound.yesterday,
+            today: raw.ruleRound.today,
+          }
+        : undefined,
     } satisfies TeachActivityPayload;
   } else if (playable.activityType === "PATTERN_RECOGNITION") {
     // Same contract as AI_CLASSIFICATION: parsed against a .strict() mirror

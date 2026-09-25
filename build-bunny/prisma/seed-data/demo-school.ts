@@ -178,7 +178,9 @@ export const STUDENTS: StudentSeed[] = [
         3, 3, 3, 0, 3, 3, 3, 3, 3, 3, 3, 3, 3, // Robot Lab (+ Lab Practice)
         // AI Island, deliberately one short: nothing-rules-alone stays her
         // live frontier so a demo always has an unplayed level to open.
-        3, 3, 2,
+        // Rule or Examples? (2nd) was spliced in with the Explore AI redesign;
+        // its entry sits at the same position so the rest still line up.
+        3, 3, 3, 2,
       ],
       streakCurrent: 9, streakBest: 9, lastActiveDaysAgo: 0,
     },

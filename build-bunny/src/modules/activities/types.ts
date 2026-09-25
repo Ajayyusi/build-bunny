@@ -282,6 +282,14 @@ export interface TeachActivityPayload {
     | { kind: "allCorrect" }
     | { kind: "safetyFirst"; neverMisclassify: "positive" | "negative"; maxOtherErrors: number };
   starCriteria: { threeStarMaxBlocks?: number };
+  /** "Rule or examples?" warm-up, localized; never the graded testSet. */
+  ruleRound?: TeachRuleRound;
+}
+
+export interface TeachRuleRound {
+  rules: { id: string; feature: "size" | "color"; positiveWhen: "below" | "above"; threshold: number; label: string }[];
+  yesterday: { id: string; size: number; color: number; truth: "positive" | "negative" }[];
+  today: { id: string; size: number; color: number; truth: "positive" | "negative" }[];
 }
 
 /** Answer-free slice of a PATTERN_RECOGNITION payload (`groundTruth` removed). */

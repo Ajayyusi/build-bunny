@@ -8,6 +8,7 @@ import { analyzeMazeDesign, type MazeIssue } from "@/modules/activities/maze";
 import { centroidRule } from "@/modules/ai/lab/math/centroidRule";
 import { leastSquares } from "@/modules/ai/lab/math/leastSquares";
 import type { Line } from "@/modules/ai/lab/math/types";
+import { fittingRules } from "@/modules/ai/rule-round";
 import { solveAiClassification } from "@/modules/ai/solve";
 import { BUNNY_DEFINE_BLOCK, BUNNY_HAT_BLOCK, BUNNY_SENSOR_BLOCKS } from "@/modules/blockly/blocks";
 import {
@@ -380,6 +381,14 @@ export const nextStepStateSchema = z.object({
   phase: z.enum(["fit", "predict"]).optional(),
   prediction: z.number().nullable().optional(),
   rounds: z.record(z.string(), z.string()).optional(),
+  /** Rule or Examples?: where the child is in the rule round, if the level has one. */
+  rule: z
+    .object({
+      stage: z.enum(["pick", "today", "done"]),
+      chosen: z.string().max(40).nullable(),
+      tested: z.string().max(40).nullable(),
+    })
+    .optional(),
 });
 export type NextStepState = z.infer<typeof nextStepStateSchema>;
 
@@ -453,6 +462,19 @@ export function computeNextStep(
     }
     case "AI_CLASSIFICATION": {
       const p = aiClassificationPayload.parse(payload);
+      // The rule round comes first: find a rule that fits yesterday, see it
+      // meet today, then teach. Its buttons are the steps.
+      if (p.ruleRound && state.rule && state.rule.stage !== "done") {
+        if (state.rule.stage === "today") return { code: "pressButton", button: "teachInstead" };
+        const fits = fittingRules(p.ruleRound.rules, p.ruleRound.yesterday).map((rule) => rule.id);
+        const chosen = state.rule.chosen;
+        if (chosen && fits.includes(chosen)) {
+          return state.rule.tested === chosen
+            ? { code: "pressButton", button: "seeToday" }
+            : { code: "pressButton", button: "testRule" };
+        }
+        return fits[0] ? { code: "tryRule", ruleId: fits[0] } : { code: "none" };
+      }
       const byId = new Map(p.pool.map((s) => [s.id, s]));
       const taught = (state.examples ?? []).filter((e) => byId.has(e.id));
       const held = new Set((state.held ?? []).filter((id) => byId.has(id)));

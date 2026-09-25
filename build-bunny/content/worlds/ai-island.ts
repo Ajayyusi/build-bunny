@@ -7,6 +7,7 @@ import type {
 } from "@/modules/curriculum/schemas";
 import { onlineLife } from "./more-ai";
 import { safetyAndFairness } from "./ai-island-safety";
+import { ruleOrExamples } from "./rule-or-examples";
 
 /**
  * World 4 — AI Island. The first world where the student stops writing rules.
@@ -186,9 +187,11 @@ export const aiIsland: WorldFixture = {
             starCriteria: { threeStarMaxBlocks: 6 },
           } satisfies AiClassificationDraft,
         },
+        // The bridge the redesign brief asks for: write a rule, then teach.
+        ruleOrExamples,
         {
           slug: "draw-the-line",
-          order: 2,
+          order: 3,
           activityType: "AI_CLASSIFICATION",
           track: "AI_CONCEPTS",
           title: {
@@ -357,7 +360,7 @@ export const aiIsland: WorldFixture = {
         },
         {
           slug: "the-berry-that-lied",
-          order: 3,
+          order: 4,
           activityType: "AI_CLASSIFICATION",
           track: "AI_CONCEPTS",
           title: {
@@ -529,7 +532,7 @@ export const aiIsland: WorldFixture = {
         },
         {
           slug: "nothing-rules-alone",
-          order: 4,
+          order: 5,
           activityType: "AI_CLASSIFICATION",
           track: "AI_CONCEPTS",
           title: {

@@ -9,6 +9,7 @@ import {
   aiClassificationStudentPayload,
   type LevelFixture,
 } from "@/modules/curriculum/schemas";
+import { fittingRules, ruleMisses } from "@/modules/ai/rule-round";
 import { stripStudentPayload } from "@/modules/curriculum/server/queries";
 import type { LevelSnapshot } from "@/modules/curriculum/server/publish";
 
@@ -218,6 +219,54 @@ describe.each(aiLevels)("AI level $level.slug ($world)", ({ level }) => {
       minimalFailures.length,
       "every smallest-possible training set passes",
     ).toBeGreaterThan(0);
+  });
+
+  // ── Rule or Examples? (redesign brief 2026-09-25) ─────────────────────
+  const round = payload.ruleRound;
+  it.runIf(round !== undefined)("rule round: its specimens tell the same truth as the level's hidden rule", () => {
+    for (const specimen of [...round!.yesterday, ...round!.today]) {
+      expect(trueLabel(payload.rule, specimen), specimen.id).toBe(specimen.truth);
+    }
+  });
+
+  it.runIf(round !== undefined)("rule round: never reuses a graded or teaching specimen", () => {
+    const ids = [...round!.yesterday, ...round!.today].map((s) => s.id);
+    expect(new Set(ids).size, "duplicate ids inside the rule round").toBe(ids.length);
+    const taken = new Set([...pool, ...testSet].map((s) => s.id));
+    for (const id of ids) expect(taken.has(id), `${id} is also a pool/test specimen`).toBe(false);
+  });
+
+  it.runIf(round !== undefined)("rule round: exactly the lesson — a rule fits yesterday, and it breaks today", () => {
+    const fits = fittingRules(round!.rules, round!.yesterday);
+    // Findable, and worth testing: at least one card fits, at least one doesn't.
+    expect(fits.length, "no rule card fits yesterday").toBeGreaterThan(0);
+    expect(fits.length, "every rule card fits yesterday — nothing to find").toBeLessThan(round!.rules.length);
+    // The rule the child lands on must meet something it can't handle.
+    for (const rule of fits) {
+      expect(ruleMisses(rule, round!.today).length, `${rule.id} survives today — no surprise`).toBeGreaterThan(0);
+    }
+    // Rule ids are unique, or "try the rule X" could name two cards.
+    expect(new Set(round!.rules.map((r) => r.id)).size).toBe(round!.rules.length);
+  });
+
+  it.runIf(round !== undefined)("rule round: the learner needs an example of the new kind — without one it fails", () => {
+    // The new kind = teaching specimens the fitting rule gets wrong. A
+    // learner shown none of them is no better than the rule, and must lose:
+    // that is what makes "show it a new example" the winning move.
+    const fits = fittingRules(round!.rules, round!.yesterday);
+    const newKind = new Set(fits.flatMap((rule) => ruleMisses(rule, pool)));
+    expect(newKind.size, "no teaching specimen of the new kind").toBeGreaterThan(0);
+    const without = submittable.filter((set) => set.every((specimen) => !newKind.has(specimen.id)));
+    expect(without.length).toBeGreaterThan(0);
+    for (const set of without) {
+      expect(grade(level, set).verdict, set.map((x) => x.id).join(",")).toBe("FAIL");
+    }
+  });
+
+  it.runIf(round !== undefined)("rule round: ships to the child, without leaking the graded answers", () => {
+    const shipped = aiClassificationStudentPayload.parse(stripStudentPayload("AI_CLASSIFICATION", level.payload));
+    expect(shipped.ruleRound).toBeDefined();
+    expect(shipped.testSet.every((probe) => !("truth" in probe))).toBe(true);
   });
 
   it("names the specimens it got wrong, so the student knows where to teach", () => {

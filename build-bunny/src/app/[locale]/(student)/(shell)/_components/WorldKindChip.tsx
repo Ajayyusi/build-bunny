@@ -14,7 +14,7 @@ export function WorldKindChip({ kind, label, className }: { kind: "ai" | "coding
         borderColor: kind === "ai" ? "color-mix(in oklab, var(--bb-toy-violet) 40%, white)" : "var(--bb-toy-line)",
       }}
     >
-      <span aria-hidden="true">{kind === "ai" ? "🧠" : "</>"}</span>
+      <span aria-hidden="true">{kind === "ai" ? "✨" : "</>"}</span>
       {label}
     </span>
   );
