@@ -595,6 +595,15 @@ async function assertQueryIsolated(entry: RegistryEntry): Promise<void> {
       expectNoForeignIds(own, name);
       break;
     }
+    case "getFamilyEmailStatus": {
+      // Same rule as the family link: never another school's child.
+      expect(await query(teacherCtxA, B.studentIds[0])).toBeNull();
+      expect(await query(studentCtxA, A.studentIds[0])).toBeNull();
+      const own = await query(ctxA, A.studentIds[0]);
+      expect(own).toMatchObject({ state: "none", email: null });
+      expectNoForeignIds(own, name);
+      break;
+    }
     case "getClassReflections": {
       // Same access rule as the misconception report beside it.
       expect(await query(teacherCtxA, B.classId)).toEqual([]);

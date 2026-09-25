@@ -69,6 +69,8 @@ model User {
   certificates     Certificate[]
   familyLinks      FamilyLink[]      @relation("FamilyLinkStudent")
   familyLinksMade  FamilyLink[]      @relation("FamilyLinkCreator")
+  familyEmail      FamilyEmail?      @relation("FamilyEmailStudent")
+  familyEmailsMade FamilyEmail[]     @relation("FamilyEmailCreator")
   reflections      LevelReflection[]
   conceptChecks    ConceptCheck[]
 
@@ -162,6 +164,7 @@ model School {
   assignments      Assignment[]
   certificates     Certificate[]
   familyLinks      FamilyLink[]
+  familyEmails     FamilyEmail[]
   reflections      LevelReflection[]
   conceptChecks    ConceptCheck[]
 }
@@ -854,6 +857,30 @@ model FamilyLink {
   lastViewedAt  DateTime?
 
   @@index([schoolId, studentUserId])
+}
+
+// The weekly family email (brief §6). A teacher adds ONE address for a child;
+// nothing about the child is sent until the family confirms it from that
+// inbox, so a mistyped address never receives a child's progress. Stopping
+// is one click in every email. Deleted when the teacher removes it, when a
+// new address replaces it, and when the child is disabled or erased.
+model FamilyEmail {
+  id            String    @id @default(cuid())
+  schoolId      String
+  school        School    @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  studentUserId String    @unique
+  student       User      @relation("FamilyEmailStudent", fields: [studentUserId], references: [id], onDelete: Cascade)
+  createdById   String
+  createdBy     User      @relation("FamilyEmailCreator", fields: [createdById], references: [id], onDelete: Cascade)
+  email         String
+  locale        String    @default("en")
+  createdAt     DateTime  @default(now())
+  inviteSentAt  DateTime
+  confirmedAt   DateTime?
+  stoppedAt     DateTime?
+  lastSentAt    DateTime?
+
+  @@index([schoolId])
 }
 
 // How a level felt to the child (brief §6: reflections). One tap after a

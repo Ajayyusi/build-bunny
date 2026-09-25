@@ -257,13 +257,15 @@ export async function setAccountDisabled(
         : { banned: false, banReason: null, banExpires: null },
     }),
     ...(disabled ? [db.session.deleteMany({ where: { userId: target.userId } })] : []),
-    // Disabling a child also switches off any family link to their progress.
+    // Disabling a child also switches off any family link to their progress,
+    // and deletes the family email address: re-enabling starts both afresh.
     ...(disabled && target.isStudent
       ? [
           db.familyLink.updateMany({
             where: { studentUserId: target.userId, revokedAt: null },
             data: { revokedAt: new Date() },
           }),
+          db.familyEmail.deleteMany({ where: { studentUserId: target.userId } }),
         ]
       : []),
   ]);

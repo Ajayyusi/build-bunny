@@ -31,7 +31,7 @@ export function hashFamilyToken(token: string): string {
  * in their school, a TEACHER only for a student in one of their own classes
  * (the same rule as the student detail page).
  */
-async function assertStudentAccess(ctx: SessionContext, studentUserId: string): Promise<string> {
+export async function assertStudentAccess(ctx: SessionContext, studentUserId: string): Promise<string> {
   const schoolId = ctx.schoolId;
   if (!schoolId || (ctx.role !== "TEACHER" && ctx.role !== "SCHOOL_ADMIN")) {
     throw new NotFoundError("Student not found");

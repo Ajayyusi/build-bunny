@@ -36,6 +36,16 @@ const serverSchema = z
      * provisions a brand-new child for every test. Leave unset in production.
      */
     AUTH_SIGNIN_RATE_MAX: z.coerce.number().int().min(1).max(100_000).default(10),
+    /**
+     * The weekly family email (Resend). All optional: without them the app
+     * runs as before, and the teacher's email panel says email isn't set up.
+     * FAMILY_EMAIL_FROM must be an address on a domain verified in Resend,
+     * e.g. `Build Bunny <updates@example.com>`. CRON_SECRET is the bearer
+     * token Vercel Cron sends to /api/cron/family-email.
+     */
+    RESEND_API_KEY: z.string().min(1).optional(),
+    FAMILY_EMAIL_FROM: z.string().min(3).optional(),
+    CRON_SECRET: z.string().min(16).optional(),
   })
   .superRefine((value, ctx) => {
     if (value.NODE_ENV !== "production") return;
