@@ -1021,7 +1021,7 @@
           "hook": "The robot keeps missing the rare berries. Were your examples fair?"
         },
         "checking": {
-          "name": "Is it real?",
+          "name": "Check before you share",
           "hook": "Pictures, voices and chatbots can be made up or wrong. Decide what to check before you share."
         },
         "prediction": {
