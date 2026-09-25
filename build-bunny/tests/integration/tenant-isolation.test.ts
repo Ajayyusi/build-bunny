@@ -595,6 +595,13 @@ async function assertQueryIsolated(entry: RegistryEntry): Promise<void> {
       expectNoForeignIds(own, name);
       break;
     }
+    case "getClassReflections": {
+      // Same access rule as the misconception report beside it.
+      expect(await query(teacherCtxA, B.classId)).toEqual([]);
+      expect(await query(teacherCtxB, classTwoBId)).toEqual([]);
+      expectNoForeignIds(await query(teacherCtxA, A.classId), name);
+      break;
+    }
     case "getClassAiIdeas": {
       // Same access rule as the matrix: a foreign class (another school, or
       // another teacher's class in the same school) is null, never totals.
@@ -607,13 +614,6 @@ async function assertQueryIsolated(entry: RegistryEntry): Promise<void> {
       // A child's own cards only; staff get nothing.
       expect(await query(teacherCtxA)).toMatchObject({ cards: [], followUp: null });
       expectNoForeignIds(await query(studentCtxA), name);
-      break;
-    }
-    case "getClassReflections": {
-      // Same access rule as the misconception report beside it.
-      expect(await query(teacherCtxA, B.classId)).toEqual([]);
-      expect(await query(teacherCtxB, classTwoBId)).toEqual([]);
-      expectNoForeignIds(await query(teacherCtxA, A.classId), name);
       break;
     }
     case "getClassMisconceptions": {
