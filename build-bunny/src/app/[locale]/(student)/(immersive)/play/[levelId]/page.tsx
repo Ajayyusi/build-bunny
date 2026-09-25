@@ -47,6 +47,7 @@ import {
 } from "@/modules/learning/server/actions";
 import { ageBandFor, supportFor } from "@/modules/learning/age-band";
 import { getPlayableLevel } from "@/modules/learning/server/queries";
+import { getExploreLevelContext } from "@/modules/explore/server/checks";
 import { isFeatureEnabled } from "@/modules/shared/features";
 import { getMyStudentSnapshot } from "@/modules/students/server/queries";
 
@@ -115,6 +116,7 @@ export default async function PlayLevelPage({ params }: Props) {
   await markLevelStarted({ levelId });
 
   const { theme, next } = locateOnTrail(adventure, levelId);
+  const explore = await getExploreLevelContext(ctx, levelId);
 
   const intro: ActivityIntro = {
     levelId: playable.id,
@@ -139,6 +141,7 @@ export default async function PlayLevelPage({ params }: Props) {
     nextLevel: next,
     firstSteps: adventure.worlds.every((world) => world.completedLevels === 0),
     draftVersion: playable.draftSavedAt,
+    explore,
   };
 
   // Re-parse the (student-stripped) payload per activity type so schema

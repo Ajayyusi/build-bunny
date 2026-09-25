@@ -70,6 +70,7 @@ model User {
   familyLinks      FamilyLink[]      @relation("FamilyLinkStudent")
   familyLinksMade  FamilyLink[]      @relation("FamilyLinkCreator")
   reflections      LevelReflection[]
+  conceptChecks    ConceptCheck[]
 
   @@index([schoolId, role])
 }
@@ -162,6 +163,7 @@ model School {
   certificates     Certificate[]
   familyLinks      FamilyLink[]
   reflections      LevelReflection[]
+  conceptChecks    ConceptCheck[]
 }
 
 enum LicenceStatus {
@@ -442,6 +444,7 @@ model Level {
   attempts      ActivityAttempt[]
   feedback      TeacherFeedback[]
   reflections   LevelReflection[]
+  conceptChecks ConceptCheck[]
 
   @@unique([moduleId, slug])
   @@unique([moduleId, order])
@@ -874,6 +877,27 @@ model LevelReflection {
   feeling       ReflectionFeeling
   createdAt     DateTime          @default(now())
   updatedAt     DateTime          @updatedAt
+
+  @@unique([studentUserId, levelId])
+  @@index([schoolId, levelId])
+}
+
+// The one-tap "explain it" check after an Explore AI activity (redesign
+// brief 2026-09-25): three fixed choices, never anything a child typed. The
+// FIRST answer is kept — that is the teacher's evidence of understanding —
+// and correctAt records when they reached the right one.
+model ConceptCheck {
+  id            String    @id @default(cuid())
+  schoolId      String
+  school        School    @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  studentUserId String
+  student       User      @relation(fields: [studentUserId], references: [id], onDelete: Cascade)
+  levelId       String
+  level         Level     @relation(fields: [levelId], references: [id], onDelete: Cascade)
+  firstChoice   String
+  firstCorrect  Boolean
+  correctAt     DateTime?
+  createdAt     DateTime  @default(now())
 
   @@unique([studentUserId, levelId])
   @@index([schoolId, levelId])

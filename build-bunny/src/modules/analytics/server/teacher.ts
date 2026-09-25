@@ -12,6 +12,7 @@ import {
 } from "../misconceptions";
 import { computeLevelActivityStats, rankMostFailed } from "./level-activity";
 import type { SessionContext } from "@/modules/auth/server/session";
+import { CONCEPT_CHECKS, type ExploreConcept } from "@/modules/explore/catalog";
 import { localizedText, type LocalizedText } from "@/modules/curriculum/schemas";
 import type { LevelSnapshot } from "@/modules/curriculum/server/publish";
 import { gradeWorkspace, type GradeVariantResult } from "@/modules/grading/server/grade";
@@ -1384,6 +1385,80 @@ async function publishedLevelNames(
     if (known && title.success) known.title = title.data;
   }
   return byId;
+}
+
+// ── AI ideas: did the class get them? (redesign brief 2026-09-25) ──────────
+
+export interface ClassAiIdea {
+  concept: ExploreConcept;
+  levelId: string;
+  title: LocalizedText;
+  /** Children in the class who finished the level. */
+  finished: number;
+  /** …who answered its quick check, and who got it right first time. */
+  answered: number;
+  firstTry: number;
+}
+
+export interface ClassAiIdeas {
+  students: number;
+  ideas: ClassAiIdea[];
+}
+
+/**
+ * The AI ideas behind Explore AI, one row per idea: how many children in the
+ * class finished its activity, and how many explained it correctly on the
+ * first try in the one-tap check. Understanding is reported apart from
+ * completion, as the brief asks — a finished level alone does not show the
+ * idea landed. Class totals only, like the rest of this page. Same access
+ * rule as the matrix; a foreign class gets null.
+ */
+export async function getClassAiIdeas(ctx: SessionContext, classId: string): Promise<ClassAiIdeas | null> {
+  const schoolId = requireSchool(ctx);
+  const cls = await resolveClassAccess(ctx, classId);
+  if (!cls) return null;
+  const roster = await db.classMembership.findMany({
+    where: { schoolId, classId, role: "STUDENT" },
+    select: { userId: true },
+  });
+  const studentIds = roster.map((row) => row.userId);
+  // In the catalog's order: the order a child meets the ideas.
+  const order = Object.keys(CONCEPT_CHECKS);
+  const levels = (await loadSchoolLevels(schoolId))
+    .map((row) => row.matrix)
+    .filter((level) => CONCEPT_CHECKS[level.slug] !== undefined)
+    .sort((a, b) => order.indexOf(a.slug) - order.indexOf(b.slug));
+  if (levels.length === 0) return { students: studentIds.length, ideas: [] };
+  const levelIds = levels.map((level) => level.id);
+  const [finished, checks, names] = await Promise.all([
+    studentIds.length
+      ? db.studentProgress.groupBy({
+          by: ["levelId"],
+          where: { schoolId, levelId: { in: levelIds }, studentUserId: { in: studentIds }, status: "COMPLETED" },
+          _count: { _all: true },
+        })
+      : Promise.resolve([]),
+    studentIds.length
+      ? db.conceptCheck.findMany({
+          where: { schoolId, levelId: { in: levelIds }, studentUserId: { in: studentIds } },
+          select: { levelId: true, firstCorrect: true },
+        })
+      : Promise.resolve([]),
+    publishedLevelNames(schoolId, levelIds),
+  ]);
+  const finishedBy = new Map(finished.map((row) => [row.levelId, row._count._all]));
+  const ideas = levels.map((level): ClassAiIdea => {
+    const answers = checks.filter((row) => row.levelId === level.id);
+    return {
+      concept: CONCEPT_CHECKS[level.slug]!.concept,
+      levelId: level.id,
+      title: names.get(level.id)?.title ?? level.title,
+      finished: finishedBy.get(level.id) ?? 0,
+      answered: answers.length,
+      firstTry: answers.filter((row) => row.firstCorrect).length,
+    };
+  });
+  return { students: studentIds.length, ideas };
 }
 
 // ── Reflections: how the class felt about each level (brief §6) ───────────

@@ -1,6 +1,6 @@
 /**
- * Sidebar glyphs. Inline SVG rather than an icon dependency: there are five
- * of them, they never change, and shipping a whole icon package for five
+ * Sidebar glyphs. Inline SVG rather than an icon dependency: there are six
+ * of them, they never change, and shipping a whole icon package for six
  * paths would cost more than it returns. All are 24×24, stroke-based, and
  * inherit `currentColor` so the nav's active/inactive colors just work.
  */
@@ -24,6 +24,16 @@ export function HomeIcon({ className }: IconProps) {
       <rect x="13.5" y="3" width="7.5" height="7.5" rx="2" />
       <rect x="3" y="13.5" width="7.5" height="7.5" rx="2" />
       <rect x="13.5" y="13.5" width="7.5" height="7.5" rx="2" />
+    </svg>
+  );
+}
+
+/** A spark — Explore AI: the ideas behind how machines learn. */
+export function SparkIcon({ className }: IconProps) {
+  return (
+    <svg {...base} className={className}>
+      <path d="M12 3.5 13.8 9a1.5 1.5 0 0 0 1 1l5.4 1.9-5.4 1.8a1.5 1.5 0 0 0-1 1L12 20.5l-1.8-5.8a1.5 1.5 0 0 0-1-1L3.8 12l5.4-1.9a1.5 1.5 0 0 0 1-1Z" />
+      <path d="M19 3v3M17.5 4.5h3" />
     </svg>
   );
 }

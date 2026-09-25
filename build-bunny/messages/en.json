@@ -106,7 +106,8 @@
       "menu": "Open menu",
       "unreadFeedback": "{count, plural, one {# unread message from your teacher} other {# unread messages from your teacher}}",
       "sectionMain": "Learn",
-      "sectionAccount": "Account"
+      "sectionAccount": "Account",
+      "explore": "Explore AI"
     },
     "sound": {
       "on": "Sound on",
@@ -285,6 +286,10 @@
         "friend": "Your friend here",
         "power": "Power to earn",
         "powerEarned": "Power earned"
+      },
+      "kind": {
+        "ai": "AI",
+        "coding": "Coding"
       }
     },
     "play": {
@@ -406,7 +411,8 @@
         "replay": "Play again for {stars} stars",
         "certificateEarned": "You earned this world's certificate!",
         "certificateSee": "See it on your Achievements page",
-        "improveFirstTry": "Get it right on your first try for the third star."
+        "improveFirstTry": "Get it right on your first try for the third star.",
+        "moreAi": "More AI to explore"
       },
       "blockNames": {
         "bb_whenStart": "when start",
@@ -846,6 +852,61 @@
           "carrot": "carrot"
         },
         "round": "Round {n}"
+      },
+      "check": {
+        "title": "Quick check",
+        "right": "That's it!",
+        "tryAgain": "Not quite. Try another answer.",
+        "notSaved": "That didn't save, but you can carry on.",
+        "examples": {
+          "question": "How did Robo Bunny learn to sort the berries?",
+          "a": "You wrote a rule for it",
+          "b": "It found the pattern in the examples you chose",
+          "c": "It already knew every berry",
+          "why": "No one wrote a rule. The examples you picked taught it."
+        },
+        "rules": {
+          "question": "A new kind of berry turns up. What's the difference?",
+          "a": "The rule learns about it by itself",
+          "b": "Neither of them can ever change",
+          "c": "Someone has to rewrite the rule, but the learner can be shown a new example",
+          "why": "A rule only does what someone wrote. A learner changes when you show it new examples."
+        },
+        "vision": {
+          "question": "What does a computer really get from a picture?",
+          "a": "A grid of numbers, one for each little square",
+          "b": "A rabbit or a rocket, the same as you see",
+          "c": "Only the colours it likes",
+          "why": "Just numbers. It has to work out what they probably show."
+        },
+        "fairness": {
+          "question": "Why did Robo Bunny get the rare berry wrong at first?",
+          "a": "Rare berries are always bad",
+          "b": "Robo Bunny was being unkind",
+          "c": "Its examples left the rare kind out",
+          "why": "A machine copies what is common in its examples, so the rare cases have to be in them too."
+        },
+        "checking": {
+          "question": "Something surprising pops up online. What's a smart first step?",
+          "a": "Share it quickly before it disappears",
+          "b": "Pause, and check it somewhere you trust",
+          "c": "Believe it if it looks real",
+          "why": "Pictures, voices and even chatbot answers can be made up or wrong, so check before you believe or share."
+        },
+        "prediction": {
+          "question": "What is a computer's prediction?",
+          "a": "A careful guess from the data, not a fact",
+          "b": "A fact that is always right",
+          "c": "A random number",
+          "why": "It comes from real data, but it's still a guess, and less sure the further it goes beyond that data."
+        },
+        "people": {
+          "question": "When should a person check what the machine decides?",
+          "a": "Never, because machines don't make mistakes",
+          "b": "When a mistake could hurt someone",
+          "c": "Only when the machine is slow",
+          "why": "Machines make mistakes too. When a mistake could hurt someone, a person should check."
+        }
       }
     },
     "profile": {
@@ -898,6 +959,60 @@
       "motionHint": "Fewer animations and no bouncing",
       "done": "Done",
       "close": "Close"
+    },
+    "explore": {
+      "kicker": "Explore AI",
+      "title": "Teach it. Test it. Question it.",
+      "body": "Hands-on games about how AI works, and when to think carefully. No coding needed: start with any card.",
+      "progress": "{done} of {total} explored",
+      "twoWaysTitle": "Two ways to make a computer do something",
+      "coding": "Coding: you tell it exactly what to do, step by step.",
+      "ai": "AI: you show it examples, and it works out the pattern itself.",
+      "codingLink": "Go to the coding worlds on the map",
+      "status": {
+        "new": "New",
+        "going": "Keep going",
+        "done": "Done",
+        "locked": "Not open yet"
+      },
+      "minutes": "{minutes} min",
+      "starsSr": "{stars} of {max} stars",
+      "explained": "Explained",
+      "followUpTitle": "Next idea",
+      "followUpLocked": "Opens after “{after}”",
+      "homeTitle": "Explore AI",
+      "homeBody": "No coding needed. Pick any card.",
+      "homeSeeAll": "See all",
+      "concept": {
+        "examples": {
+          "name": "Learning from examples",
+          "hook": "Show a robot some berries. Can it sort ones it has never seen?"
+        },
+        "rules": {
+          "name": "Rule or examples?",
+          "hook": "Write a rule, then teach with examples. Which one copes with something new?"
+        },
+        "vision": {
+          "name": "How computers see",
+          "hook": "Shrink a picture into squares and guess it the way a computer does."
+        },
+        "fairness": {
+          "name": "Fair examples",
+          "hook": "The robot keeps missing the rare berries. Were your examples fair?"
+        },
+        "checking": {
+          "name": "Is it real?",
+          "hook": "Pictures, voices and chatbots can be made up or wrong. Decide what to check before you share."
+        },
+        "prediction": {
+          "name": "Predictions are guesses",
+          "hook": "Draw a trend line, predict what comes next, and see how sure you can be."
+        },
+        "people": {
+          "name": "People decide",
+          "hook": "A machine can sort things. When should a person check its choice?"
+        }
+      }
     }
   },
   "staff": {
@@ -1068,6 +1183,13 @@
           "caveat": "From the one-tap question after each level: the levels this class most often called tricky, once at least 5 children have answered. Shown as a rough share and updated once a day, so no child's answer can be worked out.",
           "most": "😣 Most found it tricky",
           "some": "🙂 Some found it tricky"
+        },
+        "aiIdeas": {
+          "heading": "AI ideas",
+          "caveat": "For each Explore AI activity: how many children finished it, and how many explained its idea correctly first time in the one-tap quick check. Understanding is shown apart from completion, because finishing alone doesn't show the idea landed.",
+          "finished": "{finished} of {students} finished",
+          "firstTry": "{firstTry} of {answered} explained it first time",
+          "noAnswers": "No quick-check answers yet"
         }
       },
       "student": {

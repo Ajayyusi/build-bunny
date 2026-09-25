@@ -2,13 +2,20 @@
 
 import { createContext, useContext } from "react";
 
+import type { ExploreLevelContext } from "../../types";
+
 /**
  * Which level is being played, for shared pieces (the success card's
- * reflection row) that sit below every player without each player having to
- * thread the id through its own props.
+ * reflection row and quick check) that sit below every player without each
+ * player having to thread them through its own props.
  */
-export const LevelContext = createContext<{ levelId: string } | null>(null);
+export interface LevelContextValue {
+  levelId: string;
+  explore?: ExploreLevelContext;
+}
 
-export function useLevelContext(): { levelId: string } | null {
+export const LevelContext = createContext<LevelContextValue | null>(null);
+
+export function useLevelContext(): LevelContextValue | null {
   return useContext(LevelContext);
 }

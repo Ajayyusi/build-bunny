@@ -1,6 +1,8 @@
 import { Link } from "@/i18n/navigation";
 import { cn, worldColor } from "@/ui";
 
+import { WorldKindChip } from "../../_components/WorldKindChip";
+
 export interface WorldCardVM {
   id: string;
   name: string;
@@ -9,6 +11,7 @@ export interface WorldCardVM {
   completedLevels: number;
   totalLevels: number;
   locked: boolean;
+  kind: "ai" | "coding";
 }
 
 interface WorldCardProps {
@@ -17,6 +20,8 @@ interface WorldCardProps {
   progressSr: string;
   /** Shown on a locked world in place of a link — "Opens later". */
   lockedLabel: string;
+  /** "AI" or "Coding". */
+  kindLabel: string;
   /** 0-based position, drives the entrance stagger. */
   index: number;
 }
@@ -26,6 +31,7 @@ export function WorldCard({
   levelsLabel,
   progressSr,
   lockedLabel,
+  kindLabel,
   index,
 }: WorldCardProps) {
   const pct =
@@ -67,6 +73,7 @@ export function WorldCard({
       <span className={cn("mt-0.5 text-xs font-semibold", world.locked ? "text-ink" : "text-white")}>
         {levelsLabel}
       </span>
+      <WorldKindChip kind={world.kind} label={kindLabel} className="mt-2" />
 
       {/* Progress rail. The sr-only text carries the real numbers; the bar
           itself is decorative so screen readers don't read a bare percent. */}

@@ -53,6 +53,8 @@ export interface TrailWorldVM {
   name: string;
   tagline: string | null;
   state: "LOCKED" | "AVAILABLE" | "CURRENT" | "COMPLETED";
+  /** What the world teaches — labelled on the card so AI and coding read apart. */
+  kind: "ai" | "coding";
   completedLevels: number;
   totalLevels: number;
   starsEarned: number;

@@ -15,7 +15,8 @@ export const SYSTEM_ACTOR = { userId: "system", role: "SYSTEM" } as const;
 export async function wipeDatabase(): Promise<void> {
   // Family links reference students and staff.
   await db.familyLink.deleteMany();
-  // One-tap reflections reference students and levels.
+  // One-tap reflections and quick checks reference students and levels.
+  await db.conceptCheck.deleteMany();
   await db.levelReflection.deleteMany();
   // M4 teaching/certificates tables first (children before parents).
   await db.teacherFeedback.deleteMany();

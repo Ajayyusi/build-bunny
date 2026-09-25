@@ -5,6 +5,7 @@ import { hasPermission } from "@/modules/auth/permissions";
 import { resolveText } from "@/modules/curriculum/schemas";
 import { requireRole } from "@/modules/auth/server/session";
 import {
+  getClassAiIdeas,
   getClassHardestLevels,
   getClassMatrix,
   getClassMisconceptions,
@@ -30,13 +31,15 @@ export default async function ClassPage({ params, searchParams }: Props) {
   const { tab } = await searchParams;
   setRequestLocale(locale);
   const ctx = await requireRole("TEACHER", "SCHOOL_ADMIN");
-  const [matrix, hardestLevels, misconceptions, reflections, t, tCommon] = await Promise.all([
+  const [matrix, hardestLevels, misconceptions, reflections, aiIdeas, t, tCommon, tExplore] = await Promise.all([
     getClassMatrix(ctx, classId),
     getClassHardestLevels(ctx, classId),
     getClassMisconceptions(ctx, classId),
     getClassReflections(ctx, classId),
+    getClassAiIdeas(ctx, classId),
     getTranslations("staff.teach.matrix"),
     getTranslations("common"),
+    getTranslations("student.explore"),
   ]);
 
   if (!matrix) {
@@ -152,6 +155,37 @@ export default async function ClassPage({ params, searchParams }: Props) {
                   ) : null}
                   <span className="text-sm text-ink">
                     {t(`misconceptions.kind.${item.id}.reteach`)}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </CardBody>
+        </Card>
+      ) : null}
+
+      {/* The AI ideas behind Explore AI: finished vs understood, as class
+          totals (redesign brief 2026-09-25). */}
+      {aiIdeas && aiIdeas.ideas.length > 0 && aiIdeas.students > 0 ? (
+        <Card>
+          <CardBody className="flex flex-col gap-3">
+            <div className="flex flex-col gap-0.5">
+              <h2 className="font-display text-base font-semibold text-ink">{t("aiIdeas.heading")}</h2>
+              <p className="text-sm text-ink-muted">{t("aiIdeas.caveat")}</p>
+            </div>
+            <ul className="grid gap-2 md:grid-cols-2">
+              {aiIdeas.ideas.map((idea) => (
+                <li key={idea.levelId} className="flex flex-col gap-1 rounded-lg bg-surface-sunken px-3 py-2">
+                  <span className="flex flex-wrap items-baseline justify-between gap-x-2">
+                    <span className="text-sm font-semibold text-ink">{tExplore(`concept.${idea.concept}.name`)}</span>
+                    <span className="text-xs text-ink-muted">{resolveText(idea.title, locale)}</span>
+                  </span>
+                  <span className="text-xs text-ink tabular-nums">
+                    {t("aiIdeas.finished", { finished: idea.finished, students: aiIdeas.students })}
+                  </span>
+                  <span className="text-xs text-ink-muted tabular-nums">
+                    {idea.answered > 0
+                      ? t("aiIdeas.firstTry", { firstTry: idea.firstTry, answered: idea.answered })
+                      : t("aiIdeas.noAnswers")}
                   </span>
                 </li>
               ))}

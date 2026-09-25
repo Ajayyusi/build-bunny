@@ -9,6 +9,7 @@ import styles from "./adventure.module.css";
 import { LevelNode } from "./LevelNode";
 import { themeEmoji } from "./theme";
 import { WorldScenery } from "./WorldScenery";
+import { WorldKindChip } from "../../_components/WorldKindChip";
 import type { TrailLevelVM, TrailWorldVM } from "./types";
 
 interface WorldSegmentProps {
@@ -169,6 +170,7 @@ export function WorldSegment({ world, index, onOpenLevel, onReplayStory }: World
             ) : null}
           </div>
 
+          <WorldKindChip kind={world.kind} label={t(`kind.${world.kind}`)} />
           <h2
             id={headingId}
             className={cn(styles.worldTitle, "font-display text-xl font-bold")}

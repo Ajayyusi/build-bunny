@@ -1,5 +1,6 @@
 import "server-only";
 
+import type { LearningTrack } from "@prisma/client";
 import { z } from "zod";
 
 import { db } from "@/lib/db";
@@ -16,6 +17,9 @@ import {
   type WorldStory,
 } from "@/modules/curriculum/schemas";
 
+import { EXPLORE_SLUGS } from "@/modules/explore/catalog";
+
+
 /**
  * Unlock/progress engine + adventure state (plan §M2, pinned cross-agent
  * interface — the map UI consumes these shapes verbatim, the seed calls
@@ -30,6 +34,9 @@ import {
  *    reachable at all (world published + in the student's program), skipping
  *    both the previous-module and previous-world gates. unlockSource "OPEN"
  *    records this on the resulting progress rows.
+ *  - Explore AI levels (modules/explore/catalog.ts) unlock at once, wherever
+ *    they sit — unlockSource "EXPLORE". They are the product's no-coding
+ *    front door to AI (redesign brief 2026-09-25).
  *  - World gate (TIGHTENED, owner-approved M3 change): first program world,
  *    or ALL published levels of the previous non-horizon world COMPLETED —
  *    or the child already played in this world (started/finished a level),
@@ -46,6 +53,8 @@ export interface AdventureLevelNode {
   title: LocalizedText;
   order: number;
   activityType: string;
+  /** Coding or AI: the map labels each world by what its levels teach. */
+  track: LearningTrack;
   difficulty: string;
   estimatedMinutes: number;
   maxStars: number;
@@ -74,6 +83,12 @@ export interface AdventureWorldNode {
   character: WorldCharacter | null;
   power: WorldPower | null;
   state: "LOCKED" | "AVAILABLE" | "CURRENT" | "COMPLETED" | "HORIZON";
+  /**
+   * What the world teaches: "ai" when most of its levels are AI or machine
+   * learning, otherwise "coding". The redesign brief asks that a child can
+   * tell the two routes apart at a glance.
+   */
+  kind: "ai" | "coding";
   completedLevels: number;
   totalLevels: number;
   starsEarned: number;
@@ -216,6 +231,7 @@ interface LoadedLevel {
   slug: string;
   order: number;
   activityType: string;
+  track: LearningTrack;
   difficulty: string;
   estimatedMinutes: number;
   maxStars: number;
@@ -284,6 +300,7 @@ async function loadProgramContent(programId: string): Promise<LoadedWorld[]> {
                   slug: true,
                   order: true,
                   activityType: true,
+                  track: true,
                   difficulty: true,
                   estimatedMinutes: true,
                   recommendedGradeMin: true,
@@ -322,6 +339,7 @@ async function loadProgramContent(programId: string): Promise<LoadedWorld[]> {
             slug: level.slug,
             order: level.order,
             activityType: level.activityType,
+            track: level.track,
             difficulty: level.difficulty,
             estimatedMinutes: level.estimatedMinutes,
             maxStars: level.maxStars,
@@ -415,6 +433,7 @@ export async function computeAdventureState(ctx: SessionContext): Promise<Advent
             title: text.title,
             order: level.order,
             activityType: level.activityType,
+            track: level.track,
             difficulty: level.difficulty,
             estimatedMinutes: level.estimatedMinutes,
             maxStars: level.maxStars,
@@ -463,6 +482,7 @@ export async function computeAdventureState(ctx: SessionContext): Promise<Advent
       character: parseOrNull(worldCharacterSchema, world.character),
       power: parseOrNull(worldPowerSchema, world.power),
       state,
+      kind: worldKind(levelNodes),
       completedLevels,
       totalLevels,
       starsEarned,
@@ -711,8 +731,14 @@ async function recomputeUnlocksFor(
 
   const toCreate: Array<{
     levelId: string;
-    unlockSource: "ORDER" | "PREREQUISITE" | "OPEN";
+    unlockSource: "ORDER" | "PREREQUISITE" | "OPEN" | "EXPLORE";
   }> = [];
+  // A level the child has actually played (started or finished), not one
+  // that is merely unlocked.
+  const played = (levelId: string): boolean => {
+    const status = progress.get(levelId)?.status;
+    return status === "IN_PROGRESS" || status === "COMPLETED";
+  };
 
   let isFirstRealWorld = true;
   let previousRealWorldCompleted = false;
@@ -720,7 +746,13 @@ async function recomputeUnlocksFor(
   for (const world of worlds) {
     if (world.horizon) continue; // roadmap art — nothing to unlock, ever
 
-    const worldAvailable = isFirstRealWorld || previousRealWorldCompleted;
+    // The same world gate the map shows (computeAdventureState): a world the
+    // child has already played in stays open. Without this, new levels in an
+    // earlier world made it "incomplete" again, and a child halfway through
+    // a later world stopped getting their next level — the map said the
+    // world was open, but nothing new unlocked in it.
+    const reached = world.modules.some((m) => m.levels.some((l) => played(l.id)));
+    const worldAvailable = isFirstRealWorld || previousRealWorldCompleted || reached;
     isFirstRealWorld = false;
 
     let previousModuleAllComplete = false;
@@ -733,27 +765,29 @@ async function recomputeUnlocksFor(
       const moduleUnlocked =
         openModule || (worldAvailable && (moduleIndex === 0 || previousModuleAllComplete));
 
-      if (moduleUnlocked) {
-        for (const [levelIndex, level] of mod.levels.entries()) {
-          // Existing rows are never touched — no downgrade, no removal.
-          if (progress.has(level.id)) continue;
-          if (level.prereqIds.length > 0) {
-            // Explicit AND-edges override linear order (and OPEN) for this level.
-            if (level.prereqIds.every(isCompleted)) {
-              toCreate.push({ levelId: level.id, unlockSource: "PREREQUISITE" });
-            }
-          } else if (openModule) {
-            // Every level in an OPEN module unlocks at once — there is no
-            // linear order to respect inside it.
-            toCreate.push({ levelId: level.id, unlockSource: "OPEN" });
-          } else if (
-            levelIndex === 0 ||
-            isCompleted(mod.levels[levelIndex - 1]!.id)
-          ) {
-            // Linear order runs over PUBLISHED levels only — draft/archived
-            // levels between two published ones never block the chain.
-            toCreate.push({ levelId: level.id, unlockSource: "ORDER" });
+      for (const [levelIndex, level] of mod.levels.entries()) {
+        // Existing rows are never touched — no downgrade, no removal.
+        if (progress.has(level.id)) continue;
+        // Explore AI levels open from day one, wherever they sit on the
+        // trail: no coding first, no earlier world, no prerequisite.
+        if (EXPLORE_SLUGS.has(level.slug)) {
+          toCreate.push({ levelId: level.id, unlockSource: "EXPLORE" });
+          continue;
+        }
+        if (!moduleUnlocked) continue;
+        if (level.prereqIds.length > 0) {
+          // Explicit AND-edges override linear order (and OPEN) for this level.
+          if (level.prereqIds.every(isCompleted)) {
+            toCreate.push({ levelId: level.id, unlockSource: "PREREQUISITE" });
           }
+        } else if (openModule) {
+          // Every level in an OPEN module unlocks at once — there is no
+          // linear order to respect inside it.
+          toCreate.push({ levelId: level.id, unlockSource: "OPEN" });
+        } else if (levelIndex === 0 || isCompleted(mod.levels[levelIndex - 1]!.id)) {
+          // Linear order runs over PUBLISHED levels only — draft/archived
+          // levels between two published ones never block the chain.
+          toCreate.push({ levelId: level.id, unlockSource: "ORDER" });
         }
       }
 
@@ -780,6 +814,12 @@ async function recomputeUnlocksFor(
       skipDuplicates: true,
     });
   }
+}
+
+/** "ai" when most of a world's levels teach AI or machine learning. */
+function worldKind(levels: ReadonlyArray<{ track: LearningTrack }>): "ai" | "coding" {
+  const ai = levels.filter((level) => level.track !== "PROGRAMMING").length;
+  return levels.length > 0 && ai * 2 > levels.length ? "ai" : "coding";
 }
 
 /**
