@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 
 import { ReadAloudButton } from "@/modules/audio/AudioControls";
 import { useNarrateOnShow } from "@/modules/audio/scene";
-import type { BlockPlace, NextStep } from "@/modules/hints/types";
+import type { BlockPlace, NextStep, RuleRoundButton } from "@/modules/hints/types";
 import { BunnyMascot, Button, Dialog, cn } from "@/ui";
 
 import type { NextStepAction, NextStepStateInput } from "../../types";
@@ -31,6 +31,9 @@ export interface NextStepNames {
   image?: (id: string) => string;
   /** Plain words for a spot on a feature board (plantFlag). */
   spot?: (size: number, color: number) => string;
+  /** Rule or Examples?: a rule card's words, and a rule-round button's label. */
+  rule?: (id: string) => string;
+  button?: (button: RuleRoundButton) => string;
 }
 
 export function useNextStepText() {
@@ -88,6 +91,13 @@ export function useNextStepText() {
         return t("takeBack", { specimen: name(names.specimen, step.specimenId) });
       case "keepForTesting":
         return t("keepForTesting", { specimen: name(names.specimen, step.specimenId) });
+      case "tryRule":
+        return t("tryRule", {
+          rule: name(names.rule, step.ruleId),
+          button: names.button ? names.button("testRule") : "testRule",
+        });
+      case "pressButton":
+        return t("pressButton", { button: names.button ? names.button(step.button) : step.button });
       case "plantFlag":
         return t("plantFlag", { spot: names.spot ? names.spot(step.size, step.color) : `${step.size}, ${step.color}` });
       case "liftFlag":

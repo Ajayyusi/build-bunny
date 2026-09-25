@@ -320,7 +320,7 @@ export const specimenSchema = z
 const aiThemeSchema = z
   .object({
     /** Which glyph vocabulary — see src/modules/ai/glyph.ts. */
-    glyph: z.enum(["berry", "grain", "cell", "blip", "crab"]).default("berry"),
+    glyph: z.enum(["berry", "grain", "cell", "blip", "crab", "namedBerry"]).default("berry"),
     /** What the two measurements are CALLED in this world. */
     featureNames: z.object({ size: localizedText, color: localizedText }),
     /** The two outcomes, as a glyph a child reads before the words. */
@@ -394,6 +394,39 @@ const classificationRule = z.union([
     .strict(),
 ]);
 export type ClassificationRule = z.infer<typeof classificationRule>;
+
+/**
+ * The "rule or examples?" round (redesign brief 2026-09-25): before teaching
+ * by example, the child tries writing a RULE — one feature, one side of a
+ * line — checks it fits yesterday's berries, then watches it meet today's
+ * new ones. Nothing here is graded and nothing is answer-bearing: the round
+ * has its own specimens, never the level's hidden testSet, so its truths
+ * ship on purpose (the point is to SEE where the rule breaks).
+ */
+export const ruleRoundSchema = z
+  .object({
+    rules: z
+      .array(
+        z
+          .object({
+            id: z.string().regex(/^[a-z0-9-]+$/),
+            feature: z.enum(["size", "color"]),
+            /** The rule calls a specimen positive when the feature is below / at-or-above the threshold. */
+            positiveWhen: z.enum(["below", "above"]),
+            threshold: z.number().min(0).max(1),
+            label: localizedText,
+          })
+          .strict(),
+      )
+      .min(2)
+      .max(4),
+    /** What the rule is written from: it must fit all of these. */
+    yesterday: z.array(specimenSchema.extend({ truth: z.enum(["positive", "negative"]) })).min(4),
+    /** What changed: the rule is tried on these and gets some wrong. */
+    today: z.array(specimenSchema.extend({ truth: z.enum(["positive", "negative"]) })).min(2),
+  })
+  .strict();
+export type RuleRound = z.infer<typeof ruleRoundSchema>;
 
 /** See `passRule` on aiClassificationPayload. Shared with the student mirror. */
 const classificationPassRule = z
@@ -485,6 +518,8 @@ export const aiClassificationPayload = z
     passRule: classificationPassRule,
     /** 3-star budget lives in threeStarMaxBlocks — here, examples used. */
     starCriteria: starCriteriaSchema.default({}),
+    /** Optional "rule or examples?" warm-up — see ruleRoundSchema. */
+    ruleRound: ruleRoundSchema.optional(),
   })
   .strict();
 
@@ -514,6 +549,8 @@ export const aiClassificationStudentPayload = z
     holdout: z.object({ min: z.number().int().min(2).max(8) }).strict().optional(),
     passRule: classificationPassRule,
     starCriteria: starCriteriaSchema.default({}),
+    /** Ships as is: its own specimens, never the graded testSet. */
+    ruleRound: ruleRoundSchema.optional(),
     // `rule` is deliberately absent, and .strict() is what enforces that.
   })
   .strict();

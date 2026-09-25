@@ -63,6 +63,14 @@ export const GLYPH_THEMES = {
    * without touching the green/yellow band.
    */
   crab: { shape: "shell", hueFrom: 20, hueSpan: -60, pxMin: 26, pxMax: 52 },
+  /**
+   * Berries a child names by colour (AI Island, "Rule or Examples?"): the
+   * rule cards say "blue" and the story says "purple", so the ramp has to
+   * look like those words. 220° blue → 290° purple → 360° red; the berry
+   * ramp starts at violet, which children called purple, and its middle
+   * came out hot pink. Still clear of the green/yellow band.
+   */
+  namedBerry: { shape: "circle", hueFrom: 220, hueSpan: 140, pxMin: 26, pxMax: 52 },
 } satisfies Record<string, GlyphTheme>;
 
 export type GlyphThemeName = keyof typeof GLYPH_THEMES;

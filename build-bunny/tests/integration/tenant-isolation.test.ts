@@ -602,6 +602,20 @@ async function assertQueryIsolated(entry: RegistryEntry): Promise<void> {
       expectNoForeignIds(await query(teacherCtxA, A.classId), name);
       break;
     }
+    case "getClassAiIdeas": {
+      // Same access rule as the matrix: a foreign class (another school, or
+      // another teacher's class in the same school) is null, never totals.
+      expect(await query(teacherCtxA, B.classId)).toBeNull();
+      expect(await query(teacherCtxB, classTwoBId)).toBeNull();
+      expectNoForeignIds(await query(teacherCtxA, A.classId), name);
+      break;
+    }
+    case "getExploreState": {
+      // A child's own cards only; staff get nothing.
+      expect(await query(teacherCtxA)).toMatchObject({ cards: [], followUp: null });
+      expectNoForeignIds(await query(studentCtxA), name);
+      break;
+    }
     case "getClassMisconceptions": {
       // Same access rule as the hardest-levels list beside it: a foreign
       // class is unreachable and an empty list is the only safe answer.

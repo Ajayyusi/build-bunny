@@ -2,6 +2,7 @@ import "server-only";
 
 import {
   getAttemptReplay,
+  getClassAiIdeas,
   getClassHardestLevels,
   getClassMatrix,
   getClassMisconceptions,
@@ -24,6 +25,7 @@ import { getSchoolAnalytics } from "./school";
  */
 export {
   getAttemptReplay,
+  getClassAiIdeas,
   getClassHardestLevels,
   getClassMatrix,
   getClassMisconceptions,
@@ -39,6 +41,7 @@ export const tenantScopedQueries = {
   getClassHardestLevels,
   getClassMisconceptions,
   getClassReflections,
+  getClassAiIdeas,
   getTeacherOverview,
   getStudentDetail,
   getAttemptReplay,

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { bundle } from "../../content";
 import type { GridVariantSpec } from "@/engine";
+import { fittingRules, type KnownSpecimen, type RuleCard } from "@/modules/ai/rule-round";
 import { emptyDesign } from "@/modules/activities/maze";
 import { getActivityEngine } from "@/modules/activities/server/registry";
 import { parseAttemptBody } from "@/modules/grading/server/attempt-body";
@@ -237,7 +238,7 @@ function snapshotOf(level: (typeof levels)[number]): LevelSnapshot {
 }
 
 describe("following 'Show me the next step' finishes every level, through the route's body parse", () => {
-  it("covers all 100 levels", () => expect(levels).toHaveLength(100));
+  it("covers all 101 levels", () => expect(levels).toHaveLength(101));
 
   for (const level of levels) {
     it(`${level.slug} (${level.activityType})`, () => {
@@ -247,6 +248,7 @@ describe("following 'Show me the next step' finishes every level, through the ro
         startWorkspace?: unknown;
         pool?: { id: string; size: number; color: number }[];
         holdout?: unknown;
+        ruleRound?: { rules: RuleCard[]; yesterday: KnownSpecimen[] };
       };
       let picked = "";
       const path: { sceneId: string; choiceId: string }[] = [];
@@ -279,6 +281,8 @@ describe("following 'Show me the next step' finishes every level, through the ro
       } else if (type === "AI_CLASSIFICATION") {
         state.examples = [];
         state.held = [];
+        // Rule or Examples?: the player starts in the rule round.
+        if (payload.ruleRound) state.rule = { stage: "pick", chosen: null, tested: null };
         finalAnswer = () => ({
           examples: state.examples!.map((e) => {
             const s = payload.pool!.find((x) => x.id === e.id)!;
@@ -356,6 +360,27 @@ describe("following 'Show me the next step' finishes every level, through the ro
           case "keepForTesting":
             state.held = [...state.held!, step.specimenId];
             break;
+          case "tryRule":
+            // Only a card that exists on screen can be tapped.
+            if (!payload.ruleRound!.rules.some((r) => r.id === step.ruleId)) throw new Error("unfollowable: no such rule card");
+            state.rule = { ...state.rule!, chosen: step.ruleId };
+            break;
+          case "pressButton": {
+            const rule = state.rule!;
+            if (step.button === "testRule") {
+              if (!rule.chosen) throw new Error("unfollowable: Test the rule is disabled with no card picked");
+              state.rule = { ...rule, tested: rule.chosen };
+            } else if (step.button === "seeToday") {
+              // The button only appears once the picked rule was tested and fits.
+              const fits = fittingRules(payload.ruleRound!.rules, payload.ruleRound!.yesterday).map((r) => r.id);
+              if (rule.tested !== rule.chosen || !fits.includes(rule.chosen ?? "")) throw new Error("unfollowable: See today's isn't on screen");
+              state.rule = { ...rule, stage: "today" };
+            } else {
+              if (rule.stage !== "today") throw new Error("unfollowable: Teach instead isn't on screen");
+              state.rule = { ...rule, stage: "done" };
+            }
+            break;
+          }
           case "plantFlag":
             state.markers = [...state.markers!, { size: step.size, color: step.color }];
             break;

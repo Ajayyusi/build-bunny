@@ -10,11 +10,14 @@ import {
 } from "@/modules/learning/server/adventure";
 import { recommendWarmUp } from "@/modules/learning/server/recommend";
 import { listMyStudentAssignments } from "@/modules/assignments/server/queries";
+import { getExploreState } from "@/modules/explore/server/queries";
 import { isFeatureEnabled } from "@/modules/shared/features";
 import { getMyFeedback, getMyStudentSnapshot } from "@/modules/students/server/queries";
 import { BunnyMascot, CountUp, EmptyState, createDateFormat } from "@/ui";
 
 import { themeEmoji } from "../adventure/_components/theme";
+import { ExploreTile } from "../explore/_components/ExploreTile";
+import { toTile } from "../explore/_components/to-tiles";
 import { AssignmentsCard } from "./_components/AssignmentsCard";
 import { FeedbackInbox } from "./_components/FeedbackInbox";
 import { Onboarding } from "./_components/Onboarding";
@@ -28,11 +31,13 @@ export default async function StudentHomePage({ params }: Props) {
   const { locale } = await params;
   setRequestLocale(locale);
   const ctx = await requireRole("STUDENT");
-  const [snapshot, assignments, feedback, t] = await Promise.all([
+  const [snapshot, assignments, feedback, t, tKind, tExplore] = await Promise.all([
     getMyStudentSnapshot(ctx),
     listMyStudentAssignments(ctx),
     getMyFeedback(ctx),
     getTranslations("student.home"),
+    getTranslations("student.adventure.kind"),
+    getTranslations("student.explore"),
   ]);
   const feedbackDate = createDateFormat(locale, { dateStyle: "medium" });
   const displayName = snapshot?.user.displayName ?? ctx.displayName;
@@ -71,6 +76,8 @@ export default async function StudentHomePage({ params }: Props) {
   // A warm-up is offered only when observable signals say the child is stuck
   // on the current level (failed runs + hints); it never replaces the level.
   const warmUp = state ? await recommendWarmUp(ctx, state) : null;
+  // Explore AI reuses the adventure state already computed above.
+  const explore = state ? await getExploreState(ctx, state) : null;
 
   const worldCards: WorldCardVM[] = playableWorlds.map(
     (w: AdventureWorldNode) => ({
@@ -81,6 +88,7 @@ export default async function StudentHomePage({ params }: Props) {
       completedLevels: w.completedLevels,
       totalLevels: w.totalLevels,
       locked: w.state === "LOCKED",
+      kind: w.kind,
     }),
   );
 
@@ -262,6 +270,33 @@ export default async function StudentHomePage({ params }: Props) {
         </div>
       </div>
 
+      {/* ── Explore AI: hands-on AI from the first session, no coding
+          first (redesign brief 2026-09-25). One tap from Home. ──────── */}
+      {explore && explore.cards.length > 0 ? (
+        <section aria-labelledby="home-explore" className="flex flex-col gap-3">
+          <div className="flex flex-wrap items-end justify-between gap-2">
+            <div className="flex flex-col gap-0.5">
+              <h2 id="home-explore" className="font-display text-lg font-bold text-ink">
+                <span aria-hidden="true">🧠 </span>
+                {tExplore("homeTitle")}
+              </h2>
+              <p className="text-sm text-ink-muted">{tExplore("homeBody")}</p>
+            </div>
+            <Link
+              href="/explore"
+              className="inline-flex h-11 items-center rounded-lg px-3 text-sm font-semibold text-brand underline-offset-4 hover:underline"
+            >
+              {tExplore("homeSeeAll")}
+            </Link>
+          </div>
+          <ul className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            {explore.cards.map((card, index) => (
+              <ExploreTile key={card.slug} tile={toTile(card, tExplore, locale)} index={index} compact />
+            ))}
+          </ul>
+        </section>
+      ) : null}
+
       {/* ── Row 2: the roadmap grid ───────────────────────────────────── */}
       {adventureEnabled && worldCards.length > 0 ? (
         <section className="flex flex-col gap-3">
@@ -286,6 +321,7 @@ export default async function StudentHomePage({ params }: Props) {
                 index={i}
                 levelsLabel={t("worldChapters", { count: world.totalLevels })}
                 lockedLabel={t("worldLocked")}
+                kindLabel={tKind(world.kind)}
                 progressSr={t("worldProgressSr", {
                   done: world.completedLevels,
                   total: world.totalLevels,

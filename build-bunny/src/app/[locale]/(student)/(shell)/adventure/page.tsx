@@ -127,6 +127,7 @@ function toTrailWorld(
     name: resolveText(world.name, locale),
     tagline: world.tagline ? resolveText(world.tagline, locale) : null,
     state: world.state === "HORIZON" ? "LOCKED" : world.state,
+    kind: world.kind,
     completedLevels: world.completedLevels,
     totalLevels: world.totalLevels,
     starsEarned: world.starsEarned,

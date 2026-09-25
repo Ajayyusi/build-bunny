@@ -68,6 +68,17 @@ export interface ActivityIntro {
    * holds the version the mirror was based on.
    */
   draftVersion?: string | null;
+  /**
+   * Explore AI (redesign brief 2026-09-25): whether this level is one of the
+   * hub's activities, and its one-tap "explain it" check, if it has one.
+   */
+  explore?: ExploreLevelContext;
+}
+
+export interface ExploreLevelContext {
+  /** Offer "More AI to explore" on the success card. */
+  isExplore: boolean;
+  check: { concept: string; answeredCorrectly: boolean } | null;
 }
 
 // ── Per-type student-facing payloads (answer-free by construction) ────────
@@ -271,6 +282,14 @@ export interface TeachActivityPayload {
     | { kind: "allCorrect" }
     | { kind: "safetyFirst"; neverMisclassify: "positive" | "negative"; maxOtherErrors: number };
   starCriteria: { threeStarMaxBlocks?: number };
+  /** "Rule or examples?" warm-up, localized; never the graded testSet. */
+  ruleRound?: TeachRuleRound;
+}
+
+export interface TeachRuleRound {
+  rules: { id: string; feature: "size" | "color"; positiveWhen: "below" | "above"; threshold: number; label: string }[];
+  yesterday: { id: string; size: number; color: number; truth: "positive" | "negative" }[];
+  today: { id: string; size: number; color: number; truth: "positive" | "negative" }[];
 }
 
 /** Answer-free slice of a PATTERN_RECOGNITION payload (`groundTruth` removed). */

@@ -18,6 +18,8 @@ import {
 } from "@/ui";
 
 import styles from "./player.module.css";
+import { ConceptCheckRow } from "./ConceptCheckRow";
+import { useLevelContext } from "./level-context";
 import { ReflectionRow } from "./ReflectionRow";
 import { resolveLocalized } from "../../types";
 
@@ -98,6 +100,7 @@ export function SuccessOverlay({
 }: SuccessOverlayProps) {
   const t = useTranslations("student.play.success");
   const locale = useLocale();
+  const level = useLevelContext();
   const { play } = useSound();
   const [stage, setStage] = useState<"burst" | "card">(
     reducedMotion ? "card" : "burst",
@@ -259,6 +262,10 @@ export function SuccessOverlay({
             moral before they can see the thing it is about. */}
         {extra}
 
+        {/* Asked before the explanation: the child reasons from what they
+            just did, then reads why. */}
+        <ConceptCheckRow ready={!saving && !saveFailed} />
+
         {explanation ? (
           <div className="flex flex-col gap-1 rounded-lg bg-surface-sunken p-4">
             <div className="flex items-center justify-between gap-2">
@@ -369,6 +376,15 @@ export function SuccessOverlay({
               <span aria-hidden="true">↺</span>
               {t("replay", { stars: maxStars })}
             </button>
+          ) : null}
+          {level?.explore?.isExplore ? (
+            <Link
+              href="/explore"
+              className="inline-flex h-11 items-center justify-center gap-2 rounded-lg border border-border-token bg-surface-raised px-5 text-base font-semibold text-ink transition-colors hover:bg-surface-sunken"
+            >
+              <span aria-hidden="true">🧠</span>
+              {t("moreAi")}
+            </Link>
           ) : null}
           <Link
             href="/adventure"

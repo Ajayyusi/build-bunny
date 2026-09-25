@@ -16,6 +16,7 @@ import {
   HomeIcon,
   PathIcon,
   ProfileIcon,
+  SparkIcon,
   TrophyIcon,
 } from "./_components/icons";
 import { SidebarNavItem } from "./_components/SidebarNav";
@@ -95,9 +96,16 @@ export default async function StudentShellLayout({ children, params }: Props) {
           {t("nav.home")}
         </SidebarNavItem>
         {adventureEnabled ? (
-          <SidebarNavItem href="/adventure" icon={<PathIcon />}>
-            {t("nav.adventure")}
-          </SidebarNavItem>
+          <>
+            {/* AI first, coding beside it: the two routes are named apart
+                (redesign brief 2026-09-25). */}
+            <SidebarNavItem href="/explore" icon={<SparkIcon />}>
+              {t("nav.explore")}
+            </SidebarNavItem>
+            <SidebarNavItem href="/adventure" icon={<PathIcon />}>
+              {t("nav.adventure")}
+            </SidebarNavItem>
+          </>
         ) : null}
         <SidebarNavItem href="/achievements" icon={<TrophyIcon />}>
           {t("nav.achievements")}

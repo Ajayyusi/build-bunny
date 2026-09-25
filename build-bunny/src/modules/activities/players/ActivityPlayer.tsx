@@ -31,7 +31,7 @@ export function ActivityPlayer({ activityType, ...props }: Props) {
     <>
       {/* Each world has its own tune while its levels are being played. */}
       <WorldMusic theme={props.intro.worldTheme} />
-      <LevelContext.Provider value={{ levelId: props.intro.levelId }}>
+      <LevelContext.Provider value={{ levelId: props.intro.levelId, explore: props.intro.explore }}>
         <Player {...props} />
       </LevelContext.Provider>
     </>

@@ -51,6 +51,7 @@ let draftId: string;
 let archivedId: string;
 let horizonLevelId: string;
 let m2Id: string;
+let m3Id: string;
 
 beforeAll(async () => {
   await wipeDatabase();
@@ -115,6 +116,7 @@ beforeAll(async () => {
   archivedId = archived.id;
   horizonLevelId = lh.id;
   m2Id = m2.id;
+  m3Id = m3.id;
 
   await enableProgramForSchool(schoolId, program.id);
 });
@@ -536,5 +538,92 @@ describe("new content never re-locks a world a child already reached", () => {
     // A child who never reached world 2 still meets the normal gate.
     const fresh = await computeAdventureState(freshCtx);
     expect(world(fresh, w2Id).state).toBe("LOCKED");
+  });
+
+  it("…and the child still gets their NEXT level in that world, not just an open-looking card", async () => {
+    // World 1 is still incomplete (the new level above). Before this rule the
+    // map read world 2 as open, but finishing a level there unlocked nothing:
+    // the engine's own gate still said world 2 was closed.
+    const next = await createTestLevel(m3Id, 2, { title: "Level Seven" });
+    await recomputeUnlocks(studentId);
+    const rows = await progressRows();
+    expect(rows.get(next.id)).toMatchObject({ status: "UNLOCKED", unlockSource: "ORDER" });
+    // A child who never played in world 2 gets nothing there.
+    await recomputeUnlocks(freshCtx.userId);
+    const freshRows = await db.studentProgress.findMany({ where: { studentUserId: freshCtx.userId, levelId: next.id } });
+    expect(freshRows).toEqual([]);
+  });
+});
+
+describe("Explore AI levels open from day one", () => {
+  let exploreStudentId: string;
+  let exploreCtx: SessionContext;
+  let sorterId: string;
+  let firstInWorldTwoId: string;
+  let codingId: string;
+  let horizonSorterId: string;
+
+  beforeAll(async () => {
+    const school = await createTestSchool("Explore");
+    const student = await createStudent(SYSTEM_ACTOR, {
+      schoolId: school.id,
+      schoolCode: school.code,
+      username: "explorer",
+      displayName: "Explore Tester",
+      studentIdentifier: "EXPLORE-001",
+      grade: 3,
+    });
+    exploreStudentId = student.userId;
+    exploreCtx = createCtx({ userId: exploreStudentId, role: "STUDENT", schoolId: school.id });
+
+    const program = await createTestProgram({ name: "Explore Program" });
+    const coding = await addWorldToProgram(program.id, 1, { name: "Coding World" });
+    const ai = await addWorldToProgram(program.id, 2, { name: "AI World" });
+    const later = await addWorldToProgram(program.id, 3, { name: "Roadmap", horizon: true });
+    const mCoding = await createTestModule(coding.id, 1);
+    const mAi = await createTestModule(ai.id, 1);
+    const mLater = await createTestModule(later.id, 1);
+    codingId = (await createTestLevel(mCoding.id, 1, { title: "First Hop" })).id;
+    firstInWorldTwoId = (await createTestLevel(mAi.id, 1, { title: "Before the Sorter" })).id;
+    await createTestLevel(mAi.id, 2, { title: "Also Before" });
+    // Third in its module, in a world gated behind the coding world: the
+    // normal rules would keep it shut for a long time.
+    const sorter = await createTestLevel(mAi.id, 3, { title: "Teach the Bunny" });
+    await db.level.update({ where: { id: sorter.id }, data: { slug: "berry-sorter" } });
+    sorterId = sorter.id;
+    const horizonSorter = await createTestLevel(mLater.id, 1, { title: "Roadmap Sorter" });
+    await db.level.update({ where: { id: horizonSorter.id }, data: { slug: "fortune-teller" } });
+    horizonSorterId = horizonSorter.id;
+    await enableProgramForSchool(school.id, program.id);
+  });
+
+  it("a brand-new child can open an Explore AI level with no coding before it", async () => {
+    await recomputeUnlocks(exploreStudentId);
+    const rows = await db.studentProgress.findMany({
+      where: { studentUserId: exploreStudentId },
+      select: { levelId: true, status: true, unlockSource: true },
+    });
+    const byLevel = new Map(rows.map((row) => [row.levelId, row]));
+    expect(byLevel.get(sorterId)).toMatchObject({ status: "UNLOCKED", unlockSource: "EXPLORE" });
+    expect(byLevel.get(codingId)).toMatchObject({ status: "UNLOCKED", unlockSource: "ORDER" });
+    // The levels around it keep their normal gate…
+    expect(byLevel.has(firstInWorldTwoId)).toBe(false);
+    // …and a horizon world stays roadmap art, whatever its levels are called.
+    expect(byLevel.has(horizonSorterId)).toBe(false);
+    const state = await computeAdventureState(exploreCtx);
+    const node = state.worlds.flatMap((w) => w.modules.flatMap((m) => m.levels)).find((l) => l.id === sorterId);
+    expect(node?.state).toBe("UNLOCKED");
+  });
+
+  it("playing it opens the rest of that world's trail from the start", async () => {
+    await db.studentProgress.update({
+      where: { studentUserId_levelId: { studentUserId: exploreStudentId, levelId: sorterId } },
+      data: { status: "COMPLETED", stars: 2, firstCompletedAt: new Date() },
+    });
+    await recomputeUnlocks(exploreStudentId);
+    const first = await db.studentProgress.findUnique({
+      where: { studentUserId_levelId: { studentUserId: exploreStudentId, levelId: firstInWorldTwoId } },
+    });
+    expect(first).toMatchObject({ status: "UNLOCKED", unlockSource: "ORDER" });
   });
 });
