@@ -25,6 +25,9 @@ export interface ActivityNextLevel {
 }
 
 /** Fields every activity type's player needs, regardless of engine. */
+import type { LessonKind } from "@/modules/explore/catalog";
+import type { AiMode } from "@/modules/students/ai-mode";
+
 export interface ActivityIntro {
   levelId: string;
   /**
@@ -40,6 +43,10 @@ export interface ActivityIntro {
   explanation: string;
   /** One sentence shown first on the result; "" when the level has none. */
   keyIdea: string;
+  /** AI lesson, digital citizenship or coding (a chip on AI levels). */
+  lessonKind?: LessonKind;
+  /** Grade range mode for AI activities: younger (3-4) or older (5-7). */
+  aiMode?: AiMode;
   difficulty: string;
   estimatedMinutes: number;
   maxStars: number;
@@ -242,6 +249,7 @@ export interface NextStepStateInput {
   excluded?: string[];
   sceneId?: string | null;
   predicting?: boolean;
+  marks?: Record<string, string>;
   line?: { slope: number; intercept: number };
   phase?: "fit" | "compare" | "predict" | "revealed";
   prediction?: number | null;
@@ -295,6 +303,10 @@ export interface TeachActivityPayload {
   predictFirst: boolean;
   /** Results by group: localized group names, and each specimen's group. */
   groups?: { names: Record<string, string>; of: Record<string, string> };
+  /** A taught example's note can be fixed (data-quality repair). */
+  relabel?: boolean;
+  /** AI project report (capstone): the safeguards to choose from. */
+  report?: { safeguards: { id: string; text: string }[] };
 }
 
 export interface TeachRuleRound {

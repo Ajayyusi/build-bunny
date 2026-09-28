@@ -9,6 +9,8 @@ import { Button, cn, useReducedMotion } from "@/ui";
 import { PlayerSoundControls } from "@/modules/audio/AudioControls";
 import { HintDrawer, type HintTierState } from "./shared/HintDrawer";
 import { HonestyNote } from "./shared/HonestyNote";
+import { LessonKindChip } from "./shared/LessonKindChip";
+import { WhatIsThisCalled } from "./shared/WhatIsThisCalled";
 import { RoboHelp, type HelpTopic } from "./shared/RoboHelp";
 import { postAttempt, runIdFor } from "./shared/attempt-outbox";
 import { EthicsScene } from "./shared/EthicsScene";
@@ -327,7 +329,11 @@ export function AiEthicsPlayer({
       {/* ── Content ── */}
       <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6">
         <div className="mx-auto flex max-w-xl flex-col gap-4">
-          <HonestyNote kind="story" />
+          <div className="flex flex-wrap items-start gap-2">
+            {intro.lessonKind ? <LessonKindChip kind={intro.lessonKind} /> : null}
+            <HonestyNote kind="story" />
+            {intro.aiMode === "older" ? <WhatIsThisCalled tags={intro.tags} /> : null}
+          </div>
           {phase === "scene" && scene ? (
             <div className="flex flex-col gap-4 rounded-xl border-2 border-border-token bg-surface-raised p-5">
               {scene.art ? (
@@ -531,6 +537,7 @@ export function AiEthicsPlayer({
           story={intro.story}
           objective={intro.objective}
           instructions={intro.instructions}
+          instructionsCollapsed={intro.aiMode === "younger"}
           difficulty={intro.difficulty}
           estimatedMinutes={intro.estimatedMinutes}
           worldTheme={intro.worldTheme}

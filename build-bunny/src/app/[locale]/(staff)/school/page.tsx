@@ -5,6 +5,7 @@ import { requireRole } from "@/modules/auth/server/session";
 import { getSchoolSummary } from "@/modules/schools/server/queries";
 import { getSchoolAnalytics, type SchoolAnalyticsLevel } from "@/modules/analytics/server/school";
 import { resolveText } from "@/modules/curriculum/schemas";
+import { AI_CONCEPTS } from "@/modules/analytics/ai-concepts";
 import {
   BarList,
   Card,
@@ -15,6 +16,7 @@ import {
   PageHeader,
   StatCard,
   type DataTableColumn,
+  createDateFormat,
 } from "@/ui";
 
 interface Props {
@@ -34,13 +36,14 @@ export default async function SchoolPage({ params }: Props) {
   const { locale } = await params;
   setRequestLocale(locale);
   const ctx = await requireRole("SCHOOL_ADMIN");
-  const [summary, analytics, t, tNav, tAnalytics, tCommon] = await Promise.all([
+  const [summary, analytics, t, tNav, tAnalytics, tCommon, tConcepts] = await Promise.all([
     getSchoolSummary(ctx),
     getSchoolAnalytics(ctx),
     getTranslations("staff.school"),
     getTranslations("staff.school.nav"),
     getTranslations("staff.school.analytics"),
     getTranslations("common"),
+    getTranslations("staff.teach.matrix.aiConcepts"),
   ]);
 
   if (!summary) {
@@ -60,11 +63,20 @@ export default async function SchoolPage({ params }: Props) {
     valueLabel: `${g.completionPct}%`,
   }));
 
+  const classLink = (row: { classId: string; className: string }) => (
+    <Link
+      href={`/teach/classes/${row.classId}`}
+      className="font-medium text-brand underline-offset-4 hover:underline"
+    >
+      {row.className}
+    </Link>
+  );
+
   const classColumns: DataTableColumn<NonNullable<typeof analytics>["byClass"][number]>[] = [
     {
       key: "className",
       header: tAnalytics("columnClass"),
-      cell: (row) => <span className="font-medium">{row.className}</span>,
+      cell: classLink,
     },
     {
       key: "grade",
@@ -101,7 +113,7 @@ export default async function SchoolPage({ params }: Props) {
     {
       key: "className",
       header: tAnalytics("columnClass"),
-      cell: (row) => <span className="font-medium">{row.className}</span>,
+      cell: classLink,
     },
     {
       key: "students",
@@ -116,6 +128,25 @@ export default async function SchoolPage({ params }: Props) {
       align: "end" as const,
     })),
   ];
+
+  const conceptColumns: DataTableColumn<NonNullable<typeof analytics>["aiConceptsByClass"][number]>[] = [
+    { key: "className", header: tAnalytics("columnClass"), cell: classLink },
+    ...AI_CONCEPTS.map((concept) => ({
+      key: concept,
+      header: tConcepts(`name.${concept}`),
+      cell: (row: NonNullable<typeof analytics>["aiConceptsByClass"][number]) =>
+        row.concepts[concept].levels > 0 ? (
+          <span className="tabular-nums">
+            {tAnalytics("ai.secureOf", { secure: row.concepts[concept].secure, students: row.concepts[concept].students })}
+          </span>
+        ) : (
+          <span className="text-ink-faint">—</span>
+        ),
+      align: "end" as const,
+    })),
+  ];
+  const weekFormat = createDateFormat(locale, { day: "numeric", month: "short", timeZone: "UTC" });
+  const weekMax = Math.max(1, ...(analytics?.aiWeekly ?? []).map((w) => Math.max(w.tests, w.starts)));
 
   function levelColumns(showFailRate: boolean): DataTableColumn<SchoolAnalyticsLevel>[] {
     const columns: DataTableColumn<SchoolAnalyticsLevel>[] = [
@@ -204,6 +235,44 @@ export default async function SchoolPage({ params }: Props) {
               emptyMessage={tAnalytics("byClassEmpty")}
             />
             <p className="text-xs text-ink-muted">{tAnalytics("ai.note")}</p>
+          </div>
+
+          {/* Concept trends: secure per concept, by class (same rule as the
+              teacher's class page). */}
+          <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-0.5">
+              <h3 className="font-display text-base font-semibold">{tAnalytics("ai.conceptsHeading")}</h3>
+              <p className="text-sm text-ink-muted">{tConcepts("rule")}</p>
+            </div>
+            <DataTable
+              columns={conceptColumns}
+              rows={analytics.aiConceptsByClass}
+              rowKey={(row) => row.classId}
+              emptyMessage={tAnalytics("byClassEmpty")}
+            />
+          </div>
+
+          {/* Week by week: sessions and tests (bars), retries and completions
+              (numbers). */}
+          <div className="flex flex-col gap-2">
+            <h3 className="font-display text-base font-semibold">{tAnalytics("ai.weeklyHeading")}</h3>
+            <ul className="flex flex-col gap-1.5">
+              {analytics.aiWeekly.map((week) => (
+                <li key={week.weekStart} className="grid grid-cols-[5rem_1fr] items-center gap-3 text-xs sm:grid-cols-[6rem_1fr_16rem]">
+                  <span className="font-semibold text-ink tabular-nums">
+                    {weekFormat.format(new Date(week.weekStart + "T00:00:00Z"))}
+                  </span>
+                  <span aria-hidden="true" className="flex flex-col gap-0.5">
+                    <span className="h-2 rounded-full bg-brand/60" style={{ width: `${(week.starts / weekMax) * 100}%` }} />
+                    <span className="h-2 rounded-full bg-accent" style={{ width: `${(week.tests / weekMax) * 100}%` }} />
+                  </span>
+                  <span className="col-span-2 text-ink-muted tabular-nums sm:col-span-1">
+                    {tAnalytics("ai.weekLine", { ...week })}
+                  </span>
+                </li>
+              ))}
+            </ul>
+            <p className="text-xs text-ink-muted">{tAnalytics("ai.weeklyKey")}</p>
           </div>
 
           <div className="grid gap-4 lg:grid-cols-2">

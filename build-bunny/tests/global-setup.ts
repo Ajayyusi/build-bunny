@@ -2,7 +2,7 @@ import { execSync } from "node:child_process";
 import { createConnection } from "node:net";
 import "dotenv/config";
 
-import EmbeddedPostgres from "embedded-postgres";
+import type EmbeddedPostgres from "embedded-postgres";
 
 /**
  * Runs once per `vitest` invocation, before any worker starts: makes sure a
@@ -58,7 +58,15 @@ export default async function globalSetup(): Promise<(() => Promise<void>) | voi
 
   if (!(await portIsOpen(PORT, HOST))) {
     console.log(`[tests] nothing on ${HOST}:${PORT} — starting embedded PostgreSQL`);
-    embedded = new EmbeddedPostgres({
+    // Imported only here, on purpose. embedded-postgres installs an exit
+    // hook (async-exit-hook) that calls process.exit(0) on beforeExit, which
+    // threw away vitest's failure code: every run exited 0, failing tests
+    // included, so nothing that trusted the exit status (CI, a commit gate)
+    // could see a failure. Keep vitest's code when that hook exits.
+    const { default: Embedded } = await import("embedded-postgres");
+    const exit = process.exit.bind(process);
+    process.exit = ((code?: number | string | null) => exit(code || process.exitCode || 0)) as typeof process.exit;
+    embedded = new Embedded({
       // Gitignored; wiped and rebuilt whenever it is missing.
       databaseDir: "./.embedded-postgres",
       user: USER,

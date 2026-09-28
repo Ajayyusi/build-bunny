@@ -12,7 +12,10 @@ import {
   glyphTheme,
 } from "@/modules/ai/glyph";
 import {
+  closeCall,
+  mistakeKinds,
   nearest,
+  sureness,
   toTrainingExample,
   type ClassLabel,
   type LabelledSpecimen,
@@ -26,6 +29,8 @@ import { TeachPredict } from "./TeachPredict";
 import { TeachRuleRound } from "./TeachRuleRound";
 import { TeachWhatChanged } from "./TeachWhatChanged";
 import { TeachScene } from "./TeachScene";
+import { ProjectReport, type ReportValue } from "./ProjectReport";
+import { caseStatuses } from "@/modules/ai/report";
 
 /**
  * The four beats this activity ships with when a level authors none. They
@@ -39,6 +44,8 @@ import { NextStepHint } from "./shared/NextStepHint";
 import { postAttempt, runIdFor } from "./shared/attempt-outbox";
 import { HintDrawer } from "./shared/HintDrawer";
 import { HonestyNote } from "./shared/HonestyNote";
+import { LessonKindChip } from "./shared/LessonKindChip";
+import { WhatIsThisCalled } from "./shared/WhatIsThisCalled";
 import { RoboHelp, type HelpTopic } from "./shared/RoboHelp";
 import { SuccessOverlay } from "./shared/SuccessOverlay";
 import { useHints } from "./shared/useHints";
@@ -49,6 +56,7 @@ import type { PlayerButton } from "@/modules/hints/types";
 import type { ActivityPlayerProps, AttemptResponse, TeachRuleRound as RuleRound } from "../types";
 import { resolveLocalized } from "../types";
 import { sendPlayEvent } from "./shared/play-events";
+import { ModeInstructions } from "./shared/ModeInstructions";
 
 /**
  * AI_CLASSIFICATION player — "Teach the Bunny".
@@ -106,6 +114,10 @@ interface TeachPayload {
   starCriteria: { threeStarMaxBlocks?: number };
   ruleRound?: RuleRound;
   predictFirst?: boolean;
+  /** A taught example's note can be fixed (data-quality repair). */
+  relabel?: boolean;
+  /** AI project report (capstone): the safeguards to choose from. */
+  report?: { safeguards: { id: string; text: string }[] };
   groups?: { names: Record<string, string>; of: Record<string, string> };
 }
 
@@ -141,9 +153,10 @@ function Berry({
  * than putting a specimen in a bucket that no longer exists.
  */
 function restoreDraft(draft: unknown, data: TeachPayload) {
-  const empty = { assigned: {} as Record<string, ClassLabel>, heldBack: new Set<string>(), ruleDone: false };
+  const noReport: ReportValue = { caseId: null, safeguardId: null };
+  const empty = { assigned: {} as Record<string, ClassLabel>, heldBack: new Set<string>(), ruleDone: false, report: noReport };
   if (draft === null || typeof draft !== "object") return empty;
-  const source = draft as { assigned?: unknown; heldBack?: unknown; ruleDone?: unknown };
+  const source = draft as { assigned?: unknown; heldBack?: unknown; ruleDone?: unknown; report?: unknown };
   const poolIds = new Set(data.pool.map((specimen) => specimen.id));
 
   const assigned: Record<string, ClassLabel> = {};
@@ -164,7 +177,15 @@ function restoreDraft(draft: unknown, data: TeachPayload) {
       }
     }
   }
-  return { assigned, heldBack, ruleDone: source.ruleDone === true };
+  const saved = (source.report ?? {}) as { caseId?: unknown; safeguardId?: unknown };
+  const report: ReportValue = {
+    caseId: typeof saved.caseId === "string" && heldBack.has(saved.caseId) ? saved.caseId : null,
+    safeguardId:
+      typeof saved.safeguardId === "string" && data.report?.safeguards.some((s) => s.id === saved.safeguardId)
+        ? saved.safeguardId
+        : null,
+  };
+  return { assigned, heldBack, ruleDone: source.ruleDone === true, report };
 }
 
 export function TeachPlayer({
@@ -191,6 +212,7 @@ export function TeachPlayer({
     setRoboOpen(true);
   };
   const t = useTranslations("student.play.teach");
+  const tMode = useTranslations("student.play.aiMode");
   const tPlay = useTranslations("student.play");
   const locale = useLocale();
 
@@ -206,6 +228,8 @@ export function TeachPlayer({
   // taught. Kept separate from `assigned` so a specimen physically cannot
   // be in both — moving it to one side removes it from the other.
   const [heldBack, setHeldBack] = useState<Set<string>>(restored.heldBack);
+  // The AI project report (capstone levels): a held-back case and a safeguard.
+  const [report, setReport] = useState<ReportValue>(restored.report);
   // Rule or Examples?: the rule round runs before teaching, once. A child
   // who already finished it (or the level) goes straight to teaching.
   const [ruleStage, setRuleStage] = useState<"pick" | "today" | "done">(
@@ -309,6 +333,17 @@ export function TeachPlayer({
     return { right, total: held.length };
   }, [data.holdout, data.pool, heldBack, examples]);
 
+  // The project report's cases: every held-back specimen, marked the way
+  // the grader will judge it (wrong, close call, least sure, or right).
+  const reportCases = useMemo(() => {
+    if (!data.report) return [];
+    const held = data.pool.filter((s) => heldBack.has(s.id));
+    const statuses = caseStatuses(examples, held);
+    return held
+      .filter((s) => statuses[s.id])
+      .map((s) => ({ id: s.id, truth: s.truth, guess: nearest(examples, s)?.label ?? null, status: statuses[s.id]! }));
+  }, [data.report, data.pool, heldBack, examples]);
+
   // Live guesses. We keep the MATCHED example, not just the label, because
   // "it looks most like this one you taught me" is the only form in which a
   // nearest-neighbour decision is explainable — and without it a wrong guess
@@ -330,13 +365,18 @@ export function TeachPlayer({
     draftTimerRef.current = window.setTimeout(() => {
       void saveDraftAction({
         levelId: intro.levelId,
-        workspaceJson: { assigned, heldBack: [...heldBack], ...(data.ruleRound ? { ruleDone: ruleStage === "done" } : {}) },
+        workspaceJson: {
+          assigned,
+          heldBack: [...heldBack],
+          ...(data.ruleRound ? { ruleDone: ruleStage === "done" } : {}),
+          ...(data.report ? { report } : {}),
+        },
       });
     }, 2000);
     return () => {
       if (draftTimerRef.current !== null) window.clearTimeout(draftTimerRef.current);
     };
-  }, [assigned, heldBack, ruleStage, data.ruleRound, intro.levelId, saveDraftAction]);
+  }, [assigned, heldBack, ruleStage, report, data.ruleRound, data.report, intro.levelId, saveDraftAction]);
 
   const assign = (id: string, label: ClassLabel) => {
     // Frozen only once the bunny has actually got them all right. Freezing
@@ -381,6 +421,17 @@ export function TeachPlayer({
     });
   };
 
+  // Data-quality repair: move a taught example to the other basket — the
+  // child corrects its note rather than only removing it.
+  const fixNote = (id: string) => {
+    if (result?.verdict === "PASS" || !(id in assigned)) return;
+    if (result) setResult(null);
+    if (server) setServer(null);
+    resetPrediction();
+    setAssigned((prev) => ({ ...prev, [id]: prev[id] === "positive" ? "negative" : "positive" }));
+    setHopKey((k) => k + 1);
+  };
+
   const holdBack = (id: string) => {
     if (result?.verdict === "PASS") return;
     resetPrediction();
@@ -413,6 +464,11 @@ export function TeachPlayer({
     const answer = {
       examples: examples.map(toTrainingExample),
       ...(data.holdout ? { checkSet: [...heldBack] } : {}),
+      // A report is sent once both parts are chosen; the grader asks for
+      // one only after the model itself has passed.
+      ...(data.report && report.caseId && report.safeguardId
+        ? { report: { caseId: report.caseId, safeguardId: report.safeguardId } }
+        : {}),
     };
     // Tapping again after a failed save resends the same run.
     const runId = runIdFor(lastRunRef.current, answer);
@@ -491,6 +547,7 @@ export function TeachPlayer({
           held: [...heldBack],
           ...(data.ruleRound ? { rule: { stage: ruleStage, chosen: ruleChosen, tested: ruleTested } } : {}),
           ...(data.predictFirst ? { revealed } : {}),
+          ...(data.report ? { report } : {}),
         })}
         names={{
           specimen: (id) => {
@@ -500,11 +557,14 @@ export function TeachPlayer({
           label: (l) => data.labels[l],
           rule: (id) => data.ruleRound?.rules.find((rule) => rule.id === id)?.label ?? id,
           button: ruleButton,
+          safeguard: (id) => data.report?.safeguards.find((s) => s.id === id)?.text ?? id,
         }}
         onStep={(step) =>
           setPointed(
             "specimenId" in step
               ? step.specimenId
+              : step.code === "reportSafeguard"
+                ? step.safeguardId
               : step.code === "tryRule"
                 ? step.ruleId
                 : step.code === "pressButton"
@@ -586,7 +646,11 @@ export function TeachPlayer({
       {/* ── Board ── */}
       <div className="min-h-0 flex-1 overflow-y-auto">
         <div className="mx-auto flex w-full max-w-5xl flex-col gap-5 p-4 sm:p-6">
-          <HonestyNote kind="tinyClassifier" />
+          <div className="flex flex-wrap items-start gap-2">
+            {intro.lessonKind ? <LessonKindChip kind={intro.lessonKind} /> : null}
+            <HonestyNote kind="tinyClassifier" />
+            {intro.aiMode === "older" ? <WhatIsThisCalled tags={intro.tags} /> : null}
+          </div>
           {/* The bunny hosts its own level: the instructions are its speech,
               and its body answers the child's actions — a hop for every
               example taught, a shake for a wrong verdict. */}
@@ -597,16 +661,20 @@ export function TeachPlayer({
             <span key={bunnyKey} aria-hidden="true" className={cn(bunnyClass, "mt-1")}>
               <BunnyMascot state={failed ? "confused" : "idle"} size="sm" />
             </span>
-            <p
+            <div
               className={cn(
                 styles.bubble,
                 "flex-1 rounded-2xl border border-border-token bg-surface-raised p-3 text-sm leading-relaxed text-ink-muted sm:p-4",
               )}
             >
               {/* The rule round tells yesterday's and today's story; the
-                  teaching board gives the usual instructions. */}
-              {inRuleRound ? intro.story : intro.instructions}
-            </p>
+                  teaching board gives the usual instructions, by mode. */}
+              {inRuleRound ? (
+                intro.story
+              ) : (
+                <ModeInstructions mode={intro.aiMode} mission={intro.objective} instructions={intro.instructions} />
+              )}
+            </div>
           </div>
 
           {inRuleRound && data.ruleRound ? (
@@ -650,7 +718,7 @@ export function TeachPlayer({
               <div className="flex flex-col gap-5">
                 {/* Tray of berries still to teach with */}
                 <section className="flex flex-col gap-3">
-                  <StepHeading n={1} title={tk("trayHeading")} help={t("trayHelp")} />
+                  <StepHeading n={1} title={tk("trayHeading")} help={tk("trayHelp")} />
                   <ul className="flex flex-wrap gap-3">
                     {unassigned.map((s) => (
                       <li
@@ -747,6 +815,21 @@ export function TeachPlayer({
                                 >
                                   <Berry specimen={e} theme={glyph} />
                                 </button>
+                                {data.relabel ? (
+                                  <span className="flex flex-col items-center">
+                                    {data.pool.find((s) => s.id === e.id)?.truth !== e.label ? (
+                                      <span className="text-[10px] font-bold text-ink-muted">{t("noteFixed")}</span>
+                                    ) : null}
+                                    <button
+                                      type="button"
+                                      onClick={() => fixNote(e.id)}
+                                      aria-label={`${t("fixNote")}: ${describe(e)}`}
+                                      className="rounded-md px-1.5 py-0.5 text-[10px] font-bold text-brand underline-offset-2 hover:underline"
+                                    >
+                                      {t("fixNote")}
+                                    </button>
+                                  </span>
+                                ) : null}
                               </li>
                             ))}
                         </ul>
@@ -946,6 +1029,18 @@ export function TeachPlayer({
                           >
                             {guess ? data.labels[guess] : "—"}
                           </span>
+                          {/* "Not sure" is a real answer (handoff: uncertainty):
+                              when both kinds are nearly as near, the robot
+                              says so and asks for an example like this one.
+                              Grades 5-7 also see how sure it is. */}
+                          {match && closeCall(examples, probe) ? (
+                            <span className="shrink-0 rounded-md bg-warning/14 px-1.5 py-0.5 text-[11px] font-bold text-warning-strong">
+                              <span aria-hidden="true">🤔 </span>
+                              {intro.aiMode === "older"
+                                ? tMode("notSureOlder", { sure: Math.round((sureness(examples, probe) ?? 0) * 100) })
+                                : tMode("notSure")}
+                            </span>
+                          ) : null}
                           {data.predictFirst && predictions[probe.id] ? (
                             <span className="shrink-0 text-[11px] font-semibold text-ink-muted">
                               {predictions[probe.id] === guess ? t("predictMatched") : t("predictSurprised")}
@@ -956,6 +1051,32 @@ export function TeachPlayer({
                     </ul>
                   )}
                 </section>
+
+                {data.report && ready && (!data.predictFirst || revealed) ? (
+                  <section className="flex flex-col gap-3 rounded-xl border-2 border-info/40 bg-info/5 p-3 sm:p-4">
+                    <StepHeading n={data.holdout ? 5 : 4} title={t("report.heading")} help={t("report.help")} />
+                    <ProjectReport
+                      cases={reportCases}
+                      labels={data.labels}
+                      safeguards={data.report.safeguards}
+                      value={report}
+                      onChange={(next) => {
+                        setReport(next);
+                        setPointed(null);
+                      }}
+                      renderGlyph={(id) => {
+                        const s = data.pool.find((x) => x.id === id);
+                        return s ? <Berry specimen={s} theme={glyph} /> : null;
+                      }}
+                      describe={(id) => {
+                        const s = data.pool.find((x) => x.id === id);
+                        return s ? describe(s) : id;
+                      }}
+                      pointed={pointed}
+                      disabled={result?.verdict === "PASS"}
+                    />
+                  </section>
+                ) : null}
               </div>
             </div>
 
@@ -991,14 +1112,31 @@ export function TeachPlayer({
                           })
                         : result.code === "needMoreHeldBack"
                           ? t("needMoreHeldBack", { need: data.holdout?.min ?? 0 })
+                    : result.code === "needReport" || result.code === "reportNotAFailure" || result.code === "safeguardNotSafe"
+                      ? t(`report.${result.code}`)
                     : result.code === "tooManyExamples"
                       ? t("tooManyExamples", {
                           used: examples.length,
                           max: data.maxExamples ?? 0,
                         })
-                      : typeof result.correct === "number" && typeof result.total === "number"
-                        ? tk("missed", { correct: result.correct, total: result.total })
-                        : tk("tryAgain")}
+                      : intro.aiMode === "younger"
+                        ? tMode("youngerMissed")
+                        : typeof result.correct === "number" && typeof result.total === "number"
+                          ? tk("missed", { correct: result.correct, total: result.total })
+                          : tk("tryAgain")}
+              </p>
+            ) : null}
+
+            {/* Grades 5 to 7: the two kinds of mistake, not just a count. */}
+            {intro.aiMode === "older" && result && result.verdict !== "PASS" && Array.isArray(result.missed) && result.missed.length > 0 ? (
+              <p className="text-sm text-ink-muted">
+                {(() => {
+                  const kinds = mistakeKinds(
+                    guesses.map((g) => ({ id: g.probe.id, guess: g.guess })),
+                    result.missed,
+                  );
+                  return tMode("deeperErrors", { falseYes: kinds.falseYes, missed: kinds.missedYes, positive: data.labels.positive });
+                })()}
               </p>
             ) : null}
 

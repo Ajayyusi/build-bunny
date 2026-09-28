@@ -9,6 +9,7 @@ import {
   aiClassificationStudentPayload,
   type LevelFixture,
 } from "@/modules/curriculum/schemas";
+import { reportableCases } from "@/modules/ai/report";
 import { fittingRules, ruleMisses } from "@/modules/ai/rule-round";
 import { stripStudentPayload } from "@/modules/curriculum/server/queries";
 import type { LevelSnapshot } from "@/modules/curriculum/server/publish";
@@ -71,7 +72,11 @@ function honestTrainingSets(pool: PoolSpecimen[]) {
  */
 function grade(level: LevelFixture, examples: PoolSpecimen[]) {
   const snapshot = { payload: level.payload } as unknown as LevelSnapshot;
-  const payload = level.payload as { holdout?: { min: number }; pool: PoolSpecimen[] };
+  const payload = level.payload as {
+    holdout?: { min: number };
+    pool: PoolSpecimen[];
+    report?: { safeguards: { id: string; safe: boolean }[] };
+  };
   // Holdout levels demand a student-designed test pile. The honest analogue
   // in a brute-force sweep is "everything I did not teach with, I held
   // back" — which is exactly the maximal legal checkSet for the subset.
@@ -87,7 +92,22 @@ function grade(level: LevelFixture, examples: PoolSpecimen[]) {
       label: truth,
     })),
     ...(checkSet ? { checkSet } : {}),
+    ...(payload.report ? { report: honestReport(payload, examples, checkSet ?? []) } : {}),
   });
+}
+
+/** The project report an honest student hands in: a real failure, a safe safeguard. */
+function honestReport(
+  payload: { pool: PoolSpecimen[]; report?: { safeguards: { id: string; safe: boolean }[] } },
+  examples: PoolSpecimen[],
+  checkSet: string[],
+) {
+  const taught = examples.map(({ id, size, color, truth }) => ({ id, size, color, label: truth }));
+  const held = payload.pool.filter((p) => checkSet.includes(p.id));
+  return {
+    caseId: reportableCases(taught, held)[0] ?? "none",
+    safeguardId: payload.report!.safeguards.find((s) => s.safe)!.id,
+  };
 }
 
 describe.each(aiLevels)("AI level $level.slug ($world)", ({ level }) => {

@@ -61,10 +61,13 @@ const PixelPlayground = dynamic(
   { ssr: false },
 );
 
+const MarkItems = dynamic(() => import("./MarkItems").then((m) => m.MarkItems), { ssr: false });
+
 const AI_SIM_WIDGET_PLAYERS: Record<AiSimWidget, ComponentType<AiSimWidgetPlayerProps>> = {
   "boundary-builder": BoundaryBuilder,
   "trend-line": TrendLine,
   "pixel-playground": PixelPlayground,
+  "mark-items": MarkItems,
 };
 
 export function getAiSimWidgetPlayer(

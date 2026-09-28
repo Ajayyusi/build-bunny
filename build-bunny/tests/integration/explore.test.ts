@@ -32,6 +32,7 @@ let schoolId: string;
 const kids: { id: string; ctx: SessionContext }[] = [];
 let sorterId: string;
 let secondSorterId: string;
+let lyingId: string;
 let bridgeId: string;
 let predictId: string;
 let codingId: string;
@@ -88,6 +89,8 @@ beforeAll(async () => {
   const lines = await createTestModule(data.id, 1);
   await createTestLevel(lines.id, 1, { title: "Before the Line" });
   predictId = await slugged(lines.id, 2, "fortune-teller", "Fortune Teller");
+  // Fourth in its module: normally shut until the three before it are done.
+  lyingId = await slugged(teaching.id, 4, "the-berry-that-lied", "The Berry That Lied");
   await enableProgramForSchool(schoolId, program.id);
 
   for (const [i, name] of ["rana", "sami"].entries()) {
@@ -118,6 +121,8 @@ describe("Explore AI hub", () => {
     expect(state.followUp).toMatchObject({ levelId: secondSorterId, state: "LOCKED" });
     expect(state.followUpAfter).toEqual({ en: "Train a Sorter" });
     expect(state.completed).toBe(0);
+    // The Berry That Lied is open from day one too, listed apart.
+    expect(state.alsoOpen).toEqual([expect.objectContaining({ levelId: lyingId, state: "UNLOCKED", concept: "dataQuality" })]);
     // The coding path is untouched: its first level is open as always.
     const coding = await db.studentProgress.findUnique({
       where: { studentUserId_levelId: { studentUserId: kids[0]!.id, levelId: codingId } },
@@ -190,6 +195,13 @@ describe("teacher: AI ideas", () => {
     expect(report?.ideas[0]).toMatchObject({ levelId: sorterId, finished: 2, answered: 2, firstTry: 1 });
     expect(report?.ideas[1]).toMatchObject({ levelId: secondSorterId, finished: 1, answered: 0 });
     expect(report?.ideas[3]).toMatchObject({ levelId: predictId, finished: 0, answered: 0 });
+    // The five AI concepts: one child finished two good-examples levels with
+    // two stars and explained one; the other finished one.
+    const quality = report?.concepts.find((c) => c.concept === "exampleQuality");
+    expect(quality).toMatchObject({ levels: 3, secure: 1, working: 1, notStarted: 0 });
+    expect(quality?.misconception).toEqual({ checkConcept: "examples", choice: "a", count: 1 });
+    expect(quality?.byBand.younger).toEqual({ secure: 1, students: 2 });
+    expect(report?.concepts.find((c) => c.concept === "uncertainty")).toMatchObject({ levels: 1, notStarted: 2 });
     // Totals only: no child ids anywhere in it.
     const serialized = JSON.stringify(report);
     for (const kid of kids) expect(serialized).not.toContain(kid.id);

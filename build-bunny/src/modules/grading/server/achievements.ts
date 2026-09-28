@@ -29,7 +29,18 @@ interface CriteriaShapes {
   /** Distinct days with any activity — never consecutive, never resetting. */
   ACTIVE_DAYS: { days: number };
   ACTIVITY_TYPE_PASSED: { activityType: string };
+  /** "Good experiment" badges: in-level AI tests (AI_TEST events). */
+  AI_TESTS: { count: number };
+  /** AI levels finished after at least one failed check on them. */
+  AI_COMEBACK: { count: number };
+  /** Gave the careful "not enough evidence" / "can't tell" verdict. */
+  SAID_NOT_SURE: Record<string, never>;
 }
+
+/** Activity types that are AI lessons. */
+const AI_TYPES = ["AI_CLASSIFICATION", "PATTERN_RECOGNITION", "AI_SIM", "AI_ETHICS"];
+/** The careful verdicts in the ethics stories' "say what you think" step. */
+export const CAREFUL_VERDICTS: ReadonlySet<string> = new Set(["not-enough", "unsure"]);
 
 interface StudentRewardState {
   starsTotal: number;
@@ -40,6 +51,9 @@ interface StudentRewardState {
   completedLevels: { levelId: string; tags: string[]; activityType: string; worldId: string }[];
   /** Worlds where every published level is COMPLETED, by slug. */
   completedWorldSlugs: Set<string>;
+  aiTests: number;
+  aiComebacks: number;
+  saidNotSure: boolean;
 }
 
 function asNumber(value: unknown): number | null {
@@ -94,6 +108,16 @@ function criteriaSatisfied(criteria: unknown, state: StudentRewardState): boolea
         state.completedLevels.some((l) => l.activityType === activityType)
       );
     }
+    case "AI_TESTS": {
+      const count = asNumber(record["count"]);
+      return count !== null && state.aiTests >= count;
+    }
+    case "AI_COMEBACK": {
+      const count = asNumber(record["count"]) ?? 1;
+      return state.aiComebacks >= count;
+    }
+    case "SAID_NOT_SURE":
+      return state.saidNotSure;
     default:
       return false; // unknown criteria type: data ahead of code — skip
   }
@@ -167,12 +191,31 @@ async function loadState(
     }
   }
 
+  // "Good experiment" facts: tests recorded, AI levels finished after a
+  // failed check, and a careful verdict in an ethics story.
+  const who = { studentUserId: student.studentUserId, schoolId: student.schoolId };
+  const completedAi = completedLevels.filter((l) => AI_TYPES.includes(l.activityType)).map((l) => l.levelId);
+  const [aiTests, failedOnCompletedAi, ethicsAttempts] = await Promise.all([
+    tx.learningEvent.count({ where: { ...who, type: "AI_TEST" } }),
+    completedAi.length
+      ? tx.activityAttempt.groupBy({ by: ["levelId"], where: { ...who, levelId: { in: completedAi }, verdict: "FAIL" } })
+      : Promise.resolve([]),
+    tx.activityAttempt.findMany({ where: { ...who, level: { activityType: "AI_ETHICS" } }, select: { resultSummary: true } }),
+  ]);
+  const saidNotSure = ethicsAttempts.some((row) => {
+    const predictions = (row.resultSummary as { predictions?: unknown } | null)?.predictions;
+    return Array.isArray(predictions) && predictions.some((p) => typeof p === "string" && CAREFUL_VERDICTS.has(p));
+  });
+
   return {
     starsTotal: profile?.starsTotal ?? 0,
     streakBest: profile?.streakBest ?? 0,
     activeDays,
     completedLevels,
     completedWorldSlugs,
+    aiTests,
+    aiComebacks: failedOnCompletedAi.length,
+    saidNotSure,
   };
 }
 

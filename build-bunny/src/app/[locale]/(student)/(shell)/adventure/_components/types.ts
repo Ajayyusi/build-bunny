@@ -1,3 +1,4 @@
+import type { LessonKind } from "@/modules/explore/catalog";
 import type { AgeBand } from "@/modules/learning/age-band";
 import type { BunnyState } from "@/ui";
 
@@ -24,6 +25,8 @@ export interface TrailIntroVM {
   estimatedMinutes: number;
   /** Who the level is written for ("Ages 9–10"); null when not authored. */
   ageBand: AgeBand | null;
+  /** AI lesson, digital citizenship or coding. */
+  lessonKind: LessonKind;
   stars: number;
   maxStars: number;
 }

@@ -13,6 +13,8 @@ import { BunnyMascot, EmptyState } from "@/ui";
 
 import { ExploreTile } from "./_components/ExploreTile";
 import { ExploreWelcome } from "./_components/ExploreWelcome";
+import { AiModeSwitch } from "./_components/AiModeSwitch";
+import { aiModeFor, choiceOf } from "@/modules/students/ai-mode";
 import { RouteCard } from "./_components/RouteCard";
 import { landingNotices, routeProgress } from "./_components/landing";
 import { toTile } from "./_components/to-tiles";
@@ -69,11 +71,18 @@ export default async function ExplorePage({ params }: Props) {
           <h1 className="font-display text-2xl font-bold text-ink">{t("title")}</h1>
           <p className="text-sm text-ink-muted">{t("body")}</p>
         </div>
-        {state.cards.length > 0 ? (
-          <span className="rounded-full bg-surface-sunken px-3 py-1 text-xs font-bold text-ink-muted">
-            {t("progress", { done: state.completed, total: state.cards.length })}
-          </span>
-        ) : null}
+        <div className="flex flex-col items-end gap-2">
+          {state.cards.length > 0 ? (
+            <span className="rounded-full bg-surface-sunken px-3 py-1 text-xs font-bold text-ink-muted">
+              {t("progress", { done: state.completed, total: state.cards.length })}
+            </span>
+          ) : null}
+          <AiModeSwitch
+            mode={aiModeFor(snapshot?.grade, snapshot?.aiMode)}
+            gradeMode={aiModeFor(snapshot?.grade, null)}
+            choice={choiceOf(snapshot?.aiMode)}
+          />
+        </div>
       </header>
 
       {notices ? (
@@ -120,7 +129,7 @@ export default async function ExplorePage({ params }: Props) {
             <h2 id="explore-next" className="font-display text-lg font-bold text-ink">
               {t("followUpTitle")}
             </h2>
-            <ul className="grid flex-1">
+            <ul className="grid flex-1 gap-3">
               <ExploreTile
                 tile={toTile(
                   state.followUp,
@@ -132,6 +141,16 @@ export default async function ExplorePage({ params }: Props) {
                 compact
               />
             </ul>
+            {state.alsoOpen.length > 0 ? (
+              <>
+                <h3 className="text-sm font-bold text-ink-muted">{t("alsoOpenTitle")}</h3>
+                <ul className="grid gap-3">
+                  {state.alsoOpen.map((card, index) => (
+                    <ExploreTile key={card.slug} tile={toTile(card, t, locale)} index={state.cards.length + 1 + index} compact />
+                  ))}
+                </ul>
+              </>
+            ) : null}
           </section>
         ) : null}
 

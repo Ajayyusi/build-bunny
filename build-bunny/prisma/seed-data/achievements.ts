@@ -1,5 +1,7 @@
 /**
- * The 12 launch achievement definitions (m3-contracts wave 3) — pure data,
+ * The launch achievement definitions (m3-contracts wave 3), plus three
+ * "good experiment" badges (2026-09-29) that reward testing, retrying
+ * and an honest "not sure" rather than speed — pure data,
  * no imports from src/. Criteria JSON shapes match the evaluator in
  * src/modules/grading/server/achievements.ts; definitions whose content
  * (tags, activity types, worlds) does not exist yet are intentionally
@@ -151,5 +153,38 @@ export const ACHIEVEMENTS: AchievementSeed[] = [
     icon: "🚀",
     criteria: { type: "LEVELS_WITH_TAG", tag: "ai", count: 5 },
     order: 12,
+  },
+  {
+    slug: "curious-tester",
+    name: { en: "Curious Tester", ar: "مختبِر فضولي" },
+    description: {
+      en: "Test your AI 10 times: show its guesses, check a picture, give it the computer's turn.",
+      ar: "اختبر ذكاءك الاصطناعي 10 مرات: أظهر تخميناته، أو تحقّق من صورة، أو أعطِ الحاسوب دوره.",
+    },
+    icon: "🔬",
+    criteria: { type: "AI_TESTS", count: 10 },
+    order: 13,
+  },
+  {
+    slug: "try-check-try-again",
+    name: { en: "Try, Check, Try Again", ar: "جرّب، تحقّق، جرّب من جديد" },
+    description: {
+      en: "Finish an AI activity after a check that didn't work — then do it twice more.",
+      ar: "أنهِ نشاط ذكاء اصطناعي بعد تحقّق لم ينجح — ثم افعلها مرتين أخريين.",
+    },
+    icon: "🔁",
+    criteria: { type: "AI_COMEBACK", count: 3 },
+    order: 14,
+  },
+  {
+    slug: "honest-not-sure",
+    name: { en: "Honest “Not Sure”", ar: "«لست متأكدًا» بصدق" },
+    description: {
+      en: "Say “not enough evidence yet” or “can't tell” when that's the careful answer.",
+      ar: "قل «لا يوجد دليل كافٍ بعد» أو «لا أستطيع أن أعرف» عندما تكون هذه هي الإجابة الحذرة.",
+    },
+    icon: "🤔",
+    criteria: { type: "SAID_NOT_SURE" },
+    order: 15,
   },
 ];

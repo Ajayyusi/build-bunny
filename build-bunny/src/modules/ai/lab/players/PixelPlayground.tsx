@@ -7,6 +7,7 @@ import { cn } from "@/ui";
 
 import { convolve3x3, EDGE_DETECTION_KERNEL } from "../math/convolve3x3";
 import { downsampleRGB } from "../math/downsample";
+import { applyLight, averageBrightness } from "../math/light";
 import { greyscaleGrid } from "../math/greyscale";
 import type { Grid, Kernel3x3, RGB } from "../math/types";
 import {
@@ -230,13 +231,19 @@ export function PixelPlayground({
   const [resolutionIndex, setResolutionIndex] = useState(0);
   const resolution = config.resolutions[resolutionIndex] ?? config.resolutions[0]!;
   const [greyscaleOn, setGreyscaleOn] = useState(false);
+  // Light: 1 is normal; below dims every number, above brightens it.
+  const [light, setLight] = useState(1);
   const [edgesOn, setEdgesOn] = useState(false);
   const [kernel, setKernel] = useState<number[][]>(() => EDGE_DETECTION_KERNEL.map((row) => [...row]));
 
   const { grid: baseGrid, status: baseStatus } = usePixelGrid(selectedImage.src);
-  const resGrid = useMemo(
+  const normalGrid = useMemo(
     () => (baseGrid ? downsampleRGB(baseGrid, resolution, resolution) : null),
     [baseGrid, resolution],
+  );
+  const resGrid = useMemo(
+    () => (normalGrid ? (light === 1 ? normalGrid : applyLight(normalGrid, light)) : null),
+    [normalGrid, light],
   );
   const greyGrid = useMemo(() => (resGrid ? greyscaleGrid(resGrid) : null), [resGrid]);
   const edgeGrid = useMemo(
@@ -409,6 +416,45 @@ export function PixelPlayground({
             />
             <span className="text-xs text-ink-muted">{t("resolutionBlocky")}</span>
           </div>
+        </div>
+
+        {/* Lighting: the same picture, different numbers. */}
+        <div className="flex flex-col gap-2">
+          <label htmlFor="pixel-light" className="text-sm font-semibold text-ink">
+            {t("lightLabel")}
+          </label>
+          <div className="flex items-center gap-3">
+            <span className="text-xs text-ink-muted">{t("lightDim")}</span>
+            <input
+              id="pixel-light"
+              type="range"
+              disabled={disabled}
+              min={0.4}
+              max={1.6}
+              step={0.2}
+              value={light}
+              onChange={(event) => setLight(Math.round(Number(event.target.value) * 10) / 10)}
+              className="h-11 flex-1 accent-brand"
+            />
+            <span className="text-xs text-ink-muted">{t("lightBright")}</span>
+          </div>
+          {light !== 1 && normalGrid && resGrid ? (
+            <div className="flex flex-wrap items-center gap-4 rounded-lg bg-surface-sunken p-3">
+              <div className="flex flex-col items-center gap-1">
+                <PixelCanvas rgbGrid={normalGrid} size={96} label={t("lightNormalLabel")} animate={false} />
+                <span className="text-xs text-ink-muted">
+                  {t("lightNumbers", { value: Math.round(averageBrightness(normalGrid)) })}
+                </span>
+              </div>
+              <div className="flex flex-col items-center gap-1">
+                <PixelCanvas rgbGrid={resGrid} size={96} label={t("lightChangedLabel")} animate={false} />
+                <span className="text-xs text-ink-muted">
+                  {t("lightNumbers", { value: Math.round(averageBrightness(resGrid)) })}
+                </span>
+              </div>
+              <p className="max-w-xs flex-1 text-sm text-ink">{t("lightNote")}</p>
+            </div>
+          ) : null}
         </div>
 
         <div className="flex flex-wrap items-center gap-3">

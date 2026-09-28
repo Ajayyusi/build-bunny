@@ -42,6 +42,7 @@ const KNOWN_CODES = new Set([
   "classifierErrors",
   "trendMissTooHigh",
   "mysteryRoundsWrong",
+  "marksWrong",
   // Pre-run coaching (client-only, nothing is graded or posted): the program
   // is empty, or its blocks are not snapped under "when start".
   "emptyProgram",
@@ -69,6 +70,7 @@ const CODE_ICON: Record<string, string> = {
   classifierErrors: "📈",
   trendMissTooHigh: "📉",
   mysteryRoundsWrong: "🖼️",
+  marksWrong: "📝",
   emptyProgram: "🧩",
   looseBlocks: "🔗",
   noTrick: "🎩",
@@ -113,6 +115,7 @@ export function useFeedbackText(): (feedback: ActivityFeedback | null) => string
           targetScore: asNumber(data.targetScore),
         });
       case "mysteryRoundsWrong":
+      case "marksWrong":
         return t(code, { correct: asNumber(data.correct), total: asNumber(data.total) });
       case "wrongVariable":
         return t(code, {

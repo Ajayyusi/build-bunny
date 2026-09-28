@@ -14,6 +14,9 @@ import { computeLevelActivityStats, rankMostFailed } from "./level-activity";
 import type { SessionContext } from "@/modules/auth/server/session";
 import { CONCEPT_CHECKS, type ExploreConcept } from "@/modules/explore/catalog";
 
+import { summariseAiConcepts, type ClassAiConcept } from "../ai-concepts";
+import { aiModeFor, choiceOf, type AiMode, type AiModeChoice } from "@/modules/students/ai-mode";
+import { loadConceptInput } from "./ai-concepts-load";
 import { countAiEvents, emptyCounts, type AiActivityCounts } from "./ai-activity";
 import { localizedText, type LocalizedText } from "@/modules/curriculum/schemas";
 import type { LevelSnapshot } from "@/modules/curriculum/server/publish";
@@ -169,6 +172,9 @@ export interface StudentDetail {
   displayName: string;
   displayUsername: string | null;
   grade: number | null;
+  /** The AI mode chosen for the child ("auto" follows the grade), and the one in effect. */
+  aiModeChoice: AiModeChoice;
+  aiMode: AiMode;
   class: { id: string; name: string; grade: number } | null;
   xpTotal: number;
   starsTotal: number;
@@ -185,6 +191,10 @@ export interface StudentDetail {
   progress: StudentDetailWorldProgress[];
   recentAttempts: StudentDetailAttempt[];
   achievements: StudentDetailAchievement[];
+  /** "Say it your way" sentences (phrase ids) and how many parts hold up. */
+  explanations: { levelId: string; levelTitle: LocalizedText; concept: ExploreConcept; parts: string[]; soundParts: number; updatedAt: string }[];
+  /** AI concepts a teacher heard this child explain aloud. */
+  observedConcepts: string[];
   certificates: StudentDetailCertificate[];
   feedback: StudentDetailFeedback[];
 }
@@ -879,6 +889,7 @@ export async function getStudentDetail(
       studentProfile: {
         select: {
           grade: true,
+          aiMode: true,
           xpTotal: true,
           starsTotal: true,
           streakCurrent: true,
@@ -1057,11 +1068,22 @@ export async function getStudentDetail(
     progressByWorld.set(key, bucket);
   }
 
+  const [sentences, observations] = await Promise.all([
+    db.explanationSentence.findMany({
+      where: { schoolId, studentUserId: student.id },
+      orderBy: { updatedAt: "desc" },
+      select: { levelId: true, parts: true, soundParts: true, updatedAt: true, level: { select: { slug: true, title: true } } },
+    }),
+    db.conceptObservation.findMany({ where: { schoolId, studentUserId: student.id }, select: { concept: true } }),
+  ]);
+
   return {
     studentUserId: student.id,
     displayName: student.displayName,
     displayUsername: student.displayUsername ?? null,
     grade: student.studentProfile?.grade ?? null,
+    aiModeChoice: choiceOf(student.studentProfile?.aiMode),
+    aiMode: aiModeFor(student.studentProfile?.grade, student.studentProfile?.aiMode),
     class: membership?.class ?? null,
     xpTotal: student.studentProfile?.xpTotal ?? 0,
     starsTotal: student.studentProfile?.starsTotal ?? 0,
@@ -1073,6 +1095,20 @@ export async function getStudentDetail(
     flags,
     interventions,
     progress: [...progressByWorld.values()],
+    explanations: sentences.flatMap((row) => {
+      const check = CONCEPT_CHECKS[row.level.slug];
+      return check
+        ? [{
+            levelId: row.levelId,
+            levelTitle: asText(row.level.title, ""),
+            concept: check.concept,
+            parts: row.parts,
+            soundParts: row.soundParts,
+            updatedAt: row.updatedAt.toISOString(),
+          }]
+        : [];
+    }),
+    observedConcepts: observations.map((row) => row.concept),
     recentAttempts: attempts.slice(0, 20).map((a) => ({
       id: a.id,
       levelId: a.levelId,
@@ -1407,6 +1443,8 @@ export interface ClassAiIdea {
 export interface ClassAiIdeas {
   students: number;
   ideas: ClassAiIdea[];
+  /** Mastery of the five AI concepts (see analytics/ai-concepts.ts). */
+  concepts: ClassAiConcept[];
 }
 
 /**
@@ -1428,11 +1466,12 @@ export async function getClassAiIdeas(ctx: SessionContext, classId: string): Pro
   const studentIds = roster.map((row) => row.userId);
   // In the catalog's order: the order a child meets the ideas.
   const order = Object.keys(CONCEPT_CHECKS);
-  const levels = (await loadSchoolLevels(schoolId))
-    .map((row) => row.matrix)
+  const schoolLevels = (await loadSchoolLevels(schoolId)).map((row) => row.matrix);
+  const levels = schoolLevels
     .filter((level) => CONCEPT_CHECKS[level.slug] !== undefined)
     .sort((a, b) => order.indexOf(a.slug) - order.indexOf(b.slug));
-  if (levels.length === 0) return { students: studentIds.length, ideas: [] };
+  const concepts = summariseAiConcepts(await loadConceptInput(schoolId, studentIds, schoolLevels));
+  if (levels.length === 0) return { students: studentIds.length, ideas: [], concepts };
   const levelIds = levels.map((level) => level.id);
   const [finished, checks, names, activity] = await Promise.all([
     studentIds.length
@@ -1464,8 +1503,9 @@ export async function getClassAiIdeas(ctx: SessionContext, classId: string): Pro
       activity: activity.get(level.id) ?? emptyCounts(),
     };
   });
-  return { students: studentIds.length, ideas };
+  return { students: studentIds.length, ideas, concepts };
 }
+
 
 // ── Reflections: how the class felt about each level (brief §6) ───────────
 

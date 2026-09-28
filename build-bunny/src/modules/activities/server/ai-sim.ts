@@ -54,16 +54,24 @@ const pixelPlaygroundAnswerSchema = z
   })
   .strict();
 
+const markItemsAnswerSchema = z
+  .object({
+    marks: z.record(z.string().min(1), z.string().min(1)),
+  })
+  .strict();
+
 const ANSWER_SCHEMAS = {
   "boundary-builder": boundaryBuilderAnswerSchema,
   "trend-line": trendLineAnswerSchema,
   "pixel-playground": pixelPlaygroundAnswerSchema,
+  "mark-items": markItemsAnswerSchema,
 } as const;
 
 export const aiSimAnswerSchema = z.union([
   boundaryBuilderAnswerSchema,
   trendLineAnswerSchema,
   pixelPlaygroundAnswerSchema,
+  markItemsAnswerSchema,
 ]);
 export type AiSimAnswer = z.infer<typeof aiSimAnswerSchema>;
 

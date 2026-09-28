@@ -23,6 +23,8 @@ import { NextStepHint } from "./shared/NextStepHint";
 import { postAttempt, runIdFor } from "./shared/attempt-outbox";
 import { HintDrawer } from "./shared/HintDrawer";
 import { HonestyNote } from "./shared/HonestyNote";
+import { LessonKindChip } from "./shared/LessonKindChip";
+import { WhatIsThisCalled } from "./shared/WhatIsThisCalled";
 import { RoboHelp, type HelpTopic } from "./shared/RoboHelp";
 import { SuccessOverlay } from "./shared/SuccessOverlay";
 import { useDraftAutosave } from "./shared/useDraftAutosave";
@@ -38,6 +40,7 @@ const BUILT_IN_BEATS = [1, 2, 3, 4] as const;
 
 import type { ActivityPlayerProps, AttemptResponse } from "../types";
 import { resolveLocalized, type GroupActivityPayload } from "../types";
+import { ModeInstructions } from "./shared/ModeInstructions";
 
 /**
  * PATTERN_RECOGNITION player — "the Grouping Machine".
@@ -432,19 +435,23 @@ export function GroupPlayer({
 
       <div className="min-h-0 flex-1 overflow-y-auto">
         <div className="mx-auto flex w-full max-w-5xl flex-col gap-5 p-4 sm:p-6">
-          <HonestyNote kind="tinyGrouping" />
+          <div className="flex flex-wrap items-start gap-2">
+            {intro.lessonKind ? <LessonKindChip kind={intro.lessonKind} /> : null}
+            <HonestyNote kind="tinyGrouping" />
+            {intro.aiMode === "older" ? <WhatIsThisCalled tags={intro.tags} /> : null}
+          </div>
           <div className="flex items-start gap-3">
             <span aria-hidden="true" className="mt-1">
               <BunnyMascot state="idle" size="sm" />
             </span>
-            <p
+            <div
               className={cn(
                 styles.bubble,
                 "flex-1 rounded-2xl border border-border-token bg-surface-raised p-3 text-sm leading-relaxed text-ink-muted sm:p-4",
               )}
             >
-              {intro.instructions}
-            </p>
+              <ModeInstructions mode={intro.aiMode} mission={intro.objective} instructions={intro.instructions} />
+            </div>
           </div>
 
           <div className="grid items-start gap-5 lg:grid-cols-[1fr_minmax(16rem,20rem)]">

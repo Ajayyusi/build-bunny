@@ -36,6 +36,8 @@ const choice = (id: string, text: [string, string], outcome: [string, string], s
 
 // ── AI Island — module 4: Online Life ──────────────────────────────────────
 
+import { needToKnow, sayItClearly } from "./new-ai-lessons";
+
 export const onlineLife: ModuleFixture = {
   slug: "online-life",
   order: 5,
@@ -347,6 +349,7 @@ export const onlineLife: ModuleFixture = {
         starCriteria: { threeStarMaxBlocks: 6 },
       } satisfies AiClassificationDraft,
     },
+    needToKnow,
   ],
 };
 
@@ -792,5 +795,6 @@ export const decidingWell: ModuleFixture = {
         starCriteria: { threeStarMaxBlocks: 3 },
       } satisfies AiClassificationDraft,
     },
+    sayItClearly,
   ],
 };

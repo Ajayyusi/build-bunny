@@ -54,6 +54,10 @@ export type NextStep =
   | { code: "teach"; specimenId: string; label: "positive" | "negative" }
   | { code: "takeBack"; specimenId: string }
   | { code: "keepForTesting"; specimenId: string }
+  /** AI project report: name this held-back case (wrong, or not sure). */
+  | { code: "reportCase"; specimenId: string }
+  /** AI project report: pick this human safeguard. */
+  | { code: "reportSafeguard"; safeguardId: string }
   /** Rule or Examples?: try this rule card (then test it). */
   | { code: "tryRule"; ruleId: string }
   /** Rule or Examples?: the next button to press in the rule round. */
@@ -73,6 +77,8 @@ export type NextStep =
   | { code: "pickPicture"; roundId: string; imageId: string }
   /** A button inside one mystery round (Check my guess, Add more squares…). */
   | { code: "pressRoundButton"; roundId: string; button: PlayerButton }
+  /** Mark the items: give this item this mark (or choose this wording). */
+  | { code: "markItem"; itemId: string; markId: string }
   /** A round's guess is being checked right now: nothing to do but wait. */
   | { code: "checkingRound"; roundId: string }
   | { code: "designAdd"; tile: "#" | "W" | "C"; x: number; y: number }

@@ -17,7 +17,7 @@ import {
   type WorldStory,
 } from "@/modules/curriculum/schemas";
 
-import { EXPLORE_SLUGS } from "@/modules/explore/catalog";
+import { EXPLORE_OPEN_SLUGS } from "@/modules/explore/catalog";
 
 
 /**
@@ -770,7 +770,7 @@ async function recomputeUnlocksFor(
         if (progress.has(level.id)) continue;
         // Explore AI levels open from day one, wherever they sit on the
         // trail: no coding first, no earlier world, no prerequisite.
-        if (EXPLORE_SLUGS.has(level.slug)) {
+        if (EXPLORE_OPEN_SLUGS.has(level.slug)) {
           toCreate.push({ levelId: level.id, unlockSource: "EXPLORE" });
           continue;
         }

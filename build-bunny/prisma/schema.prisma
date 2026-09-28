@@ -23,13 +23,13 @@ datasource db {
 // Role values (validated in code; string column keeps the Better Auth admin
 // plugin compatible): SUPER_ADMIN · NITAQ_ADMIN · SCHOOL_ADMIN · TEACHER · STUDENT
 model User {
-  id            String    @id @default(cuid())
+  id            String   @id @default(cuid())
   name          String
-  email         String    @unique
-  emailVerified Boolean   @default(false)
+  email         String   @unique
+  emailVerified Boolean  @default(false)
   image         String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   // Better Auth `username` plugin. Students log in with a school-scoped
   // username; we store it namespaced (`{schoolCode}__{username}`) so the
@@ -50,7 +50,7 @@ model User {
   locale             String  @default("en")
   avatarId           String?
 
-  school           School?           @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  school           School?                @relation(fields: [schoolId], references: [id], onDelete: Cascade)
   sessions         Session[]
   accounts         Account[]
   studentProfile   StudentProfile?
@@ -67,10 +67,12 @@ model User {
   feedbackGiven    TeacherFeedback[]      @relation("FeedbackByTeacher")
   assignmentsMade  Assignment[]
   certificates     Certificate[]
-  familyLinks      FamilyLink[]      @relation("FamilyLinkStudent")
-  familyLinksMade  FamilyLink[]      @relation("FamilyLinkCreator")
+  familyLinks      FamilyLink[]           @relation("FamilyLinkStudent")
+  familyLinksMade  FamilyLink[]           @relation("FamilyLinkCreator")
   reflections      LevelReflection[]
   conceptChecks    ConceptCheck[]
+  explanations     ExplanationSentence[]
+  observations     ConceptObservation[]
 
   @@index([schoolId, role])
 }
@@ -164,6 +166,8 @@ model School {
   familyLinks      FamilyLink[]
   reflections      LevelReflection[]
   conceptChecks    ConceptCheck[]
+  explanations     ExplanationSentence[]
+  observations     ConceptObservation[]
 }
 
 enum LicenceStatus {
@@ -244,6 +248,12 @@ model ClassMembership {
   @@index([schoolId, userId])
 }
 
+/// How the AI activities speak to a child (handoff: grade range modes).
+enum AiMode {
+  YOUNGER
+  OLDER
+}
+
 model StudentProfile {
   userId            String    @id
   user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -258,6 +268,9 @@ model StudentProfile {
   streakBest        Int       @default(0)
   lastActiveDate    DateTime?
   onboardedAt       DateTime?
+  /// AI activity mode, chosen by a teacher or the child; null follows the
+  /// grade (3-4 younger, 5+ older). Changing it never touches progress.
+  aiMode            AiMode?
   // Curriculum track this student follows (one per student, plan §8 J).
   programId         String?
   program           Program?  @relation(fields: [programId], references: [id], onDelete: SetNull)
@@ -354,24 +367,24 @@ model ProgramWorld {
 }
 
 model World {
-  id      String        @id @default(cuid())
-  slug    String        @unique
-  name    Json
-  tagline Json?
+  id        String        @id @default(cuid())
+  slug      String        @unique
+  name      Json
+  tagline   Json?
   // Rendering theme key for the adventure map (meadow, forest, lab, ...).
-  theme   String
-  status  ContentStatus @default(DRAFT)
+  theme     String
+  status    ContentStatus @default(DRAFT)
   // Horizon worlds appear as roadmap art on the map with no interactive area
   // (plan §0.1-4: no fake product areas).
-  horizon Boolean       @default(false)
+  horizon   Boolean       @default(false)
   /// Opening cutscene (3 lines with bunny poses), the world's friend, and the
   /// Power earned at its finale — see docs/build-bunny/STORY.md. Nullable so
   /// worlds authored before the story shipped still import.
   story     Json?
   character Json?
   power     Json?
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
 
   programs ProgramWorld[]
   modules  Module[]
@@ -441,13 +454,14 @@ model Level {
   updatedAt          DateTime      @updatedAt
 
   versions      LevelVersion[]
-  prerequisites LevelPrerequisite[] @relation("LevelPrereqTarget")
-  requiredBy    LevelPrerequisite[] @relation("LevelPrereqSource")
+  prerequisites LevelPrerequisite[]   @relation("LevelPrereqTarget")
+  requiredBy    LevelPrerequisite[]   @relation("LevelPrereqSource")
   progress      StudentProgress[]
   attempts      ActivityAttempt[]
   feedback      TeacherFeedback[]
   reflections   LevelReflection[]
   conceptChecks ConceptCheck[]
+  explanations  ExplanationSentence[]
 
   @@unique([moduleId, slug])
   @@unique([moduleId, order])
@@ -503,24 +517,24 @@ enum ProgressStatus {
 }
 
 model StudentProgress {
-  id            String         @id @default(cuid())
+  id            String @id @default(cuid())
   schoolId      String
-  school        School         @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  school        School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
   studentUserId String
-  student       User           @relation(fields: [studentUserId], references: [id], onDelete: Cascade)
+  student       User   @relation(fields: [studentUserId], references: [id], onDelete: Cascade)
   levelId       String
-  level         Level          @relation(fields: [levelId], references: [id], onDelete: Cascade)
+  level         Level  @relation(fields: [levelId], references: [id], onDelete: Cascade)
 
-  status        ProgressStatus @default(UNLOCKED)
+  status           ProgressStatus @default(UNLOCKED)
   // High-water mark across runs (plan §1.2).
-  stars         Int            @default(0)
-  attemptsCount Int            @default(0)
+  stars            Int            @default(0)
+  attemptsCount    Int            @default(0)
   // ORDER | PREREQUISITE | ASSIGNMENT | SEED — how this level opened.
   // PROVENANCE, not behaviour: written on every unlock, read by nothing.
   // Kept so "why did this level open for this child?" is answerable after
   // the fact (ORDER | PREREQUISITE | ASSIGNMENT | OPEN | SEED). Do not add
   // logic that branches on it without first making it authoritative.
-  unlockSource  String         @default("ORDER")
+  unlockSource     String         @default("ORDER")
   // Autosaved Blockly workspace (classroom wifi reality, plan §0.1 amendments).
   draftWorkspace   Json?
   draftSavedAt     DateTime?
@@ -531,8 +545,8 @@ model StudentProgress {
   // Written on completion, read by nothing today; it exists so a future
   // curriculum change can tell who finished the old content.
   completedVersion Int?
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
 
   @@unique([studentUserId, levelId])
   @@index([schoolId, levelId])
@@ -555,16 +569,16 @@ enum AttemptKind {
 }
 
 model ActivityAttempt {
-  id            String  @id @default(cuid())
+  id            String      @id @default(cuid())
   // Client-generated idempotency key: a refreshed/replayed submission can
   // never double-award (plan §0.1-13).
-  attemptRunId  String  @unique
+  attemptRunId  String      @unique
   schoolId      String
-  school        School  @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  school        School      @relation(fields: [schoolId], references: [id], onDelete: Cascade)
   studentUserId String
-  student       User    @relation(fields: [studentUserId], references: [id], onDelete: Cascade)
+  student       User        @relation(fields: [studentUserId], references: [id], onDelete: Cascade)
   levelId       String
-  level         Level   @relation(fields: [levelId], references: [id], onDelete: Cascade)
+  level         Level       @relation(fields: [levelId], references: [id], onDelete: Cascade)
   // Grading pins the published version at submission (plan §1.2).
   levelVersion  Int
   // PROVENANCE: stamped on every attempt, read by nothing today. It is what
@@ -679,20 +693,20 @@ model StudentAchievement {
 // Teacher feedback on a student's work. Attached to a level (not a single
 // attempt) so the note survives attempt-payload pruning.
 model TeacherFeedback {
-  id            String   @id @default(cuid())
+  id            String    @id @default(cuid())
   schoolId      String
-  school        School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  school        School    @relation(fields: [schoolId], references: [id], onDelete: Cascade)
   studentUserId String
-  student       User     @relation("FeedbackForStudent", fields: [studentUserId], references: [id], onDelete: Cascade)
+  student       User      @relation("FeedbackForStudent", fields: [studentUserId], references: [id], onDelete: Cascade)
   teacherUserId String
-  teacher       User     @relation("FeedbackByTeacher", fields: [teacherUserId], references: [id], onDelete: Cascade)
+  teacher       User      @relation("FeedbackByTeacher", fields: [teacherUserId], references: [id], onDelete: Cascade)
   levelId       String
-  level         Level    @relation(fields: [levelId], references: [id], onDelete: Cascade)
+  level         Level     @relation(fields: [levelId], references: [id], onDelete: Cascade)
   attemptId     String?
   body          String
   readAt        DateTime?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
   @@index([schoolId, studentUserId, createdAt])
   @@index([studentUserId, readAt])
@@ -707,23 +721,23 @@ enum AssignmentTarget {
 // Teacher-set work for a class. Assignments may force-unlock their content
 // ahead of the normal progression (StudentProgress.unlockSource ASSIGNMENT).
 model Assignment {
-  id            String           @id @default(cuid())
-  schoolId      String
-  school        School           @relation(fields: [schoolId], references: [id], onDelete: Cascade)
-  classId       String
-  class         Class            @relation(fields: [classId], references: [id], onDelete: Cascade)
-  createdById   String
-  createdBy     User             @relation(fields: [createdById], references: [id], onDelete: Cascade)
-  target        AssignmentTarget
-  worldId       String?
-  moduleId      String?
-  levelId       String?
-  title         String
-  note          String?
-  dueAt         DateTime?
-  closedAt      DateTime?
-  createdAt     DateTime         @default(now())
-  updatedAt     DateTime         @updatedAt
+  id          String           @id @default(cuid())
+  schoolId    String
+  school      School           @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  classId     String
+  class       Class            @relation(fields: [classId], references: [id], onDelete: Cascade)
+  createdById String
+  createdBy   User             @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  target      AssignmentTarget
+  worldId     String?
+  moduleId    String?
+  levelId     String?
+  title       String
+  note        String?
+  dueAt       DateTime?
+  closedAt    DateTime?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
 
   @@index([schoolId, classId, createdAt])
 }
@@ -748,20 +762,20 @@ model Certificate {
   programId     String?
 
   // Human-readable, printed on the certificate. NOT a lookup key.
-  serial        String          @unique
+  serial     String @unique
   // Unguessable public lookup key used by the QR/verify URL (anti-enumeration).
-  verifySlug    String          @unique
+  verifySlug String @unique
 
   // Frozen display fields.
-  studentName   String
-  schoolName    String
-  title         Json
-  starsEarned   Int             @default(0)
-  levelsCount   Int             @default(0)
+  studentName String
+  schoolName  String
+  title       Json
+  starsEarned Int    @default(0)
+  levelsCount Int    @default(0)
 
-  issuedAt      DateTime        @default(now())
-  revokedAt     DateTime?
-  revokeReason  String?
+  issuedAt     DateTime  @default(now())
+  revokedAt    DateTime?
+  revokeReason String?
 
   @@unique([studentUserId, kind, worldId])
   @@index([schoolId, issuedAt])
@@ -913,4 +927,41 @@ model ConceptCheck {
 
   @@unique([studentUserId, levelId])
   @@index([schoolId, levelId])
+}
+
+/// "Say it your way": the sentence a child built from fixed phrases after
+/// an Explore AI level (only phrase ids, never typed text). The latest one
+/// is kept; soundParts is how many of its three parts hold up.
+model ExplanationSentence {
+  id            String   @id @default(cuid())
+  schoolId      String
+  school        School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  studentUserId String
+  student       User     @relation(fields: [studentUserId], references: [id], onDelete: Cascade)
+  levelId       String
+  level         Level    @relation(fields: [levelId], references: [id], onDelete: Cascade)
+  parts         String[]
+  soundParts    Int
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([studentUserId, levelId])
+  @@index([schoolId, levelId])
+}
+
+/// A teacher heard the child explain an AI concept aloud (one of the five
+/// in analytics/ai-concepts.ts). Evidence of understanding a sentence
+/// builder can't capture.
+model ConceptObservation {
+  id               String   @id @default(cuid())
+  schoolId         String
+  school           School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  studentUserId    String
+  student          User     @relation(fields: [studentUserId], references: [id], onDelete: Cascade)
+  concept          String
+  observedByUserId String
+  createdAt        DateTime @default(now())
+
+  @@unique([studentUserId, concept])
+  @@index([schoolId])
 }

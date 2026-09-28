@@ -14,6 +14,7 @@
 
 export type ExploreConcept =
   | "examples"
+  | "dataQuality"
   | "rules"
   | "vision"
   | "fairness"
@@ -56,8 +57,45 @@ export const EXPLORE_LEVEL_SLUGS: ReadonlySet<string> = new Set(
   [...EXPLORE_CARDS, ...EXPLORE_FOLLOW_UPS].map((card) => card.slug),
 );
 
-/** Levels the unlock engine opens from day one. */
+/**
+ * Open from day one too, but not one of the six cards (handoff: expose Teach
+ * the Bunny, The Berry That Lied, See Like a Computer and Bias Detective
+ * early). The hub lists them as "Also open now".
+ */
+export const EXPLORE_ALSO_OPEN: readonly ExploreCard[] = [
+  { slug: "the-berry-that-lied", concept: "dataQuality", glyph: "🕵️" },
+];
+
+/** The six cards. */
 export const EXPLORE_SLUGS: ReadonlySet<string> = new Set(EXPLORE_CARDS.map((card) => card.slug));
+
+/** Levels the unlock engine opens from day one: the cards and the also-open ones. */
+export const EXPLORE_OPEN_SLUGS: ReadonlySet<string> = new Set(
+  [...EXPLORE_CARDS, ...EXPLORE_ALSO_OPEN].map((card) => card.slug),
+);
+
+/**
+ * What kind of mission a level is (handoff: tell digital-citizenship
+ * missions apart from AI lessons). Citizenship missions practise safe,
+ * kind habits online; AI lessons are about how AI works and where people
+ * fit in (including Is That Real? and Who Decides?).
+ */
+export type LessonKind = "ai" | "citizenship" | "coding";
+
+export const CITIZENSHIP_SLUGS: ReadonlySet<string> = new Set([
+  "secret-keepers",
+  "stranger-in-the-chat",
+  "kind-online",
+  "strong-passwords",
+  "ads-and-offers",
+]);
+
+const AI_LESSON_TYPES: ReadonlySet<string> = new Set(["AI_CLASSIFICATION", "PATTERN_RECOGNITION", "AI_SIM", "AI_ETHICS"]);
+
+export function lessonKindOf(level: { slug: string; activityType: string }): LessonKind {
+  if (CITIZENSHIP_SLUGS.has(level.slug)) return "citizenship";
+  return AI_LESSON_TYPES.has(level.activityType) ? "ai" : "coding";
+}
 
 /**
  * The one-tap "explain it" check after an AI activity (the brief's "one

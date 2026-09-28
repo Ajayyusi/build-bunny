@@ -3,7 +3,10 @@ import "server-only";
 import { db } from "@/lib/db";
 import type { SessionContext } from "@/modules/auth/server/session";
 import { localizedText, type LocalizedText } from "@/modules/curriculum/schemas";
+import { forStudents, secureByConcept, summariseAiConcepts, type AiConcept } from "../ai-concepts";
+import { weekStarts, weeklySeries, type WeekRow } from "../weekly";
 import { aiLevelIdsOf, countAiEvents, emptyCounts, type AiActivityCounts } from "./ai-activity";
+import { loadConceptInput } from "./ai-concepts-load";
 import { computeLevelActivityStats, rankMostAttempted, rankMostFailed } from "./level-activity";
 
 /**
@@ -54,6 +57,13 @@ export interface SchoolAnalyticsLevel {
   failRatePct: number;
 }
 
+/** Secure counts per AI concept, for one class. */
+export interface SchoolAiConceptsClass {
+  classId: string;
+  className: string;
+  concepts: Record<AiConcept, { secure: number; students: number; levels: number }>;
+}
+
 /** AI activity in one class over the last 30 days (counts only). */
 export interface SchoolAiActivityClass extends AiActivityCounts {
   classId: string;
@@ -77,6 +87,10 @@ export interface SchoolAnalytics {
   aiActivity: SchoolAiActivityClass[];
   /** The same, for the whole school. */
   aiActivityTotal: AiActivityCounts;
+  /** AI concept mastery (secure) by class — the concept trends. */
+  aiConceptsByClass: SchoolAiConceptsClass[];
+  /** AI activity week by week, the last 8 weeks, oldest first. */
+  aiWeekly: WeekRow[];
 }
 
 interface LevelIndexEntry {
@@ -316,6 +330,39 @@ export async function getSchoolAnalytics(ctx: SessionContext): Promise<SchoolAna
     })
     .sort((a, b) => b.starts - a.starts || a.className.localeCompare(b.className));
 
+  // Concept mastery by class: one load for the school, summarised per class.
+  const conceptInput = await loadConceptInput(
+    schoolId,
+    students.map((s) => s.userId),
+    [...levelIndex].map(([id, meta]) => ({ id, slug: meta.slug })),
+  );
+  const aiConceptsByClass: SchoolAiConceptsClass[] = classes
+    .map((cls) => ({
+      classId: cls.id,
+      className: cls.name,
+      concepts: secureByConcept(summariseAiConcepts(forStudents(conceptInput, new Set(studentIdsByClass.get(cls.id) ?? [])))),
+    }))
+    .sort((a, b) => a.className.localeCompare(b.className));
+
+  // Week by week, over the event index ([schoolId, type, createdAt]).
+  const WEEKS = 8;
+  const since = new Date(weekStarts(now, WEEKS)[0]! + "T00:00:00Z");
+  const weekRows = aiLevelIds.length
+    ? await db.$queryRaw<{ week: Date; type: string; n: bigint }[]>`
+        SELECT date_trunc('week', "createdAt") AS week, "type"::text AS type, COUNT(*) AS n
+        FROM "LearningEvent"
+        WHERE "schoolId" = ${schoolId}
+          AND "createdAt" >= ${since}
+          AND "levelId" = ANY(${aiLevelIds})
+          AND "type"::text IN ('LEVEL_SESSION_STARTED', 'LEVEL_STARTED', 'RUN_EXECUTED', 'AI_TEST', 'AI_RETRY', 'LEVEL_COMPLETED')
+        GROUP BY 1, 2`
+    : [];
+  const aiWeekly = weeklySeries(
+    weekRows.map((row) => ({ week: new Date(row.week), type: row.type, n: Number(row.n) })),
+    now,
+    WEEKS,
+  );
+
   return {
     totalStudents: students.length,
     activeStudentsThisWeek: activeThisWeek,
@@ -330,5 +377,7 @@ export async function getSchoolAnalytics(ctx: SessionContext): Promise<SchoolAna
     mostFailedLevels,
     aiActivity,
     aiActivityTotal,
+    aiConceptsByClass,
+    aiWeekly,
   };
 }

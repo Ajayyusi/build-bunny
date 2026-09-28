@@ -80,6 +80,8 @@ export const TAG_STANDARDS: Readonly<Record<string, readonly CstaCode[]>> = {
   privacy: ["1B-NI-05", "2-IC-23"],
   "cyber-safety": ["1B-NI-05", "2-IC-23"],
   misinformation: ["2-IC-20"],
+  "generative-ai": [...AI_MODELS, "2-IC-20"],
+  "natural-language": AI_MODELS,
   "media-literacy": ["2-IC-20"],
 };
 

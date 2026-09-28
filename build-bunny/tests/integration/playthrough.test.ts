@@ -15,6 +15,7 @@ import { toTrainingExample } from "@/modules/ai/knn";
 import { runLloyd, tightness } from "@/modules/ai/grouping";
 import { leastSquares } from "@/modules/ai/lab/math/leastSquares";
 import { solveAiClassification } from "@/modules/ai/solve";
+import { reportableCases } from "@/modules/ai/report";
 import {
   aiClassificationPayload,
   patternRecognitionPayload,
@@ -117,10 +118,17 @@ function solutionFor(level: PlayableLevel): Record<string, unknown> {
       const checkSet = parsed.data.holdout
         ? parsed.data.pool.filter((s) => !taught.has(s.id)).map((s) => s.id)
         : undefined;
+      // The project report (capstone): a case from that test pile the
+      // model got wrong or wasn't sure about, and the first safe safeguard.
+      const caseId = parsed.data.report
+        ? reportableCases(solution, parsed.data.pool.filter((s) => checkSet?.includes(s.id)))[0]
+        : undefined;
+      const safeguard = parsed.data.report?.safeguards.find((s) => s.safe);
       return {
         answer: {
           examples: solution.map(toTrainingExample),
           ...(checkSet ? { checkSet } : {}),
+          ...(caseId && safeguard ? { report: { caseId, safeguardId: safeguard.id } } : {}),
         },
       };
     }
@@ -186,6 +194,14 @@ function solutionFor(level: PlayableLevel): Record<string, unknown> {
           const answerRounds: Record<string, string> = {};
           for (const round of rounds) answerRounds[round.id] = round.imageId;
           return { answer: { rounds: answerRounds } };
+        }
+        case "mark-items": {
+          // Every markable item gets its authored right mark (the key the
+          // playthrough reads from the unstripped payload).
+          const groups = widget.groups as Array<{ items: Array<{ id: string; answer?: string }> }>;
+          const marks: Record<string, string> = {};
+          for (const group of groups) for (const item of group.items) if (item.answer) marks[item.id] = item.answer;
+          return { answer: { marks } };
         }
         case "trend-line": {
           const points = widget.points as Array<{ x: number; y: number }>;

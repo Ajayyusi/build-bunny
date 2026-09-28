@@ -5,6 +5,7 @@ import type {
   patternRecognitionPayload,
 } from "@/modules/curriculum/schemas";
 import { decidingWell } from "./more-ai";
+import { myAiProject } from "./new-ai-lessons";
 
 /**
  * World 6 — Machine Learning Lab. "Train a real model with your own hands."
@@ -519,6 +520,8 @@ export const mlLab: WorldFixture = {
             starCriteria: {},
           } satisfies PrDraft,
         },
+        // ── 4. my-ai-project (capstone) ──────────────────────────────
+        myAiProject,
       ],
     },
     decidingWell,

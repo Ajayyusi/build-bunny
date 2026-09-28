@@ -66,6 +66,15 @@ test("Who Decides?: review the machine's suggestion, try another choice, own che
   await expect(done.getByText(/That rule is how responsible teams use AI/)).toBeHidden();
   await done.getByText("Tell me more").click();
   await expect(done.getByText(/That rule is how responsible teams use AI/)).toBeVisible();
+
+  // Say it your way: a sentence from fixed phrases, saved for the teacher.
+  const say = done.getByRole("region", { name: "Say it your way" });
+  await say.getByRole("radiogroup", { name: "What happened" }).getByRole("radio", { name: /a person should check when a mistake could hurt someone/ }).click();
+  await say.getByRole("radiogroup", { name: "Because…" }).getByRole("radio", { name: "machines make mistakes too" }).click();
+  await say.getByRole("radiogroup", { name: "So…" }).getByRole("radio", { name: /the more it matters/ }).click();
+  await expect(say.getByText(/“A person should check when a mistake could hurt someone, because machines make mistakes too, so the more it matters/)).toBeVisible();
+  await say.getByRole("button", { name: "That's my sentence" }).click();
+  await expect(say.getByText("Saved. Your teacher can see your sentence.")).toBeVisible();
 });
 
 test("Is That Real?: say 'not enough evidence yet', then check the source", async ({ page, baseURL }, testInfo) => {
