@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useReducer, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 
 import { cn } from "@/ui";
@@ -9,8 +9,17 @@ import { convolve3x3, EDGE_DETECTION_KERNEL } from "../math/convolve3x3";
 import { downsampleRGB } from "../math/downsample";
 import { greyscaleGrid } from "../math/greyscale";
 import type { Grid, Kernel3x3, RGB } from "../math/types";
+import {
+  freshRound,
+  isSettled,
+  roundReducer,
+  settledWork,
+  type RoundAction,
+  type RoundState,
+} from "../pixel-playground/round-state";
+import { roundSteps } from "../pixel-playground/steps";
 import type {
-  PixelPlaygroundWork,
+  PixelRoundCheckResult,
   StudentPixelPlaygroundConfig,
   StudentPixelRound,
 } from "../pixel-playground/types";
@@ -161,12 +170,12 @@ function PixelCanvas({ rgbGrid, greyGrid, greyOffset = 0, size, label, animate }
   );
 }
 
-function MysteryRoundCanvas({ round, size }: { round: StudentPixelRound; size: number }) {
+function MysteryRoundCanvas({ round, resolution, size }: { round: StudentPixelRound; resolution: number; size: number }) {
   const t = useTranslations("student.play.aiSim.pixelPlayground");
   const { grid, status } = usePixelGrid(round.src);
   const resGrid = useMemo(
-    () => (grid ? downsampleRGB(grid, round.resolution, round.resolution) : null),
-    [grid, round.resolution],
+    () => (grid ? downsampleRGB(grid, resolution, resolution) : null),
+    [grid, resolution],
   );
   if (status === "loading") {
     return (
@@ -188,7 +197,7 @@ function MysteryRoundCanvas({ round, size }: { round: StudentPixelRound; size: n
       </div>
     );
   }
-  return <PixelCanvas rgbGrid={resGrid} size={size} label={t("mysteryImageLabel", { resolution: round.resolution })} animate={false} />;
+  return <PixelCanvas rgbGrid={resGrid} size={size} label={t("mysteryImageLabel", { resolution })} animate={false} />;
 }
 
 function toKernel3x3(matrix: number[][]): Kernel3x3 {
@@ -206,6 +215,8 @@ export function PixelPlayground({
   reducedMotion,
   onWorkChange,
   initialWork,
+  retryCount = 0,
+  levelId,
 }: AiSimWidgetPlayerProps) {
   const config = rawConfig as StudentPixelPlaygroundConfig;
   const t = useTranslations("student.play.aiSim.pixelPlayground");
@@ -238,26 +249,67 @@ export function PixelPlayground({
   const resetKernel = () => setKernel(EDGE_DETECTION_KERNEL.map((row) => [...row]));
 
   // ── Mystery rounds state ─────────────────────────────────────────────
-  // The mystery-round answers ARE the work here — restore them, keeping only
-  // rounds and images this level still has.
-  const [rounds, setRounds] = useState<Record<string, string>>(() =>
-    restoreRounds(
-      initialWork,
-      config.rounds.map((round) => round.id),
-      config.images.map((image) => image.id),
-    ),
+  // Each round runs its own loop (see round-state.ts). A restored draft
+  // brings back the guesses, not the checks: they are checked again.
+  const roundIds = useMemo(() => config.rounds.map((round) => round.id), [config.rounds]);
+  const initialRounds = (): Record<string, RoundState> => {
+    const restored = restoreRounds(initialWork, roundIds, config.images.map((image) => image.id));
+    return Object.fromEntries(roundIds.map((id) => [id, freshRound(restored[id] ?? null)]));
+  };
+  const [rounds, dispatch] = useReducer(
+    (state: Record<string, RoundState>, action: { roundId: string; action: RoundAction } | { reset: true }) =>
+      "reset" in action
+        ? Object.fromEntries(roundIds.map((id) => [id, freshRound()]))
+        : { ...state, [action.roundId]: roundReducer(state[action.roundId] ?? freshRound(), action.action) },
+    undefined,
+    initialRounds,
   );
-  const allAnswered = config.rounds.every((round) => rounds[round.id]);
+  const stepsFor = (round: StudentPixelRound) => roundSteps(config.resolutions, round.resolution);
 
   useEffect(() => {
-    const work: PixelPlaygroundWork = { rounds };
-    reportWork(work, allAnswered);
+    const { work, ready } = settledWork(rounds, roundIds);
+    // The hint engine follows each round's step; the graded work is only
+    // the settled guesses.
+    const hintState = Object.fromEntries(
+      roundIds.map((id) => [id, { selected: rounds[id]?.selected ?? null, status: rounds[id]?.status ?? "guessing" }]),
+    );
+    reportWork(work, ready, hintState);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [rounds, allAnswered]);
+  }, [rounds, roundIds]);
 
-  const pickRound = (roundId: string, imageId: string) => {
+  // "Try again" after a graded attempt: every round starts over, blocky.
+  useEffect(() => {
+    if (retryCount > 0) dispatch({ reset: true });
+  }, [retryCount]);
+
+  const act = (roundId: string, action: RoundAction) => {
     if (disabled) return;
-    setRounds((current) => ({ ...current, [roundId]: imageId }));
+    dispatch({ roundId, action });
+  };
+
+  const checkRound = async (round: StudentPixelRound) => {
+    const state = rounds[round.id];
+    if (disabled || !levelId || !state?.selected) return;
+    act(round.id, { type: "checking" });
+    try {
+      const res = await fetch(`/api/levels/${levelId}/pixel-round`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          roundId: round.id,
+          imageId: state.selected,
+          resolution: stepsFor(round)[state.step],
+        }),
+      });
+      if (!res.ok) throw new Error(`check ${res.status}`);
+      dispatch({ roundId: round.id, action: { type: "checked", result: (await res.json()) as PixelRoundCheckResult } });
+    } catch {
+      dispatch({ roundId: round.id, action: { type: "error" } });
+    }
+  };
+  const imageName = (id: string) => {
+    const image = config.images.find((i) => i.id === id);
+    return image ? resolveLocalized(image.name, locale) : id;
   };
 
   return (
@@ -406,52 +458,131 @@ export function PixelPlayground({
         ) : null}
       </section>
 
-      {/* ── Mystery rounds ── */}
+      {/* ── Mystery rounds: guess → check → more squares → reveal ── */}
       <section className="flex flex-col gap-4">
-        <h3 className="font-display text-sm font-bold text-ink">{t("roundsHeading")}</h3>
+        <div className="flex flex-col gap-1">
+          <h3 className="font-display text-sm font-bold text-ink">{t("roundsHeading")}</h3>
+          <p className="text-sm text-ink-muted">{t("roundsIntro")}</p>
+        </div>
         <div className="flex flex-col gap-6">
           {config.rounds.map((round, index) => {
-            const picked = rounds[round.id];
+            const state = rounds[round.id] ?? freshRound();
+            const steps = stepsFor(round);
+            const resolution = steps[state.step] ?? steps[0]!;
+            const settled = isSettled(state);
+            const locked = disabled || settled || state.status === "checking" || state.status === "notYet";
+            const roundName = t("roundLabel", { number: index + 1 });
+            const answerImage = state.answer ? config.images.find((i) => i.id === state.answer!.imageId) : undefined;
+            const clue = state.answer?.clue ? resolveLocalized(state.answer.clue, locale) : null;
             return (
-              <div key={round.id} className="flex flex-col gap-3 rounded-xl border-2 border-border-token bg-surface-raised p-4 sm:flex-row sm:items-center">
-                <div className="flex flex-col items-center gap-2">
-                  <span className="text-xs font-bold uppercase tracking-wide text-ink-muted">
-                    {t("roundLabel", { number: index + 1 })}
-                  </span>
-                  <MysteryRoundCanvas round={round} size={ROUND_DISPLAY} />
-                </div>
-                <div
-                  role="radiogroup"
-                  aria-label={t("roundLabel", { number: index + 1 })}
-                  className="flex flex-1 flex-wrap gap-2"
-                >
-                  {config.images.map((image) => {
-                    const checked = picked === image.id;
-                    return (
-                      <label
-                        key={image.id}
-                        className={cn(
-                          "flex min-h-11 cursor-pointer items-center gap-2 rounded-lg border-2 px-3 py-2 text-start transition-colors",
-                          "has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-brand has-[:focus-visible]:ring-offset-2",
-                          checked ? "border-brand bg-brand/10" : "border-border-token bg-surface-sunken hover:bg-surface-sunken/70",
-                          disabled && "pointer-events-none opacity-90",
-                        )}
-                      >
-                        <input
-                          type="radio"
-                          name={`pixel-round-${round.id}`}
-                          checked={checked}
-                          disabled={disabled}
-                          onChange={() => pickRound(round.id, image.id)}
-                          className="sr-only"
+              <div
+                key={round.id}
+                className={cn(
+                  "flex flex-col gap-4 rounded-xl border-2 bg-surface-raised p-4",
+                  state.status === "right" ? "border-positive/50" : state.status === "missed" ? "border-warning/60" : "border-border-token",
+                )}
+              >
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
+                  <div className="flex shrink-0 flex-col items-center gap-2">
+                    <span className="text-xs font-bold uppercase tracking-wide text-ink-muted">{roundName}</span>
+                    <div className="flex items-center gap-2">
+                      <MysteryRoundCanvas round={round} resolution={resolution} size={ROUND_DISPLAY} />
+                      {answerImage ? (
+                        // eslint-disable-next-line @next/next/no-img-element -- same-origin static asset, the settled round's real picture
+                        <img
+                          src={answerImage.src}
+                          alt={t("realPictureLabel", { name: resolveLocalized(answerImage.name, locale) })}
+                          className={cn("size-24 rounded-lg border border-border-token bg-surface-sunken object-contain p-2", !reducedMotion && styles.gridFadeIn)}
                         />
-                        {/* eslint-disable-next-line @next/next/no-img-element -- decorative thumbnail from a same-origin static SVG/PNG set */}
-                        <img src={image.src} alt="" aria-hidden="true" className="size-8 rounded object-contain" />
-                        <span className="text-sm font-semibold text-ink">{resolveLocalized(image.name, locale)}</span>
-                      </label>
-                    );
-                  })}
+                      ) : null}
+                    </div>
+                    <span className="text-xs font-semibold text-ink-muted">{t("squaresNow", { resolution })}</span>
+                  </div>
+                  <div
+                    role="radiogroup"
+                    aria-label={t("guessLabel", { round: roundName })}
+                    className="flex flex-1 flex-wrap content-start gap-2"
+                  >
+                    {config.images.map((image) => {
+                      const checked = state.selected === image.id;
+                      return (
+                        <label
+                          key={image.id}
+                          className={cn(
+                            // relative: keeps the hidden radio inside the scrolling player
+                            // (absolute, it used to stretch the whole page).
+                            "relative flex min-h-11 cursor-pointer items-center gap-2 rounded-lg border-2 px-3 py-2 text-start transition-colors",
+                            "has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-brand has-[:focus-visible]:ring-offset-2",
+                            checked ? "border-brand bg-brand/10" : "border-border-token bg-surface-sunken hover:bg-surface-sunken/70",
+                            locked && "pointer-events-none opacity-90",
+                          )}
+                        >
+                          <input
+                            type="radio"
+                            name={`pixel-round-${round.id}`}
+                            checked={checked}
+                            disabled={locked}
+                            onChange={() => act(round.id, { type: "pick", imageId: image.id })}
+                            className="sr-only"
+                          />
+                          {/* eslint-disable-next-line @next/next/no-img-element -- decorative thumbnail from a same-origin static SVG/PNG set */}
+                          <img src={image.src} alt="" aria-hidden="true" className="size-8 rounded object-contain" />
+                          <span className="text-sm font-semibold text-ink">{resolveLocalized(image.name, locale)}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
                 </div>
+
+                <div aria-live="polite" className="flex flex-col gap-2">
+                  {state.status === "right" && state.answer ? (
+                    <p className="text-sm font-semibold text-positive">
+                      {t("right", { name: imageName(state.answer.imageId), resolution })}
+                      {clue ? <span className="block font-normal text-ink">{t("clueUsed", { clue })}</span> : null}
+                    </p>
+                  ) : state.status === "missed" && state.answer ? (
+                    <p className="text-sm font-semibold text-ink">
+                      {t("missed", { name: imageName(state.answer.imageId), resolution })}
+                      {clue ? <span className="block font-normal">{t("clueMissed", { clue })}</span> : null}
+                    </p>
+                  ) : state.status === "notYet" ? (
+                    <p className="text-sm font-semibold text-ink">{t("notYet")}</p>
+                  ) : state.status === "error" ? (
+                    <p className="text-sm font-semibold text-danger">{t("checkError")}</p>
+                  ) : null}
+                </div>
+
+                {!disabled ? (
+                  <div className="flex flex-wrap gap-2">
+                    {state.status === "guessing" || state.status === "error" || state.status === "checking" ? (
+                      <button
+                        type="button"
+                        disabled={!state.selected || state.status === "checking" || !levelId}
+                        onClick={() => void checkRound(round)}
+                        className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-brand px-4 text-sm font-semibold text-on-brand transition-colors hover:bg-brand-strong disabled:pointer-events-none disabled:opacity-60"
+                      >
+                        {state.status === "checking" ? t("checking") : t("checkGuess")}
+                      </button>
+                    ) : state.status === "notYet" ? (
+                      <button
+                        type="button"
+                        onClick={() => act(round.id, { type: "moreSquares", stepCount: steps.length })}
+                        className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-brand px-4 text-sm font-semibold text-on-brand transition-colors hover:bg-brand-strong"
+                      >
+                        <span aria-hidden="true">🔍</span>
+                        {t("moreSquares")}
+                      </button>
+                    ) : state.status === "missed" ? (
+                      <button
+                        type="button"
+                        onClick={() => act(round.id, { type: "retry" })}
+                        className="inline-flex h-11 items-center justify-center gap-2 rounded-lg border-2 border-border-token bg-surface-raised px-4 text-sm font-semibold text-ink transition-colors hover:bg-surface-sunken"
+                      >
+                        {t("retryRound")}
+                      </button>
+                    ) : null}
+                  </div>
+                ) : null}
               </div>
             );
           })}

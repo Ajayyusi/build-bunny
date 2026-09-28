@@ -30,7 +30,13 @@ export type PlayerButton =
   | "continueToPredict"
   | "moveLineAgain"
   | "lockPrediction"
-  | "tryAnotherPrediction";
+  | "tryAnotherPrediction"
+  | "checkGuess"
+  | "moreSquares"
+  | "retryRound";
+
+/** See Like a Computer: one mystery round's step, as the player reports it. */
+export type PixelRoundStatus = "guessing" | "checking" | "notYet" | "right" | "missed" | "error";
 
 export type NextStep =
   /** Nothing to change: the current work already passes. `better` = passes without the top star. */
@@ -63,6 +69,8 @@ export type NextStep =
   | { code: "revealComputer" }
   | { code: "setPrediction"; value: number }
   | { code: "pickPicture"; roundId: string; imageId: string }
+  /** A button inside one mystery round (Check my guess, Add more squares…). */
+  | { code: "pressRoundButton"; roundId: string; button: PlayerButton }
   | { code: "designAdd"; tile: "#" | "W" | "C"; x: number; y: number }
   | { code: "designRemove"; x: number; y: number }
   | { code: "designGoal"; x: number; y: number }

@@ -613,7 +613,21 @@
           "roundLabel": "الجولة {number}",
           "loadingImage": "جارٍ تحميل الصورة…",
           "loadError": "تعذّر تحميل هذه الصورة.",
-          "mysteryImageLabel": "صورة غامضة معروضة بدقة {resolution} × {resolution} بكسل"
+          "mysteryImageLabel": "صورة غامضة معروضة بدقة {resolution} × {resolution} بكسل",
+          "roundsIntro": "تبدأ كل صورة غامضة بأكثر شكل مربّع ممكن. اختر تخمينك ثم تحقّق منه. لم يصب بعد؟ أضف مربعات أكثر وانظر من جديد.",
+          "squaresNow": "{resolution} × {resolution} مربعًا",
+          "checkGuess": "تحقّق من تخميني",
+          "checking": "جارٍ التحقّق…",
+          "notYet": "ليس بعد! انظر من جديد بمربعات أكثر.",
+          "moreSquares": "أضف مربعات أكثر",
+          "right": "نعم، الصورة هي: {name}! عرفتها بـ {resolution} × {resolution} مربعًا.",
+          "missed": "كانت الصورة: {name}. حتى بـ {resolution} × {resolution} مربعًا، من الصعب أن تعرف.",
+          "clueUsed": "الدليل الذي استخدمته: {clue}.",
+          "clueMissed": "الدليل الذي فاتك: {clue}.",
+          "retryRound": "أعد هذه الجولة",
+          "checkError": "لم يستطع روبو باني التحقّق الآن. حاول مرة أخرى.",
+          "realPictureLabel": "الصورة الحقيقية: {name}",
+          "guessLabel": "تخمينك في {round}"
         }
       },
       "mission": {
@@ -872,7 +886,8 @@
         "round": "الجولة {n}",
         "tryRule": "اختر القاعدة «{rule}»، ثم اضغط «{button}».",
         "pressButton": "اضغط «{button}».",
-        "predictGuesses": "خمّن ماذا سيقول الأرنب عن كل واحد غامض، ثم اضغط «{button}»."
+        "predictGuesses": "خمّن ماذا سيقول الأرنب عن كل واحد غامض، ثم اضغط «{button}».",
+        "pressRoundButton": "في {round}، اضغط «{button}»."
       },
       "check": {
         "title": "سؤال سريع",

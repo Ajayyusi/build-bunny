@@ -381,6 +381,16 @@ export const nextStepStateSchema = z.object({
   phase: z.enum(["fit", "compare", "predict", "revealed"]).optional(),
   prediction: z.number().nullable().optional(),
   rounds: z.record(z.string(), z.string()).optional(),
+  /** See Like a Computer, per round: the picked guess and the round's step. */
+  pixel: z
+    .record(
+      z.string(),
+      z.object({
+        selected: z.string().nullable(),
+        status: z.enum(["guessing", "checking", "notYet", "right", "missed", "error"]),
+      }),
+    )
+    .optional(),
   /** Rule or Examples?: where the child is in the rule round, if the level has one. */
   rule: z
     .object({
@@ -595,6 +605,23 @@ export function computeNextStep(
         if (!line) return { code: "none" };
         if (passes({ line, prediction: round1(line.slope * w.predictAt + line.intercept) }).pass) return { code: "revealComputer" };
         return nudgeToward(line, best, w.points.map((q) => q.x));
+      }
+      // Each round: guess → check → (not yet: add squares, guess again) →
+      // settled. The first round not yet right is the one to work on.
+      if (state.pixel) {
+        for (const round of w.rounds) {
+          const at = state.pixel[round.id];
+          if (!at || at.status === "right") {
+            if (!at) return { code: "pickPicture", roundId: round.id, imageId: round.imageId };
+            continue;
+          }
+          if (at.status === "checking") return { code: "none" };
+          if (at.status === "missed") return { code: "pressRoundButton", roundId: round.id, button: "retryRound" };
+          if (at.status === "notYet") return { code: "pressRoundButton", roundId: round.id, button: "moreSquares" };
+          if (at.selected !== round.imageId) return { code: "pickPicture", roundId: round.id, imageId: round.imageId };
+          return { code: "pressRoundButton", roundId: round.id, button: "checkGuess" };
+        }
+        return { code: "ready" };
       }
       const picked = state.rounds ?? {};
       const wrong = w.rounds.find((r) => picked[r.id] !== r.imageId);

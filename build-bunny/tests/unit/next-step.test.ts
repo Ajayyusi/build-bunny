@@ -1,4 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { judgePixelRound } from "@/modules/ai/lab/pixel-playground/judge";
+import { freshRound, roundReducer, settledWork, type RoundState } from "@/modules/ai/lab/pixel-playground/round-state";
+import { roundSteps } from "@/modules/ai/lab/pixel-playground/steps";
 
 import { bundle } from "../../content";
 import type { GridVariantSpec } from "@/engine";
@@ -262,6 +265,8 @@ describe("following 'Show me the next step' finishes every level, through the ro
 
       const state: NextStepState = {};
       let finalAnswer: () => unknown;
+      let pixelRounds: Record<string, RoundState> = {};
+      let syncPixel = () => {};
       const type = level.activityType;
       if (type === "BLOCK_CODING" || type === "DEBUGGING") {
         state.workspaceJson = type === "DEBUGGING" ? payload.brokenWorkspace : (payload.startWorkspace ?? toJson({ main: [], tricks: [] }));
@@ -304,8 +309,18 @@ describe("following 'Show me the next step' finishes every level, through the ro
       } else if (type === "AI_SIM") {
         const w = aiSimPayload.parse(level.payload).widget;
         if (w.widgetId === "pixel-playground") {
-          state.rounds = {};
-          finalAnswer = () => ({ rounds: state.rounds });
+          // See Like a Computer: every round runs guess → check → reveal,
+          // through the player's own reducer and the server's judgement.
+          pixelRounds = Object.fromEntries(w.rounds.map((r) => [r.id, freshRound()]));
+          const sync = () => {
+            state.pixel = Object.fromEntries(
+              Object.entries(pixelRounds).map(([id, r]) => [id, { selected: r.selected, status: r.status }]),
+            );
+            state.rounds = settledWork(pixelRounds, w.rounds.map((r) => r.id)).work.rounds;
+          };
+          syncPixel = sync;
+          sync();
+          finalAnswer = () => settledWork(pixelRounds, w.rounds.map((r) => r.id)).work;
         } else {
           const ys = w.points.map((q: { y: number }) => q.y);
           state.line = { slope: 0, intercept: ys.reduce((a: number, b: number) => a + b, 0) / ys.length };
@@ -453,9 +468,35 @@ describe("following 'Show me the next step' finishes every level, through the ro
             if (state.phase !== "predict") throw new Error("unfollowable: the prediction slider is locked");
             state.prediction = step.value;
             break;
-          case "pickPicture":
-            state.rounds = { ...state.rounds, [step.roundId]: step.imageId };
+          case "pickPicture": {
+            const round = pixelRounds[step.roundId]!;
+            if (round.status !== "guessing" && round.status !== "error") throw new Error("unfollowable: the guesses are locked");
+            pixelRounds = { ...pixelRounds, [step.roundId]: roundReducer(round, { type: "pick", imageId: step.imageId }) };
+            syncPixel();
             break;
+          }
+          case "pressRoundButton": {
+            const w = aiSimPayload.parse(level.payload).widget;
+            if (w.widgetId !== "pixel-playground") throw new Error("round button outside See Like a Computer");
+            const cfg = w.rounds.find((r) => r.id === step.roundId)!;
+            const steps = roundSteps(w.resolutions, cfg.resolution);
+            let round = pixelRounds[step.roundId]!;
+            if (step.button === "checkGuess") {
+              if (!round.selected) throw new Error("unfollowable: Check my guess is disabled with no guess");
+              round = roundReducer(round, { type: "checking" });
+              const result = judgePixelRound(w, { roundId: cfg.id, imageId: round.selected!, resolution: steps[round.step]! })!;
+              round = roundReducer(round, { type: "checked", result });
+            } else if (step.button === "moreSquares") {
+              if (round.status !== "notYet") throw new Error("unfollowable: Add more squares isn't on screen");
+              round = roundReducer(round, { type: "moreSquares", stepCount: steps.length });
+            } else if (step.button === "retryRound") {
+              if (round.status !== "missed") throw new Error("unfollowable: Try this round again isn't on screen");
+              round = roundReducer(round, { type: "retry" });
+            } else throw new Error(`unknown round button ${step.button}`);
+            pixelRounds = { ...pixelRounds, [step.roundId]: round };
+            syncPixel();
+            break;
+          }
           case "designAdd":
           case "designGoal":
           case "designRemove": {

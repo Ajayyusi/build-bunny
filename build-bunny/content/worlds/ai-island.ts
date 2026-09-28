@@ -746,8 +746,8 @@ export const aiIsland: WorldFixture = {
             ar: "صغّر الصور إلى بكسلات وخمّن الصور الغامضة كما يفعل الحاسوب.",
           },
           instructions: {
-            en: "Drag the resolution slider from 64 down to 8 and watch the picture break into fewer, bigger squares. For each mystery round, guess the picture at the LOWEST resolution you can before checking — then see how low a computer could really go.",
-            ar: "اسحب شريط الدقة من 64 إلى 8، وشاهد الصورة تتحول إلى مربعات أقل وأكبر. في كل جولة غموض، خمّن الصورة عند أدنى دقة تستطيعها قبل التحقق — ثم اكتشف إلى أي درجة يستطيع الحاسوب النزول فعلًا.",
+            en: "Pick a picture and drag the slider from 64 down to 8: watch it break into fewer, bigger squares. Then the mystery pictures: each one starts as blocky as it gets. Pick your guess and press “Check my guess”. Not right yet? Add more squares and look again. Every answer shows the clue that gives the picture away.",
+            ar: "اختر صورة واسحب الشريط من 64 إلى 8: شاهدها تتحول إلى مربعات أقل وأكبر. ثم الصور الغامضة: تبدأ كل واحدة بأكثر شكل مربّع ممكن. اختر تخمينك واضغط «تحقّق من تخميني». لم يصب بعد؟ أضف مربعات أكثر وانظر من جديد. كل إجابة تُظهر الدليل الذي يكشف الصورة.",
           },
           explanation: {
             en: "A photo isn't really a 'picture' to a computer at all — it's a grid of numbers, one small set per square, and that's ALL a computer ever starts with. At 64×64 you could still guess easily; at 8×8 you needed real work, because most of the detail was simply gone. This is honestly why computer vision is hard: a computer never sees a rabbit or a rocket, it only ever sees a grid of numbers and has to work out what they probably mean — the exact same guessing game you just played, just done with maths instead of eyes.",
@@ -798,11 +798,36 @@ export const aiIsland: WorldFixture = {
             widget: {
               widgetId: "pixel-playground",
               images: [
-                { id: "rabbit", src: "/ai-lab/rabbit.svg", name: { en: "Rabbit", ar: "أرنب" } },
-                { id: "carrot", src: "/ai-lab/carrot.svg", name: { en: "Carrot", ar: "جزرة" } },
-                { id: "tree", src: "/ai-lab/tree.svg", name: { en: "Tree", ar: "شجرة" } },
-                { id: "rocket", src: "/ai-lab/rocket.svg", name: { en: "Rocket", ar: "صاروخ" } },
-                { id: "house", src: "/ai-lab/house.svg", name: { en: "House", ar: "منزل" } },
+                {
+                  id: "rabbit",
+                  src: "/ai-lab/rabbit.svg",
+                  name: { en: "Rabbit", ar: "أرنب" },
+                  clue: { en: "two tall white ears above a round white body, on green", ar: "أذنان بيضاوان طويلتان فوق جسم أبيض مستدير، على خلفية خضراء" },
+                },
+                {
+                  id: "carrot",
+                  src: "/ai-lab/carrot.svg",
+                  name: { en: "Carrot", ar: "جزرة" },
+                  clue: { en: "a red-orange triangle pointing down, with green leaves on top", ar: "مثلث برتقالي محمرّ يشير إلى الأسفل، وفوقه أوراق خضراء" },
+                },
+                {
+                  id: "tree",
+                  src: "/ai-lab/tree.svg",
+                  name: { en: "Tree", ar: "شجرة" },
+                  clue: { en: "a big round green top on a dark trunk", ar: "قمة خضراء كبيرة مستديرة فوق جذع داكن" },
+                },
+                {
+                  id: "rocket",
+                  src: "/ai-lab/rocket.svg",
+                  name: { en: "Rocket", ar: "صاروخ" },
+                  clue: { en: "a tall white shape with a pointed top, on a dark background", ar: "شكل أبيض طويل ذو قمة مدببة، على خلفية داكنة" },
+                },
+                {
+                  id: "house",
+                  src: "/ai-lab/house.svg",
+                  name: { en: "House", ar: "منزل" },
+                  clue: { en: "a red triangle roof on top of a pale square", ar: "سقف مثلث أحمر فوق مربع فاتح" },
+                },
               ],
               resolutions: [64, 32, 16, 8],
               rounds: [

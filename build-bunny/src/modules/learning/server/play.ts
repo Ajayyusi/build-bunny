@@ -123,19 +123,21 @@ function requireSchool(ctx: SessionContext): string {
   return ctx.schoolId;
 }
 
-/** Progress row of an unlocked level — locked/unknown resolve to NotFound. */
 /**
- * The gate every player mutation goes through: hints, draft autosave, and
- * marking a level started.
+ * Progress row of an unlocked level — locked/unknown resolve to NotFound.
+ *
+ * The gate every player mutation goes through: hints, draft autosave,
+ * marking a level started, and in-level checks (See Like a Computer's
+ * mystery rounds).
  *
  * Requires BOTH a progress row and a live entitlement to the content. The
  * row alone used to be enough, which quietly made it authorization — and
  * since assignment creation is what writes those rows, an assignment for
  * content outside the school's programme granted hint and draft access to
- * it. Checking entitlement here covers all three callers at once, so a
- * future fourth cannot forget it.
+ * it. Checking entitlement here covers every caller at once, so a new one
+ * cannot forget it.
  */
-async function requireProgressRow(
+export async function requireProgressRow(
   ctx: SessionContext,
   levelId: string,
 ): Promise<{ id: string; status: "UNLOCKED" | "IN_PROGRESS" | "COMPLETED" }> {

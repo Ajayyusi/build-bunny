@@ -118,6 +118,11 @@ export function useNextStepText() {
         return t("setPrediction", { value: step.value });
       case "pickPicture":
         return t("pickPicture", { round: name(names.round, step.roundId), image: name(names.image, step.imageId) });
+      case "pressRoundButton":
+        return t("pressRoundButton", {
+          round: name(names.round, step.roundId),
+          button: names.button ? names.button(step.button) : step.button,
+        });
       case "designAdd":
         return t("designAdd", { tile: t(`tile.${step.tile === "#" ? "rock" : step.tile === "W" ? "water" : "carrot"}`), row: step.y + 1, col: step.x + 1 });
       case "designRemove":

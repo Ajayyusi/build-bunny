@@ -28,10 +28,13 @@ export interface AiSimWidgetPlayerProps {
   reducedMotion: boolean;
   /**
    * Called whenever the child's work changes; `ready` gates the wrapper's
-   * Submit button. `step` names the widget's current step for next-step
-   * hints (never part of the graded answer).
+   * Submit button. `hintState` is the widget's current step for next-step
+   * hints (Fortune Teller: its step name; See Like a Computer: each round's
+   * guess and step) — never part of the graded answer.
    */
-  onWorkChange: (work: unknown, ready: boolean, step?: string) => void;
+  onWorkChange: (work: unknown, ready: boolean, hintState?: unknown) => void;
+  /** The level being played, for in-level server checks (mystery rounds). */
+  levelId?: string;
   /**
    * A previously autosaved snapshot in the SAME shape this widget reports
    * through onWorkChange, or null. Untrusted: it comes from a past session

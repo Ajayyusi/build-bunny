@@ -30,3 +30,16 @@ export type PixelPlaygroundAnswer = z.infer<typeof pixelPlaygroundAnswerSchema>;
 export interface PixelPlaygroundWork {
   rounds: Record<string, string>;
 }
+
+/** What "Check my guess" answers for one mystery round (see check.ts). */
+export interface PixelRoundCheckResult {
+  correct: boolean;
+  /** No more squares to add: this was the round's clearest step. */
+  final: boolean;
+  /**
+   * The real picture and its clue — only once the round is settled (right,
+   * or wrong at its clearest step). A wrong guess with squares still to add
+   * learns nothing but "not yet", so it's a real second try.
+   */
+  answer: { imageId: string; clue: LocalizedText | null } | null;
+}

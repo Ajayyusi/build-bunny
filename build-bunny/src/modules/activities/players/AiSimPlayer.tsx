@@ -21,6 +21,7 @@ import { ResultBanner } from "./shared/ResultBanner";
 import { SuccessOverlay } from "./shared/SuccessOverlay";
 import { Walkthrough } from "./shared/Walkthrough";
 import { NextStepHint } from "./shared/NextStepHint";
+import type { PixelRoundStatus } from "@/modules/hints/types";
 import type { ActivityPlayerProps, AiSimActivityPayload, AttemptResponse } from "../types";
 import { resolveLocalized } from "../types";
 
@@ -64,6 +65,7 @@ export function AiSimPlayer({
   const tNext = useTranslations("student.play.nextStep");
   const locale = useLocale();
   const tTrend = useTranslations("student.play.aiSim.trendLine");
+  const tPixel = useTranslations("student.play.aiSim.pixelPlayground");
 
   const beats = payload.walkthrough ?? null;
   // Opens on arrival when the level authored one. A child landing on an
@@ -120,8 +122,8 @@ export function AiSimPlayer({
   // would otherwise defeat the widgets' own useStableCallback guard.
   // The widget's own step (Fortune Teller: fit, compare, predict, revealed),
   // for next-step hints only.
-  const [widgetStep, setWidgetStep] = useState<string | null>(null);
-  const handleWorkChange = useCallback((nextWork: unknown, nextReady: boolean, step?: string) => {
+  const [widgetStep, setWidgetStep] = useState<unknown>(null);
+  const handleWorkChange = useCallback((nextWork: unknown, nextReady: boolean, step?: unknown) => {
     setWork(nextWork);
     setReady(nextReady);
     setWidgetStep(step ?? null);
@@ -321,6 +323,7 @@ export function AiSimPlayer({
             onWorkChange={handleWorkChange}
             initialWork={draft}
             retryCount={retryCount}
+            levelId={intro.levelId}
           />
 
           {showFailure ? (
@@ -373,9 +376,13 @@ export function AiSimPlayer({
             readyAction={`“${tSim("submit")}”`}
             getState={() => {
               const w = (work ?? {}) as { line?: { slope: number; intercept: number }; prediction?: number; rounds?: Record<string, string> };
-              if (widgetId === "pixel-playground") return { rounds: w.rounds ?? {} };
+              if (widgetId === "pixel-playground") {
+                return widgetStep && typeof widgetStep === "object"
+                  ? { rounds: w.rounds ?? {}, pixel: widgetStep as Record<string, { selected: string | null; status: PixelRoundStatus }> }
+                  : { rounds: w.rounds ?? {} };
+              }
               if (widgetId === "trend-line") {
-                const step = widgetStep ?? (ready ? "revealed" : "fit");
+                const step = typeof widgetStep === "string" ? widgetStep : ready ? "revealed" : "fit";
                 return {
                   line: w.line,
                   phase: step as "fit" | "compare" | "predict" | "revealed",
@@ -398,7 +405,9 @@ export function AiSimPlayer({
               button: (button) =>
                 button === "continueToPredict" || button === "moveLineAgain" || button === "lockPrediction" || button === "tryAnotherPrediction"
                   ? tTrend(button)
-                  : button,
+                  : button === "checkGuess" || button === "moreSquares" || button === "retryRound"
+                    ? tPixel(button)
+                    : button,
             }}
           />
         ) : null}

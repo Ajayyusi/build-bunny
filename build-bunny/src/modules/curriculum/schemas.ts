@@ -749,6 +749,10 @@ export const pixelPlaygroundConfig = z.object({
         id: z.string().min(1),
         src: z.string().min(1),
         name: localizedText,
+        /** What gives this picture away even when it is blocky, shown once a
+         *  mystery round is settled ("the clue you used / missed"). Server
+         *  side only until then: the student payload drops it. */
+        clue: localizedText.optional(),
       }),
     )
     .min(2)

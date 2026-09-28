@@ -613,7 +613,21 @@
           "roundLabel": "Round {number}",
           "loadingImage": "Loading picture…",
           "loadError": "This picture couldn't load.",
-          "mysteryImageLabel": "A mystery picture shown at {resolution} by {resolution} pixels"
+          "mysteryImageLabel": "A mystery picture shown at {resolution} by {resolution} pixels",
+          "roundsIntro": "Each mystery picture starts as blocky as it gets. Pick your guess, then check it. Not right yet? Add more squares and look again.",
+          "squaresNow": "{resolution} × {resolution} squares",
+          "checkGuess": "Check my guess",
+          "checking": "Checking…",
+          "notYet": "Not yet! Look again with more squares.",
+          "moreSquares": "Add more squares",
+          "right": "Yes, it's the {name}! You got it with {resolution} × {resolution} squares.",
+          "missed": "It was the {name}. Even at {resolution} × {resolution} squares, it's hard to tell.",
+          "clueUsed": "The clue you used: {clue}.",
+          "clueMissed": "The clue you missed: {clue}.",
+          "retryRound": "Try this round again",
+          "checkError": "Robo Bunny couldn't check that just now. Try again.",
+          "realPictureLabel": "The real picture: {name}",
+          "guessLabel": "Your guess for {round}"
         }
       },
       "mission": {
@@ -872,7 +886,8 @@
         "round": "Round {n}",
         "tryRule": "Pick the rule “{rule}”, then press “{button}”.",
         "pressButton": "Press “{button}”.",
-        "predictGuesses": "Guess what the bunny will say for each mystery one, then press “{button}”."
+        "predictGuesses": "Guess what the bunny will say for each mystery one, then press “{button}”.",
+        "pressRoundButton": "In {round}, press “{button}”."
       },
       "check": {
         "title": "Quick check",
