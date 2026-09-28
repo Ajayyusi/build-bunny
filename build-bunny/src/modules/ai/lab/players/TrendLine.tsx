@@ -121,10 +121,6 @@ export function TrendLine({
     () => sumSquaredError(config.points, optimum),
     [config.points, optimum],
   );
-  const fittedPrediction = useMemo(
-    () => yAt(optimum, config.predictAt),
-    [optimum, config.predictAt],
-  );
   // The same likely range the grader uses: narrowest in the middle of the
   // data, wider the further the prediction reaches past it.
   const band = useMemo(() => predictionBand(config.points, config.predictAt), [config.points, config.predictAt]);
