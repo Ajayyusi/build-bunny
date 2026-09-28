@@ -31,7 +31,7 @@ export default async function ClassPage({ params, searchParams }: Props) {
   const { tab } = await searchParams;
   setRequestLocale(locale);
   const ctx = await requireRole("TEACHER", "SCHOOL_ADMIN");
-  const [matrix, hardestLevels, misconceptions, reflections, aiIdeas, t, tCommon, tExplore] = await Promise.all([
+  const [matrix, hardestLevels, misconceptions, reflections, aiIdeas, t, tCommon, tExplore, tCheck] = await Promise.all([
     getClassMatrix(ctx, classId),
     getClassHardestLevels(ctx, classId),
     getClassMisconceptions(ctx, classId),
@@ -40,6 +40,7 @@ export default async function ClassPage({ params, searchParams }: Props) {
     getTranslations("staff.teach.matrix"),
     getTranslations("common"),
     getTranslations("student.explore"),
+    getTranslations("student.play.check"),
   ]);
 
   if (!matrix) {
@@ -192,6 +193,58 @@ export default async function ClassPage({ params, searchParams }: Props) {
                   </span>
                 </li>
               ))}
+            </ul>
+          </CardBody>
+        </Card>
+      ) : null}
+
+      {/* The five AI concepts: who is secure, working on it or not started,
+          by grade band, with checks, retries and the most common wrong idea.
+          Class totals only. */}
+      {aiIdeas && aiIdeas.students > 0 && aiIdeas.concepts.some((c) => c.levels > 0) ? (
+        <Card>
+          <CardBody className="flex flex-col gap-3">
+            <div className="flex flex-col gap-0.5">
+              <h2 className="font-display text-base font-semibold text-ink">{t("aiConcepts.heading")}</h2>
+              <p className="text-sm text-ink-muted">{t("aiConcepts.rule")}</p>
+            </div>
+            <ul className="grid gap-2 md:grid-cols-2">
+              {aiIdeas.concepts
+                .filter((c) => c.levels > 0)
+                .map((c) => {
+                  const total = c.secure + c.working + c.notStarted;
+                  return (
+                    <li key={c.concept} className="flex flex-col gap-1 rounded-lg bg-surface-sunken px-3 py-2">
+                      <span className="text-sm font-semibold text-ink">{t(`aiConcepts.name.${c.concept}`)}</span>
+                      <span aria-hidden="true" className="flex h-2 overflow-hidden rounded-full bg-surface-raised">
+                        <span className="bg-positive" style={{ width: `${total ? (c.secure / total) * 100 : 0}%` }} />
+                        <span className="bg-accent" style={{ width: `${total ? (c.working / total) * 100 : 0}%` }} />
+                      </span>
+                      <span className="text-xs text-ink tabular-nums">
+                        {t("aiConcepts.mastery", { secure: c.secure, working: c.working, notStarted: c.notStarted })}
+                      </span>
+                      <span className="text-xs text-ink-muted tabular-nums">
+                        {t("aiConcepts.bands", {
+                          youngSecure: c.byBand.younger.secure,
+                          young: c.byBand.younger.students,
+                          oldSecure: c.byBand.older.secure,
+                          old: c.byBand.older.students,
+                        })}
+                      </span>
+                      <span className="text-xs text-ink-muted tabular-nums">
+                        {t("aiConcepts.activity", { attempts: c.attempts, retries: c.retries })}
+                      </span>
+                      {c.misconception ? (
+                        <span className="text-xs text-ink">
+                          {t("aiConcepts.misconception", {
+                            count: c.misconception.count,
+                            answer: tCheck(`${c.misconception.checkConcept}.${c.misconception.choice}`),
+                          })}
+                        </span>
+                      ) : null}
+                    </li>
+                  );
+                })}
             </ul>
           </CardBody>
         </Card>

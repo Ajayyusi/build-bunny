@@ -1427,6 +1427,21 @@
           "firstTry": "{firstTry} of {answered} explained it first time",
           "noAnswers": "No quick-check answers yet",
           "activity": "Sessions {starts} · tests {tests} · retries {retries} · finished {completions}"
+        },
+        "aiConcepts": {
+          "heading": "AI concepts: who's secure",
+          "rule": "Secure means: finished at least two of the concept's activities, with 2 or more stars on average, and explained it correctly where there's a quick check. Class totals only.",
+          "name": {
+            "exampleQuality": "Good examples",
+            "testing": "Testing on new cases",
+            "bias": "Bias and fairness",
+            "uncertainty": "Uncertainty",
+            "oversight": "People checking AI"
+          },
+          "mastery": "{secure} secure · {working} working on it · {notStarted} not started",
+          "bands": "Grades 3–4: {youngSecure} of {young} secure · Grades 5–7: {oldSecure} of {old} secure",
+          "activity": "{attempts, plural, one {# check} other {# checks}} · {retries, plural, one {# retry} other {# retries}}",
+          "misconception": "Most common wrong first answer ({count, plural, one {# child} other {# children}}): “{answer}”"
         }
       },
       "student": {

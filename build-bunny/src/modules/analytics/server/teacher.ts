@@ -14,6 +14,7 @@ import { computeLevelActivityStats, rankMostFailed } from "./level-activity";
 import type { SessionContext } from "@/modules/auth/server/session";
 import { CONCEPT_CHECKS, type ExploreConcept } from "@/modules/explore/catalog";
 
+import { AI_CONCEPT_LEVELS, summariseAiConcepts, type ClassAiConcept } from "../ai-concepts";
 import { countAiEvents, emptyCounts, type AiActivityCounts } from "./ai-activity";
 import { localizedText, type LocalizedText } from "@/modules/curriculum/schemas";
 import type { LevelSnapshot } from "@/modules/curriculum/server/publish";
@@ -1407,6 +1408,8 @@ export interface ClassAiIdea {
 export interface ClassAiIdeas {
   students: number;
   ideas: ClassAiIdea[];
+  /** Mastery of the five AI concepts (see analytics/ai-concepts.ts). */
+  concepts: ClassAiConcept[];
 }
 
 /**
@@ -1428,11 +1431,12 @@ export async function getClassAiIdeas(ctx: SessionContext, classId: string): Pro
   const studentIds = roster.map((row) => row.userId);
   // In the catalog's order: the order a child meets the ideas.
   const order = Object.keys(CONCEPT_CHECKS);
-  const levels = (await loadSchoolLevels(schoolId))
-    .map((row) => row.matrix)
+  const schoolLevels = (await loadSchoolLevels(schoolId)).map((row) => row.matrix);
+  const levels = schoolLevels
     .filter((level) => CONCEPT_CHECKS[level.slug] !== undefined)
     .sort((a, b) => order.indexOf(a.slug) - order.indexOf(b.slug));
-  if (levels.length === 0) return { students: studentIds.length, ideas: [] };
+  const concepts = await loadClassAiConcepts(schoolId, studentIds, schoolLevels);
+  if (levels.length === 0) return { students: studentIds.length, ideas: [], concepts };
   const levelIds = levels.map((level) => level.id);
   const [finished, checks, names, activity] = await Promise.all([
     studentIds.length
@@ -1464,7 +1468,62 @@ export async function getClassAiIdeas(ctx: SessionContext, classId: string): Pro
       activity: activity.get(level.id) ?? emptyCounts(),
     };
   });
-  return { students: studentIds.length, ideas };
+  return { students: studentIds.length, ideas, concepts };
+}
+
+/** The rows behind the five-concept mastery report, for one class's children. */
+async function loadClassAiConcepts(
+  schoolId: string,
+  studentIds: string[],
+  schoolLevels: { id: string; slug: string }[],
+): Promise<ClassAiConcept[]> {
+  const conceptSlugs = new Set(Object.values(AI_CONCEPT_LEVELS).flat());
+  const levelIdBySlug = new Map(schoolLevels.filter((l) => conceptSlugs.has(l.slug)).map((l) => [l.slug, l.id]));
+  const levelIds = [...levelIdBySlug.values()];
+  const checkConceptOf = new Map(
+    [...levelIdBySlug].flatMap(([slug, id]) => (CONCEPT_CHECKS[slug] ? [[id, CONCEPT_CHECKS[slug]!.concept] as const] : [])),
+  );
+  const none = studentIds.length === 0 || levelIds.length === 0;
+  const [profiles, completed, checks, attempts, events] = await Promise.all([
+    studentIds.length
+      ? db.studentProfile.findMany({ where: { schoolId, userId: { in: studentIds } }, select: { userId: true, grade: true } })
+      : Promise.resolve([]),
+    none
+      ? Promise.resolve([])
+      : db.studentProgress.findMany({
+          where: { schoolId, levelId: { in: levelIds }, studentUserId: { in: studentIds }, status: "COMPLETED" },
+          select: { studentUserId: true, levelId: true, stars: true },
+        }),
+    none
+      ? Promise.resolve([])
+      : db.conceptCheck.findMany({
+          where: { schoolId, levelId: { in: levelIds }, studentUserId: { in: studentIds } },
+          select: { studentUserId: true, levelId: true, firstChoice: true, firstCorrect: true, correctAt: true },
+        }),
+    none
+      ? Promise.resolve([])
+      : db.activityAttempt.groupBy({
+          by: ["levelId"],
+          where: { schoolId, levelId: { in: levelIds }, studentUserId: { in: studentIds } },
+          _count: { _all: true },
+        }),
+    none ? Promise.resolve(new Map<string, AiActivityCounts>()) : countAiEvents({ schoolId, levelIds, studentIds, by: "levelId" }),
+  ]);
+  return summariseAiConcepts({
+    levelIdBySlug,
+    students: profiles.map((p) => ({ id: p.userId, grade: p.grade })),
+    completed: completed.map((row) => ({ studentId: row.studentUserId, levelId: row.levelId, stars: row.stars })),
+    checks: checks.map((row) => ({
+      studentId: row.studentUserId,
+      levelId: row.levelId,
+      firstChoice: row.firstChoice,
+      firstCorrect: row.firstCorrect,
+      correct: row.correctAt !== null,
+    })),
+    checkConceptOf,
+    attemptsByLevel: new Map(attempts.map((row) => [row.levelId, row._count._all])),
+    retriesByLevel: new Map([...events].map(([id, counts]) => [id, counts.retries])),
+  });
 }
 
 // ── Reflections: how the class felt about each level (brief §6) ───────────

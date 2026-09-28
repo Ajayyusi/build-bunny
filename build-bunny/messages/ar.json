@@ -1427,6 +1427,21 @@
           "firstTry": "شرحه {firstTry} من {answered} من المحاولة الأولى",
           "noAnswers": "لا توجد إجابات على السؤال السريع بعد",
           "activity": "جلسات {starts} · اختبارات {tests} · إعادات {retries} · أنهوا {completions}"
+        },
+        "aiConcepts": {
+          "heading": "مفاهيم الذكاء الاصطناعي: من أتقنها",
+          "rule": "الإتقان يعني: إنهاء نشاطين على الأقل من أنشطة المفهوم، بمتوسط نجمتين أو أكثر، وشرحه بشكل صحيح حيث يوجد سؤال سريع. أعداد الصف فقط.",
+          "name": {
+            "exampleQuality": "الأمثلة الجيدة",
+            "testing": "الاختبار على حالات جديدة",
+            "bias": "التحيّز والإنصاف",
+            "uncertainty": "عدم اليقين",
+            "oversight": "تحقّق الناس من الذكاء الاصطناعي"
+          },
+          "mastery": "{secure} أتقنوا · {working} يعملون عليه · {notStarted} لم يبدؤوا",
+          "bands": "الصفوف 3–4: {youngSecure} من {young} أتقنوا · الصفوف 5–7: {oldSecure} من {old} أتقنوا",
+          "activity": "{attempts, plural, one {تحقّق واحد} two {تحقّقان} few {# تحقّقات} other {# تحقّقًا}} · {retries, plural, one {إعادة واحدة} two {إعادتان} few {# إعادات} other {# إعادة}}",
+          "misconception": "أكثر إجابة أولى خاطئة ({count, plural, one {طفل واحد} two {طفلان} few {# أطفال} other {# طفلًا}}): «{answer}»"
         }
       },
       "student": {

@@ -195,6 +195,13 @@ describe("teacher: AI ideas", () => {
     expect(report?.ideas[0]).toMatchObject({ levelId: sorterId, finished: 2, answered: 2, firstTry: 1 });
     expect(report?.ideas[1]).toMatchObject({ levelId: secondSorterId, finished: 1, answered: 0 });
     expect(report?.ideas[3]).toMatchObject({ levelId: predictId, finished: 0, answered: 0 });
+    // The five AI concepts: one child finished two good-examples levels with
+    // two stars and explained one; the other finished one.
+    const quality = report?.concepts.find((c) => c.concept === "exampleQuality");
+    expect(quality).toMatchObject({ levels: 3, secure: 1, working: 1, notStarted: 0 });
+    expect(quality?.misconception).toEqual({ checkConcept: "examples", choice: "a", count: 1 });
+    expect(quality?.byBand.younger).toEqual({ secure: 1, students: 2 });
+    expect(report?.concepts.find((c) => c.concept === "uncertainty")).toMatchObject({ levels: 1, notStarted: 2 });
     // Totals only: no child ids anywhere in it.
     const serialized = JSON.stringify(report);
     for (const kid of kids) expect(serialized).not.toContain(kid.id);
