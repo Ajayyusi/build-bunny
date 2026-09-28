@@ -135,3 +135,12 @@ describe("See Like a Computer content", () => {
     }
   });
 });
+
+describe("next-step hint while a round is being checked", () => {
+  it("says it's checking, not that there's nothing to do", async () => {
+    const { computeNextStep } = await import("@/modules/hints/server/next-step");
+    const level = bundle.worlds.flatMap((w) => w.modules.flatMap((m) => m.levels)).find((l) => l.slug === "see-like-a-computer")!;
+    const step = computeNextStep("AI_SIM", level.payload, { pixel: { "round-1": { selected: "carrot", status: "checking" } } }, () => ({ pass: false, top: false }));
+    expect(step).toEqual({ code: "checkingRound", roundId: "round-1" });
+  });
+});

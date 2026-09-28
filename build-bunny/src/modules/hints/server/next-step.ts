@@ -618,7 +618,7 @@ export function computeNextStep(
             if (!at) return { code: "pickPicture", roundId: round.id, imageId: round.imageId };
             continue;
           }
-          if (at.status === "checking") return { code: "none" };
+          if (at.status === "checking") return { code: "checkingRound", roundId: round.id };
           if (at.status === "missed") return { code: "pressRoundButton", roundId: round.id, button: "retryRound" };
           if (at.status === "notYet") return { code: "pressRoundButton", roundId: round.id, button: "moreSquares" };
           if (at.selected !== round.imageId) return { code: "pickPicture", roundId: round.id, imageId: round.imageId };

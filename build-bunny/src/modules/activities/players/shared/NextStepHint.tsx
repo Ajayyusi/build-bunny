@@ -120,6 +120,8 @@ export function useNextStepText() {
         return t("setPrediction", { value: step.value });
       case "pickPicture":
         return t("pickPicture", { round: name(names.round, step.roundId), image: name(names.image, step.imageId) });
+      case "checkingRound":
+        return t("checkingRound", { round: name(names.round, step.roundId) });
       case "pressRoundButton":
         return t("pressRoundButton", {
           round: name(names.round, step.roundId),

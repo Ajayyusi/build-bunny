@@ -897,7 +897,8 @@
         "pressButton": "Press “{button}”.",
         "predictGuesses": "Guess what the bunny will say for each mystery one, then press “{button}”.",
         "pressRoundButton": "In {round}, press “{button}”.",
-        "answerQuestion": "First, say what you think. Any answer is fine: you'll see what happened next."
+        "answerQuestion": "First, say what you think. Any answer is fine: you'll see what happened next.",
+        "checkingRound": "Checking your guess for {round}… give it a moment."
       },
       "check": {
         "title": "Quick check",
