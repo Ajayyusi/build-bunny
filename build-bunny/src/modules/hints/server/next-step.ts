@@ -377,10 +377,22 @@ export const nextStepStateSchema = z.object({
   markers: z.array(z.object({ size: z.number(), color: z.number() })).max(6).optional(),
   excluded: z.array(z.string()).max(4).optional(),
   sceneId: z.string().nullable().optional(),
+  /** Ethics: the scene is asking for the child's verdict first. */
+  predicting: z.boolean().optional(),
   line: z.object({ slope: z.number(), intercept: z.number() }).optional(),
-  phase: z.enum(["fit", "predict"]).optional(),
+  phase: z.enum(["fit", "compare", "predict", "revealed"]).optional(),
   prediction: z.number().nullable().optional(),
   rounds: z.record(z.string(), z.string()).optional(),
+  /** See Like a Computer, per round: the picked guess and the round's step. */
+  pixel: z
+    .record(
+      z.string(),
+      z.object({
+        selected: z.string().nullable(),
+        status: z.enum(["guessing", "checking", "notYet", "right", "missed", "error"]),
+      }),
+    )
+    .optional(),
   /** Rule or Examples?: where the child is in the rule round, if the level has one. */
   rule: z
     .object({
@@ -389,6 +401,8 @@ export const nextStepStateSchema = z.object({
       tested: z.string().max(40).nullable(),
     })
     .optional(),
+  /** Predict-first levels: whether the child has revealed the bunny's guesses. */
+  revealed: z.boolean().optional(),
 });
 export type NextStepState = z.infer<typeof nextStepStateSchema>;
 
@@ -483,7 +497,11 @@ export function computeNextStep(
         ...(p.holdout ? { checkSet: check } : {}),
       });
       const taughtIds = taught.map((e) => e.id);
-      if (taughtIds.length > 0 && passes(answer(taughtIds, [...held])).pass) return { code: "ready" };
+      if (taughtIds.length > 0 && passes(answer(taughtIds, [...held])).pass) {
+        // Predict before testing: the child says what the bunny will answer,
+        // then reveals its guesses. Only then is Test the next step.
+        return p.predictFirst && state.revealed === false ? { code: "predictGuesses" } : { code: "ready" };
+      }
       const lie = taughtIds.find((id) => p.mislabelled.includes(id));
       if (lie) return { code: "takeBack", specimenId: lie };
       const solution = solveAiClassification(p, (probe) => trueLabel(p.rule, probe)) ?? [];
@@ -553,6 +571,7 @@ export function computeNextStep(
     case "AI_ETHICS": {
       const p = aiEthicsPayload.parse(payload);
       const scene = p.scenes.find((s) => s.id === state.sceneId) ?? null;
+      if (scene && state.predicting) return { code: "answerQuestion" };
       const safe = scene?.choices.find((c) => c.safe);
       return safe ? { code: "chooseSafe", choiceId: safe.id } : { code: "ready" };
     }
@@ -570,15 +589,42 @@ export function computeNextStep(
       if (w.widgetId === "trend-line") {
         const best = leastSquares(w.points);
         const line = state.line;
+        // Fit → compare → predict (blind) → revealed: the widget's steps.
+        const want = round1(best.slope * w.predictAt + best.intercept);
+        const close = state.prediction !== null && state.prediction !== undefined && Math.abs(state.prediction - want) <= 0.5;
+        if (state.phase === "revealed") {
+          if (close && line && passes({ line, prediction: state.prediction! }).pass) return { code: "ready" };
+          return { code: "pressButton", button: "tryAnotherPrediction" };
+        }
         if (state.phase === "predict") {
-          const want = round1(best.slope * w.predictAt + best.intercept);
-          if (state.prediction !== null && state.prediction !== undefined && line && passes({ line, prediction: state.prediction }).pass &&
-            Math.abs(state.prediction - want) <= 0.5) return { code: "ready" };
-          return { code: "setPrediction", value: want };
+          return close ? { code: "pressButton", button: "lockPrediction" } : { code: "setPrediction", value: want };
+        }
+        if (state.phase === "compare") {
+          if (line && passes({ line, prediction: round1(line.slope * w.predictAt + line.intercept) }).pass) {
+            return { code: "pressButton", button: "continueToPredict" };
+          }
+          return { code: "pressButton", button: "moveLineAgain" };
         }
         if (!line) return { code: "none" };
         if (passes({ line, prediction: round1(line.slope * w.predictAt + line.intercept) }).pass) return { code: "revealComputer" };
         return nudgeToward(line, best, w.points.map((q) => q.x));
+      }
+      // Each round: guess → check → (not yet: add squares, guess again) →
+      // settled. The first round not yet right is the one to work on.
+      if (state.pixel) {
+        for (const round of w.rounds) {
+          const at = state.pixel[round.id];
+          if (!at || at.status === "right") {
+            if (!at) return { code: "pickPicture", roundId: round.id, imageId: round.imageId };
+            continue;
+          }
+          if (at.status === "checking") return { code: "checkingRound", roundId: round.id };
+          if (at.status === "missed") return { code: "pressRoundButton", roundId: round.id, button: "retryRound" };
+          if (at.status === "notYet") return { code: "pressRoundButton", roundId: round.id, button: "moreSquares" };
+          if (at.selected !== round.imageId) return { code: "pickPicture", roundId: round.id, imageId: round.imageId };
+          return { code: "pressRoundButton", roundId: round.id, button: "checkGuess" };
+        }
+        return { code: "ready" };
       }
       const picked = state.rounds ?? {};
       const wrong = w.rounds.find((r) => picked[r.id] !== r.imageId);

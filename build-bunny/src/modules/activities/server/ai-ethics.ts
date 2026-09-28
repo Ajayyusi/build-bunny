@@ -10,11 +10,14 @@ import { resolveNextSceneIndex, type ActivityGradeResult } from "../types";
  * AI_ETHICS engine (phase G, AI Island "Secret Keepers"): a branching
  * privacy scenario. There are no wrong feelings — grading is completion-
  * based (finishing the story is a PASS) and the only thing that varies is
- * the star count, which rewards having chosen the `safe` option at every
- * scene actually visited (branching can skip scenes, so "every scene" means
- * every scene THIS path walked through, not every authored scene). Copy
- * never scolds a wrong choice; the outcome text is the teaching moment, not
- * a verdict, so a "wrong" choice is never surfaced as one.
+ * the star count, which rewards having chosen the `safe` option FIRST, and
+ * gone on with a safe one, at every scene actually visited (branching can skip scenes, so "every scene"
+ * means every scene THIS path walked through, not every authored scene).
+ * A child may try other choices in a scene to see what happens (`tried`,
+ * in order, before the one they went on with, which may be one of them) —
+ * that is the retry step of the loop, and it is never a penalty beyond the
+ * top star. Copy never scolds
+ * a wrong choice; the outcome text is the teaching moment, not a verdict.
  */
 
 // The answer-free student mirror lives in ./student-views.ts (strict, so a
@@ -23,6 +26,10 @@ import { resolveNextSceneIndex, type ActivityGradeResult } from "../types";
 const pathStepSchema = z.object({
   sceneId: z.string().min(1),
   choiceId: z.string().min(1),
+  /** Choices tried in this scene before `choiceId`, in order. */
+  tried: z.array(z.string().min(1)).max(3).optional(),
+  /** The verdict given before choosing, on a scene that asks for one. */
+  predicted: z.string().min(1).optional(),
 });
 
 export const aiEthicsAnswerSchema = z.object({
@@ -66,22 +73,36 @@ export function gradeAiEthics(
   // infrastructure-level ERROR, not a "wrong" story choice.
   let index = 0;
   let allSafe = true;
+  let firstAllSafe = true;
+  let retries = 0;
+  const predictions: string[] = [];
   for (const step of answer.path) {
     const scene = scenes[index];
     if (!scene || scene.id !== step.sceneId) return invalidPath();
     const choice = scene.choices.find((c) => c.id === step.choiceId);
     if (!choice) return invalidPath();
+    const tried = step.tried ?? [];
+    // Every earlier try is a real choice in this scene, each listed once.
+    // The final choice may be one of them: the child went back to it.
+    if (new Set(tried).size !== tried.length) return invalidPath();
+    if (!tried.every((id) => scene.choices.some((c) => c.id === id))) return invalidPath();
+    if (step.predicted !== undefined && !scene.predict?.options.some((o) => o.id === step.predicted)) return invalidPath();
+    const first = scene.choices.find((c) => c.id === (tried[0] ?? step.choiceId))!;
     if (!choice.safe) allSafe = false;
+    if (!first.safe) firstAllSafe = false;
+    retries += tried.length;
+    if (step.predicted) predictions.push(step.predicted);
     index = resolveNextSceneIndex(scenes, index, choice.next);
   }
   if (index < scenes.length) return invalidPath(); // story not finished yet
 
   return {
     verdict: "PASS",
-    qualityPassed: allSafe,
+    // Top star: a safe first instinct, and a safe choice to go on with.
+    qualityPassed: firstAllSafe && allSafe,
     primaryFeedback: null,
     generatedCode: "",
     blockCount: null,
-    summary: { path: answer.path, allSafe, scenesVisited: answer.path.length },
+    summary: { path: answer.path, allSafe, firstAllSafe, retries, predictions, scenesVisited: answer.path.length },
   };
 }

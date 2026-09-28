@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 
 import { BunnyMascot, Button, cn, useFocusTrap, useSound, type BunnyState } from "@/ui";
 
-import styles from "../../home/_components/onboarding.module.css";
+import styles from "../../_components/dialog-entrance.module.css";
 import type { TrailWorldVM } from "./types";
 
 /**

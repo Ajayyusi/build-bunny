@@ -129,6 +129,7 @@ export default async function PlayLevelPage({ params }: Props) {
     objective: resolveText(playable.mission ?? playable.objective, locale),
     instructions: resolveText(playable.instructions, locale),
     explanation: resolveText(playable.explanation, locale),
+    keyIdea: resolveText(playable.keyIdea, locale),
     difficulty: playable.difficulty,
     estimatedMinutes: playable.estimatedMinutes,
     maxStars: playable.maxStars,
@@ -260,6 +261,15 @@ export default async function PlayLevelPage({ params }: Props) {
       holdout: raw.holdout,
       passRule: raw.passRule,
       starCriteria: raw.starCriteria,
+      predictFirst: raw.predictFirst,
+      groups: raw.groups
+        ? {
+            names: Object.fromEntries(
+              Object.entries(raw.groups.names).map(([key, name]) => [key, resolveText(name, locale)]),
+            ),
+            of: raw.groups.of,
+          }
+        : undefined,
       ruleRound: raw.ruleRound
         ? {
             rules: raw.ruleRound.rules.map((rule) => ({ ...rule, label: resolveText(rule.label, locale) })),
@@ -304,6 +314,8 @@ export default async function PlayLevelPage({ params }: Props) {
       prompt: parsed.prompt,
       scenes: parsed.scenes,
       takeaways: parsed.takeaways,
+      ...(parsed.checklist ? { checklist: parsed.checklist } : {}),
+      ...(parsed.tryNext ? { tryNext: parsed.tryNext } : {}),
     } satisfies AiEthicsActivityPayload;
   } else if (playable.activityType === "AI_SIM") {
     // Envelope re-parse; the widget config passed through opaque because the

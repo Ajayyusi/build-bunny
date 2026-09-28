@@ -97,6 +97,26 @@ export default async function SchoolPage({ params }: Props) {
     },
   ];
 
+  const aiColumns: DataTableColumn<NonNullable<typeof analytics>["aiActivity"][number]>[] = [
+    {
+      key: "className",
+      header: tAnalytics("columnClass"),
+      cell: (row) => <span className="font-medium">{row.className}</span>,
+    },
+    {
+      key: "students",
+      header: tAnalytics("columnStudents"),
+      cell: (row) => <span className="tabular-nums">{row.studentCount}</span>,
+      align: "end",
+    },
+    ...(["starts", "tests", "retries", "completions"] as const).map((key) => ({
+      key,
+      header: tAnalytics(`ai.${key}`),
+      cell: (row: NonNullable<typeof analytics>["aiActivity"][number]) => <span className="tabular-nums">{row[key]}</span>,
+      align: "end" as const,
+    })),
+  ];
+
   function levelColumns(showFailRate: boolean): DataTableColumn<SchoolAnalyticsLevel>[] {
     const columns: DataTableColumn<SchoolAnalyticsLevel>[] = [
       {
@@ -167,6 +187,23 @@ export default async function SchoolPage({ params }: Props) {
               rowKey={(row) => row.classId}
               emptyMessage={tAnalytics("byClassEmpty")}
             />
+          </div>
+
+          {/* Start, test, retry and completion in the AI activities. */}
+          <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-0.5">
+              <h3 className="font-display text-base font-semibold">{tAnalytics("ai.heading")}</h3>
+              <p className="text-sm text-ink-muted">
+                {tAnalytics("ai.summary", { ...analytics.aiActivityTotal })}
+              </p>
+            </div>
+            <DataTable
+              columns={aiColumns}
+              rows={analytics.aiActivity}
+              rowKey={(row) => row.classId}
+              emptyMessage={tAnalytics("byClassEmpty")}
+            />
+            <p className="text-xs text-ink-muted">{tAnalytics("ai.note")}</p>
           </div>
 
           <div className="grid gap-4 lg:grid-cols-2">

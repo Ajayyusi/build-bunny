@@ -31,6 +31,7 @@ let classId: string;
 let schoolId: string;
 const kids: { id: string; ctx: SessionContext }[] = [];
 let sorterId: string;
+let secondSorterId: string;
 let bridgeId: string;
 let predictId: string;
 let codingId: string;
@@ -81,8 +82,9 @@ beforeAll(async () => {
   const data = await addWorldToProgram(program.id, 3, { name: "Data World" });
   codingId = (await createTestLevel((await createTestModule(coding.id, 1)).id, 1, { title: "First Hop" })).id;
   const teaching = await createTestModule(ai.id, 1);
-  sorterId = await slugged(teaching.id, 1, "berry-sorter", "Teach the Bunny");
-  bridgeId = await slugged(teaching.id, 2, "rule-or-examples", "Rule or Examples?");
+  sorterId = await slugged(teaching.id, 1, "train-a-sorter", "Train a Sorter");
+  secondSorterId = await slugged(teaching.id, 2, "berry-sorter", "Teach the Bunny");
+  bridgeId = await slugged(teaching.id, 3, "rule-or-examples", "Rule or Examples?");
   const lines = await createTestModule(data.id, 1);
   await createTestLevel(lines.id, 1, { title: "Before the Line" });
   predictId = await slugged(lines.id, 2, "fortune-teller", "Fortune Teller");
@@ -108,11 +110,13 @@ describe("Explore AI hub", () => {
   it("shows a brand-new child the AI activities in their programme, open before any coding", async () => {
     const state = await getExploreState(kids[0]!.ctx);
     // Only the catalog levels this programme has, in catalog order.
-    expect(state.cards.map((card) => card.slug)).toEqual(["berry-sorter", "fortune-teller"]);
+    expect(state.cards.map((card) => card.slug)).toEqual(["train-a-sorter", "fortune-teller"]);
     expect(state.cards.every((card) => card.state === "UNLOCKED")).toBe(true);
     expect(state.cards[0]).toMatchObject({ levelId: sorterId, concept: "examples", explained: false });
-    // The bridge follows Teach the Bunny the normal way.
-    expect(state.followUp).toMatchObject({ levelId: bridgeId, state: "LOCKED" });
+    // Teach the Bunny follows Train a Sorter the normal way, and the hub
+    // names what opens it.
+    expect(state.followUp).toMatchObject({ levelId: secondSorterId, state: "LOCKED" });
+    expect(state.followUpAfter).toEqual({ en: "Train a Sorter" });
     expect(state.completed).toBe(0);
     // The coding path is untouched: its first level is open as always.
     const coding = await db.studentProgress.findUnique({
@@ -121,10 +125,16 @@ describe("Explore AI hub", () => {
     expect(coding?.status).toBe("UNLOCKED");
   });
 
-  it("finishing Teach the Bunny opens the rule-versus-learning bridge", async () => {
+  it("finishing Train a Sorter opens Teach the Bunny, and that opens the rule-versus-learning bridge", async () => {
     await finish(kids[0]!.id, sorterId);
-    const state = await getExploreState(kids[0]!.ctx);
-    expect(state.followUp?.state).toBe("UNLOCKED");
+    let state = await getExploreState(kids[0]!.ctx);
+    expect(state.followUp).toMatchObject({ levelId: secondSorterId, state: "UNLOCKED" });
+    expect(state.followUpAfter).toBeNull();
+    expect(state.completed).toBe(1);
+    await finish(kids[0]!.id, secondSorterId);
+    state = await getExploreState(kids[0]!.ctx);
+    expect(state.followUp).toMatchObject({ levelId: bridgeId, state: "UNLOCKED" });
+    // Follow-ups aren't hub cards: the count is the six cards'.
     expect(state.completed).toBe(1);
   });
 
@@ -133,6 +143,7 @@ describe("Explore AI hub", () => {
       isExplore: true,
       check: { concept: "examples", answeredCorrectly: false },
     });
+    expect(await getExploreLevelContext(kids[0]!.ctx, secondSorterId)).toMatchObject({ isExplore: true, check: { concept: "examples" } });
     expect(await getExploreLevelContext(kids[0]!.ctx, bridgeId)).toMatchObject({ isExplore: true, check: { concept: "rules" } });
     expect(await getExploreLevelContext(kids[0]!.ctx, codingId)).toEqual({ isExplore: false, check: null });
     expect(await getExploreLevelContext(teacherCtx, sorterId)).toEqual({ isExplore: false, check: null });
@@ -174,10 +185,11 @@ describe("teacher: AI ideas", () => {
     await answerConceptCheckCore(kids[1]!.ctx, { levelId: sorterId, choice: "b" });
     const report = await getClassAiIdeas(teacherCtx, classId);
     expect(report?.students).toBe(2);
-    expect(report?.ideas.map((idea) => idea.concept)).toEqual(["examples", "rules", "prediction"]);
-    // Both finished Teach the Bunny; one explained it first time, one on a second try.
+    expect(report?.ideas.map((idea) => idea.concept)).toEqual(["examples", "examples", "rules", "prediction"]);
+    // Both finished Train a Sorter; one explained it first time, one on a second try.
     expect(report?.ideas[0]).toMatchObject({ levelId: sorterId, finished: 2, answered: 2, firstTry: 1 });
-    expect(report?.ideas[2]).toMatchObject({ levelId: predictId, finished: 0, answered: 0 });
+    expect(report?.ideas[1]).toMatchObject({ levelId: secondSorterId, finished: 1, answered: 0 });
+    expect(report?.ideas[3]).toMatchObject({ levelId: predictId, finished: 0, answered: 0 });
     // Totals only: no child ids anywhere in it.
     const serialized = JSON.stringify(report);
     for (const kid of kids) expect(serialized).not.toContain(kid.id);

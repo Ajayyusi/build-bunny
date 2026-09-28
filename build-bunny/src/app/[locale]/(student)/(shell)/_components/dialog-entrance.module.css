@@ -1,6 +1,7 @@
-/* First-run welcome. Entrance only — no loops; the bunny inside carries the
-   life. The global reduce-motion clamp collapses both animations, leaving the
-   dialog simply present, which is the correct fallback. */
+/* Entrance for the student dialogs (the Explore AI welcome, world intros).
+   Entrance only — no loops; the bunny inside carries the life. The global
+   reduce-motion clamp collapses both animations, leaving the dialog simply
+   present, which is the correct fallback. */
 
 .scrim {
   animation: ob-fade 200ms ease-out both;

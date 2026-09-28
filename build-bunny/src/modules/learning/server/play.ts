@@ -41,6 +41,8 @@ export const HINT_COOLDOWN_MS = 60_000;
 export interface PlayableLevel extends LevelIntro {
   /** Post-completion teaching copy (published snapshot). */
   explanation: LocalizedText | null;
+  /** The one-sentence big idea, shown first on the result. */
+  keyIdea: LocalizedText | null;
   /** Student-stripped payload — answer-bearing fields removed. */
   payload: unknown;
   /** Autosaved workspace, wins over startWorkspace when present. */
@@ -58,6 +60,7 @@ export interface PlayableLevel extends LevelIntro {
 
 const snapshotExtrasSchema = z.object({
   explanation: localizedText.nullish(),
+  keyIdea: localizedText.nullish(),
   payload: z.unknown(),
   /** Concept tags — pick "a similar example" and the Learn step to revisit. */
   tags: z.array(z.string()).default([]),
@@ -104,6 +107,7 @@ export async function getPlayableLevel(
   return {
     ...intro,
     explanation: extras.data.explanation ?? null,
+    keyIdea: extras.data.keyIdea ?? null,
     payload,
     draftWorkspace: progressRow.draftWorkspace ?? null,
     draftSavedAt: progressRow.draftSavedAt?.toISOString() ?? null,
@@ -123,19 +127,21 @@ function requireSchool(ctx: SessionContext): string {
   return ctx.schoolId;
 }
 
-/** Progress row of an unlocked level — locked/unknown resolve to NotFound. */
 /**
- * The gate every player mutation goes through: hints, draft autosave, and
- * marking a level started.
+ * Progress row of an unlocked level — locked/unknown resolve to NotFound.
+ *
+ * The gate every player mutation goes through: hints, draft autosave,
+ * marking a level started, and in-level checks (See Like a Computer's
+ * mystery rounds).
  *
  * Requires BOTH a progress row and a live entitlement to the content. The
  * row alone used to be enough, which quietly made it authorization — and
  * since assignment creation is what writes those rows, an assignment for
  * content outside the school's programme granted hint and draft access to
- * it. Checking entitlement here covers all three callers at once, so a
- * future fourth cannot forget it.
+ * it. Checking entitlement here covers every caller at once, so a new one
+ * cannot forget it.
  */
-async function requireProgressRow(
+export async function requireProgressRow(
   ctx: SessionContext,
   levelId: string,
 ): Promise<{ id: string; status: "UNLOCKED" | "IN_PROGRESS" | "COMPLETED" }> {

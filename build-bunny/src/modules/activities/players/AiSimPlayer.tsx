@@ -19,8 +19,11 @@ import { MissionStrip } from "./shared/MissionStrip";
 import { useDraftAutosave } from "./shared/useDraftAutosave";
 import { ResultBanner } from "./shared/ResultBanner";
 import { SuccessOverlay } from "./shared/SuccessOverlay";
+import { ResultNotesCard } from "./shared/ResultNotesCard";
+import { pixelResultNotes, trendResultNotes, type ResultNotes } from "./result-notes";
 import { Walkthrough } from "./shared/Walkthrough";
 import { NextStepHint } from "./shared/NextStepHint";
+import type { PixelRoundStatus } from "@/modules/hints/types";
 import type { ActivityPlayerProps, AiSimActivityPayload, AttemptResponse } from "../types";
 import { resolveLocalized } from "../types";
 
@@ -61,8 +64,11 @@ export function AiSimPlayer({
 
   const t = useTranslations("student.play");
   const tSim = useTranslations("student.play.aiSim");
+  const tResults = useTranslations("student.play.resultNotes");
   const tNext = useTranslations("student.play.nextStep");
   const locale = useLocale();
+  const tTrend = useTranslations("student.play.aiSim.trendLine");
+  const tPixel = useTranslations("student.play.aiSim.pixelPlayground");
 
   const beats = payload.walkthrough ?? null;
   // Opens on arrival when the level authored one. A child landing on an
@@ -117,10 +123,17 @@ export function AiSimPlayer({
   // Stable identity across renders (empty deps, functional setState) — the
   // widget below reports on every drag tick, so a fresh identity per render
   // would otherwise defeat the widgets' own useStableCallback guard.
-  const handleWorkChange = useCallback((nextWork: unknown, nextReady: boolean) => {
+  // The widget's own step (Fortune Teller: fit, compare, predict, revealed),
+  // for next-step hints only.
+  const [widgetStep, setWidgetStep] = useState<unknown>(null);
+  const handleWorkChange = useCallback((nextWork: unknown, nextReady: boolean, step?: unknown) => {
     setWork(nextWork);
     setReady(nextReady);
+    setWidgetStep(step ?? null);
   }, []);
+
+  // Checks that didn't pass this visit, for "what changed" on the result.
+  const [failedChecks, setFailedChecks] = useState(0);
 
   const submit = async (id: string, answer: unknown) => {
     setSubmitting(true);
@@ -133,6 +146,7 @@ export function AiSimPlayer({
       if (!response.ok) throw new Error(`attempt ${response.status}`);
       const data = (await response.json()) as AttemptResponse;
       setSubmission({ id, answer, server: data, saveFailed: false });
+      if (data.verdict !== "PASS") setFailedChecks((n) => n + 1);
       setStarsBest((best) => Math.max(best, data.starsBest ?? 0));
       setLastSubmitAt(Date.now());
       setPhase("result");
@@ -156,9 +170,13 @@ export function AiSimPlayer({
     void submit(submission.id, submission.answer);
   };
 
+  // Bumped on every "Try again", so step-based widgets reopen their first
+  // step (Fortune Teller used to stay locked in its prediction step).
+  const [retryCount, setRetryCount] = useState(0);
   const handleTryAgain = () => {
     setSubmission(null);
     setPhase("edit");
+    setRetryCount((count) => count + 1);
   };
 
   // ── Hints ──────────────────────────────────────────────────────────────
@@ -227,6 +245,29 @@ export function AiSimPlayer({
     : null;
   const introText = resolveLocalized(payload.intro, locale);
   const honestyNote = resolveLocalized(payload.honesty.note, locale);
+
+  // What you tried / what changed / one more to test, from this run.
+  const resultNotes: ResultNotes | null = (() => {
+    const answered = (submission?.answer ?? null) as { line?: { slope: number; intercept: number }; prediction?: number } | null;
+    const widget = payload.widget as Record<string, unknown>;
+    if (widgetId === "trend-line" && answered?.line && typeof answered.prediction === "number") {
+      return trendResultNotes({
+        points: widget.points as { x: number; y: number }[],
+        predictAt: widget.predictAt as number,
+        line: answered.line,
+        prediction: answered.prediction,
+        failedChecks,
+      });
+    }
+    if (widgetId === "pixel-playground" && widgetStep && typeof widgetStep === "object") {
+      const rounds = (widget.rounds as { id: string }[]).map(
+        (r) => (widgetStep as Record<string, { status: string; squares: number; step: number }>)[r.id] ?? { status: "guessing", squares: 0, step: 0 },
+      );
+      const resolutions = widget.resolutions as number[];
+      return pixelResultNotes(rounds, Math.min(...resolutions), tResults("and"));
+    }
+    return null;
+  })();
 
   if (!Widget) {
     // Registry dispatch guarantees a known widgetId in practice; this is an
@@ -311,6 +352,8 @@ export function AiSimPlayer({
             reducedMotion={reducedMotion}
             onWorkChange={handleWorkChange}
             initialWork={draft}
+            retryCount={retryCount}
+            levelId={intro.levelId}
           />
 
           {showFailure ? (
@@ -363,9 +406,18 @@ export function AiSimPlayer({
             readyAction={`“${tSim("submit")}”`}
             getState={() => {
               const w = (work ?? {}) as { line?: { slope: number; intercept: number }; prediction?: number; rounds?: Record<string, string> };
-              if (widgetId === "pixel-playground") return { rounds: w.rounds ?? {} };
+              if (widgetId === "pixel-playground") {
+                return widgetStep && typeof widgetStep === "object"
+                  ? { rounds: w.rounds ?? {}, pixel: widgetStep as Record<string, { selected: string | null; status: PixelRoundStatus }> }
+                  : { rounds: w.rounds ?? {} };
+              }
               if (widgetId === "trend-line") {
-                return { line: w.line, phase: ready ? "predict" : "fit", prediction: w.prediction ?? null };
+                const step = typeof widgetStep === "string" ? widgetStep : ready ? "revealed" : "fit";
+                return {
+                  line: w.line,
+                  phase: step as "fit" | "compare" | "predict" | "revealed",
+                  prediction: w.prediction ?? null,
+                };
               }
               return { line: w.line };
             }}
@@ -379,6 +431,13 @@ export function AiSimPlayer({
                 const image = images.find((x) => x.id === id);
                 return image ? resolveLocalized(image.name, locale) : id;
               },
+              // Fortune Teller's step buttons, named as the child sees them.
+              button: (button) =>
+                button === "continueToPredict" || button === "moveLineAgain" || button === "lockPrediction" || button === "tryAnotherPrediction"
+                  ? tTrend(button)
+                  : button === "checkGuess" || button === "moreSquares" || button === "retryRound"
+                    ? tPixel(button)
+                    : button,
             }}
           />
         ) : null}
@@ -413,6 +472,8 @@ export function AiSimPlayer({
           maxStars={intro.maxStars}
           xpAwarded={submission.server ? submission.server.xpAwarded : null}
           explanation={intro.explanation}
+          keyIdea={intro.keyIdea}
+          extra={resultNotes ? <ResultNotesCard notes={resultNotes} /> : undefined}
           achievements={achievements}
           worldCompletedName={worldCompletedName}
           worldPower={submission?.server?.worldCompleted?.power ?? null}

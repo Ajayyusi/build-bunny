@@ -414,6 +414,9 @@ model Level {
   mission      Json?
   instructions Json?
   explanation  Json?
+  /// One sentence shown first on the result ("the big idea"); the longer
+  /// explanation sits behind "Tell me more".
+  keyIdea      Json?
   teacherNotes Json?
 
   difficulty          Difficulty @default(EASY)
@@ -804,6 +807,15 @@ enum LearningEventType {
   LEVEL_COMPLETED
   WORLD_COMPLETED
   ACHIEVEMENT_EARNED
+  /// Every time a child opens a level (at most once per 30 minutes), not
+  /// only the first time (LEVEL_STARTED).
+  LEVEL_SESSION_STARTED
+  /// An AI test that isn't a graded run: revealing the bunny's guesses,
+  /// the computer's turn, checking a mystery round, an ethics choice.
+  AI_TEST
+  /// Trying again in an AI activity: a new check after a failed one, more
+  /// squares, another guess, another choice.
+  AI_RETRY
 }
 
 // Append-only analytics stream (plan §0.1-14). Minimal payloads only — never

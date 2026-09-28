@@ -22,6 +22,7 @@ import { Walkthrough } from "./shared/Walkthrough";
 import { NextStepHint } from "./shared/NextStepHint";
 import { postAttempt, runIdFor } from "./shared/attempt-outbox";
 import { HintDrawer } from "./shared/HintDrawer";
+import { HonestyNote } from "./shared/HonestyNote";
 import { RoboHelp, type HelpTopic } from "./shared/RoboHelp";
 import { SuccessOverlay } from "./shared/SuccessOverlay";
 import { useDraftAutosave } from "./shared/useDraftAutosave";
@@ -431,6 +432,7 @@ export function GroupPlayer({
 
       <div className="min-h-0 flex-1 overflow-y-auto">
         <div className="mx-auto flex w-full max-w-5xl flex-col gap-5 p-4 sm:p-6">
+          <HonestyNote kind="tinyGrouping" />
           <div className="flex items-start gap-3">
             <span aria-hidden="true" className="mt-1">
               <BunnyMascot state="idle" size="sm" />
@@ -755,6 +757,7 @@ export function GroupPlayer({
           maxStars={intro.maxStars}
           xpAwarded={server.xpAwarded}
           explanation={intro.explanation}
+          keyIdea={intro.keyIdea}
           achievements={server.newAchievements.map((a) => ({
             slug: a.slug,
             icon: a.icon,

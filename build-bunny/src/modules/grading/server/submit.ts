@@ -9,6 +9,14 @@ import { Prisma } from "@prisma/client";
 
 import { db } from "@/lib/db";
 import { recordLearningEvent } from "@/lib/events";
+
+/** Activity types that are AI lessons (for the AI retry analytic). */
+const AI_ACTIVITY_TYPES: ReadonlySet<string> = new Set([
+  "AI_CLASSIFICATION",
+  "PATTERN_RECOGNITION",
+  "AI_SIM",
+  "AI_ETHICS",
+]);
 import { computeStars, ENGINE_VERSION, type GridVariantSpec } from "@/engine";
 import { getActivityEngine } from "@/modules/activities/server/registry";
 import type { ActivityGradeResult } from "@/modules/activities/types";
@@ -618,6 +626,18 @@ export async function submitAttempt(
 
   // ── Learning events (append-only telemetry; never blocks the response) ──
   const eventBase = { schoolId, studentUserId: ctx.userId, levelId };
+  // In an AI activity, a check straight after a failed one is a retry
+  // (the handoff's retry analytic). Looked up before this run's own events.
+  if (AI_ACTIVITY_TYPES.has(activityType)) {
+    const lastRun = await db.learningEvent.findFirst({
+      where: { ...eventBase, type: { in: ["RUN_SUCCEEDED", "RUN_FAILED"] } },
+      orderBy: { createdAt: "desc" },
+      select: { type: true },
+    });
+    if (lastRun?.type === "RUN_FAILED") {
+      await recordLearningEvent({ ...eventBase, type: "AI_RETRY", meta: { what: "check" } });
+    }
+  }
   await recordLearningEvent({
     ...eventBase,
     type: "RUN_EXECUTED",

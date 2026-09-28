@@ -1,6 +1,7 @@
 import type { ActivityGradeResult, ActivityVerdict } from "@/modules/activities/types";
 
 import { leastSquares } from "../math/leastSquares";
+import { predictionBand } from "../math/predictionBand";
 import { sumSquaredError } from "../math/sumSquaredError";
 import { invalidAnswerResult, round2 } from "../shared";
 import { trendLineAnswerSchema, type TrendLineConfig } from "./types";
@@ -9,8 +10,6 @@ import { trendLineAnswerSchema, type TrendLineConfig } from "./types";
 const STAR3_FACTOR = 1.15;
 /** "Close" band: half again as forgiving as the pass line. Flags a near miss in the feedback; still a FAIL. */
 const PARTIAL_MULTIPLIER = 1.5;
-/** Prediction error band width, in residual standard deviations either side of the fitted value. */
-const BAND_MULTIPLIER = 1.5;
 
 /**
  * "Fortune Teller" grading (g-contracts): recompute the child's SSE and the
@@ -43,11 +42,12 @@ export function gradeTrendLine(config: TrendLineConfig, submission: unknown): Ac
 
   const qualityPassed = childSSE <= starThreshold;
 
-  const n = config.points.length;
-  const residualStd = Math.sqrt(optimumSSE / n);
-  const fittedPrediction = optimum.slope * config.predictAt + optimum.intercept;
-  const bandLow = fittedPrediction - BAND_MULTIPLIER * residualStd;
-  const bandHigh = fittedPrediction + BAND_MULTIPLIER * residualStd;
+  // The same likely range the child sees, wider the further predictAt is
+  // from the measured data (see predictionBand).
+  const band = predictionBand(config.points, config.predictAt);
+  const fittedPrediction = band.fitted;
+  const bandLow = band.low;
+  const bandHigh = band.high;
   const predictionInBand = parsed.data.prediction >= bandLow && parsed.data.prediction <= bandHigh;
 
   const primaryFeedback =
@@ -72,6 +72,7 @@ export function gradeTrendLine(config: TrendLineConfig, submission: unknown): Ac
       prediction: parsed.data.prediction,
       fittedPrediction: round2(fittedPrediction),
       band: { low: round2(bandLow), high: round2(bandHigh) },
+      beyondData: band.beyondData,
       predictionInBand,
     },
   };

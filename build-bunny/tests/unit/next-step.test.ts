@@ -1,4 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { judgePixelRound } from "@/modules/ai/lab/pixel-playground/judge";
+import { freshRound, roundReducer, settledWork, type RoundState } from "@/modules/ai/lab/pixel-playground/round-state";
+import { roundSteps } from "@/modules/ai/lab/pixel-playground/steps";
 
 import { bundle } from "../../content";
 import type { GridVariantSpec } from "@/engine";
@@ -238,7 +241,7 @@ function snapshotOf(level: (typeof levels)[number]): LevelSnapshot {
 }
 
 describe("following 'Show me the next step' finishes every level, through the route's body parse", () => {
-  it("covers all 101 levels", () => expect(levels).toHaveLength(101));
+  it("covers all 102 levels", () => expect(levels).toHaveLength(102));
 
   for (const level of levels) {
     it(`${level.slug} (${level.activityType})`, () => {
@@ -249,9 +252,11 @@ describe("following 'Show me the next step' finishes every level, through the ro
         pool?: { id: string; size: number; color: number }[];
         holdout?: unknown;
         ruleRound?: { rules: RuleCard[]; yesterday: KnownSpecimen[] };
+        predictFirst?: boolean;
       };
       let picked = "";
-      const path: { sceneId: string; choiceId: string }[] = [];
+      const path: { sceneId: string; choiceId: string; predicted?: string }[] = [];
+      let ethicsVerdict: string | undefined;
       const engine = getActivityEngine(level.activityType)!;
       const grade = (answer: unknown) => engine.grade(snapshot, answer);
       const passes = (answer: unknown) => {
@@ -261,6 +266,8 @@ describe("following 'Show me the next step' finishes every level, through the ro
 
       const state: NextStepState = {};
       let finalAnswer: () => unknown;
+      let pixelRounds: Record<string, RoundState> = {};
+      let syncPixel = () => {};
       const type = level.activityType;
       if (type === "BLOCK_CODING" || type === "DEBUGGING") {
         state.workspaceJson = type === "DEBUGGING" ? payload.brokenWorkspace : (payload.startWorkspace ?? toJson({ main: [], tricks: [] }));
@@ -283,6 +290,8 @@ describe("following 'Show me the next step' finishes every level, through the ro
         state.held = [];
         // Rule or Examples?: the player starts in the rule round.
         if (payload.ruleRound) state.rule = { stage: "pick", chosen: null, tested: null };
+        // Predict-first levels start with the bunny's guesses hidden.
+        if (payload.predictFirst) state.revealed = false;
         finalAnswer = () => ({
           examples: state.examples!.map((e) => {
             const s = payload.pool!.find((x) => x.id === e.id)!;
@@ -297,12 +306,24 @@ describe("following 'Show me the next step' finishes every level, through the ro
       } else if (type === "AI_ETHICS") {
         const p = aiEthicsPayload.parse(level.payload);
         state.sceneId = p.scenes[0]!.id;
+        // Scenes that ask for a verdict first show only that question.
+        state.predicting = Boolean(p.scenes[0]!.predict);
         finalAnswer = () => ({ path });
       } else if (type === "AI_SIM") {
         const w = aiSimPayload.parse(level.payload).widget;
         if (w.widgetId === "pixel-playground") {
-          state.rounds = {};
-          finalAnswer = () => ({ rounds: state.rounds });
+          // See Like a Computer: every round runs guess → check → reveal,
+          // through the player's own reducer and the server's judgement.
+          pixelRounds = Object.fromEntries(w.rounds.map((r) => [r.id, freshRound()]));
+          const sync = () => {
+            state.pixel = Object.fromEntries(
+              Object.entries(pixelRounds).map(([id, r]) => [id, { selected: r.selected, status: r.status }]),
+            );
+            state.rounds = settledWork(pixelRounds, w.rounds.map((r) => r.id)).work.rounds;
+          };
+          syncPixel = sync;
+          sync();
+          finalAnswer = () => settledWork(pixelRounds, w.rounds.map((r) => r.id)).work;
         } else {
           const ys = w.points.map((q: { y: number }) => q.y);
           state.line = { slope: 0, intercept: ys.reduce((a: number, b: number) => a + b, 0) / ys.length };
@@ -353,9 +374,17 @@ describe("following 'Show me the next step' finishes every level, through the ro
           case "teach":
             state.held = state.held!.filter((id) => id !== step.specimenId);
             state.examples = [...state.examples!, { id: step.specimenId, label: step.label }];
+            // Like the player: changing the examples hides the guesses again.
+            if (payload.predictFirst) state.revealed = false;
             break;
           case "takeBack":
             state.examples = state.examples!.filter((e) => e.id !== step.specimenId);
+            if (payload.predictFirst) state.revealed = false;
+            break;
+          case "predictGuesses":
+            // Only offered once the examples are enough to guess from.
+            if (!payload.predictFirst || state.revealed !== false) throw new Error("unfollowable: nothing to predict");
+            state.revealed = true;
             break;
           case "keepForTesting":
             state.held = [...state.held!, step.specimenId];
@@ -366,6 +395,20 @@ describe("following 'Show me the next step' finishes every level, through the ro
             state.rule = { ...state.rule!, chosen: step.ruleId };
             break;
           case "pressButton": {
+            // Fortune Teller's step buttons.
+            if (step.button === "continueToPredict" || step.button === "moveLineAgain" || step.button === "lockPrediction" || step.button === "tryAnotherPrediction") {
+              const from = { continueToPredict: "compare", moveLineAgain: "compare", lockPrediction: "predict", tryAnotherPrediction: "revealed" } as const;
+              if (state.phase !== from[step.button]) throw new Error(`unfollowable: ${step.button} isn't on screen`);
+              if (step.button === "continueToPredict") {
+                const w = aiSimPayload.parse(level.payload).widget;
+                // The slider starts at the child's own line.
+                state.prediction = state.line!.slope * ("predictAt" in w ? w.predictAt : 0) + state.line!.intercept;
+                state.phase = "predict";
+              } else if (step.button === "moveLineAgain") state.phase = "fit";
+              else if (step.button === "lockPrediction") state.phase = "revealed";
+              else state.phase = "predict";
+              break;
+            }
             const rule = state.rule!;
             if (step.button === "testRule") {
               if (!rule.chosen) throw new Error("unfollowable: Test the rule is disabled with no card picked");
@@ -393,13 +436,24 @@ describe("following 'Show me the next step' finishes every level, through the ro
           case "restoreReading":
             state.excluded = state.excluded!.filter((id) => id !== step.specimenId);
             break;
+          case "answerQuestion": {
+            const p = aiEthicsPayload.parse(level.payload);
+            const scene = p.scenes.find((s) => s.id === state.sceneId)!;
+            if (!scene.predict || !state.predicting) throw new Error("unfollowable: no question on screen");
+            ethicsVerdict = scene.predict.options[0]!.id;
+            state.predicting = false;
+            break;
+          }
           case "chooseSafe": {
             const p = aiEthicsPayload.parse(level.payload);
-            path.push({ sceneId: state.sceneId!, choiceId: step.choiceId });
+            if (state.predicting) throw new Error("unfollowable: the choices are hidden until the question is answered");
+            path.push({ sceneId: state.sceneId!, choiceId: step.choiceId, ...(ethicsVerdict ? { predicted: ethicsVerdict } : {}) });
+            ethicsVerdict = undefined;
             const scene = p.scenes.find((s) => s.id === state.sceneId)!;
             const choice = scene.choices.find((c) => c.id === step.choiceId)!;
             const index = resolveNextSceneIndex(p.scenes, p.scenes.indexOf(scene), choice.next);
             state.sceneId = p.scenes[index]?.id ?? null;
+            state.predicting = Boolean(p.scenes[index]?.predict);
             break;
           }
           case "nudgeLine": {
@@ -419,18 +473,44 @@ describe("following 'Show me the next step' finishes every level, through the ro
             break;
           }
           case "revealComputer":
-            state.phase = "predict";
-            {
-              const w = aiSimPayload.parse(level.payload).widget;
-              state.prediction = state.line!.slope * ("predictAt" in w ? w.predictAt : 0) + state.line!.intercept;
-            }
+            // Fortune Teller: pressing "Computer's turn" locks the line
+            // beside the computer's (the compare step).
+            if (state.phase !== "fit") throw new Error("unfollowable: Computer's turn isn't on screen");
+            state.phase = "compare";
             break;
           case "setPrediction":
+            if (state.phase !== "predict") throw new Error("unfollowable: the prediction slider is locked");
             state.prediction = step.value;
             break;
-          case "pickPicture":
-            state.rounds = { ...state.rounds, [step.roundId]: step.imageId };
+          case "pickPicture": {
+            const round = pixelRounds[step.roundId]!;
+            if (round.status !== "guessing" && round.status !== "error") throw new Error("unfollowable: the guesses are locked");
+            pixelRounds = { ...pixelRounds, [step.roundId]: roundReducer(round, { type: "pick", imageId: step.imageId }) };
+            syncPixel();
             break;
+          }
+          case "pressRoundButton": {
+            const w = aiSimPayload.parse(level.payload).widget;
+            if (w.widgetId !== "pixel-playground") throw new Error("round button outside See Like a Computer");
+            const cfg = w.rounds.find((r) => r.id === step.roundId)!;
+            const steps = roundSteps(w.resolutions, cfg.resolution);
+            let round = pixelRounds[step.roundId]!;
+            if (step.button === "checkGuess") {
+              if (!round.selected) throw new Error("unfollowable: Check my guess is disabled with no guess");
+              round = roundReducer(round, { type: "checking" });
+              const result = judgePixelRound(w, { roundId: cfg.id, imageId: round.selected!, resolution: steps[round.step]! })!;
+              round = roundReducer(round, { type: "checked", result });
+            } else if (step.button === "moreSquares") {
+              if (round.status !== "notYet") throw new Error("unfollowable: Add more squares isn't on screen");
+              round = roundReducer(round, { type: "moreSquares", stepCount: steps.length });
+            } else if (step.button === "retryRound") {
+              if (round.status !== "missed") throw new Error("unfollowable: Try this round again isn't on screen");
+              round = roundReducer(round, { type: "retry" });
+            } else throw new Error(`unknown round button ${step.button}`);
+            pixelRounds = { ...pixelRounds, [step.roundId]: round };
+            syncPixel();
+            break;
+          }
           case "designAdd":
           case "designGoal":
           case "designRemove": {
@@ -462,6 +542,11 @@ describe("following 'Show me the next step' finishes every level, through the ro
       const routed = grid ? input.workspaceJson : type === "CREATIVE_PROJECT" ? { workspaceJson: input.workspaceJson, design: input.design } : input.answer;
       const verdict = grade(routed).verdict;
       expect({ slug: level.slug, verdict, steps: seen.length }).toMatchObject({ slug: level.slug, verdict: "PASS" });
+      // The learning loop's predict step is part of the path, not skipped.
+      if (payload.predictFirst) expect(seen, level.slug).toContain("predictGuesses");
+      if (type === "AI_ETHICS" && aiEthicsPayload.parse(level.payload).scenes.some((sc) => sc.predict)) {
+        expect(seen, level.slug).toContain("answerQuestion");
+      }
     });
   }
 });

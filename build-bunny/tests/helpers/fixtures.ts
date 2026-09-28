@@ -188,10 +188,13 @@ export async function createTestLevel(
       | "CODE_PREDICTION"
       | "SEQUENCING"
       | "CONCEPT_CARDS"
-      | "CREATIVE_PROJECT";
+      | "CREATIVE_PROJECT"
+      | "AI_SIM";
     difficulty?: "EASY" | "MEDIUM" | "HARD";
     xpReward?: number;
     tags?: string[];
+    /** Which route the level belongs to (worlds are AI or coding by majority). */
+    track?: "PROGRAMMING" | "AI_CONCEPTS" | "MACHINE_LEARNING";
   } = {},
 ) {
   const status = opts.status ?? "PUBLISHED";
@@ -214,6 +217,7 @@ export async function createTestLevel(
       slug: uniqueSlug("level"),
       order,
       activityType,
+      track: opts.track ?? "PROGRAMMING",
       title: { en: `DRAFT ${title}` },
       story: { en: "DRAFT story" },
       objective: { en: "DRAFT objective" },

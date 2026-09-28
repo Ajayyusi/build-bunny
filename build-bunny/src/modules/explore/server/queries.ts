@@ -10,7 +10,7 @@ import {
   type AdventureWorldNode,
 } from "@/modules/learning/server/adventure";
 
-import { EXPLORE_CARDS, EXPLORE_FOLLOW_UP, type ExploreCard, type ExploreConcept } from "../catalog";
+import { EXPLORE_CARDS, EXPLORE_FOLLOW_UPS, type ExploreCard, type ExploreConcept } from "../catalog";
 
 /**
  * The Explore AI hub's data: each card resolved against THIS child's
@@ -36,8 +36,10 @@ export interface ExploreCardView {
 
 export interface ExploreState {
   cards: ExploreCardView[];
-  /** Rule or Examples? — the bridge after Teach the Bunny. */
+  /** The first follow-up not yet finished (the last one once all are). */
   followUp: ExploreCardView | null;
+  /** The level that opens `followUp` when it's still locked, to name it. */
+  followUpAfter: LocalizedText | null;
   completed: number;
 }
 
@@ -69,9 +71,16 @@ function buildExploreState(adventure: AdventureState, explainedLevelIds: Readonl
     };
   };
   const cards = EXPLORE_CARDS.map(view).filter((card): card is ExploreCardView => card !== null);
+  const chain = EXPLORE_FOLLOW_UPS.map(view).filter((card): card is ExploreCardView => card !== null);
+  const index = chain.findIndex((card) => card.state !== "COMPLETED");
+  const at = index === -1 ? chain.length - 1 : index;
+  const followUp = chain[at] ?? null;
+  // Before the chain's first step comes the hub's first card.
+  const previous = at > 0 ? chain[at - 1] : cards[0];
   return {
     cards,
-    followUp: view(EXPLORE_FOLLOW_UP),
+    followUp,
+    followUpAfter: followUp?.state === "LOCKED" && previous ? previous.title : null,
     completed: cards.filter((card) => card.state === "COMPLETED").length,
   };
 }
@@ -87,7 +96,7 @@ async function explainedLevelIds(ctx: SessionContext): Promise<Set<string>> {
 
 /** The hub for the signed-in child. Empty for anyone who isn't a student. */
 export async function getExploreState(ctx: SessionContext, adventure?: AdventureState): Promise<ExploreState> {
-  if (ctx.role !== "STUDENT" || !ctx.schoolId) return { cards: [], followUp: null, completed: 0 };
+  if (ctx.role !== "STUDENT" || !ctx.schoolId) return { cards: [], followUp: null, followUpAfter: null, completed: 0 };
   const [state, explained] = await Promise.all([
     adventure ? Promise.resolve(adventure) : computeAdventureState(ctx),
     explainedLevelIds(ctx),

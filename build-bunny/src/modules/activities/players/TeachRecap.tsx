@@ -47,7 +47,7 @@ function Glyph({
         width: px,
         height: px,
         background: mystery ? MYSTERY_FILL : glyphFill(glyph, specimen.color),
-        ...glyphShapeStyle(glyph),
+        ...glyphShapeStyle(glyph, specimen.size),
       }}
     />
   );

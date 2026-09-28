@@ -171,13 +171,15 @@ describe("trend-line grading", () => {
   });
 
   it("reports an honest prediction error band around the TRUE optimum, not the child's line", () => {
-    // fittedPrediction = 0*10+0.4 = 0.4; residualStd=sqrt(1.2/5)=0.4898994...;
-    // band = 0.4 ± 1.5*0.4899 = [-0.3348..., 1.1348...] → rounded [-0.33, 1.13].
+    // fittedPrediction = 0*10+0.4 = 0.4; spread=sqrt(1.2/5)=0.4898994...;
+    // x̄=2, Sxx=10, so at x=10 the band widens by sqrt(1+1/5+64/10)=sqrt(7.6):
+    // 0.4 ± 1.5*0.4899*2.7568 = 0.4 ± 2.0258 → rounded [-1.63, 2.43].
     const inBand = engine.grade(config, {
       line: { slope: 0, intercept: 0.4 },
       prediction: 0.5,
     });
-    expect(inBand.summary.band).toEqual({ low: -0.33, high: 1.13 });
+    expect(inBand.summary.band).toEqual({ low: -1.63, high: 2.43 });
+    expect(inBand.summary.beyondData).toBe(true);
     expect(inBand.summary.fittedPrediction).toBe(0.4);
     expect(inBand.summary.predictionInBand).toBe(true);
 

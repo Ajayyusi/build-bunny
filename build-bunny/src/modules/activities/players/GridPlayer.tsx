@@ -1007,6 +1007,7 @@ export function GridPlayer({
           maxStars={intro.maxStars}
           xpAwarded={attempt.server ? attempt.server.xpAwarded : null}
           explanation={intro.explanation}
+          keyIdea={intro.keyIdea}
           achievements={achievements}
           worldCompletedName={worldCompletedName}
           worldPower={attempt.server?.worldCompleted?.power ?? null}

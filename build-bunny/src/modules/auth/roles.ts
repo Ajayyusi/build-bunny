@@ -39,6 +39,8 @@ export function homePathForRole(role: Role): string {
     case "TEACHER":
       return "/teach";
     case "STUDENT":
-      return "/home";
+      // Explore AI is the student landing (redesign brief, P0). Assignments
+      // and teacher messages live on My Learning (/home), flagged from here.
+      return "/explore";
   }
 }

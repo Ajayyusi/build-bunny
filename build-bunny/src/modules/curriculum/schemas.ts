@@ -320,7 +320,7 @@ export const specimenSchema = z
 const aiThemeSchema = z
   .object({
     /** Which glyph vocabulary — see src/modules/ai/glyph.ts. */
-    glyph: z.enum(["berry", "grain", "cell", "blip", "crab", "namedBerry"]).default("berry"),
+    glyph: z.enum(["berry", "grain", "cell", "blip", "crab", "namedBerry", "shape"]).default("berry"),
     /** What the two measurements are CALLED in this world. */
     featureNames: z.object({ size: localizedText, color: localizedText }),
     /** The two outcomes, as a glyph a child reads before the words. */
@@ -428,6 +428,18 @@ export const ruleRoundSchema = z
   .strict();
 export type RuleRound = z.infer<typeof ruleRoundSchema>;
 
+/**
+ * Results by group (Find the Bias): which group each specimen belongs to,
+ * so a child can see the robot does well on one group and badly on
+ * another. Not answer-bearing — a group is not a label.
+ */
+export const specimenGroupsSchema = z
+  .object({
+    names: z.record(z.string().regex(/^[a-z0-9-]+$/), localizedText),
+    of: z.record(z.string(), z.string().regex(/^[a-z0-9-]+$/)),
+  })
+  .strict();
+
 /** See `passRule` on aiClassificationPayload. Shared with the student mirror. */
 const classificationPassRule = z
   .discriminatedUnion("kind", [
@@ -520,6 +532,14 @@ export const aiClassificationPayload = z
     starCriteria: starCriteriaSchema.default({}),
     /** Optional "rule or examples?" warm-up — see ruleRoundSchema. */
     ruleRound: ruleRoundSchema.optional(),
+    /**
+     * The learning loop's PREDICT step (redesign brief): once taught, the
+     * child says what the robot will answer for each mystery specimen
+     * before its guesses appear, then sees how their prediction did.
+     */
+    predictFirst: z.boolean().default(false),
+    /** Results by group — see specimenGroupsSchema. */
+    groups: specimenGroupsSchema.optional(),
   })
   .strict();
 
@@ -551,6 +571,8 @@ export const aiClassificationStudentPayload = z
     starCriteria: starCriteriaSchema.default({}),
     /** Ships as is: its own specimens, never the graded testSet. */
     ruleRound: ruleRoundSchema.optional(),
+    predictFirst: z.boolean().default(false),
+    groups: specimenGroupsSchema.optional(),
     // `rule` is deliberately absent, and .strict() is what enforces that.
   })
   .strict();
@@ -660,6 +682,33 @@ export const aiEthicsPayload = z.object({
         id: z.string().min(1),
         text: localizedText,
         art: z.string().optional(),
+        /**
+         * A machine's suggestion the child reviews (Who Decides?): what it
+         * suggests, the reason it gives, and how sure it says it is (0–1).
+         * Choices then approve it, ask for more, or override it.
+         */
+        suggestion: z
+          .object({
+            text: localizedText,
+            reason: localizedText,
+            confidence: z.number().min(0).max(1),
+          })
+          .optional(),
+        /**
+         * PREDICT: the child's verdict before deciding what to do ("Real,
+         * made up, or not enough evidence?"). Each option's note is shown
+         * after the outcome, talking about that verdict. Not graded: there is
+         * no right feeling, only a thought to compare with what happened.
+         */
+        predict: z
+          .object({
+            question: localizedText,
+            options: z
+              .array(z.object({ id: z.string().min(1), text: localizedText, note: localizedText }))
+              .min(2)
+              .max(4),
+          })
+          .optional(),
         choices: z
           .array(
             z.object({
@@ -670,6 +719,8 @@ export const aiEthicsPayload = z.object({
               /** Choices that demonstrate the safe habit this scene teaches. */
               safe: z.boolean().default(false),
               next: z.string().optional(),
+              /** On a suggestion scene: what this choice does with it. */
+              action: z.enum(["approve", "askMore", "override"]).optional(),
             }),
           )
           .min(2)
@@ -680,6 +731,15 @@ export const aiEthicsPayload = z.object({
     .max(8),
   /** The checklist the child assembles; shown on completion. */
   takeaways: z.array(localizedText).min(2).max(6),
+  /** One real-life case to test the habit on next, shown on the result. */
+  tryNext: localizedText.optional(),
+  /** The checklist's own name and icon (each level teaches its own habit). */
+  checklist: z
+    .object({
+      title: localizedText,
+      icon: z.string().max(8).optional(),
+    })
+    .optional(),
 });
 
 // ── AI_SIM: interactive concept widgets with real maths (phase G graft) ──
@@ -727,6 +787,10 @@ export const pixelPlaygroundConfig = z.object({
         id: z.string().min(1),
         src: z.string().min(1),
         name: localizedText,
+        /** What gives this picture away even when it is blocky, shown once a
+         *  mystery round is settled ("the clue you used / missed"). Server
+         *  side only until then: the student payload drops it. */
+        clue: localizedText.optional(),
       }),
     )
     .min(2)
@@ -906,6 +970,8 @@ export const levelFixtureSchema = z.object({
   mission: localizedTextOptional,
   instructions: localizedText,
   explanation: localizedText,
+  /** One sentence: the idea to take away, shown first on the result. */
+  keyIdea: localizedTextOptional,
   teacherNotes: localizedTextOptional,
   difficulty: z.enum(["EASY", "MEDIUM", "HARD"]).default("EASY"),
   recommendedGradeMin: z.number().int().min(1).max(12).optional(),

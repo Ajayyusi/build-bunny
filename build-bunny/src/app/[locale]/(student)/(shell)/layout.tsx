@@ -62,7 +62,7 @@ export default async function StudentShellLayout({ children, params }: Props) {
       {/* Brand + identity block */}
       <div className="flex flex-col gap-4">
         <Link
-          href="/home"
+          href={adventureEnabled ? "/explore" : "/home"}
           className="flex min-h-11 items-center gap-2 font-display text-lg font-bold text-ink"
         >
           <BunnyMascot size="xs" />
@@ -87,6 +87,14 @@ export default async function StudentShellLayout({ children, params }: Props) {
         {/* The inbox lives on Home, so the unread count belongs on the row
             that leads there — a message a child never notices is one their
             teacher may as well not have written. */}
+        {/* The brief's navigation: Explore AI, My Learning, Coding Lab. AI
+            first — it is where a child lands — and the two routes named
+            apart. My Learning keeps the teacher's messages and badge. */}
+        {adventureEnabled ? (
+          <SidebarNavItem href="/explore" alsoActive={["/ai-worlds"]} icon={<SparkIcon />}>
+            {t("nav.explore")}
+          </SidebarNavItem>
+        ) : null}
         <SidebarNavItem
           href="/home"
           icon={<HomeIcon />}
@@ -96,16 +104,9 @@ export default async function StudentShellLayout({ children, params }: Props) {
           {t("nav.home")}
         </SidebarNavItem>
         {adventureEnabled ? (
-          <>
-            {/* AI first, coding beside it: the two routes are named apart
-                (redesign brief 2026-09-25). */}
-            <SidebarNavItem href="/explore" icon={<SparkIcon />}>
-              {t("nav.explore")}
-            </SidebarNavItem>
-            <SidebarNavItem href="/adventure" icon={<PathIcon />}>
-              {t("nav.adventure")}
-            </SidebarNavItem>
-          </>
+          <SidebarNavItem href="/adventure" icon={<PathIcon />}>
+            {t("nav.adventure")}
+          </SidebarNavItem>
         ) : null}
         <SidebarNavItem href="/achievements" icon={<TrophyIcon />}>
           {t("nav.achievements")}

@@ -25,6 +25,17 @@ export const aiEthicsStudentPayload = z
           id: z.string(),
           text: localizedText,
           art: z.string().optional(),
+          suggestion: z
+            .object({ text: localizedText, reason: localizedText, confidence: z.number() })
+            .strict()
+            .optional(),
+          predict: z
+            .object({
+              question: localizedText,
+              options: z.array(z.object({ id: z.string(), text: localizedText, note: localizedText }).strict()),
+            })
+            .strict()
+            .optional(),
           choices: z.array(
             z
               .object({
@@ -32,6 +43,7 @@ export const aiEthicsStudentPayload = z
                 text: localizedText,
                 outcome: localizedText,
                 next: z.string().optional(),
+                action: z.enum(["approve", "askMore", "override"]).optional(),
               })
               .strict(),
           ),
@@ -39,6 +51,8 @@ export const aiEthicsStudentPayload = z
         .strict(),
     ),
     takeaways: z.array(localizedText),
+    checklist: z.object({ title: localizedText, icon: z.string().optional() }).strict().optional(),
+    tryNext: localizedText.optional(),
   })
   .strict();
 

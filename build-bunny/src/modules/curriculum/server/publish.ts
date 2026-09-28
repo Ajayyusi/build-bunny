@@ -84,6 +84,8 @@ export interface LevelSnapshot {
   mission: LocalizedText | null;
   instructions: LocalizedText | null;
   explanation: LocalizedText | null;
+  /** One-sentence big idea; absent in snapshots published before it existed. */
+  keyIdea?: LocalizedText | null;
   teacherNotes: LocalizedText | null;
   difficulty: string;
   recommendedGradeMin: number | null;
@@ -267,6 +269,7 @@ function buildSnapshot(level: LevelWithParents): LevelSnapshot {
     mission: asText(level.mission),
     instructions: asText(level.instructions),
     explanation: asText(level.explanation),
+    keyIdea: asText(level.keyIdea),
     teacherNotes: asText(level.teacherNotes),
     difficulty: level.difficulty,
     recommendedGradeMin: level.recommendedGradeMin,

@@ -187,6 +187,9 @@ export default async function ClassPage({ params, searchParams }: Props) {
                       ? t("aiIdeas.firstTry", { firstTry: idea.firstTry, answered: idea.answered })
                       : t("aiIdeas.noAnswers")}
                   </span>
+                  <span className="text-xs text-ink-muted tabular-nums">
+                    {t("aiIdeas.activity", { ...idea.activity })}
+                  </span>
                 </li>
               ))}
             </ul>

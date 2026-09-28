@@ -8,6 +8,7 @@ import type {
 import { onlineLife } from "./more-ai";
 import { safetyAndFairness } from "./ai-island-safety";
 import { ruleOrExamples } from "./rule-or-examples";
+import { firstSorts } from "./train-a-sorter";
 
 /**
  * World 4 — AI Island. The first world where the student stops writing rules.
@@ -73,9 +74,11 @@ export const aiIsland: WorldFixture = {
   theme: "island",
   horizon: false,
   modules: [
+    // The redesign brief's first session: Train a Sorter (shapes).
+    firstSorts,
     {
       slug: "teaching-machines",
-      order: 1,
+      order: 2,
       name: { en: "Teaching Machines", ar: "تعليم الآلات" },
       description: {
         en: "You have spent three worlds telling Robo Bunny what to do. On this island you stop telling it, and start showing it.",
@@ -108,6 +111,7 @@ export const aiIsland: WorldFixture = {
             en: "You never wrote a rule. You gave examples, and the bunny found the rule itself — that is machine learning, and it is a completely different job from programming. Notice what actually mattered: colour decided everything and size decided nothing. If you only ever taught it small berries, it had no idea what to do with a big one. That is why the examples you choose matter more than how many you give.",
             ar: "لم تكتب قاعدة قطّ. أعطيت أمثلة فاستنتج الأرنب القاعدة بنفسه — هذا هو تعلّم الآلة، وهو عمل مختلف تمامًا عن البرمجة. ولاحظ ما كان مهمًّا حقًّا: اللون هو ما حسم كل شيء، أما الحجم فلم يحسم شيئًا. وإذا لم تعلّمه إلا حبات صغيرة، فلن يعرف ما يفعل بحبة كبيرة. لهذا فإن اختيار الأمثلة أهمّ من عددها.",
           },
+          keyIdea: { en: "You didn't write a rule: the bunny found one in your examples, and that's machine learning.", ar: "لم تكتب قاعدة: وجد الأرنب قاعدة في أمثلتك، وهذا هو تعلّم الآلة." },
           teacherNotes: {
             en: "The first non-programming level in the product, and the moment to say that out loud: nobody writes instructions here. The hidden rule is colour; size is a decoy. Expect a class to teach only small berries and then be surprised when a big one is misread — let that happen before explaining it, because the surprise is the lesson. Good discussion question afterwards: the bunny was confident and wrong. How would you ever know?",
             ar: "أول مستوى في المنتج لا يتضمن برمجة، وهذه هي اللحظة المناسبة لقول ذلك بصوت عالٍ: لا أحد يكتب تعليمات هنا. القاعدة الخفية هي اللون؛ أما الحجم فمجرد تمويه. توقّع أن يعلّم الصف الأرنب حبات صغيرة فقط ثم يتفاجأ حين يُخطئ في قراءة حبة كبيرة — دع ذلك يحدث قبل أن تشرحه، لأن المفاجأة هي الدرس. سؤال جيد للنقاش بعد ذلك: كان الأرنب واثقًا ومخطئًا. كيف يمكنك أن تعرف ذلك أصلًا؟",
@@ -178,6 +182,8 @@ export const aiIsland: WorldFixture = {
             ],
             rule: { feature: "color", threshold: 0.5 },
             minPerLabel: 2,
+            // Predict the bunny's answers before its guesses appear.
+            predictFirst: true,
             // 6 = the whole pool, i.e. deliberately not binding. The budget
             // became live in the grader in the same commit, and this is the
             // introductory level: its lesson is WHICH examples, not how few.
@@ -218,6 +224,7 @@ export const aiIsland: WorldFixture = {
             en: "The palest berry and the darkest one felt like the obvious pair, and they taught the bunny almost nothing: they sit so far apart that halfway between them lands nowhere near the real edge. The pair that won was the pair you could barely tell apart — the two berries sitting either side of the place where safe stops. The examples you are least sure about are the ones that decide everything. One warning: halfway is where THIS bunny puts its line, because it copies the nearest berry you showed it. Other machines work out where to put their line in other ways, and you will meet some of them.",
             ar: "بدت الحبة الأفتح والحبة الأغمق أوضح اختيار، لكنهما لم تعلّما الأرنب شيئًا يُذكر: المسافة بينهما واسعة، ومنتصفها يقع بعيدًا عن الحدّ الحقيقي. أما الحبتان اللتان فازتا فهما الحبتان اللتان تكاد لا تفرّق بينهما، أي الواقعتان على جانبَي الموضع الذي ينتهي عنده الأمان. فالأمثلة التي تتردّد فيها هي وحدها التي تحسم الأمر. وانتبه: وضع الخط في المنتصف هو طريقة هذا الأرنب وحده، لأنه ينسخ إجابة أقرب حبة علّمته إياها. وهناك آلات أخرى تحدّد موضع خطها بطرق مختلفة، وستقابل بعضها لاحقًا.",
           },
+          keyIdea: { en: "The examples closest to the edge between two groups teach a machine the most.", ar: "الأمثلة الأقرب إلى الحدّ بين مجموعتين تعلّم الآلة أكثر من غيرها." },
           teacherNotes: {
             en: "This level makes the 1-nearest-neighbour decision boundary explicit. With exactly two training points of opposite class, the 1-NN boundary is the perpendicular bisector of the segment joining them — in one dimension, simply the midpoint. The hard cap of maxExamples: 2 is what makes that visible; with three or more points the boundary becomes piecewise and the lesson blurs, so do not relax the cap.\n\nThe trap is an intuition correctly learned in berry-sorter, where spreading examples across the feature space was the right move. Here the widest-margin pair (palest safe, darkest unsafe) puts the midpoint far from the true threshold and misclassifies at least one held-out probe; a near/far mixed pair fails the same way. Only the closest opposite pair — the two specimens straddling the true threshold — places the midpoint inside the correct interval. That is one winning pair out of the nine possible.\n\nThis is the same idea as support vectors: only the points near the boundary carry information, and the comfortably-separated extremes carry none. It also previews active learning — you learn most by labelling the examples you are least certain about, not the ones you are most confident about.\n\nSay out loud that midpoint placement is a property of this 1-NN classifier, not of machine learning in general. Logistic regression or a decision tree fitted to the same two points would place the boundary somewhere else entirely. Children who leave believing \"machines always split the difference\" have learned something they will have to unlearn.\n\nLet the class try the palest/darkest pair and fail before you intervene; the failure is the lesson. Good discussion questions: if you were allowed a third berry, which one would you add, and would it move the line at all? And: which berry on this board is the most useless one to teach with?",
             ar: "يجعل هذا المستوى حدّ القرار في مصنّف الجار الأقرب الواحد (1-NN) صريحًا ومرئيًا. عندما تكون هناك نقطتا تدريب بالضبط من فئتين متعاكستين، يكون حدّ 1-NN هو المنصِّف العمودي للقطعة الواصلة بينهما — وفي بُعد واحد هو ببساطة نقطة المنتصف. والحد الصارم maxExamples: 2 هو ما يجعل ذلك مرئيًا؛ فمع ثلاث نقاط أو أكثر يصبح الحد مكوّنًا من قطع متعددة ويتشوّش الدرس، لذلك لا تُرخِ هذا الحد.\n\nالفخ هنا حدسٌ تعلّمه الطلاب تعلّمًا صحيحًا في مستوى berry-sorter («علّم الأرنب»)، حيث كان توزيع الأمثلة على امتداد فضاء الخصائص هو الخطوة الصحيحة. أما هنا فالزوج ذو الهامش الأوسع (الحبة الآمنة الأفتح وغير الآمنة الأغمق) يضع نقطة المنتصف بعيدًا عن العتبة الحقيقية ويخطئ في تصنيف حبة اختبار محجوزة واحدة على الأقل؛ والزوج المختلط (قريبة/بعيدة) يفشل بالطريقة نفسها. وحده الزوج المتعاكس الأقرب — الحبتان الواقعتان على جانبَي العتبة الحقيقية — يضع نقطة المنتصف داخل المجال الصحيح. أي أن هناك زوجًا فائزًا واحدًا من بين الأزواج التسعة الممكنة.\n\nهذه هي الفكرة نفسها التي تقوم عليها متجهات الدعم (support vectors): النقاط القريبة من الحد وحدها تحمل المعلومات، أما الأطراف المتباعدة بوضوح فلا تحمل شيئًا. وهو أيضًا تمهيد للتعلّم النشط (active learning) — فأنت تتعلّم أكثر حين تضع التصنيفات للأمثلة التي أنت أقل يقينًا بشأنها، لا للأمثلة التي أنت أكثر ثقة بها.\n\nقل بصوت عالٍ إن وضع الحد في نقطة المنتصف خاصية لهذا المصنّف 1-NN تحديدًا، لا لتعلّم الآلة عمومًا. فالانحدار اللوجستي أو شجرة القرار، لو دُرّبا على النقطتين نفسيهما، لوضعا الحد في مكان مختلف تمامًا. والأطفال الذين يغادرون وهم يعتقدون أن «الآلات تقسم الفرق مناصفةً دائمًا» قد تعلّموا شيئًا سيضطرون إلى التخلّص منه لاحقًا.\n\nدع الصف يجرّب زوج الأفتح/الأغمق ويفشل قبل أن تتدخّل؛ فالفشل هو الدرس. أسئلة جيدة للنقاش: لو سُمح لك بحبة ثالثة، فأيّها ستضيف، وهل ستحرّك الخط أصلًا؟ وأيضًا: أيّ حبة على هذه اللوحة هي الأقل فائدة في التعليم؟",
@@ -387,6 +394,7 @@ export const aiIsland: WorldFixture = {
             en: "The bunny checks nothing. It reads the note on a berry and believes it, so one wrong note turns into one wrong answer — and only for the ? berries sitting nearest to it. That is why the mess showed up in one small patch instead of all over the board. You fixed it by taking a berry away, not by adding one, and that is the opposite of every other level here. One honest thing: you found the lie because we told you there was exactly one. Nobody tells you that about real notes.",
             ar: "الأرنب لا يتحقّق من شيء. يقرأ الملاحظة المكتوبة على الحبة فيصدّقها، فتتحوّل ملاحظة واحدة خاطئة إلى إجابة واحدة خاطئة — ولا يظهر أثرها إلا في حبات «؟» الأقرب إليها. لهذا ظهرت الفوضى في بقعة صغيرة واحدة، لا في اللوحة كلها. وقد أصلحت الأمر بسحب حبة، لا بإضافة حبة، وهذا عكس كل مستوى آخر هنا. وتبقى نقطة صادقة: عرفت مكان الكذبة لأننا أخبرناك أنها واحدة. أما في الملاحظات الحقيقية فلا أحد يخبرك.",
           },
+          keyIdea: { en: "A machine believes its examples, so one wrong label becomes wrong answers: check your data.", ar: "تصدّق الآلة أمثلتها، فيتحوّل وصف خاطئ واحد إلى إجابات خاطئة: تحقّق من بياناتك." },
           teacherNotes: {
             en: "The label-noise level, and the only one in the product won by subtraction instead of addition. Exactly one pool specimen carries a truth flag that contradicts the hidden rule: a low-colour \"positive\" label sitting deep inside the negative region. Because the grader fits a 1-nearest-neighbour classifier, that mislabelled point corrupts predictions only inside its own neighbourhood — which is why the damage renders as a small island of wrong shading rather than a shifted decision boundary, and why exactly one held-out specimen fails. Expect the class's first instinct to be adding more examples around the bad patch. That instinct is reasonable and would help a smoother model, but it cannot work here: with 1-NN the nearest neighbour is still the liar, so more data around it changes nothing. There is deliberately no maxExamples cap, so \"teach the whole tray\" stays available and still fails — let the class try it before you say anything, because the failure is the argument. The discussion worth holding is the one the level cannot resolve: we guaranteed there was exactly one bad label. Real training data ships with no such guarantee. Ask the class how they would find a wrong label if nobody told them one existed, and how they would ever know they had found them all. Useful places to take that: crowd-sourced labelling, two people labelling the same photo differently, and why teams measure inter-annotator agreement before trusting a dataset at all. A strong closing question: if a wrong label only spoils its own small corner, is a dataset with a few bad labels still usable — and how would you decide?",
             ar: "هذا مستوى ضجيج التصنيفات (label noise)، والمستوى الوحيد في المنتج الذي يُربَح بالحذف بدلًا من الإضافة. عيّنة واحدة بالضبط في المجموعة تحمل علامة حقيقة تناقض القاعدة الخفية: تصنيف «إيجابي» على حبة ذات قيمة لون منخفضة تقع في عمق المنطقة السلبية. ولأن المصحّح يبني مصنّف الجار الأقرب الواحد (1-NN)، فإن هذه النقطة الخاطئة التصنيف لا تُفسد التنبؤات إلا داخل جوارها — ولهذا يظهر الضرر على شكل جزيرة صغيرة من التظليل الخاطئ بدلًا من حدّ قرار منزاح، ولهذا أيضًا تفشل عيّنة اختبار محجوزة واحدة بالضبط. توقّع أن تكون الغريزة الأولى لدى الصف هي إضافة مزيد من الأمثلة حول البقعة الخاطئة. هذه الغريزة معقولة وكانت ستساعد نموذجًا أكثر سلاسة، لكنها لا يمكن أن تنجح هنا: ففي 1-NN يبقى الجار الأقرب هو الكاذب، ولذلك لا تغيّر البيانات الإضافية حوله شيئًا. لا يوجد حدّ maxExamples عن قصد، فيبقى خيار «علّمه الحبات كلها» متاحًا ويفشل مع ذلك — دع الصف يجرّبه قبل أن تقول أي شيء، لأن الفشل هو الحجّة. والنقاش الذي يستحق أن يُدار هو الذي لا يستطيع المستوى حسمه: لقد ضمنّا أن هناك تصنيفًا خاطئًا واحدًا بالضبط، أما بيانات التدريب الحقيقية فلا تأتي مع أي ضمان كهذا. اسأل الصف كيف سيعثرون على تصنيف خاطئ لو لم يخبرهم أحد بوجوده، وكيف سيعرفون يومًا أنهم عثروا عليها كلها. ومن الاتجاهات المفيدة لهذا النقاش: التصنيف الجماعي عبر الحشود (crowd-sourcing)، وشخصان يصنّفان الصورة نفسها تصنيفين مختلفين، ولماذا تقيس الفرق مدى اتفاق المصنِّفين (inter-annotator agreement) قبل أن تثق بمجموعة بيانات أصلًا. سؤال ختامي قوي: إذا كان التصنيف الخاطئ لا يُفسد إلا ركنه الصغير، فهل تبقى مجموعة بيانات فيها بضعة تصنيفات خاطئة صالحة للاستخدام — وكيف ستقرّر ذلك؟",
@@ -559,6 +567,7 @@ export const aiIsland: WorldFixture = {
             en: "Last level, one measurement decided everything and the other one meant nothing. Forget that here. A crab is safe only when it is small AND pale — the size alone tells you nothing, and the colour alone tells you nothing. That is why the tidy choice fails. Teach it one small pale crab and one big dark crab and you have shown the bunny two kinds out of four on this beach. It never saw a small dark crab or a big pale one, so it had to guess about them. From now on, look at the whole beach before you choose, not one row of it.",
             ar: "في المستوى السابق كانت صفة واحدة تحسم كل شيء والأخرى لا تعني شيئًا. انسَ ذلك هنا. السلطعون آمن فقط إذا كان صغيرًا وفاتحًا معًا؛ فلا الحجم وحده يدلّك، ولا اللون وحده يدلّك. لهذا يفشل الاختيار المرتّب: إن علّمته سلطعونًا صغيرًا فاتحًا وآخر كبيرًا غامقًا، فأنت لم تُرِه إلا نوعين من أربعة على هذا الشاطئ. أما الصغير الغامق والكبير الفاتح فلم يرهما قطّ، فاضطرّ إلى التخمين. من الآن فصاعدًا انظر إلى الشاطئ كله قبل أن تختار، لا إلى صفّ واحد منه.",
           },
+          keyIdea: { en: "Sometimes no single clue decides: the answer depends on two things together.", ar: "أحيانًا لا يحسم دليل واحد الأمر: الإجابة تعتمد على شيئين معًا." },
           teacherNotes: {
             en: "The rule here is conjunctive — a box in feature space, positive only inside both ranges (small AND pale) — so the two classes are not linearly separable and neither feature carries any predictive value on its own. That is a deliberate reversal of berry-sorter and draw-the-line, where the procedure was \"find the decisive feature, hold it, vary the decoy\". Say the reversal out loud in class before or straight after the first failure. Students who apply the old procedure conclude the level is broken rather than that the concept changed, and a child who thinks the software is buggy stops learning.\n\nThe 1-nearest-neighbour model is only ever as good as the coverage of the training set, and this pool spans four quadrants. The attractive failure is the diagonal: one small-pale positive and one big-dark negative. It looks balanced, it satisfies the minimum per label, and it leaves both off-diagonal quadrants unrepresented — so each held-out crab there is classified by whichever diagonal example happens to be nearer, confidently and arbitrarily. The three habits fail distinguishably, which makes diagnosis legible at a glance: \"colour decides\" misses the big pale crab, \"size decides\" misses the small dark crab, and the tidy diagonal misses the small dark one. Ask which crab was missed before asking what the student was thinking; the missed crab names the misconception.\n\nLet a class fail once before intervening — the surprise is the lesson, same as in berry-sorter. Discussion afterwards: the bunny got three of four right. Was it slightly wrong, or was it wrong about an entire kind of crab it had never been shown? This level is the bridge into the next world, where students read the decision boundary as a region of the feature space rather than a cut across a single axis.",
             ar: "القاعدة هنا قاعدة عطف (AND) — صندوق في فضاء الخصائص، والنتيجة إيجابية فقط داخل النطاقين معًا (صغير وفاتح) — ولذلك لا يمكن الفصل بين الفئتين بخط مستقيم، ولا تحمل أيّ خاصية وحدها أي قيمة تنبؤية. وهذا انقلاب مقصود على مستويَي berry-sorter و draw-the-line، حيث كان الإجراء: «اعثر على الخاصية الحاسمة، ثبّتها، وغيّر الخاصية المموِّهة». صرّح بهذا الانقلاب في الصف قبل الإخفاق الأول أو بعده مباشرة. فالطلاب الذين يطبّقون الإجراء القديم يستنتجون أن المستوى معطوب بدلًا من أن يدركوا أن المفهوم تغيّر، والطفل الذي يظن أن البرنامج فيه خلل يتوقف عن التعلّم.\n\nنموذج الجار الأقرب الواحد (1-NN) لا يكون أفضل من مدى تغطية مجموعة التدريب، وهذه المجموعة تمتد على أربعة أرباع. والإخفاق المغري هو القطر: سلطعون إيجابي صغير فاتح وآخر سلبي كبير غامق. يبدو هذا الاختيار متوازنًا، ويستوفي الحد الأدنى لكل تصنيف، لكنه يترك الربعين الواقعين خارج القطر بلا تمثيل — فيُصنَّف كل سلطعون اختبار محجوز هناك وفق أيّ مثال قطري يصادف أنه الأقرب، بثقة وبشكل اعتباطي. والعادات الثلاث تفشل بطرق يمكن تمييزها، مما يجعل التشخيص واضحًا من نظرة واحدة: «اللون هو الحاسم» يُخطئ في السلطعون الكبير الفاتح، و«الحجم هو الحاسم» يُخطئ في السلطعون الصغير الغامق، والقطر المرتّب يُخطئ في الصغير الغامق. اسأل أيّ سلطعون أُخطئ فيه قبل أن تسأل عمّا كان الطالب يفكر فيه؛ فالسلطعون الذي أُخطئ فيه يكشف المفهوم الخاطئ.\n\nدع الصف يفشل مرة واحدة قبل أن تتدخّل — فالمفاجأة هي الدرس، كما في berry-sorter. للنقاش بعد ذلك: أصاب الأرنب في 3 من 4. هل كان مخطئًا قليلًا، أم كان مخطئًا بشأن نوع كامل من السلاطعين لم يُعرض عليه قط؟ هذا المستوى هو الجسر إلى العالم التالي، حيث يقرأ الطلاب حدّ القرار على أنه منطقة في فضاء الخصائص لا قطعًا على امتداد محور واحد.",
@@ -710,7 +719,7 @@ export const aiIsland: WorldFixture = {
 
     {
       slug: "seeing-and-secrets",
-      order: 2,
+      order: 3,
       name: { en: "Seeing and Secrets", ar: "الرؤية والأسرار" },
       description: {
         en: "Machines don't just learn from you — they look at the world, and sometimes they ask about yours. See through a computer's eyes, then decide what an app deserves to know.",
@@ -741,13 +750,14 @@ export const aiIsland: WorldFixture = {
             ar: "صغّر الصور إلى بكسلات وخمّن الصور الغامضة كما يفعل الحاسوب.",
           },
           instructions: {
-            en: "Drag the resolution slider from 64 down to 8 and watch the picture break into fewer, bigger squares. For each mystery round, guess the picture at the LOWEST resolution you can before checking — then see how low a computer could really go.",
-            ar: "اسحب شريط الدقة من 64 إلى 8، وشاهد الصورة تتحول إلى مربعات أقل وأكبر. في كل جولة غموض، خمّن الصورة عند أدنى دقة تستطيعها قبل التحقق — ثم اكتشف إلى أي درجة يستطيع الحاسوب النزول فعلًا.",
+            en: "Pick a picture and drag the slider from 64 down to 8: watch it break into fewer, bigger squares. Then the mystery pictures: each one starts as blocky as it gets. Pick your guess and press “Check my guess”. Not right yet? Add more squares and look again. Every answer shows the clue that gives the picture away.",
+            ar: "اختر صورة واسحب الشريط من 64 إلى 8: شاهدها تتحول إلى مربعات أقل وأكبر. ثم الصور الغامضة: تبدأ كل واحدة بأكثر شكل مربّع ممكن. اختر تخمينك واضغط «تحقّق من تخميني». لم يصب بعد؟ أضف مربعات أكثر وانظر من جديد. كل إجابة تُظهر الدليل الذي يكشف الصورة.",
           },
           explanation: {
             en: "A photo isn't really a 'picture' to a computer at all — it's a grid of numbers, one small set per square, and that's ALL a computer ever starts with. At 64×64 you could still guess easily; at 8×8 you needed real work, because most of the detail was simply gone. This is honestly why computer vision is hard: a computer never sees a rabbit or a rocket, it only ever sees a grid of numbers and has to work out what they probably mean — the exact same guessing game you just played, just done with maths instead of eyes.",
             ar: "الصورة ليست «صورة» بالنسبة للحاسوب على الإطلاق — إنها شبكة من الأرقام، مجموعة صغيرة لكل مربع، وهذا كل ما يبدأ به الحاسوب دائمًا. عند دقة 64×64 كان بإمكانك التخمين بسهولة؛ وعند 8×8 احتجت لجهد حقيقي، لأن معظم التفاصيل اختفت ببساطة. هذا بصدق سبب صعوبة رؤية الحاسوب: فالحاسوب لا يرى أرنبًا أو صاروخًا أبدًا، بل يرى فقط شبكة من الأرقام وعليه أن يستنتج معناها المحتمل — وهي بالضبط نفس لعبة التخمين التي لعبتها للتو، لكن بالرياضيات بدلًا من العينين.",
           },
+          keyIdea: { en: "A computer never sees a picture, only a grid of numbers it has to make sense of.", ar: "لا يرى الحاسوب صورة أبدًا، بل شبكة من الأرقام عليه أن يفهمها." },
           teacherNotes: {
             en: "No model/inference station here by design — this level is honestly limited to pixels, resolution and the child's own guessing, which IS the whole lesson at this stage. Encourage students to try guessing BEFORE dragging the slider up, not after — the productive struggle at 8px is the point, not a bug.",
             ar: "لا توجد هنا محطة للنموذج أو الاستدلال عن قصد — فهذا المستوى يقتصر بصدق على البكسلات والدقة وتخمين الطفل نفسه، وهذا هو الدرس كله في هذه المرحلة. شجّع الطلاب على محاولة التخمين قبل سحب شريط التمرير إلى الأعلى، لا بعده — فالجهد المثمر عند 8px هو المقصود، وليس خللًا.",
@@ -793,11 +803,36 @@ export const aiIsland: WorldFixture = {
             widget: {
               widgetId: "pixel-playground",
               images: [
-                { id: "rabbit", src: "/ai-lab/rabbit.svg", name: { en: "Rabbit", ar: "أرنب" } },
-                { id: "carrot", src: "/ai-lab/carrot.svg", name: { en: "Carrot", ar: "جزرة" } },
-                { id: "tree", src: "/ai-lab/tree.svg", name: { en: "Tree", ar: "شجرة" } },
-                { id: "rocket", src: "/ai-lab/rocket.svg", name: { en: "Rocket", ar: "صاروخ" } },
-                { id: "house", src: "/ai-lab/house.svg", name: { en: "House", ar: "منزل" } },
+                {
+                  id: "rabbit",
+                  src: "/ai-lab/rabbit.svg",
+                  name: { en: "Rabbit", ar: "أرنب" },
+                  clue: { en: "two tall white ears above a round white body, on green", ar: "أذنان بيضاوان طويلتان فوق جسم أبيض مستدير، على خلفية خضراء" },
+                },
+                {
+                  id: "carrot",
+                  src: "/ai-lab/carrot.svg",
+                  name: { en: "Carrot", ar: "جزرة" },
+                  clue: { en: "a red-orange triangle pointing down, with green leaves on top", ar: "مثلث برتقالي محمرّ يشير إلى الأسفل، وفوقه أوراق خضراء" },
+                },
+                {
+                  id: "tree",
+                  src: "/ai-lab/tree.svg",
+                  name: { en: "Tree", ar: "شجرة" },
+                  clue: { en: "a big round green top on a dark trunk", ar: "قمة خضراء كبيرة مستديرة فوق جذع داكن" },
+                },
+                {
+                  id: "rocket",
+                  src: "/ai-lab/rocket.svg",
+                  name: { en: "Rocket", ar: "صاروخ" },
+                  clue: { en: "a tall white shape with a pointed top, on a dark background", ar: "شكل أبيض طويل ذو قمة مدببة، على خلفية داكنة" },
+                },
+                {
+                  id: "house",
+                  src: "/ai-lab/house.svg",
+                  name: { en: "House", ar: "منزل" },
+                  clue: { en: "a red triangle roof on top of a pale square", ar: "سقف مثلث أحمر فوق مربع فاتح" },
+                },
               ],
               resolutions: [64, 32, 16, 8],
               rounds: [
@@ -877,6 +912,7 @@ export const aiIsland: WorldFixture = {
             en: "Every 'ask' in this story was for something that feels small on its own — a name, a photo, a location, a friend's number — but adds up to a lot about you once it's all together. The safe habits you saw work every time: you can always say no, a nickname is enough, and asking a grown-up first is never the wrong move. And here's the honest bit — this whole adventure, on every level, we never once asked for your real name either. That's not an accident. It's the same rule.",
             ar: "كل «طلب» في هذه القصة كان لشيء يبدو صغيرًا بمفرده — اسم، صورة، موقع، رقم صديق — لكنه يتجمّع ليكشف الكثير عنك حين يجتمع معًا. العادات الآمنة التي رأيتها تنجح في كل مرة: يمكنك دائمًا أن تقول لا، والاسم المستعار كافٍ، وسؤال شخص بالغ أولًا ليس خطأً أبدًا. وهذا هو الجزء الصادق — طوال هذه المغامرة، في كل مستوى، لم نطلب منك اسمك الحقيقي ولو مرة واحدة. هذا ليس صدفة. إنها نفس القاعدة.",
           },
+          keyIdea: { en: "Small bits of personal information add up, so share only what a task really needs.", ar: "المعلومات الشخصية الصغيرة تتراكم، لذا شارك فقط ما تحتاجه المهمة فعلًا." },
           teacherNotes: {
             en: "Completion-based grading (there are no wrong feelings) — every finished path earns a PASS; 3 stars only reflects that the 'safe' option was picked at every visited scene, which is a bonus signal for discussion, not a judgement to relay to the child. The closing beat referencing 'we never asked your real name' is literally true across the whole product (students sign in by school-issued username, never by name) — do not let this level's copy drift from that fact if the app's data practices ever change.",
             ar: "التقييم قائم على الإكمال (لا توجد مشاعر خاطئة) — كل مسار مكتمل ينال نتيجة نجاح (PASS)؛ ونيل 3 نجوم يعني فقط أن الخيار «الآمن» اختير في كل مشهد تمت زيارته، وهذا مؤشر إضافي للنقاش، لا حكم يُنقل إلى الطفل. والخاتمة التي تشير إلى عبارة «لم نطلب منك اسمك الحقيقي» صحيحة حرفيًا في المنتج كله (يسجّل الطلاب الدخول باسم مستخدم تصدره المدرسة، لا بأسمائهم أبدًا) — فلا تدع نصوص هذا المستوى تبتعد عن هذه الحقيقة إذا تغيّرت ممارسات التطبيق في التعامل مع البيانات يومًا ما.",
@@ -1064,6 +1100,8 @@ export const aiIsland: WorldFixture = {
                 ],
               },
             ],
+            tryNext: { en: "Next time an app asks for something, ask yourself: does it really need this to do its job?", ar: "في المرة القادمة التي يطلب فيها تطبيق شيئًا، اسأل نفسك: هل يحتاجه فعلًا ليقوم بعمله؟" },
+            checklist: { title: { en: "Your Privacy Shield", ar: "درع الخصوصية الخاص بك" }, icon: "🛡️" },
             takeaways: [
               {
                 en: "I don't have to share my real name.",

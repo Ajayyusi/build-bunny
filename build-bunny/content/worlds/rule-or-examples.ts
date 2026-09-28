@@ -58,6 +58,7 @@ export const ruleOrExamples: LevelDraft = {
     "Your rule did exactly what it said, and nothing else. It was right about yesterday's berries, but it had never heard of purple ones, so it called them not safe. A rule only changes when a person rewrites it. The learner was different: you showed it a purple berry, and it sorted the new purple ones by copying that example. That is the difference between coding and machine learning. Both need people: someone writes the rule, or someone chooses the examples.",
     "فعلت قاعدتك ما تقوله بالضبط، ولا شيء غيره. كانت صحيحة مع توت الأمس، لكنها لم تسمع بالتوت البنفسجي قطّ، فقالت إنه غير آمن. القاعدة لا تتغيّر إلا إذا أعاد إنسان كتابتها. أما المتعلّم فكان مختلفًا: أريته حبة بنفسجية، ففرز الحبات البنفسجية الجديدة بتقليد ذلك المثال. هذا هو الفرق بين البرمجة وتعلّم الآلة. وكلاهما يحتاج إلى الناس: أحدٌ يكتب القاعدة، أو أحدٌ يختار الأمثلة.",
   ),
+  keyIdea: { en: "A written rule only knows what its author thought of; a learner can be taught new cases with new examples.", ar: "القاعدة المكتوبة لا تعرف إلا ما فكّر فيه كاتبها؛ أما المتعلّم فيمكن تعليمه حالات جديدة بأمثلة جديدة." },
   teacherNotes: t(
     "The bridge between the three coding worlds and AI Island. Part 1 is ungraded: children try rule cards against yesterday's berries until one fits all of them (only the colour rule does). Part 2 shows that rule meeting today's purple berries and misreading them. Part 3 is the graded task: a 1-nearest-neighbour learner scored on held-out berries, which fails unless a purple example is taught. Say out loud that a person could rewrite the rule too; the point is WHO changes each one. Discussion: which would you rather maintain on a real island where new berries keep appearing, and why might you still want a rule sometimes?",
     "الجسر بين عوالم البرمجة الثلاثة وجزيرة الذكاء الاصطناعي. الجزء الأول غير مقيَّم: يجرّب الأطفال بطاقات القواعد على توت الأمس حتى تناسبه واحدة كله (قاعدة اللون وحدها تفعل ذلك). ويُظهر الجزء الثاني تلك القاعدة أمام توت اليوم البنفسجي وهي تخطئ فيه. أما الجزء الثالث فهو المهمة المقيَّمة: متعلّم «الجار الأقرب» يُختبر على توت محجوز، ويفشل ما لم يُعلَّم مثالًا بنفسجيًا. قل بصوت عالٍ إن الإنسان يستطيع أيضًا إعادة كتابة القاعدة؛ الفكرة هي مَن يغيّر كلًّا منهما. للنقاش: أيّهما تفضّل أن تعتني به في جزيرة حقيقية يظهر فيها توت جديد باستمرار، ولماذا قد تريد قاعدة أحيانًا رغم ذلك؟",
@@ -171,5 +172,6 @@ export const ruleOrExamples: LevelDraft = {
     maxExamples: 6,
     // Four is enough: one blue, one purple, two red.
     starCriteria: { threeStarMaxBlocks: 4 },
+    predictFirst: true,
   } satisfies AiClassificationDraft,
 };

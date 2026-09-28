@@ -38,6 +38,8 @@ export interface ActivityIntro {
   objective: string;
   instructions: string;
   explanation: string;
+  /** One sentence shown first on the result; "" when the level has none. */
+  keyIdea: string;
   difficulty: string;
   estimatedMinutes: number;
   maxStars: number;
@@ -239,10 +241,15 @@ export interface NextStepStateInput {
   markers?: { size: number; color: number }[];
   excluded?: string[];
   sceneId?: string | null;
+  predicting?: boolean;
   line?: { slope: number; intercept: number };
-  phase?: "fit" | "predict";
+  phase?: "fit" | "compare" | "predict" | "revealed";
   prediction?: number | null;
   rounds?: Record<string, string>;
+  /** Rule or Examples?: the rule round's stage. */
+  rule?: { stage: "pick" | "today" | "done"; chosen: string | null; tested: string | null };
+  /** Predict-first Teach levels: whether the bunny's guesses are revealed. */
+  revealed?: boolean;
 }
 
 export type NextStepAction = (input: {
@@ -284,6 +291,10 @@ export interface TeachActivityPayload {
   starCriteria: { threeStarMaxBlocks?: number };
   /** "Rule or examples?" warm-up, localized; never the graded testSet. */
   ruleRound?: TeachRuleRound;
+  /** Predict the robot's answers before its guesses appear. */
+  predictFirst: boolean;
+  /** Results by group: localized group names, and each specimen's group. */
+  groups?: { names: Record<string, string>; of: Record<string, string> };
 }
 
 export interface TeachRuleRound {
@@ -321,9 +332,21 @@ export interface AiEthicsActivityPayload {
     id: string;
     text: LocalizedText;
     art?: string;
-    choices: { id: string; text: LocalizedText; outcome: LocalizedText; next?: string }[];
+    /** A machine's suggestion to review: what, why, and how sure (0–1). */
+    suggestion?: { text: LocalizedText; reason: LocalizedText; confidence: number };
+    /** The child's verdict first; each option's note is shown after the outcome. */
+    predict?: { question: LocalizedText; options: { id: string; text: LocalizedText; note: LocalizedText }[] };
+    choices: {
+      id: string;
+      text: LocalizedText;
+      outcome: LocalizedText;
+      next?: string;
+      action?: "approve" | "askMore" | "override";
+    }[];
   }[];
   takeaways: LocalizedText[];
+  checklist?: { title: LocalizedText; icon?: string };
+  tryNext?: LocalizedText;
 }
 
 /** AI_SIM: widget-specific config, opaque here — each widget owns its own shape. */

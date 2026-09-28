@@ -3,6 +3,7 @@ import "server-only";
 import { db } from "@/lib/db";
 import type { SessionContext } from "@/modules/auth/server/session";
 import { localizedText, type LocalizedText } from "@/modules/curriculum/schemas";
+import { aiLevelIdsOf, countAiEvents, emptyCounts, type AiActivityCounts } from "./ai-activity";
 import { computeLevelActivityStats, rankMostAttempted, rankMostFailed } from "./level-activity";
 
 /**
@@ -53,6 +54,13 @@ export interface SchoolAnalyticsLevel {
   failRatePct: number;
 }
 
+/** AI activity in one class over the last 30 days (counts only). */
+export interface SchoolAiActivityClass extends AiActivityCounts {
+  classId: string;
+  className: string;
+  studentCount: number;
+}
+
 export interface SchoolAnalytics {
   totalStudents: number;
   activeStudentsThisWeek: number;
@@ -65,6 +73,10 @@ export interface SchoolAnalytics {
   byClass: SchoolAnalyticsClass[];
   mostAttemptedLevels: SchoolAnalyticsLevel[];
   mostFailedLevels: SchoolAnalyticsLevel[];
+  /** Start, test, retry and completion in AI activities, by class, last 30 days. */
+  aiActivity: SchoolAiActivityClass[];
+  /** The same, for the whole school. */
+  aiActivityTotal: AiActivityCounts;
 }
 
 interface LevelIndexEntry {
@@ -277,6 +289,33 @@ export async function getSchoolAnalytics(ctx: SessionContext): Promise<SchoolAna
 
   const reportingLicence = pickReportingLicence(licences);
 
+  // AI activity: per child over the last 30 days, then summed per class (a
+  // child in two classes counts in both, as in byClass).
+  const aiLevelIds = await aiLevelIdsOf(levelIds);
+  const aiByStudent = await countAiEvents({ schoolId, levelIds: aiLevelIds, since: monthAgo, by: "studentUserId" });
+  const aiActivityTotal = emptyCounts();
+  for (const counts of aiByStudent.values()) {
+    aiActivityTotal.starts += counts.starts;
+    aiActivityTotal.tests += counts.tests;
+    aiActivityTotal.retries += counts.retries;
+    aiActivityTotal.completions += counts.completions;
+  }
+  const aiActivity: SchoolAiActivityClass[] = classes
+    .map((cls) => {
+      const studentIds = studentIdsByClass.get(cls.id) ?? [];
+      const sum = emptyCounts();
+      for (const id of studentIds) {
+        const counts = aiByStudent.get(id);
+        if (!counts) continue;
+        sum.starts += counts.starts;
+        sum.tests += counts.tests;
+        sum.retries += counts.retries;
+        sum.completions += counts.completions;
+      }
+      return { classId: cls.id, className: cls.name, studentCount: studentIds.length, ...sum };
+    })
+    .sort((a, b) => b.starts - a.starts || a.className.localeCompare(b.className));
+
   return {
     totalStudents: students.length,
     activeStudentsThisWeek: activeThisWeek,
@@ -289,5 +328,7 @@ export async function getSchoolAnalytics(ctx: SessionContext): Promise<SchoolAna
     byClass,
     mostAttemptedLevels,
     mostFailedLevels,
+    aiActivity,
+    aiActivityTotal,
   };
 }

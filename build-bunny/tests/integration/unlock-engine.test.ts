@@ -588,8 +588,8 @@ describe("Explore AI levels open from day one", () => {
     await createTestLevel(mAi.id, 2, { title: "Also Before" });
     // Third in its module, in a world gated behind the coding world: the
     // normal rules would keep it shut for a long time.
-    const sorter = await createTestLevel(mAi.id, 3, { title: "Teach the Bunny" });
-    await db.level.update({ where: { id: sorter.id }, data: { slug: "berry-sorter" } });
+    const sorter = await createTestLevel(mAi.id, 3, { title: "Train a Sorter" });
+    await db.level.update({ where: { id: sorter.id }, data: { slug: "train-a-sorter" } });
     sorterId = sorter.id;
     const horizonSorter = await createTestLevel(mLater.id, 1, { title: "Roadmap Sorter" });
     await db.level.update({ where: { id: horizonSorter.id }, data: { slug: "fortune-teller" } });
@@ -625,5 +625,79 @@ describe("Explore AI levels open from day one", () => {
       where: { studentUserId_levelId: { studentUserId: exploreStudentId, levelId: firstInWorldTwoId } },
     });
     expect(first).toMatchObject({ status: "UNLOCKED", unlockSource: "ORDER" });
+  });
+});
+
+describe("two routes: AI worlds never wait for coding worlds", () => {
+  let studentId: string;
+  let ctx: SessionContext;
+  let code1: string;
+  let code2First: string;
+  let ai1First: string;
+  let ai1Last: string;
+  let ai2First: string;
+  let codeWorld2: string;
+  let aiWorld1: string;
+
+  beforeAll(async () => {
+    const school = await createTestSchool("Routes");
+    const student = await createStudent(SYSTEM_ACTOR, {
+      schoolId: school.id,
+      schoolCode: school.code,
+      username: "router",
+      displayName: "Route Tester",
+      studentIdentifier: "ROUTE-001",
+      grade: 3,
+    });
+    studentId = student.userId;
+    ctx = createCtx({ userId: studentId, role: "STUDENT", schoolId: school.id });
+    const program = await createTestProgram({ name: "Routes Program" });
+    // Programme order interleaves the routes, like the real curriculum.
+    const cw1 = await addWorldToProgram(program.id, 1, { name: "Coding One" });
+    const aw1 = await addWorldToProgram(program.id, 2, { name: "AI One" });
+    const cw2 = await addWorldToProgram(program.id, 3, { name: "Coding Two" });
+    const aw2 = await addWorldToProgram(program.id, 4, { name: "AI Two" });
+    codeWorld2 = cw2.id;
+    aiWorld1 = aw1.id;
+    const ai = { track: "AI_CONCEPTS" as const };
+    code1 = (await createTestLevel((await createTestModule(cw1.id, 1)).id, 1)).id;
+    const aiMod = await createTestModule(aw1.id, 1);
+    ai1First = (await createTestLevel(aiMod.id, 1, ai)).id;
+    ai1Last = (await createTestLevel(aiMod.id, 2, ai)).id;
+    code2First = (await createTestLevel((await createTestModule(cw2.id, 1)).id, 1)).id;
+    ai2First = (await createTestLevel((await createTestModule(aw2.id, 1)).id, 1, ai)).id;
+    await enableProgramForSchool(school.id, program.id);
+  });
+
+  const statusOf = async (levelId: string) =>
+    (await db.studentProgress.findUnique({ where: { studentUserId_levelId: { studentUserId: studentId, levelId } } }))?.status ?? "LOCKED";
+
+  it("a brand-new child can start the first AI world and the first coding world", async () => {
+    await recomputeUnlocks(studentId);
+    expect(await statusOf(code1)).toBe("UNLOCKED");
+    expect(await statusOf(ai1First)).toBe("UNLOCKED");
+    const state = await computeAdventureState(ctx);
+    expect(world(state, aiWorld1).state).not.toBe("LOCKED");
+    expect(world(state, aiWorld1).kind).toBe("ai");
+  });
+
+  it("each route's later worlds wait only for their own route", async () => {
+    // Nothing finished: the second world of each route is closed.
+    expect(await statusOf(code2First)).toBe("LOCKED");
+    expect(await statusOf(ai2First)).toBe("LOCKED");
+    // Finish the whole first AI world — the second AI world opens, the
+    // second coding world does not.
+    for (const levelId of [ai1First, ai1Last]) {
+      await db.studentProgress.upsert({
+        where: { studentUserId_levelId: { studentUserId: studentId, levelId } },
+        update: { status: "COMPLETED", stars: 2, firstCompletedAt: new Date() },
+        create: { schoolId: ctx.schoolId!, studentUserId: studentId, levelId, status: "COMPLETED", stars: 2, unlockSource: "ORDER" },
+      });
+      await recomputeUnlocks(studentId);
+    }
+    expect(await statusOf(ai2First)).toBe("UNLOCKED");
+    expect(await statusOf(code2First)).toBe("LOCKED");
+    const state = await computeAdventureState(ctx);
+    expect(world(state, codeWorld2).state).toBe("LOCKED");
   });
 });

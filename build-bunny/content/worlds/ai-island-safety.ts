@@ -18,7 +18,7 @@ type AiClassificationDraft = z.input<typeof aiClassificationPayload>;
 
 export const safetyAndFairness: ModuleFixture = {
   slug: "safety-and-fairness",
-  order: 3,
+  order: 4,
   name: { en: "Safety and Fairness", ar: "الأمان والإنصاف" },
   description: {
     en: "Strangers, fakes, and a machine that learned a shortcut.",
@@ -52,6 +52,7 @@ export const safetyAndFairness: ModuleFixture = {
         en: "Friendly is not the same as trusted. Every ask in this chat was normal on its own — a school name, a link, a private chat, a password — and every safe reply was the same three moves: keep personal things personal, don't click or move somewhere a grown-up can't see, and tell a trusted grown-up when something feels off. Nobody real ever needs your password. Not a game, not a friend, not a 'helper'.",
         ar: "الودّ ليس كالثقة. كل طلب في هذه الدردشة كان عاديًا بمفرده — اسم مدرسة، رابط، دردشة خاصة، كلمة مرور — وكل ردّ آمن كان التحركات الثلاث نفسها: أبقِ الأمور الشخصية شخصية، ولا تنقر أو تنتقل إلى مكان لا يراه شخص بالغ، وأخبر شخصًا بالغًا تثق به عندما يبدو شيء غير مريح. لا أحد حقيقي يحتاج إلى كلمة مرورك أبدًا. لا لعبة، ولا صديق، ولا «مساعد».",
       },
+      keyIdea: { en: "Friendly isn't the same as trusted: keep personal things private and tell a grown-up.", ar: "اللطيف ليس بالضرورة موثوقًا: احتفظ بأشيائك الشخصية لنفسك وأخبر شخصًا بالغًا." },
       teacherNotes: {
         en: "Completion-based: every finished path passes; 3 stars only when the safe option was chosen at every scene, which is a discussion signal rather than a judgement. The password scene is deliberately the last: it is the one children most often get wrong, and 'nobody real needs your password' is the sentence to send home. Pair with the school's own online-safety policy and name the trusted adults explicitly.",
         ar: "التقييم قائم على الإكمال: كل مسار مكتمل ينجح؛ ولا تُمنح 3 نجوم إلا إذا اختير الخيار الآمن في كل مشهد، وهذا مؤشر للنقاش لا حكم. مشهد كلمة المرور هو الأخير عن قصد: فهو المشهد الذي يخطئ فيه الأطفال أكثر من غيره، وعبارة «لا أحد حقيقي يحتاج إلى كلمة مرورك» هي الجملة التي نريد أن يحملها الطفل معه إلى البيت. اربط هذا المستوى بسياسة الأمان على الإنترنت الخاصة بمدرستك، وسمِّ البالغين الموثوقين بأسمائهم صراحةً.",
@@ -215,6 +216,8 @@ export const safetyAndFairness: ModuleFixture = {
             ],
           },
         ],
+        tryNext: { en: "Next time someone new messages you in a game, notice the first thing they ask for. Is it something a stranger needs?", ar: "في المرة القادمة التي يراسلك فيها شخص جديد في لعبة، لاحظ أول شيء يطلبه. هل هو شيء يحتاجه شخص غريب؟" },
+        checklist: { title: { en: "Your Safe Chat Checklist", ar: "قائمة الدردشة الآمنة الخاصة بك" }, icon: "💬" },
         takeaways: [
           { en: "A friendly stranger online is still a stranger.", ar: "الغريب الودود على الإنترنت ما زال غريبًا." },
           { en: "I keep my school, my address and my full name to myself.", ar: "أحتفظ باسم مدرستي وعنواني واسمي الكامل لنفسي." },
@@ -246,13 +249,14 @@ export const safetyAndFairness: ModuleFixture = {
         ar: "أربعة أشياء تظهر على شاشتك. قرّر ماذا تصدّق، وماذا تتحقق منه، وماذا تشارك.",
       },
       instructions: {
-        en: "Read each moment, then pick what you'd do. Every choice shows what happens next. At the end you'll have a Real-or-Not checklist.",
-        ar: "اقرأ كل موقف، ثم اختر ما ستفعله. كل خيار يُظهر ما يحدث بعده. في النهاية ستحصل على قائمة «حقيقي أم لا».",
+        en: "For each moment, first say what you think: real, made up, or not enough evidence yet? Then pick what you'd do. Every choice shows what happens next, and you can try another. At the end you'll have a Real-or-Not checklist.",
+        ar: "في كل موقف، قل أولًا ما رأيك: حقيقي، أم مصطنع، أم لا يوجد دليل كافٍ بعد؟ ثم اختر ما ستفعله. كل خيار يُظهر ما يحدث بعده، ويمكنك تجربة غيره. في النهاية ستحصل على قائمة «حقيقي أم لا».",
       },
       explanation: {
         en: "Machines can now make videos, voices and pictures of things that never happened, and a chatbot can be confidently wrong — it predicts words, it doesn't know. None of that makes the internet bad; it makes one habit precious: pause, ask 'how do I know?', check somewhere else, and ask a grown-up when it matters. And AI help is brilliant for learning — as long as the thinking you hand in is yours.",
         ar: "تستطيع الآلات الآن صنع مقاطع فيديو وأصوات وصور لأشياء لم تحدث قط، ويمكن لروبوت الدردشة أن يخطئ بثقة — فهو يتنبأ بالكلمات ولا يعرف. لا يجعل ذلك الإنترنت سيئًا؛ بل يجعل عادة واحدة ثمينة: توقف، واسأل «كيف أعرف؟»، وتحقق في مكان آخر، واسأل شخصًا بالغًا عندما يكون الأمر مهمًا. ومساعدة الذكاء الاصطناعي رائعة للتعلم — ما دام التفكير الذي تسلّمه هو تفكيرك.",
       },
+      keyIdea: { en: "Looking real or sounding sure isn't proof: pause and check the source.", ar: "أن يبدو الشيء حقيقيًا أو واثقًا ليس دليلًا: توقّف وتحقّق من المصدر." },
       teacherNotes: {
         en: "Completion-based, like the other AI_ETHICS levels. The chatbot scene states the honest fact the whole product relies on: a language model predicts words and can be confidently wrong — Build Bunny itself never sends children's words to an external model. The homework scene is about integrity, not prohibition; frame AI help as a tutor, not a ghost-writer.",
         ar: "التقييم قائم على الإكمال، مثل مستويات AI_ETHICS الأخرى. يعرض مشهد روبوت الدردشة الحقيقة الصادقة التي يقوم عليها المنتج كله: النموذج اللغوي يتنبأ بالكلمات وقد يخطئ بثقة — أما Build Bunny نفسه فلا يرسل كلمات الأطفال إلى أي نموذج خارجي أبدًا. ومشهد الواجب المنزلي يتناول النزاهة لا المنع؛ قدّم مساعدة الذكاء الاصطناعي على أنها معلّم يشرح، لا كاتب خفي يكتب بالنيابة عن الطالب.",
@@ -283,6 +287,14 @@ export const safetyAndFairness: ModuleFixture = {
               ar: "مقطع فيديو يُظهر العمدة مو يقول شيئًا صادمًا. يبدو حقيقيًا. الجميع يشاركه.",
             },
             art: "🎬",
+            predict: {
+              question: { en: "Is this video real?", ar: "هل هذا الفيديو حقيقي؟" },
+              options: [
+                { id: "real", text: { en: "Real", ar: "حقيقي" }, note: { en: "It looked real, but it was made by a machine. \"Looks real\" isn't proof.", ar: "بدا حقيقيًا، لكن آلة صنعته. «يبدو حقيقيًا» ليس دليلًا." } },
+                { id: "made-up", text: { en: "Made up", ar: "مصطنع" }, note: { en: "It was made up, but you couldn't know that from the video alone. What would tell you?", ar: "كان مصطنعًا، لكنك لم تكن لتعرف ذلك من الفيديو وحده. ما الذي سيخبرك؟" } },
+                { id: "not-enough", text: { en: "Not enough evidence yet", ar: "لا يوجد دليل كافٍ بعد" }, note: { en: "The careful answer: a video can't prove itself. You'd need a source you trust.", ar: "الإجابة الحذرة: الفيديو لا يثبت نفسه. تحتاج إلى مصدر تثق به." } },
+              ],
+            },
             choices: [
               {
                 id: "share-video",
@@ -299,6 +311,18 @@ export const safetyAndFairness: ModuleFixture = {
                 outcome: {
                   en: "Good question. Machines can make videos of things that never happened. Check a source you trust before believing — or sharing.",
                   ar: "سؤال جيد. تستطيع الآلات صنع مقاطع فيديو لأشياء لم تحدث قط. تحقق من مصدر تثق به قبل التصديق — أو المشاركة.",
+                },
+                safe: true,
+              },
+              {
+                id: "not-enough-evidence-video",
+                text: {
+                  en: "Not enough evidence yet — find where it first came from",
+                  ar: "لا يوجد دليل كافٍ بعد — أبحث عن مصدره الأول",
+                },
+                outcome: {
+                  en: "Smart. \"Everyone's sharing it\" isn't evidence. The first place it appeared, and whether a trusted news site reports it, tells you far more.",
+                  ar: "ذكي. «الجميع يشاركه» ليس دليلًا. أول مكان ظهر فيه، وهل ينشره موقع أخبار موثوق، يخبرك بأكثر من ذلك بكثير.",
                 },
                 safe: true,
               },
@@ -320,6 +344,14 @@ export const safetyAndFairness: ModuleFixture = {
               ar: "يجيب روبوت دردشة عن سؤالك فورًا وبثقة تامة. يبدو متأكدًا جدًا.",
             },
             art: "🤖",
+            predict: {
+              question: { en: "Is the chatbot's answer right?", ar: "هل إجابة روبوت الدردشة صحيحة؟" },
+              options: [
+                { id: "right", text: { en: "It's right", ar: "صحيحة" }, note: { en: "It sounded sure, but today it was wrong. Sure isn't the same as right.", ar: "بدا متأكدًا، لكنه كان مخطئًا اليوم. التأكد ليس الصواب." } },
+                { id: "wrong", text: { en: "It's wrong", ar: "خاطئة" }, note: { en: "It was wrong today, but you couldn't tell from how it sounded. What would tell you?", ar: "كانت خاطئة اليوم، لكنك لم تكن لتعرف من طريقة كلامه. ما الذي سيخبرك؟" } },
+                { id: "not-enough", text: { en: "Can't tell yet", ar: "لا أستطيع أن أعرف بعد" }, note: { en: "The careful answer: you'd need to check it somewhere else.", ar: "الإجابة الحذرة: تحتاج إلى التحقق منها في مكان آخر." } },
+              ],
+            },
             choices: [
               {
                 id: "believe-bot",
@@ -357,6 +389,14 @@ export const safetyAndFairness: ModuleFixture = {
               ar: "يرسل صديق صورة «تثبت» أن زميلًا فعل شيئًا سيئًا. «أرسلها للجميع!»",
             },
             art: "📸",
+            predict: {
+              question: { en: "Is the picture real?", ar: "هل الصورة حقيقية؟" },
+              options: [
+                { id: "real", text: { en: "Real", ar: "حقيقية" }, note: { en: "It had been edited. A picture can be changed in seconds.", ar: "كانت معدّلة. يمكن تغيير الصورة في ثوانٍ." } },
+                { id: "made-up", text: { en: "Edited or made up", ar: "معدّلة أو مصطنعة" }, note: { en: "It was edited, but the picture alone couldn't show you that. Who sent it first?", ar: "كانت معدّلة، لكن الصورة وحدها لم تكن لتُظهر لك ذلك. من أرسلها أولًا؟" } },
+                { id: "not-enough", text: { en: "Not enough evidence yet", ar: "لا يوجد دليل كافٍ بعد" }, note: { en: "The careful answer: with no source, a picture proves nothing.", ar: "الإجابة الحذرة: بلا مصدر، لا تثبت الصورة شيئًا." } },
+              ],
+            },
             choices: [
               {
                 id: "forward-picture",
@@ -373,6 +413,18 @@ export const safetyAndFairness: ModuleFixture = {
                 outcome: {
                   en: "Kind and wise. Pictures can be changed in seconds, and a real person is on the other side of every share.",
                   ar: "لطيف وحكيم. الصور يمكن تغييرها في ثوانٍ، وهناك شخص حقيقي على الجانب الآخر من كل مشاركة.",
+                },
+                safe: true,
+              },
+              {
+                id: "check-source-picture",
+                text: {
+                  en: "I can't tell yet — who made it, and where did it come from?",
+                  ar: "لا أستطيع أن أعرف بعد — من صنعها، ومن أين جاءت؟",
+                },
+                outcome: {
+                  en: "Exactly the right question. A picture with no source isn't proof of anything, and until you know, it isn't yours to spread.",
+                  ar: "هذا هو السؤال الصحيح تمامًا. صورة بلا مصدر ليست دليلًا على أي شيء، وإلى أن تعرف، ليست لك لتنشرها.",
                 },
                 safe: true,
               },
@@ -416,6 +468,8 @@ export const safetyAndFairness: ModuleFixture = {
             ],
           },
         ],
+        tryNext: { en: "Next time a video or picture surprises you, find where it first appeared before you believe it or share it.", ar: "في المرة القادمة التي يفاجئك فيها فيديو أو صورة، ابحث عن أول مكان ظهر فيه قبل أن تصدّقه أو تشاركه." },
+        checklist: { title: { en: "Your Real-or-Not Checklist", ar: "قائمة «حقيقي أم لا» الخاصة بك" }, icon: "🔍" },
         takeaways: [
           { en: "Videos and pictures can be made by machines. 'Looks real' isn't proof.", ar: "يمكن للآلات صنع مقاطع الفيديو والصور. «يبدو حقيقيًا» ليس دليلًا." },
           { en: "A chatbot predicts words — it can be confidently wrong. I check somewhere else.", ar: "روبوت الدردشة يتنبأ بالكلمات — وقد يخطئ بثقة. أتحقق في مكان آخر." },
@@ -453,6 +507,7 @@ export const safetyAndFairness: ModuleFixture = {
         en: "If you taught only the typical berries, the bunny learned 'big means bad' — a shortcut that happened to fit, and failed the big pale berry it had never seen. That's bias: the machine copies whatever is common in its examples, including the accidents. Real systems do this with people, too, when the examples they learn from leave some people out. The fix was the same one you found: make sure the rare cases are in the teaching set.",
         ar: "لو علّمت الحبات النموذجية فقط، لتعلّم الأرنب أن «الكبير يعني سيئًا» — طريق مختصر صادف أنه ينطبق، ثم فشل مع الحبة الكبيرة الفاتحة التي لم يرها من قبل. هذا هو التحيّز: تنسخ الآلة كل ما هو شائع في أمثلتها، بما في ذلك المصادفات. والأنظمة الحقيقية تفعل ذلك مع الناس أيضًا، عندما تستثني الأمثلة التي تتعلم منها بعض الناس. والإصلاح هو نفسه الذي وجدته: تأكد من أن الحالات النادرة موجودة في مجموعة التعليم.",
       },
+      keyIdea: { en: "A machine copies whatever its examples show, so leaving a group out teaches it an unfair shortcut.", ar: "تنسخ الآلة كل ما تُظهره أمثلتها، لذا فإن إغفال مجموعة يعلّمها طريقًا مختصرًا غير منصف." },
       teacherNotes: {
         en: "The pool is deliberately skewed: four small-pale safe berries and one big-pale; four big-dark unsafe and one small-dark. The two held-out berries are the rare kinds. With the four-example cap, teaching 'typical' berries (two small-pale, two big-dark) misreads the big pale test berry — verified in the unit tests. Including the two rare berries passes. This is the product's one explicit bias lesson: keep the discussion concrete (which examples were missing?) before generalising to people and fairness.",
         ar: "مجموعة الحبات منحازة عن قصد: أربع حبات آمنة صغيرة فاتحة وحبة واحدة كبيرة فاتحة؛ وأربع حبات غير آمنة كبيرة غامقة وحبة واحدة صغيرة غامقة. الحبتان المحجوزتان للاختبار (held-out) هما من النوعين النادرين. ومع الحد الأقصى البالغ أربعة أمثلة، فإن تعليم الحبات «النموذجية» (حبتان صغيرتان فاتحتان وحبتان كبيرتان غامقتان) يؤدي إلى خطأ في قراءة حبة الاختبار الكبيرة الفاتحة — وقد جرى التحقق من ذلك في اختبارات الوحدة. أما إدراج الحبتين النادرتين فيحقق النجاح. هذا هو الدرس الصريح الوحيد عن التحيّز في المنتج: أبقِ النقاش ملموسًا (أيّ الأمثلة كانت مفقودة؟) قبل تعميمه على الناس والإنصاف.",
@@ -488,15 +543,31 @@ export const safetyAndFairness: ModuleFixture = {
           { id: "n3", size: 0.92, color: 0.8, truth: "negative" },
           { id: "n4", size: 0.15, color: 0.85, truth: "negative" },
         ],
-        // Held out: the rare kinds. Typical-only teaching misreads t1.
+        // Held out: BOTH groups (the brief's "tests both groups"). A
+        // typical-only set gets the common ones right and the rare ones
+        // wrong — which the results-by-group line shows side by side.
         testSet: [
           { id: "t1", size: 0.9, color: 0.3 },
           { id: "t2", size: 0.1, color: 0.9 },
+          { id: "t3", size: 0.12, color: 0.12 },
+          { id: "t4", size: 0.88, color: 0.8 },
         ],
         rule: { feature: "color", threshold: 0.5 },
         minPerLabel: 2,
         maxExamples: 4,
         starCriteria: { threeStarMaxBlocks: 4 },
+        predictFirst: true,
+        groups: {
+          names: {
+            common: { en: "Common berries", ar: "التوت الشائع" },
+            rare: { en: "Rare berries", ar: "التوت النادر" },
+          },
+          of: {
+            p1: "common", p2: "common", p3: "common", n1: "common", n2: "common", n3: "common",
+            p4: "rare", n4: "rare",
+            t1: "rare", t2: "rare", t3: "common", t4: "common",
+          },
+        },
       } satisfies AiClassificationDraft,
     },
   ],

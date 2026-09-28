@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { cn } from "@/ui";
 
 import { leastSquares } from "../math/leastSquares";
+import { dataMiddleX, predictionBand } from "../math/predictionBand";
 import { sumSquaredError } from "../math/sumSquaredError";
 import { INTERCEPT_STEP_FRACTION, SLOPE_STEP_FRACTION } from "../trend-line/steps";
 import type { TrendLineConfig, TrendLineWork } from "../trend-line/types";
@@ -14,6 +15,7 @@ import type { AiSimWidgetPlayerProps } from "./registry";
 import { restoreLine } from "./restore-work";
 import { useStableCallback } from "./useStableCallback";
 import styles from "./widgets.module.css";
+import { sendPlayEvent } from "@/modules/activities/players/shared/play-events";
 
 /**
  * "Fortune Teller" (phase G, client half): drag a trend line, watch the
@@ -29,7 +31,6 @@ const VIEW_H = 400;
 const MARGIN = { top: 20, right: 24, bottom: 40, left: 52 };
 const PLOT_W = VIEW_W - MARGIN.left - MARGIN.right;
 const PLOT_H = VIEW_H - MARGIN.top - MARGIN.bottom;
-const BAND_MULTIPLIER = 1.5; // must match trend-line/grade.ts exactly
 
 /**
  * Radius of the invisible circle that actually catches the drag, in viewBox
@@ -106,6 +107,8 @@ export function TrendLine({
   reducedMotion,
   onWorkChange,
   initialWork,
+  retryCount = 0,
+  levelId,
 }: AiSimWidgetPlayerProps) {
   const config = rawConfig as TrendLineConfig;
   const t = useTranslations("student.play.aiSim.trendLine");
@@ -118,16 +121,14 @@ export function TrendLine({
     () => sumSquaredError(config.points, optimum),
     [config.points, optimum],
   );
-  const residualStd = useMemo(
-    () => Math.sqrt(optimumSSE / config.points.length),
-    [optimumSSE, config.points.length],
-  );
-  const fittedPrediction = useMemo(
-    () => yAt(optimum, config.predictAt),
-    [optimum, config.predictAt],
-  );
-  const bandLow = fittedPrediction - BAND_MULTIPLIER * residualStd;
-  const bandHigh = fittedPrediction + BAND_MULTIPLIER * residualStd;
+  // The same likely range the grader uses: narrowest in the middle of the
+  // data, wider the further the prediction reaches past it.
+  const band = useMemo(() => predictionBand(config.points, config.predictAt), [config.points, config.predictAt]);
+  const bandLow = band.low;
+  const bandHigh = band.high;
+  // For comparison: the range in the middle of the measured data.
+  const middleX = useMemo(() => dataMiddleX(config.points), [config.points]);
+  const middleBand = useMemo(() => predictionBand(config.points, middleX), [config.points, middleX]);
 
   const domain = useMemo<Domain>(() => {
     const xs = config.points.map((p) => p.x).concat(config.predictAt);
@@ -153,8 +154,26 @@ export function TrendLine({
     () => restoreLine(initialWork) ?? { slope: 0, intercept: initialIntercept },
   );
   const [computerRevealed, setComputerRevealed] = useState(false);
-  const [subPhase, setSubPhase] = useState<"fit" | "predict">("fit");
+  /**
+   * The learning loop, one step at a time:
+   *   fit      — drag your line (TRY), watch the miss score (OBSERVE);
+   *   compare  — your line is locked beside the computer's, so it can be
+   *              compared but not traced; "move my line again" goes back;
+   *   predict  — say where the line will be at the marked point, BLIND:
+   *              no likely range on screen yet (PREDICT);
+   *   revealed — the likely range appears and says whether your guess was
+   *              inside it; you can try another prediction (RETRY).
+   */
+  const [subPhase, setSubPhase] = useState<"fit" | "compare" | "predict" | "revealed">("fit");
   const [prediction, setPrediction] = useState<number | null>(null);
+
+  // "Try again" after a graded attempt: back to fitting, line kept.
+  useEffect(() => {
+    if (retryCount === 0) return;
+    setSubPhase("fit");
+    setComputerRevealed(false);
+    setPrediction(null);
+  }, [retryCount]);
 
   const childSSE = useMemo(() => sumSquaredError(config.points, line), [config.points, line]);
 
@@ -180,7 +199,8 @@ export function TrendLine({
 
   useEffect(() => {
     const work: TrendLineWork = { line, prediction: currentPrediction };
-    reportWork(work, subPhase === "predict");
+    // Ready to check only once the prediction has been made and revealed.
+    reportWork(work, subPhase === "revealed", subPhase);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [line, currentPrediction, subPhase]);
 
@@ -237,6 +257,7 @@ export function TrendLine({
     setPrediction((current) => current ?? yAt(line, config.predictAt));
     setSubPhase("predict");
   };
+  const predicting = subPhase === "predict" || subPhase === "revealed";
 
   const childX1 = dataToScreenX(domain.xMin, domain);
   const childY1 = dataToScreenY(yAt(line, domain.xMin), domain);
@@ -255,7 +276,7 @@ export function TrendLine({
   const bandTopY = dataToScreenY(bandHigh, domain);
   const bandBottomY = dataToScreenY(bandLow, domain);
   const predictionY = dataToScreenY(currentPrediction, domain);
-  const inBand = subPhase === "predict" && currentPrediction >= bandLow && currentPrediction <= bandHigh;
+  const inBand = subPhase === "revealed" && currentPrediction >= bandLow && currentPrediction <= bandHigh;
 
   const tickXMin = Math.min(...config.points.map((p) => p.x));
   const tickXMax = Math.max(...config.points.map((p) => p.x), config.predictAt);
@@ -271,7 +292,13 @@ export function TrendLine({
   return (
     <div className="flex flex-col gap-3">
       <p className="text-sm leading-relaxed text-ink-muted">
-        {subPhase === "fit" ? t("instructionsFit") : t("instructionsPredict")}
+        {subPhase === "fit"
+          ? t("instructionsFit")
+          : subPhase === "compare"
+            ? t("instructionsCompare")
+            : subPhase === "predict"
+              ? t("instructionsPredictBlind")
+              : t("instructionsPredict")}
       </p>
 
       <div className="flex flex-wrap items-center gap-3 text-sm font-semibold text-ink">
@@ -316,7 +343,7 @@ export function TrendLine({
         ) : null}
         {/* The shaded band is the whole lesson — "predictions come with a
             range, not a number" — and it was on screen unnamed. */}
-        {subPhase === "predict" ? (
+        {subPhase === "revealed" ? (
           <span className="inline-flex items-center gap-2">
             <span
               aria-hidden="true"
@@ -399,15 +426,29 @@ export function TrendLine({
         </g>
 
         {/* Prediction guide + honest error band (predict phase only) */}
-        {subPhase === "predict" ? (
+        {predicting ? (
           <g aria-hidden="true">
-            <rect
-              x={predictAtX - 26}
-              y={bandTopY}
-              width={52}
-              height={Math.max(bandBottomY - bandTopY, 1)}
-              className={cn("fill-info/15", !reducedMotion && styles.gridFadeIn)}
-            />
+            {subPhase === "revealed" ? (
+              <rect
+                x={predictAtX - 26}
+                y={bandTopY}
+                width={52}
+                height={Math.max(bandBottomY - bandTopY, 1)}
+                className={cn("fill-info/15", !reducedMotion && styles.gridFadeIn)}
+              />
+            ) : null}
+            {/* Past the data, the same range in the middle of the measured
+                dots, drawn faintly beside it: the difference is the lesson. */}
+            {subPhase === "revealed" && band.beyondData ? (
+              <rect
+                x={dataToScreenX(middleX, domain) - 20}
+                y={dataToScreenY(middleBand.high, domain)}
+                width={40}
+                height={Math.max(dataToScreenY(middleBand.low, domain) - dataToScreenY(middleBand.high, domain), 1)}
+                className="fill-info/10 stroke-info/40"
+                strokeDasharray="3 3"
+              />
+            ) : null}
             <line x1={predictAtX} y1={MARGIN.top} x2={predictAtX} y2={MARGIN.top + PLOT_H} className="stroke-info" strokeWidth={1.5} strokeDasharray="4 4" />
           </g>
         ) : null}
@@ -449,7 +490,7 @@ export function TrendLine({
         ) : null}
 
         {/* Child's line */}
-        <line x1={childX1} y1={childY1} x2={childX2} y2={childY2} className="stroke-brand-strong" strokeWidth={3} opacity={subPhase === "predict" ? 0.55 : 1} />
+        <line x1={childX1} y1={childY1} x2={childX2} y2={childY2} className="stroke-brand-strong" strokeWidth={3} opacity={predicting ? 0.55 : 1} />
 
         {subPhase === "fit" && !disabled ? (
           <>
@@ -469,7 +510,7 @@ export function TrendLine({
         ) : null}
 
         {/* Prediction marker */}
-        {subPhase === "predict" ? (
+        {predicting ? (
           <circle cx={predictAtX} cy={predictionY} r={9} className="fill-info stroke-surface-raised" strokeWidth={2} />
         ) : null}
       </svg>
@@ -477,18 +518,39 @@ export function TrendLine({
         {t("dragHandleHelp")}
       </p>
 
-      {subPhase === "fit" ? (
+      {subPhase === "fit" || subPhase === "compare" ? (
         <div className="flex flex-wrap items-center gap-3">
+          {subPhase === "fit" ? (
           <button
             type="button"
             disabled={disabled}
-            onClick={() => setComputerRevealed(true)}
+            onClick={() => {
+              setComputerRevealed(true);
+              setSubPhase("compare");
+              sendPlayEvent(levelId, { kind: "test", what: "computerTurn" });
+            }}
             className="inline-flex h-11 items-center justify-center gap-2 rounded-lg border-2 border-border-token bg-surface-raised px-4 text-sm font-semibold text-ink transition-colors hover:bg-surface-sunken disabled:pointer-events-none disabled:opacity-60"
           >
             <span aria-hidden="true">🤖</span>
             {t("computerTurn")}
           </button>
-          {computerRevealed ? (
+          ) : (
+            // Back to fitting hides the computer's line again, so it can't
+            // be traced: the child's own line is what gets graded.
+            <button
+              type="button"
+              disabled={disabled}
+              onClick={() => {
+                setComputerRevealed(false);
+                setSubPhase("fit");
+                sendPlayEvent(levelId, { kind: "retry", what: "moveLineAgain" });
+              }}
+              className="inline-flex h-11 items-center justify-center gap-2 rounded-lg border-2 border-border-token bg-surface-raised px-4 text-sm font-semibold text-ink transition-colors hover:bg-surface-sunken disabled:pointer-events-none disabled:opacity-60"
+            >
+              {t("moveLineAgain")}
+            </button>
+          )}
+          {subPhase === "compare" ? (
             <button
               type="button"
               disabled={disabled}
@@ -502,12 +564,12 @@ export function TrendLine({
       ) : (
         <div className="flex flex-col gap-3 rounded-xl border-2 border-border-token bg-surface-raised p-4">
           <label htmlFor="trend-line-prediction" className="text-sm font-semibold text-ink">
-            {t("predictionLabel", { x: config.predictAt })}
+            {t("predictionLabel", { x: config.predictAt, axis: xAxisText })}
           </label>
           <div className="flex items-center gap-3">
             <button
               type="button"
-              disabled={disabled}
+              disabled={disabled || subPhase === "revealed"}
               aria-label={t("predictionDecrease")}
               onClick={() => setPrediction(clamp(currentPrediction - nudgeStep, sliderMin, sliderMax))}
               className="grid size-11 shrink-0 place-items-center rounded-lg border-2 border-border-token text-lg font-bold text-ink transition-colors hover:bg-surface-sunken disabled:pointer-events-none disabled:opacity-60"
@@ -517,7 +579,7 @@ export function TrendLine({
             <input
               id="trend-line-prediction"
               type="range"
-              disabled={disabled}
+              disabled={disabled || subPhase === "revealed"}
               min={sliderMin}
               max={sliderMax}
               step={sliderStep}
@@ -527,7 +589,7 @@ export function TrendLine({
             />
             <button
               type="button"
-              disabled={disabled}
+              disabled={disabled || subPhase === "revealed"}
               aria-label={t("predictionIncrease")}
               onClick={() => setPrediction(clamp(currentPrediction + nudgeStep, sliderMin, sliderMax))}
               className="grid size-11 shrink-0 place-items-center rounded-lg border-2 border-border-token text-lg font-bold text-ink transition-colors hover:bg-surface-sunken disabled:pointer-events-none disabled:opacity-60"
@@ -537,9 +599,50 @@ export function TrendLine({
           </div>
           <p aria-live="polite" className="text-sm text-ink-muted">
             {t("predictionValue", { value: round1(currentPrediction) })}
-            {" — "}
-            {inBand ? t("bandInsideNote") : t("bandOutsideNote")}
+            {subPhase === "revealed" ? (
+              <>
+                {" — "}
+                {inBand ? t("bandInsideNote") : t("bandOutsideNote")}{" "}
+                {t("bandRange", { low: round1(bandLow), high: round1(bandHigh) })}
+              </>
+            ) : null}
           </p>
+          {subPhase === "revealed" && band.beyondData ? (
+            <p className="rounded-lg bg-info/10 p-3 text-sm leading-relaxed text-ink">
+              {t("beyondDataNote", {
+                x: config.predictAt,
+                wide: round1(band.halfWidth * 2),
+                narrow: round1(middleBand.halfWidth * 2),
+              })}
+            </p>
+          ) : null}
+          <div className="flex flex-wrap gap-2">
+            {subPhase === "predict" ? (
+              <button
+                type="button"
+                disabled={disabled}
+                onClick={() => {
+                  setSubPhase("revealed");
+                  sendPlayEvent(levelId, { kind: "test", what: "lockPrediction" });
+                }}
+                className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-brand px-4 text-sm font-semibold text-on-brand transition-colors hover:bg-brand-strong disabled:pointer-events-none disabled:opacity-60"
+              >
+                {t("lockPrediction")}
+              </button>
+            ) : (
+              <button
+                type="button"
+                disabled={disabled}
+                onClick={() => {
+                  setSubPhase("predict");
+                  sendPlayEvent(levelId, { kind: "retry", what: "tryAnotherPrediction" });
+                }}
+                className="inline-flex h-11 items-center justify-center gap-2 rounded-lg border-2 border-border-token bg-surface-raised px-4 text-sm font-semibold text-ink transition-colors hover:bg-surface-sunken disabled:pointer-events-none disabled:opacity-60"
+              >
+                {t("tryAnotherPrediction")}
+              </button>
+            )}
+          </div>
         </div>
       )}
     </div>
