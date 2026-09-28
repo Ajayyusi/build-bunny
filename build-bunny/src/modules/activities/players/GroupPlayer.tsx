@@ -40,6 +40,7 @@ const BUILT_IN_BEATS = [1, 2, 3, 4] as const;
 
 import type { ActivityPlayerProps, AttemptResponse } from "../types";
 import { resolveLocalized, type GroupActivityPayload } from "../types";
+import { ModeInstructions } from "./shared/ModeInstructions";
 
 /**
  * PATTERN_RECOGNITION player — "the Grouping Machine".
@@ -437,20 +438,20 @@ export function GroupPlayer({
           <div className="flex flex-wrap items-start gap-2">
             {intro.lessonKind ? <LessonKindChip kind={intro.lessonKind} /> : null}
             <HonestyNote kind="tinyGrouping" />
-            <WhatIsThisCalled tags={intro.tags} />
+            {intro.aiMode === "older" ? <WhatIsThisCalled tags={intro.tags} /> : null}
           </div>
           <div className="flex items-start gap-3">
             <span aria-hidden="true" className="mt-1">
               <BunnyMascot state="idle" size="sm" />
             </span>
-            <p
+            <div
               className={cn(
                 styles.bubble,
                 "flex-1 rounded-2xl border border-border-token bg-surface-raised p-3 text-sm leading-relaxed text-ink-muted sm:p-4",
               )}
             >
-              {intro.instructions}
-            </p>
+              <ModeInstructions mode={intro.aiMode} mission={intro.objective} instructions={intro.instructions} />
+            </div>
           </div>
 
           <div className="grid items-start gap-5 lg:grid-cols-[1fr_minmax(16rem,20rem)]">

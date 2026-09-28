@@ -34,6 +34,7 @@ export async function getMyStudentSnapshot(ctx: SessionContext) {
     where: { userId: ctx.userId, schoolId },
     select: {
       grade: true,
+      aiMode: true,
       xpTotal: true,
       starsTotal: true,
       streakCurrent: true,

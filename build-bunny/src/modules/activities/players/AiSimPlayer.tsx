@@ -347,7 +347,7 @@ export function AiSimPlayer({
               {honestyNote}
             </p>
           ) : null}
-          <WhatIsThisCalled tags={intro.tags} />
+          {intro.aiMode === "older" ? <WhatIsThisCalled tags={intro.tags} /> : null}
 
           <Widget
             config={payload.widget}
@@ -455,6 +455,7 @@ export function AiSimPlayer({
           story={intro.story}
           objective={intro.objective}
           instructions={intro.instructions}
+          instructionsCollapsed={intro.aiMode === "younger"}
           difficulty={intro.difficulty}
           estimatedMinutes={intro.estimatedMinutes}
           worldTheme={intro.worldTheme}

@@ -15,6 +15,7 @@ import type { SessionContext } from "@/modules/auth/server/session";
 import { CONCEPT_CHECKS, type ExploreConcept } from "@/modules/explore/catalog";
 
 import { summariseAiConcepts, type ClassAiConcept } from "../ai-concepts";
+import { aiModeFor, choiceOf, type AiMode, type AiModeChoice } from "@/modules/students/ai-mode";
 import { loadConceptInput } from "./ai-concepts-load";
 import { countAiEvents, emptyCounts, type AiActivityCounts } from "./ai-activity";
 import { localizedText, type LocalizedText } from "@/modules/curriculum/schemas";
@@ -171,6 +172,9 @@ export interface StudentDetail {
   displayName: string;
   displayUsername: string | null;
   grade: number | null;
+  /** The AI mode chosen for the child ("auto" follows the grade), and the one in effect. */
+  aiModeChoice: AiModeChoice;
+  aiMode: AiMode;
   class: { id: string; name: string; grade: number } | null;
   xpTotal: number;
   starsTotal: number;
@@ -881,6 +885,7 @@ export async function getStudentDetail(
       studentProfile: {
         select: {
           grade: true,
+          aiMode: true,
           xpTotal: true,
           starsTotal: true,
           streakCurrent: true,
@@ -1064,6 +1069,8 @@ export async function getStudentDetail(
     displayName: student.displayName,
     displayUsername: student.displayUsername ?? null,
     grade: student.studentProfile?.grade ?? null,
+    aiModeChoice: choiceOf(student.studentProfile?.aiMode),
+    aiMode: aiModeFor(student.studentProfile?.grade, student.studentProfile?.aiMode),
     class: membership?.class ?? null,
     xpTotal: student.studentProfile?.xpTotal ?? 0,
     starsTotal: student.studentProfile?.starsTotal ?? 0,

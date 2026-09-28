@@ -12,6 +12,8 @@ import {
   glyphTheme,
 } from "@/modules/ai/glyph";
 import {
+  closeCall,
+  mistakeKinds,
   nearest,
   toTrainingExample,
   type ClassLabel,
@@ -51,6 +53,7 @@ import type { PlayerButton } from "@/modules/hints/types";
 import type { ActivityPlayerProps, AttemptResponse, TeachRuleRound as RuleRound } from "../types";
 import { resolveLocalized } from "../types";
 import { sendPlayEvent } from "./shared/play-events";
+import { ModeInstructions } from "./shared/ModeInstructions";
 
 /**
  * AI_CLASSIFICATION player — "Teach the Bunny".
@@ -193,6 +196,7 @@ export function TeachPlayer({
     setRoboOpen(true);
   };
   const t = useTranslations("student.play.teach");
+  const tMode = useTranslations("student.play.aiMode");
   const tPlay = useTranslations("student.play");
   const locale = useLocale();
 
@@ -591,7 +595,7 @@ export function TeachPlayer({
           <div className="flex flex-wrap items-start gap-2">
             {intro.lessonKind ? <LessonKindChip kind={intro.lessonKind} /> : null}
             <HonestyNote kind="tinyClassifier" />
-            <WhatIsThisCalled tags={intro.tags} />
+            {intro.aiMode === "older" ? <WhatIsThisCalled tags={intro.tags} /> : null}
           </div>
           {/* The bunny hosts its own level: the instructions are its speech,
               and its body answers the child's actions — a hop for every
@@ -603,16 +607,20 @@ export function TeachPlayer({
             <span key={bunnyKey} aria-hidden="true" className={cn(bunnyClass, "mt-1")}>
               <BunnyMascot state={failed ? "confused" : "idle"} size="sm" />
             </span>
-            <p
+            <div
               className={cn(
                 styles.bubble,
                 "flex-1 rounded-2xl border border-border-token bg-surface-raised p-3 text-sm leading-relaxed text-ink-muted sm:p-4",
               )}
             >
               {/* The rule round tells yesterday's and today's story; the
-                  teaching board gives the usual instructions. */}
-              {inRuleRound ? intro.story : intro.instructions}
-            </p>
+                  teaching board gives the usual instructions, by mode. */}
+              {inRuleRound ? (
+                intro.story
+              ) : (
+                <ModeInstructions mode={intro.aiMode} mission={intro.objective} instructions={intro.instructions} />
+              )}
+            </div>
           </div>
 
           {inRuleRound && data.ruleRound ? (
@@ -952,6 +960,11 @@ export function TeachPlayer({
                           >
                             {guess ? data.labels[guess] : "—"}
                           </span>
+                          {intro.aiMode === "older" && match && closeCall(examples, probe) ? (
+                            <span className="shrink-0 rounded-md bg-warning/14 px-1.5 py-0.5 text-[11px] font-bold text-warning-strong">
+                              {tMode("closeCall")}
+                            </span>
+                          ) : null}
                           {data.predictFirst && predictions[probe.id] ? (
                             <span className="shrink-0 text-[11px] font-semibold text-ink-muted">
                               {predictions[probe.id] === guess ? t("predictMatched") : t("predictSurprised")}
@@ -1002,9 +1015,24 @@ export function TeachPlayer({
                           used: examples.length,
                           max: data.maxExamples ?? 0,
                         })
-                      : typeof result.correct === "number" && typeof result.total === "number"
-                        ? tk("missed", { correct: result.correct, total: result.total })
-                        : tk("tryAgain")}
+                      : intro.aiMode === "younger"
+                        ? tMode("youngerMissed")
+                        : typeof result.correct === "number" && typeof result.total === "number"
+                          ? tk("missed", { correct: result.correct, total: result.total })
+                          : tk("tryAgain")}
+              </p>
+            ) : null}
+
+            {/* Grades 5 to 7: the two kinds of mistake, not just a count. */}
+            {intro.aiMode === "older" && result && result.verdict !== "PASS" && Array.isArray(result.missed) && result.missed.length > 0 ? (
+              <p className="text-sm text-ink-muted">
+                {(() => {
+                  const kinds = mistakeKinds(
+                    guesses.map((g) => ({ id: g.probe.id, guess: g.guess })),
+                    result.missed,
+                  );
+                  return tMode("deeperErrors", { falseYes: kinds.falseYes, missed: kinds.missedYes, positive: data.labels.positive });
+                })()}
               </p>
             ) : null}
 

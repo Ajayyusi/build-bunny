@@ -332,7 +332,7 @@ export function AiEthicsPlayer({
           <div className="flex flex-wrap items-start gap-2">
             {intro.lessonKind ? <LessonKindChip kind={intro.lessonKind} /> : null}
             <HonestyNote kind="story" />
-            <WhatIsThisCalled tags={intro.tags} />
+            {intro.aiMode === "older" ? <WhatIsThisCalled tags={intro.tags} /> : null}
           </div>
           {phase === "scene" && scene ? (
             <div className="flex flex-col gap-4 rounded-xl border-2 border-border-token bg-surface-raised p-5">
@@ -537,6 +537,7 @@ export function AiEthicsPlayer({
           story={intro.story}
           objective={intro.objective}
           instructions={intro.instructions}
+          instructionsCollapsed={intro.aiMode === "younger"}
           difficulty={intro.difficulty}
           estimatedMinutes={intro.estimatedMinutes}
           worldTheme={intro.worldTheme}

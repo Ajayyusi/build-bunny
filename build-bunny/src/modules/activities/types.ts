@@ -26,6 +26,7 @@ export interface ActivityNextLevel {
 
 /** Fields every activity type's player needs, regardless of engine. */
 import type { LessonKind } from "@/modules/explore/catalog";
+import type { AiMode } from "@/modules/students/ai-mode";
 
 export interface ActivityIntro {
   levelId: string;
@@ -44,6 +45,8 @@ export interface ActivityIntro {
   keyIdea: string;
   /** AI lesson, digital citizenship or coding (a chip on AI levels). */
   lessonKind?: LessonKind;
+  /** Grade range mode for AI activities: younger (3-4) or older (5-7). */
+  aiMode?: AiMode;
   difficulty: string;
   estimatedMinutes: number;
   maxStars: number;

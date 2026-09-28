@@ -244,6 +244,12 @@ model ClassMembership {
   @@index([schoolId, userId])
 }
 
+/// How the AI activities speak to a child (handoff: grade range modes).
+enum AiMode {
+  YOUNGER
+  OLDER
+}
+
 model StudentProfile {
   userId            String    @id
   user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -258,6 +264,9 @@ model StudentProfile {
   streakBest        Int       @default(0)
   lastActiveDate    DateTime?
   onboardedAt       DateTime?
+  /// AI activity mode, chosen by a teacher or the child; null follows the
+  /// grade (3-4 younger, 5+ older). Changing it never touches progress.
+  aiMode            AiMode?
   // Curriculum track this student follows (one per student, plan §8 J).
   programId         String?
   program           Program?  @relation(fields: [programId], references: [id], onDelete: SetNull)

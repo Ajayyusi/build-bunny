@@ -988,6 +988,12 @@
           "changedNone": "You kept your first choice every time.",
           "tryNext": "Next time something like this happens for real, which question will you ask first?"
         }
+      },
+      "aiMode": {
+        "showSteps": "Show all the steps",
+        "youngerMissed": "It guessed wrong. Which example might help?",
+        "deeperErrors": "Its mistakes: {falseYes, plural, one {# said “{positive}” when it wasn't} other {# said “{positive}” when they weren't}}, and {missed, plural, one {# missed a real “{positive}”} other {# missed a real “{positive}”}}.",
+        "closeCall": "Close call"
       }
     },
     "profile": {
@@ -1120,7 +1126,13 @@
         "start": "Let's try!",
         "later": "Look around first"
       },
-      "alsoOpenTitle": "Also open now"
+      "alsoOpenTitle": "Also open now",
+      "mode": {
+        "label": "Words:",
+        "younger": "Simpler",
+        "older": "More detail",
+        "auto": "Use my grade"
+      }
     },
     "glossary": {
       "ask": "What is this called?",
@@ -1545,6 +1557,20 @@
           "revoke": "Switch off",
           "revoked": "Family link switched off",
           "error": "That didn't work — please try again."
+        },
+        "aiMode": {
+          "heading": "AI activities mode",
+          "help": "How Explore AI talks to this child. Changing it never resets their progress; they can switch it too.",
+          "label": "Mode",
+          "auto": "Follow their grade (now: {mode})",
+          "younger": "Grades 3–4: simpler words, friendly feedback",
+          "older": "Grades 5–7: proper terms and deeper tests",
+          "name": {
+            "younger": "grades 3–4",
+            "older": "grades 5–7"
+          },
+          "saved": "Saved.",
+          "error": "Couldn't save that. Try again."
         }
       },
       "replay": {

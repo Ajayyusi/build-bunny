@@ -86,3 +86,41 @@ export function toTrainingExample(specimen: LabelledSpecimen): LabelledSpecimen 
   const { id, size, color, label } = specimen;
   return { id, size, color, label };
 }
+
+/**
+ * A close call (grades 5 to 7's deeper test): the nearest example of the
+ * other label is almost as near as the one the machine copied, so a small
+ * change in the examples could flip the answer — the classifier's honest
+ * "not very sure". False when only one label has been taught.
+ */
+export function closeCall(examples: readonly LabelledSpecimen[], probe: Features, ratio = 0.8): boolean {
+  const best = { positive: Infinity, negative: Infinity };
+  for (const example of examples) {
+    const d = distanceSq(example, probe);
+    if (d < best[example.label]) best[example.label] = d;
+  }
+  if (!Number.isFinite(best.positive) || !Number.isFinite(best.negative)) return false;
+  const near = Math.sqrt(Math.min(best.positive, best.negative));
+  const far = Math.sqrt(Math.max(best.positive, best.negative));
+  return far === 0 || near / far >= ratio;
+}
+
+/**
+ * The two kinds of mistake on a test (grades 5 to 7's deeper test): said
+ * "positive" when it wasn't (a false yes), and missed a real "positive".
+ * The truth of a missed probe is the opposite of the machine's guess, so
+ * this needs no answer key in the browser.
+ */
+export function mistakeKinds(
+  guesses: readonly { id: string; guess: ClassLabel | null }[],
+  missed: readonly string[],
+): { falseYes: number; missedYes: number } {
+  let falseYes = 0;
+  let missedYes = 0;
+  for (const { id, guess } of guesses) {
+    if (!missed.includes(id)) continue;
+    if (guess === "positive") falseYes += 1;
+    else if (guess === "negative") missedYes += 1;
+  }
+  return { falseYes, missedYes };
+}

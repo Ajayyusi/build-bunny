@@ -5,6 +5,7 @@ import { requireRole } from "@/modules/auth/server/session";
 import { getStudentDetail } from "@/modules/analytics/server/queries";
 import { getFamilyLinkStatus } from "@/modules/family/server/queries";
 import { FamilyLinkPanel } from "./_components/FamilyLinkPanel";
+import { AiModeSetting } from "./_components/AiModeSetting";
 import { resolveText } from "@/modules/curriculum/schemas";
 import {
   Avatar,
@@ -315,6 +316,8 @@ export default async function StudentDetailPage({ params }: Props) {
           entries={feedbackEntries}
         />
       </section>
+
+      <AiModeSetting studentUserId={detail.studentUserId} choice={detail.aiModeChoice} mode={detail.aiMode} />
 
       {familyLink ? (
         <FamilyLinkPanel

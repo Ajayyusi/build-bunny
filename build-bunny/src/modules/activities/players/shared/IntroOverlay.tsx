@@ -15,6 +15,8 @@ interface IntroOverlayProps {
   story: string;
   objective: string;
   instructions: string;
+  /** Younger AI mode: the steps sit behind "Show all the steps". */
+  instructionsCollapsed?: boolean;
   difficulty: string;
   estimatedMinutes: number;
   /** Age-band key ("starter" | "explorer" | "inventor"); null hides the chip. */
@@ -65,6 +67,7 @@ export function IntroOverlay({
   story,
   objective,
   instructions,
+  instructionsCollapsed = false,
   difficulty,
   estimatedMinutes,
   ageBand = null,
@@ -75,6 +78,7 @@ export function IntroOverlay({
   onStart,
 }: IntroOverlayProps) {
   const t = useTranslations("student.play.intro");
+  const tMode = useTranslations("student.play.aiMode");
   const tAdventure = useTranslations("student.adventure.intro");
   const hasStory = story.trim().length > 0;
   // The run-in plays first, then the briefing. MissionIntro calls onDone
@@ -163,7 +167,14 @@ export function IntroOverlay({
               {t("howHeading")}
             </h2>
             {howScene}
-            {instructions ? (
+            {instructions && instructionsCollapsed ? (
+              <details>
+                <summary className="cursor-pointer text-sm font-semibold text-brand underline-offset-4 hover:underline">
+                  {tMode("showSteps")}
+                </summary>
+                <p className="mt-1 text-sm leading-relaxed text-ink-muted">{instructions}</p>
+              </details>
+            ) : instructions ? (
               <p className="text-sm leading-relaxed text-ink-muted">
                 {instructions}
               </p>
