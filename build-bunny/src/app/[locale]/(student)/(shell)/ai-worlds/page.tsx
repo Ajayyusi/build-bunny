@@ -1,5 +1,5 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import { AiSurface } from "../../_components/AiSurface";
+import { AiSurface } from "../_components/AiSurface";
 
 import { Link, redirect } from "@/i18n/navigation";
 import { MusicScene } from "@/modules/audio/scene";
