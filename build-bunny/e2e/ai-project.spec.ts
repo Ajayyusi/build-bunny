@@ -10,7 +10,7 @@ import { provisionStudent, signIn, skipTo, studentName } from "./helpers";
 
 async function openLevel(page: Page, title: RegExp) {
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto("/en/explore/worlds");
+  await page.goto("/en/ai-worlds");
   const scene = page.getByRole("dialog", { name: /the story/ });
   await scene.waitFor({ state: "visible", timeout: 5000 }).catch(() => {});
   if (await scene.isVisible().catch(() => false)) await scene.getByRole("button", { name: "Skip" }).click();
