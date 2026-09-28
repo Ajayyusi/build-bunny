@@ -143,6 +143,43 @@ they should be reviewed and merged in the order above.
 
 ## Checkpoint log
 
+### Checkpoint 12 — 2026-09-28 (developer handoff: compliance matrix, P0 → P2)
+
+- **Tracker:** the compliance matrix, https://claude.ai/artifact/K2jfedWYWkXEjUGmyTwzZ6 (every handoff requirement against its own acceptance criterion).
+- **Live:** nothing new.
+- **On branches:**
+  - P0: `feat/ai-first-p0` (PR #25).
+  - P1: `feat/ai-p1`, stacked on P0.
+  - P2: `feat/ai-p2`, stacked on P1.
+  - Test harness fix: `fix/vitest-exit-code` (PR #26). vitest used to exit 0 even with failing tests.
+- **P0:**
+  - Explore AI landing, with My Learning.
+  - Navigation split into Explore AI / Coding Lab.
+  - The learning loop (predict, try, observe, retry, one-line idea) in all six AI activities.
+  - Train a Sorter (shapes).
+  - "What changed" on AI results.
+  - Start, test, retry and completion analytics.
+- **P1:**
+  - Grade modes.
+  - "Say it your way" explanations, plus the teacher's tick.
+  - Concept mastery for teachers; school-admin trends.
+  - Glossary.
+  - Data repair, "Not sure", and the lighting slider.
+  - Three new lessons.
+  - The My AI Project capstone.
+  - Rule or Examples? moved onto the shapes challenge.
+  - "Good experiment" badges.
+  - The child-testing protocol (written, not conducted).
+- **P2:**
+  - Characters (Robo Bunny, Ruli, Tessa, Noura), with SVG placeholders that production art replaces per state.
+  - Motion states to the handoff's timings.
+  - Three captioned, optional explainers.
+  - The brief's look on the AI-first surfaces.
+- **Waiting on a decision:**
+  - Activity launch control (flag 1).
+  - Whether the visual direction should extend beyond the AI-first surfaces (flag 2).
+- **Not tested:** the five observed child sessions (protocol only); real iPad; production character art and video (placeholders by design).
+
 ### Checkpoint 11 — 2026-09-24 (remaining items + quality review)
 
 - **Live:** nothing merged or deployed. PRs #5–#15 are open and stacked; Vercel builds previews only.

@@ -42,14 +42,16 @@ export function ExploreTile({
     <>
       <span
         className={cn("relative flex items-start justify-between gap-2 rounded-t-2xl px-4", compact ? "py-3" : "py-4")}
-        style={{ backgroundColor: locked ? `color-mix(in oklab, ${color.fill} 22%, white)` : color.fill }}
+        // The AI-first look is mostly white: the world's colour is a pale
+        // band that still says which world it is, not a solid block.
+        style={{ backgroundColor: `color-mix(in oklab, ${color.fill} ${locked ? 8 : 16}%, white)` }}
       >
         <span
           aria-hidden="true"
           className={cn(
             "grid place-items-center rounded-2xl",
             compact ? "size-11 text-2xl" : "size-14 text-3xl",
-            locked ? "bg-white/70 grayscale" : "bg-white/25",
+            locked ? "bg-white/70 grayscale" : "bg-white/80",
           )}
         >
           {tile.glyph}

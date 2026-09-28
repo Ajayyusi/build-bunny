@@ -637,6 +637,13 @@ html[data-contrast="high"] :focus-visible {
 }
 [data-theme="play"] .bb-go:active { translate: 0 3px; box-shadow: 0 2px 0 var(--bb-toy-sun-strong); }
 [data-theme="play"] .bb-ledge-brand { box-shadow: 0 6px 0 var(--color-brand-strong); }
+/* On AI-first pages the one big "go" action is the green primary, not sun. */
+[data-theme="ai"] .bb-go {
+  background-color: var(--color-brand);
+  color: var(--color-on-brand);
+  box-shadow: 0 4px 0 var(--color-brand-strong);
+}
+[data-theme="ai"] .bb-go:active { translate: 0 3px; box-shadow: 0 1px 0 var(--color-brand-strong); }
 
 @media (prefers-reduced-motion: reduce) {
   [data-theme="play"] [data-bb-button],

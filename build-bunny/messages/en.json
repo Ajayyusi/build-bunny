@@ -199,7 +199,9 @@
       "warmUpTitle": "Stuck on {level}?",
       "warmUpBody": "Robo Bunny suggests a quick warm-up first — it teaches the same idea.",
       "warmUpCta": "Warm up: {level}",
-      "warmUpSkip": "Or keep going"
+      "warmUpSkip": "Or keep going",
+      "heroTitleDone": "You've finished every level!",
+      "heroBodyDone": "Every mission is done. Replay any level for more stars, or explore AI again."
     },
     "adventure": {
       "title": "Coding Lab",

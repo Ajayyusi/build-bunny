@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type KeyboardEvent } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 
 import { Button, Dialog, cn, useReducedMotion, useSound } from "@/ui";
@@ -84,6 +84,16 @@ export function ExplainerPlayer({ explainerId, open, onClose }: { explainerId: s
   }, [open, ended, voiceAllowed, narration, caption, narrate, stopNarration]);
   useEffect(() => () => stopNarration(), [stopNarration]);
 
+  // Keyboard, anywhere in the open dialog (focus may sit on the dialog
+  // itself, outside the player's own markup): the latest handler via a ref.
+  const keyHandler = useRef<(event: globalThis.KeyboardEvent) => void>(() => {});
+  useEffect(() => {
+    if (!open) return;
+    const listener = (event: globalThis.KeyboardEvent) => keyHandler.current(event);
+    window.addEventListener("keydown", listener);
+    return () => window.removeEventListener("keydown", listener);
+  }, [open]);
+
   if (!explainer) return null;
   const beat = explainer.beats[index]!;
   const total = explainer.beats.length;
@@ -105,9 +115,10 @@ export function ExplainerPlayer({ explainerId, open, onClose }: { explainerId: s
   };
 
   const rtl = locale === "ar";
-  const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+  keyHandler.current = (event) => {
     if (ended) return;
     const target = event.target as HTMLElement;
+    if (target.tagName === "INPUT" || target.tagName === "TEXTAREA") return;
     if (event.key === " " && target.tagName !== "BUTTON") {
       event.preventDefault();
       setPlaying((p) => !p);
@@ -120,7 +131,7 @@ export function ExplainerPlayer({ explainerId, open, onClose }: { explainerId: s
 
   return (
     <Dialog open={open} onClose={onClose} title={t(`${explainer.id}.title`)} size="lg">
-      <div className="flex flex-col gap-3" onKeyDown={onKeyDown} data-explainer={explainer.id}>
+      <div className="flex flex-col gap-3" data-explainer={explainer.id}>
         {!ended ? (
           <>
             <div className="relative flex min-h-44 flex-col items-center justify-center gap-2 rounded-xl bg-surface-sunken">
