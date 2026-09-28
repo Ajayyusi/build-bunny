@@ -3,6 +3,7 @@ import "server-only";
 import { z } from "zod";
 
 import { classify, type LabelledSpecimen } from "@/modules/ai/knn";
+import { reportableCases } from "@/modules/ai/report";
 import {
   aiClassificationPayload,
   type ClassificationRule,
@@ -57,6 +58,14 @@ export const aiClassificationAnswerSchema = z
      * `holdout` block). Never trained on; the grader enforces the split.
      */
     checkSet: z.array(z.string().min(1)).max(64).optional(),
+    /**
+     * The AI project report (levels with a `report` block): one held-back
+     * case the model got wrong or wasn't sure about, and a human safeguard.
+     */
+    report: z
+      .object({ caseId: z.string().min(1).max(64), safeguardId: z.string().min(1).max(64) })
+      .strict()
+      .optional(),
   })
   .strict();
 export type AiClassificationAnswer = z.infer<typeof aiClassificationAnswerSchema>;
@@ -209,9 +218,23 @@ export function gradeAiClassification(
       else falseAlarms += 1;
     }
   }
-  const passed = safety
+  const modelPassed = safety
     ? dangerousMisses === 0 && falseAlarms <= safety.maxOtherErrors
     : correct === payload.testSet.length;
+
+  // The project report, checked only once the model itself passes: the
+  // child names a held-back case their model got wrong or wasn't sure about
+  // (the same rule the player marks cases with), and a safeguard that keeps
+  // a person in charge of it.
+  let reportCode: "needReport" | "reportNotAFailure" | "safeguardNotSafe" | null = null;
+  if (modelPassed && payload.report) {
+    const held = payload.pool.filter((s) => heldBack.has(s.id));
+    const safeguard = payload.report.safeguards.find((s) => s.id === answer.report?.safeguardId);
+    if (!answer.report) reportCode = "needReport";
+    else if (!reportableCases(examples, held).includes(answer.report.caseId)) reportCode = "reportNotAFailure";
+    else if (!safeguard?.safe) reportCode = "safeguardNotSafe";
+  }
+  const passed = modelPassed && reportCode === null;
 
   /**
    * PARTIAL, for the one case where it means what it means everywhere else.
@@ -232,7 +255,7 @@ export function gradeAiClassification(
    * feedback (which it already is).
    */
   const partial =
-    !passed && safety !== null && dangerousMisses === 0 && falseAlarms > safety.maxOtherErrors;
+    !modelPassed && safety !== null && dangerousMisses === 0 && falseAlarms > safety.maxOtherErrors;
   // The 3rd star is the budget, and until now it was a lie: this engine
   // returned `qualityPassed: passed`, so ANY pass scored 3 stars, while the
   // comment below claimed the shared maxBlocks machinery was rewarding
@@ -248,7 +271,9 @@ export function gradeAiClassification(
     // loop: the student goes back and teaches an example near those.
     primaryFeedback: passed
       ? null
-      : {
+      : reportCode
+        ? { code: reportCode, data: { correct, total: payload.testSet.length, missed } }
+        : {
           // Under safetyFirst the failure NAMES the direction — "you called
           // a dangerous one safe" and "too many false alarms" are different
           // lessons, and a generic wrong-count teaches neither.
@@ -283,6 +308,8 @@ export function gradeAiClassification(
       missed,
       ...(safety ? { dangerousMisses, falseAlarms } : {}),
       ...(payload.holdout ? { heldBack: (answer.checkSet ?? []).length } : {}),
+      // What the child reported — the teacher reads it on the attempt.
+      ...(payload.report && answer.report ? { report: answer.report } : {}),
     },
   };
 }

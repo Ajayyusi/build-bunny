@@ -545,6 +545,22 @@ export const aiClassificationPayload = z
      * moved to the other basket — instead of only taken back.
      */
     relabel: z.boolean().default(false),
+    /**
+     * The AI project report (capstone): once the model passes, the child
+     * reports one held-back case it got wrong or wasn't sure about, and
+     * picks a human safeguard. Needs `holdout` — the report is about the
+     * child's own test pile. Each safeguard's `safe` flag is the answer
+     * and is stripped (the student mirror lists the safeguards without it).
+     */
+    report: z
+      .object({
+        safeguards: z
+          .array(z.object({ id: z.string().regex(/^[a-z0-9-]+$/), text: localizedText, safe: z.boolean() }).strict())
+          .min(2)
+          .max(5),
+      })
+      .strict()
+      .optional(),
   })
   .strict();
 
@@ -579,6 +595,13 @@ export const aiClassificationStudentPayload = z
     predictFirst: z.boolean().default(false),
     groups: specimenGroupsSchema.optional(),
     relabel: z.boolean().default(false),
+    /** Safeguards without their `safe` flag — .strict() rejects a leak. */
+    report: z
+      .object({
+        safeguards: z.array(z.object({ id: z.string(), text: localizedText }).strict()).min(2).max(5),
+      })
+      .strict()
+      .optional(),
     // `rule` is deliberately absent, and .strict() is what enforces that.
   })
   .strict();

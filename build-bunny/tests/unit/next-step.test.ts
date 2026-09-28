@@ -241,7 +241,7 @@ function snapshotOf(level: (typeof levels)[number]): LevelSnapshot {
 }
 
 describe("following 'Show me the next step' finishes every level, through the route's body parse", () => {
-  it("covers all 105 levels", () => expect(levels).toHaveLength(105));
+  it("covers all 106 levels", () => expect(levels).toHaveLength(106));
 
   for (const level of levels) {
     it(`${level.slug} (${level.activityType})`, () => {
@@ -253,6 +253,7 @@ describe("following 'Show me the next step' finishes every level, through the ro
         holdout?: unknown;
         ruleRound?: { rules: RuleCard[]; yesterday: KnownSpecimen[] };
         predictFirst?: boolean;
+        report?: { safeguards: { id: string }[] };
       };
       let picked = "";
       const path: { sceneId: string; choiceId: string; predicted?: string }[] = [];
@@ -292,12 +293,17 @@ describe("following 'Show me the next step' finishes every level, through the ro
         if (payload.ruleRound) state.rule = { stage: "pick", chosen: null, tested: null };
         // Predict-first levels start with the bunny's guesses hidden.
         if (payload.predictFirst) state.revealed = false;
+        // The project report starts empty.
+        if (payload.report) state.report = { caseId: null, safeguardId: null };
         finalAnswer = () => ({
           examples: state.examples!.map((e) => {
             const s = payload.pool!.find((x) => x.id === e.id)!;
             return { id: s.id, size: s.size, color: s.color, label: e.label };
           }),
           ...(payload.holdout ? { checkSet: state.held } : {}),
+          ...(state.report?.caseId && state.report.safeguardId
+            ? { report: { caseId: state.report.caseId, safeguardId: state.report.safeguardId } }
+            : {}),
         });
       } else if (type === "PATTERN_RECOGNITION") {
         state.markers = [];
@@ -392,6 +398,15 @@ describe("following 'Show me the next step' finishes every level, through the ro
             break;
           case "keepForTesting":
             state.held = [...state.held!, step.specimenId];
+            break;
+          case "reportCase":
+            // Only a case in the child's own test pile is on the report.
+            if (!state.held!.includes(step.specimenId)) throw new Error("unfollowable: that case isn't in the test pile");
+            state.report = { ...state.report!, caseId: step.specimenId };
+            break;
+          case "reportSafeguard":
+            if (!payload.report!.safeguards.some((s) => s.id === step.safeguardId)) throw new Error("unfollowable: no such safeguard");
+            state.report = { ...state.report!, safeguardId: step.safeguardId };
             break;
           case "tryRule":
             // Only a card that exists on screen can be tapped.

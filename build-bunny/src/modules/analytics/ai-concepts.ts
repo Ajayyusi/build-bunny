@@ -14,10 +14,10 @@ export type AiConcept = (typeof AI_CONCEPTS)[number];
 /** The levels that teach each concept (a level can teach more than one). */
 export const AI_CONCEPT_LEVELS: Readonly<Record<AiConcept, readonly string[]>> = {
   exampleQuality: ["train-a-sorter", "berry-sorter", "draw-the-line", "the-berry-that-lied", "three-examples-only", "desert-flowers"],
-  testing: ["rule-or-examples", "keep-some-back", "bias-detective", "which-mistake-is-worse"],
+  testing: ["rule-or-examples", "keep-some-back", "bias-detective", "which-mistake-is-worse", "my-ai-project"],
   bias: ["bias-detective", "mirage-pattern", "seed-sorter"],
-  uncertainty: ["fortune-teller", "see-like-a-computer", "is-that-real"],
-  oversight: ["who-decides", "which-mistake-is-worse", "is-that-real"],
+  uncertainty: ["fortune-teller", "see-like-a-computer", "is-that-real", "my-ai-project"],
+  oversight: ["who-decides", "which-mistake-is-worse", "is-that-real", "my-ai-project"],
 };
 
 /**

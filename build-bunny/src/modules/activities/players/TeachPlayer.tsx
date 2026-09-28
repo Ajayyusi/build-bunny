@@ -29,6 +29,8 @@ import { TeachPredict } from "./TeachPredict";
 import { TeachRuleRound } from "./TeachRuleRound";
 import { TeachWhatChanged } from "./TeachWhatChanged";
 import { TeachScene } from "./TeachScene";
+import { ProjectReport, type ReportValue } from "./ProjectReport";
+import { caseStatuses } from "@/modules/ai/report";
 
 /**
  * The four beats this activity ships with when a level authors none. They
@@ -114,6 +116,8 @@ interface TeachPayload {
   predictFirst?: boolean;
   /** A taught example's note can be fixed (data-quality repair). */
   relabel?: boolean;
+  /** AI project report (capstone): the safeguards to choose from. */
+  report?: { safeguards: { id: string; text: string }[] };
   groups?: { names: Record<string, string>; of: Record<string, string> };
 }
 
@@ -149,9 +153,10 @@ function Berry({
  * than putting a specimen in a bucket that no longer exists.
  */
 function restoreDraft(draft: unknown, data: TeachPayload) {
-  const empty = { assigned: {} as Record<string, ClassLabel>, heldBack: new Set<string>(), ruleDone: false };
+  const noReport: ReportValue = { caseId: null, safeguardId: null };
+  const empty = { assigned: {} as Record<string, ClassLabel>, heldBack: new Set<string>(), ruleDone: false, report: noReport };
   if (draft === null || typeof draft !== "object") return empty;
-  const source = draft as { assigned?: unknown; heldBack?: unknown; ruleDone?: unknown };
+  const source = draft as { assigned?: unknown; heldBack?: unknown; ruleDone?: unknown; report?: unknown };
   const poolIds = new Set(data.pool.map((specimen) => specimen.id));
 
   const assigned: Record<string, ClassLabel> = {};
@@ -172,7 +177,15 @@ function restoreDraft(draft: unknown, data: TeachPayload) {
       }
     }
   }
-  return { assigned, heldBack, ruleDone: source.ruleDone === true };
+  const saved = (source.report ?? {}) as { caseId?: unknown; safeguardId?: unknown };
+  const report: ReportValue = {
+    caseId: typeof saved.caseId === "string" && heldBack.has(saved.caseId) ? saved.caseId : null,
+    safeguardId:
+      typeof saved.safeguardId === "string" && data.report?.safeguards.some((s) => s.id === saved.safeguardId)
+        ? saved.safeguardId
+        : null,
+  };
+  return { assigned, heldBack, ruleDone: source.ruleDone === true, report };
 }
 
 export function TeachPlayer({
@@ -215,6 +228,8 @@ export function TeachPlayer({
   // taught. Kept separate from `assigned` so a specimen physically cannot
   // be in both — moving it to one side removes it from the other.
   const [heldBack, setHeldBack] = useState<Set<string>>(restored.heldBack);
+  // The AI project report (capstone levels): a held-back case and a safeguard.
+  const [report, setReport] = useState<ReportValue>(restored.report);
   // Rule or Examples?: the rule round runs before teaching, once. A child
   // who already finished it (or the level) goes straight to teaching.
   const [ruleStage, setRuleStage] = useState<"pick" | "today" | "done">(
@@ -318,6 +333,17 @@ export function TeachPlayer({
     return { right, total: held.length };
   }, [data.holdout, data.pool, heldBack, examples]);
 
+  // The project report's cases: every held-back specimen, marked the way
+  // the grader will judge it (wrong, close call, least sure, or right).
+  const reportCases = useMemo(() => {
+    if (!data.report) return [];
+    const held = data.pool.filter((s) => heldBack.has(s.id));
+    const statuses = caseStatuses(examples, held);
+    return held
+      .filter((s) => statuses[s.id])
+      .map((s) => ({ id: s.id, truth: s.truth, guess: nearest(examples, s)?.label ?? null, status: statuses[s.id]! }));
+  }, [data.report, data.pool, heldBack, examples]);
+
   // Live guesses. We keep the MATCHED example, not just the label, because
   // "it looks most like this one you taught me" is the only form in which a
   // nearest-neighbour decision is explainable — and without it a wrong guess
@@ -339,13 +365,18 @@ export function TeachPlayer({
     draftTimerRef.current = window.setTimeout(() => {
       void saveDraftAction({
         levelId: intro.levelId,
-        workspaceJson: { assigned, heldBack: [...heldBack], ...(data.ruleRound ? { ruleDone: ruleStage === "done" } : {}) },
+        workspaceJson: {
+          assigned,
+          heldBack: [...heldBack],
+          ...(data.ruleRound ? { ruleDone: ruleStage === "done" } : {}),
+          ...(data.report ? { report } : {}),
+        },
       });
     }, 2000);
     return () => {
       if (draftTimerRef.current !== null) window.clearTimeout(draftTimerRef.current);
     };
-  }, [assigned, heldBack, ruleStage, data.ruleRound, intro.levelId, saveDraftAction]);
+  }, [assigned, heldBack, ruleStage, report, data.ruleRound, data.report, intro.levelId, saveDraftAction]);
 
   const assign = (id: string, label: ClassLabel) => {
     // Frozen only once the bunny has actually got them all right. Freezing
@@ -433,6 +464,11 @@ export function TeachPlayer({
     const answer = {
       examples: examples.map(toTrainingExample),
       ...(data.holdout ? { checkSet: [...heldBack] } : {}),
+      // A report is sent once both parts are chosen; the grader asks for
+      // one only after the model itself has passed.
+      ...(data.report && report.caseId && report.safeguardId
+        ? { report: { caseId: report.caseId, safeguardId: report.safeguardId } }
+        : {}),
     };
     // Tapping again after a failed save resends the same run.
     const runId = runIdFor(lastRunRef.current, answer);
@@ -511,6 +547,7 @@ export function TeachPlayer({
           held: [...heldBack],
           ...(data.ruleRound ? { rule: { stage: ruleStage, chosen: ruleChosen, tested: ruleTested } } : {}),
           ...(data.predictFirst ? { revealed } : {}),
+          ...(data.report ? { report } : {}),
         })}
         names={{
           specimen: (id) => {
@@ -520,11 +557,14 @@ export function TeachPlayer({
           label: (l) => data.labels[l],
           rule: (id) => data.ruleRound?.rules.find((rule) => rule.id === id)?.label ?? id,
           button: ruleButton,
+          safeguard: (id) => data.report?.safeguards.find((s) => s.id === id)?.text ?? id,
         }}
         onStep={(step) =>
           setPointed(
             "specimenId" in step
               ? step.specimenId
+              : step.code === "reportSafeguard"
+                ? step.safeguardId
               : step.code === "tryRule"
                 ? step.ruleId
                 : step.code === "pressButton"
@@ -1011,6 +1051,32 @@ export function TeachPlayer({
                     </ul>
                   )}
                 </section>
+
+                {data.report && ready && (!data.predictFirst || revealed) ? (
+                  <section className="flex flex-col gap-3 rounded-xl border-2 border-info/40 bg-info/5 p-3 sm:p-4">
+                    <StepHeading n={data.holdout ? 5 : 4} title={t("report.heading")} help={t("report.help")} />
+                    <ProjectReport
+                      cases={reportCases}
+                      labels={data.labels}
+                      safeguards={data.report.safeguards}
+                      value={report}
+                      onChange={(next) => {
+                        setReport(next);
+                        setPointed(null);
+                      }}
+                      renderGlyph={(id) => {
+                        const s = data.pool.find((x) => x.id === id);
+                        return s ? <Berry specimen={s} theme={glyph} /> : null;
+                      }}
+                      describe={(id) => {
+                        const s = data.pool.find((x) => x.id === id);
+                        return s ? describe(s) : id;
+                      }}
+                      pointed={pointed}
+                      disabled={result?.verdict === "PASS"}
+                    />
+                  </section>
+                ) : null}
               </div>
             </div>
 
@@ -1046,6 +1112,8 @@ export function TeachPlayer({
                           })
                         : result.code === "needMoreHeldBack"
                           ? t("needMoreHeldBack", { need: data.holdout?.min ?? 0 })
+                    : result.code === "needReport" || result.code === "reportNotAFailure" || result.code === "safeguardNotSafe"
+                      ? t(`report.${result.code}`)
                     : result.code === "tooManyExamples"
                       ? t("tooManyExamples", {
                           used: examples.length,

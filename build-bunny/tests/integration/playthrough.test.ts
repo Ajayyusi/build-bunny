@@ -15,6 +15,7 @@ import { toTrainingExample } from "@/modules/ai/knn";
 import { runLloyd, tightness } from "@/modules/ai/grouping";
 import { leastSquares } from "@/modules/ai/lab/math/leastSquares";
 import { solveAiClassification } from "@/modules/ai/solve";
+import { reportableCases } from "@/modules/ai/report";
 import {
   aiClassificationPayload,
   patternRecognitionPayload,
@@ -117,10 +118,17 @@ function solutionFor(level: PlayableLevel): Record<string, unknown> {
       const checkSet = parsed.data.holdout
         ? parsed.data.pool.filter((s) => !taught.has(s.id)).map((s) => s.id)
         : undefined;
+      // The project report (capstone): a case from that test pile the
+      // model got wrong or wasn't sure about, and the first safe safeguard.
+      const caseId = parsed.data.report
+        ? reportableCases(solution, parsed.data.pool.filter((s) => checkSet?.includes(s.id)))[0]
+        : undefined;
+      const safeguard = parsed.data.report?.safeguards.find((s) => s.safe);
       return {
         answer: {
           examples: solution.map(toTrainingExample),
           ...(checkSet ? { checkSet } : {}),
+          ...(caseId && safeguard ? { report: { caseId, safeguardId: safeguard.id } } : {}),
         },
       };
     }

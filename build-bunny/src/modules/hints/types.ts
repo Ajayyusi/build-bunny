@@ -54,6 +54,10 @@ export type NextStep =
   | { code: "teach"; specimenId: string; label: "positive" | "negative" }
   | { code: "takeBack"; specimenId: string }
   | { code: "keepForTesting"; specimenId: string }
+  /** AI project report: name this held-back case (wrong, or not sure). */
+  | { code: "reportCase"; specimenId: string }
+  /** AI project report: pick this human safeguard. */
+  | { code: "reportSafeguard"; safeguardId: string }
   /** Rule or Examples?: try this rule card (then test it). */
   | { code: "tryRule"; ruleId: string }
   /** Rule or Examples?: the next button to press in the rule round. */

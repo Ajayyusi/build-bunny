@@ -36,6 +36,8 @@ export interface NextStepNames {
   /** Rule or Examples?: a rule card's words, and a rule-round button's label. */
   rule?: (id: string) => string;
   button?: (button: PlayerButton) => string;
+  /** AI project report: a safeguard's words. */
+  safeguard?: (id: string) => string;
 }
 
 export function useNextStepText() {
@@ -93,6 +95,10 @@ export function useNextStepText() {
         return t("takeBack", { specimen: name(names.specimen, step.specimenId) });
       case "keepForTesting":
         return t("keepForTesting", { specimen: name(names.specimen, step.specimenId) });
+      case "reportCase":
+        return t("reportCase", { specimen: name(names.specimen, step.specimenId) });
+      case "reportSafeguard":
+        return t("reportSafeguard", { safeguard: name(names.safeguard, step.safeguardId) });
       case "tryRule":
         return t("tryRule", {
           rule: name(names.rule, step.ruleId),

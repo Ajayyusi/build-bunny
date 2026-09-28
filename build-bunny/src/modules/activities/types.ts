@@ -305,6 +305,8 @@ export interface TeachActivityPayload {
   groups?: { names: Record<string, string>; of: Record<string, string> };
   /** A taught example's note can be fixed (data-quality repair). */
   relabel?: boolean;
+  /** AI project report (capstone): the safeguards to choose from. */
+  report?: { safeguards: { id: string; text: string }[] };
 }
 
 export interface TeachRuleRound {

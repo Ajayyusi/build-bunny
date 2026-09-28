@@ -390,7 +390,7 @@ function stripEach(list: unknown, keys: string[]): unknown {
  * container down (NESTED_ANSWER_KEYS), so every type is swept for all of them
  * (a key that cannot occur in a payload is simply a no-op delete). The
  * grafted AI Lab types nest theirs deeper — a choice's `safe` flag inside
- * AI_ETHICS scenes — and AI_SIM delegates to its widget's own stripper
+ * AI_ETHICS scenes, a safeguard's inside AI_CLASSIFICATION's report — and AI_SIM delegates to its widget's own stripper
  * (which knows, e.g., that a pixel round's imageId IS the mystery answer
  * while the image list is the visible choice set).
  */
@@ -417,6 +417,12 @@ export function stripStudentPayload(activityType: string, payload: unknown): unk
               : scene,
           )
         : clone.scenes;
+      break;
+    case "AI_CLASSIFICATION":
+      // The project report's safeguards ship; which ones are safe doesn't.
+      if (isRecord(clone.report)) {
+        clone.report = { ...clone.report, safeguards: stripEach(clone.report.safeguards, ["safe"]) };
+      }
       break;
     case "AI_SIM": {
       const widget = clone.widget;

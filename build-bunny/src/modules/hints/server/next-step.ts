@@ -8,6 +8,7 @@ import { analyzeMazeDesign, type MazeIssue } from "@/modules/activities/maze";
 import { centroidRule } from "@/modules/ai/lab/math/centroidRule";
 import { leastSquares } from "@/modules/ai/lab/math/leastSquares";
 import type { Line } from "@/modules/ai/lab/math/types";
+import { reportableCases } from "@/modules/ai/report";
 import { fittingRules } from "@/modules/ai/rule-round";
 import { solveAiClassification } from "@/modules/ai/solve";
 import { BUNNY_DEFINE_BLOCK, BUNNY_HAT_BLOCK, BUNNY_SENSOR_BLOCKS } from "@/modules/blockly/blocks";
@@ -405,6 +406,10 @@ export const nextStepStateSchema = z.object({
     .optional(),
   /** Predict-first levels: whether the child has revealed the bunny's guesses. */
   revealed: z.boolean().optional(),
+  /** AI project report: the case and safeguard picked so far. */
+  report: z
+    .object({ caseId: z.string().max(64).nullable(), safeguardId: z.string().max(64).nullable() })
+    .optional(),
 });
 export type NextStepState = z.infer<typeof nextStepStateSchema>;
 
@@ -494,15 +499,37 @@ export function computeNextStep(
       const byId = new Map(p.pool.map((s) => [s.id, s]));
       const taught = (state.examples ?? []).filter((e) => byId.has(e.id));
       const held = new Set((state.held ?? []).filter((id) => byId.has(id)));
-      const answer = (ids: string[], check: string[]) => ({
-        examples: ids.map((id) => ({ ...byId.get(id)!, label: byId.get(id)!.truth })).map(({ id, size, color, label }) => ({ id, size, color, label })),
-        ...(p.holdout ? { checkSet: check } : {}),
-      });
+      const heldCases = (check: string[]) => p.pool.filter((s) => check.includes(s.id));
+      const firstSafe = p.report?.safeguards.find((s) => s.safe);
+      const answer = (ids: string[], check: string[]) => {
+        const examples = ids.map((id) => ({ ...byId.get(id)!, label: byId.get(id)!.truth })).map(({ id, size, color, label }) => ({ id, size, color, label }));
+        // Is the MODEL good enough? Asked with a valid report, so the
+        // report (its own later steps) never blocks this question.
+        const caseId = p.report ? reportableCases(examples, heldCases(check))[0] : undefined;
+        return {
+          examples,
+          ...(p.holdout ? { checkSet: check } : {}),
+          ...(caseId && firstSafe ? { report: { caseId, safeguardId: firstSafe.id } } : {}),
+        };
+      };
       const taughtIds = taught.map((e) => e.id);
       if (taughtIds.length > 0 && passes(answer(taughtIds, [...held])).pass) {
         // Predict before testing: the child says what the bunny will answer,
         // then reveals its guesses. Only then is Test the next step.
-        return p.predictFirst && state.revealed === false ? { code: "predictGuesses" } : { code: "ready" };
+        if (p.predictFirst && state.revealed === false) return { code: "predictGuesses" };
+        // The project report: a case that really went wrong (or nearly),
+        // then a safeguard that keeps a person in charge.
+        if (p.report && firstSafe) {
+          const cases = reportableCases(
+            taught.map((e) => ({ ...byId.get(e.id)!, label: e.label })),
+            heldCases([...held]),
+          );
+          const picked = state.report?.caseId ?? null;
+          if (!picked || !cases.includes(picked)) return { code: "reportCase", specimenId: cases[0]! };
+          const safeguard = p.report.safeguards.find((s) => s.id === state.report?.safeguardId);
+          if (!safeguard?.safe) return { code: "reportSafeguard", safeguardId: firstSafe.id };
+        }
+        return { code: "ready" };
       }
       const lie = taughtIds.find((id) => p.mislabelled.includes(id));
       if (lie) return { code: "takeBack", specimenId: lie };

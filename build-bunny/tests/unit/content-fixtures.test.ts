@@ -183,7 +183,7 @@ describe("content bundle shape", () => {
     // + the backlog's AI lessons (3): Two Answers (generative AI) and Need to
     // Know (AI and privacy) on AI Island, Say It Clearly (natural language) in
     // the ML Lab's Deciding Well.
-    expect(levelCount).toBe(105);
+    expect(levelCount).toBe(106);
     const codeCity = playableWorlds.find((w) => w.slug === "code-city");
     expect(allLevels(codeCity as WorldFixture)).toHaveLength(22);
     const inventorIsland = playableWorlds.find((w) => w.slug === "inventor-island");

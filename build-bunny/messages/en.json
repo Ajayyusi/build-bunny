@@ -514,7 +514,26 @@
         "newExampleRight": "Right!",
         "newExampleWrong": "Really: {label}. Which example would fix that?",
         "fixNote": "Fix this note",
-        "noteFixed": "Note fixed"
+        "noteFixed": "Note fixed",
+        "report": {
+          "heading": "Write your project report",
+          "help": "A real AI project says what its AI gets wrong, and how a person stays in charge.",
+          "caseQuestion": "1. Pick one case from your test pile that your AI got wrong, or wasn't sure about.",
+          "noCases": "Put some cases in your test pile first. Your report is about those.",
+          "caseLine": "{specimen}: your AI said “{guess}”, and it's really “{truth}”.",
+          "status": {
+            "wrong": "Got it wrong",
+            "closeCall": "Not sure",
+            "leastSure": "Least sure",
+            "right": "Right and sure"
+          },
+          "safeguardQuestion": "2. How will a person stay in charge of cases like that?",
+          "summaryTitle": "My report:",
+          "summary": "My AI can go wrong on cases like this one: {specimen}. To keep people safe: {safeguard}",
+          "needReport": "Your AI passed the fair's test! Now finish your project report: pick a case it got wrong or wasn't sure about, and a way for a person to stay in charge.",
+          "reportNotAFailure": "Your report names a case your AI got right and was sure about. Pick one it got wrong, or wasn't sure about.",
+          "safeguardNotSafe": "That plan leaves the robot on its own. Pick one where a person checks, or where you keep testing it."
+        }
       },
       "group": {
         "howItWorks": "How it works",
@@ -920,7 +939,9 @@
         "pressRoundButton": "In {round}, press “{button}”.",
         "answerQuestion": "First, say what you think. Any answer is fine: you'll see what happened next.",
         "checkingRound": "Checking your guess for {round}… give it a moment.",
-        "markItem": "For “{item}”, choose “{mark}”."
+        "markItem": "For “{item}”, choose “{mark}”.",
+        "reportCase": "For your report, pick this case: {specimen}.",
+        "reportSafeguard": "For your report, pick this safeguard: “{safeguard}”."
       },
       "check": {
         "title": "Quick check",

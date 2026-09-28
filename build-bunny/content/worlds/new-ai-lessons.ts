@@ -1,5 +1,5 @@
 import type { z } from "zod";
-import type { aiSimPayload, ModuleFixture } from "@/modules/curriculum/schemas";
+import type { aiClassificationPayload, aiSimPayload, ModuleFixture } from "@/modules/curriculum/schemas";
 
 import { hints, t } from "./kit";
 
@@ -13,6 +13,9 @@ import { hints, t } from "./kit";
  *    strike out every detail the task doesn't need.
  *  - Say It Clearly (natural language, grades 5-7) — make a vague
  *    instruction to an assistant say exactly which, where, who and when.
+ *
+ * And the AI strand's capstone, My AI Project (ML Lab, on Teach the Bunny
+ * with a held-back test pile and a project report).
  *
  * Everything here is fictional and safe: no real chatbot, no real person.
  */
@@ -360,4 +363,135 @@ export const sayItClearly: LevelDraft = {
       ),
     },
   } satisfies AiSimDraft,
+};
+
+// ── My AI Project (capstone, ML Lab) ──────────────────────────────────────
+type AiClassificationDraft = z.input<typeof aiClassificationPayload>;
+
+/**
+ * The capstone: build a classifier, test it on cases it has never seen,
+ * then report one case it got wrong or wasn't sure about and a human
+ * safeguard for it. Everything the earlier ML Lab levels taught, in one
+ * project — and the last step is honesty, not a score.
+ *
+ * The geometry is easy on purpose: the lesson isn't which examples to pick
+ * (earlier levels own that), it's testing fairly and reporting what the
+ * test found. Whatever the child holds back, there is always something to
+ * report: a wrong case, a close call, or the least sure one.
+ */
+export const myAiProject: LevelDraft = {
+  slug: "my-ai-project",
+  order: 4,
+  activityType: "AI_CLASSIFICATION",
+  track: "MACHINE_LEARNING",
+  title: t("My AI Project", "مشروعي في الذكاء الاصطناعي"),
+  story: t(
+    "The village fair needs a berry-sorting robot for its fruit stall, and Dr. Nova has put you in charge of the whole project: teach it, test it on berries it has never seen, and write the report that says where it can go wrong.",
+    "يحتاج سوق القرية إلى روبوت يفرز التوت لكشك الفاكهة، وقد جعلتك الدكتورة نوفا مسؤولًا عن المشروع كله: علّمه، واختبره على حبّات لم يرها من قبل، واكتب التقرير الذي يقول أين قد يخطئ.",
+  ),
+  objective: t(
+    "Carry out a complete small AI project: train a classifier, test it on unseen cases, and report one failure and a human safeguard.",
+    "تنفيذ مشروع ذكاء اصطناعي صغير كامل: تدريب مصنِّف، واختباره على حالات لم يرها، والإبلاغ عن إخفاق واحد ووسيلة أمان بشرية.",
+  ),
+  mission: t(
+    "Build the fair's berry sorter, test it fairly, and write an honest report.",
+    "ابنِ فارز التوت للسوق، واختبره بعدل، واكتب تقريرًا صادقًا.",
+  ),
+  instructions: t(
+    "Teach the robot with berries in the two baskets, and keep at least 3 berries in your test pile. Say what you think it will answer, then show its guesses. Last, write your report: one berry from your test pile it got wrong or wasn't sure about, and how a person stays in charge. Press “Check” to hand in your project.",
+    "علّم الروبوت بوضع حبّات في السلّتين، واحتفظ بثلاث حبّات على الأقل في كومة اختبارك. قل ما تظن أنه سيجيب، ثم أظهر تخميناته. وأخيرًا، اكتب تقريرك: حبّة واحدة من كومة اختبارك أخطأ فيها أو لم يكن متأكدًا منها، وكيف يبقى إنسان هو المسؤول. اضغط «تحقّق» لتسلّم مشروعك.",
+  ),
+  explanation: t(
+    "That was a whole AI project, the way real teams do it. You chose the examples, kept some back so the test was fair, and checked the robot on berries it had never seen. Then you did the part people often skip: you wrote down where it goes wrong, and you made sure a person checks those cases. No AI is right every time. A good project says so, and plans for it.",
+    "كان ذلك مشروع ذكاء اصطناعي كاملًا، كما تفعل الفرق الحقيقية. اخترت الأمثلة، واحتفظت ببعضها ليكون الاختبار عادلًا، واختبرت الروبوت على حبّات لم يرها قط. ثم فعلت الجزء الذي يتجاوزه الناس غالبًا: كتبت أين يخطئ، وتأكّدت من أن إنسانًا يتحقّق من تلك الحالات. لا يوجد ذكاء اصطناعي يصيب في كل مرة. والمشروع الجيد يقول ذلك، ويخطّط له.",
+  ),
+  keyIdea: t(
+    "A good AI project tests on new cases, says where the AI goes wrong, and keeps a person in charge.",
+    "مشروع الذكاء الاصطناعي الجيد يختبر على حالات جديدة، ويقول أين يخطئ الذكاء الاصطناعي، ويُبقي إنسانًا هو المسؤول.",
+  ),
+  teacherNotes: t(
+    "The capstone of the AI strand. The model is easy to get right on purpose; the graded part is the report. The child must name a berry from their OWN test pile that the robot got wrong or was unsure about (if it was right and sure about every one, the least sure one counts), and choose a safeguard where a person stays in charge or testing continues. Two tempting wrong safeguards are offered: trusting the robot because it passed, and hiding its mistakes. The report is saved with the attempt. Good discussion: which real systems publish where they go wrong, and who checks them?",
+    "هذا ختام مسار الذكاء الاصطناعي. من السهل عمدًا أن يصيب النموذج؛ والجزء الذي يُقيَّم هو التقرير. على الطالب أن يذكر حبّة من كومة اختباره هو أخطأ فيها الروبوت أو لم يكن متأكدًا منها (وإذا أصاب وكان متأكدًا في كل حبّة، تُحتسب الحبّة الأقل يقينًا)، وأن يختار وسيلة أمان يبقى فيها إنسان هو المسؤول أو يستمر فيها الاختبار. تُعرض وسيلتان خاطئتان مغريتان: الثقة بالروبوت لأنه نجح، وإخفاء أخطائه. يُحفظ التقرير مع المحاولة. نقاش مفيد: أي الأنظمة الحقيقية تنشر أين تخطئ، ومن يتحقّق منها؟",
+  ),
+  difficulty: "HARD",
+  recommendedGradeMin: 5,
+  recommendedGradeMax: 7,
+  estimatedMinutes: 15,
+  xpReward: 90,
+  tags: ["ml", "train-test-split", "evaluation", "ethics"],
+  requires: ["let-it-run"],
+  hints: hints(
+    ["Three jobs: teach, test fairly, then report. The report is part of the project, not an extra.", "ثلاث مهام: علّم، واختبر بعدل، ثم اكتب التقرير. التقرير جزء من المشروع، لا إضافة."],
+    ["Put both kinds of berry in your test pile, including some from near the middle. Those are the honest questions.", "ضع النوعين في كومة اختبارك، ومنها حبّات قريبة من الوسط. تلك هي الأسئلة الصادقة."],
+    ["In your report, look for a berry marked “Got it wrong” or “Not sure”. A berry it got right and was sure about isn't a failure.", "في تقريرك، ابحث عن حبّة مكتوب عليها «أخطأ فيها» أو «غير متأكد». الحبّة التي أصاب فيها وهو متأكد ليست إخفاقًا."],
+    ["A safeguard keeps a person in charge, or keeps testing the robot. Trusting it because it passed, or hiding its mistakes, isn't a safeguard.", "وسيلة الأمان تُبقي إنسانًا هو المسؤول، أو تواصل اختبار الروبوت. الثقة به لأنه نجح، أو إخفاء أخطائه، ليست وسيلة أمان."],
+  ),
+  payload: {
+    conceptSlug: "ai-project",
+    labels: { positive: t("Not ripe yet", "لم تنضج بعد"), negative: t("Ripe — sell it", "ناضجة — للبيع") },
+    theme: {
+      glyph: "berry",
+      featureNames: { size: t("Size", "الحجم"), color: t("Colour", "اللون") },
+      truthEmoji: { positive: "🌱", negative: "🍓" },
+    },
+    walkthrough: [
+      {
+        title: t("Your project, start to finish", "مشروعك من البداية إلى النهاية"),
+        body: t(
+          "This time you do every job: choose the examples, build a fair test, and hand in a report.",
+          "هذه المرة تقوم بكل المهام: تختار الأمثلة، وتبني اختبارًا عادلًا، وتسلّم تقريرًا.",
+        ),
+      },
+      {
+        title: t("Test it on berries it hasn't seen", "اختبره على حبّات لم يرها"),
+        body: t(
+          "Keep some berries in your test pile. The robot never learns from those, so they show how it really does.",
+          "احتفظ ببعض الحبّات في كومة اختبارك. الروبوت لا يتعلّم منها أبدًا، لذا فهي تُظهر أداءه الحقيقي.",
+        ),
+      },
+      {
+        title: t("Report what goes wrong", "أبلِغ عمّا يخطئ فيه"),
+        body: t(
+          "Every AI makes mistakes. Your report names one, and says how a person stays in charge of cases like it.",
+          "كل ذكاء اصطناعي يخطئ. تقريرك يذكر خطأً واحدًا، ويقول كيف يبقى إنسان مسؤولًا عن حالات مثله.",
+        ),
+      },
+    ],
+    board: {
+      show: true,
+      showBoundary: true,
+      axisLabels: { x: t("Size, small to large", "الحجم، من الصغير إلى الكبير"), y: t("Colour, purple to red", "اللون، من البنفسجي إلى الأحمر") },
+    },
+    pool: [
+      { id: "b1", size: 0.15, color: 0.12, truth: "positive" },
+      { id: "b2", size: 0.8, color: 0.18, truth: "positive" },
+      { id: "b3", size: 0.45, color: 0.3, truth: "positive" },
+      { id: "b4", size: 0.3, color: 0.44, truth: "positive" },
+      { id: "b5", size: 0.65, color: 0.42, truth: "positive" },
+      { id: "b6", size: 0.2, color: 0.85, truth: "negative" },
+      { id: "b7", size: 0.75, color: 0.9, truth: "negative" },
+      { id: "b8", size: 0.5, color: 0.7, truth: "negative" },
+      { id: "b9", size: 0.35, color: 0.57, truth: "negative" },
+      { id: "b10", size: 0.7, color: 0.6, truth: "negative" },
+    ],
+    testSet: [
+      { id: "f1", size: 0.25, color: 0.22 },
+      { id: "f2", size: 0.6, color: 0.8 },
+      { id: "f3", size: 0.85, color: 0.3 },
+      { id: "f4", size: 0.15, color: 0.75 },
+    ],
+    rule: { kind: "threshold", feature: "color", threshold: 0.5 },
+    holdout: { min: 3 },
+    minPerLabel: 2,
+    predictFirst: true,
+    report: {
+      safeguards: [
+        { id: "person-checks", text: t("A person checks every berry the robot wasn't sure about before it goes on the stall.", "يتحقّق إنسان من كل حبّة لم يكن الروبوت متأكدًا منها قبل أن توضع في الكشك."), safe: true },
+        { id: "trust-it", text: t("Let the robot decide on its own. It passed the test, so it's always right.", "دع الروبوت يقرّر وحده. لقد نجح في الاختبار، لذا فهو يصيب دائمًا."), safe: false },
+        { id: "keep-testing", text: t("Keep testing it on new berries every week, and teach it again when it gets some wrong.", "واصل اختباره على حبّات جديدة كل أسبوع، وعلّمه من جديد عندما يخطئ في بعضها."), safe: true },
+        { id: "hide-mistakes", text: t("Don't tell anyone about its mistakes, so people keep trusting the robot.", "لا تخبر أحدًا بأخطائه، حتى يظل الناس يثقون بالروبوت."), safe: false },
+      ],
+    },
+    starCriteria: {},
+  } satisfies AiClassificationDraft,
 };

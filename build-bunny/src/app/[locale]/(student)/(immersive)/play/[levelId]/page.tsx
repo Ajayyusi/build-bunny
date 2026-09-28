@@ -267,6 +267,9 @@ export default async function PlayLevelPage({ params }: Props) {
       starCriteria: raw.starCriteria,
       predictFirst: raw.predictFirst,
       relabel: raw.relabel,
+      report: raw.report
+        ? { safeguards: raw.report.safeguards.map((s) => ({ id: s.id, text: resolveText(s.text, locale) })) }
+        : undefined,
       groups: raw.groups
         ? {
             names: Object.fromEntries(
