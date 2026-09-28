@@ -615,9 +615,9 @@
           "resolutionBlocky": "More blocky",
           "greyscaleToggle": "Greyscale",
           "edgesToggle": "Find edges",
-          "kernelHeading": "Edge-detection kernel",
+          "kernelHeading": "The edge finder's numbers",
           "kernelReset": "Reset to edge detection",
-          "kernelCell": "Kernel row {row}, column {col}",
+          "kernelCell": "Edge finder number, row {row}, column {col}",
           "roundsHeading": "Mystery pictures",
           "roundLabel": "Round {number}",
           "loadingImage": "Loading picture…",
@@ -1115,6 +1115,129 @@
         "body": "My sorting robot has never seen a shape. Show it a few examples, and let's find out what it learns.",
         "start": "Let's try!",
         "later": "Look around first"
+      }
+    },
+    "glossary": {
+      "ask": "What is this called?",
+      "machineLearning": {
+        "name": "Machine learning",
+        "plain": "When a computer finds a pattern in examples instead of following rules someone wrote."
+      },
+      "trainingData": {
+        "name": "Training data",
+        "plain": "The examples a machine learns from: the ones you choose to teach it."
+      },
+      "label": {
+        "name": "Label",
+        "plain": "The answer written on an example, like \"safe\" or \"circle\"."
+      },
+      "classifier": {
+        "name": "Classifier",
+        "plain": "A program that sorts new things into groups."
+      },
+      "nearestNeighbour": {
+        "name": "Nearest neighbour",
+        "plain": "Answering a new case by copying the example most like it. It's how this robot decides."
+      },
+      "feature": {
+        "name": "Feature",
+        "plain": "One thing the machine measures about each example, like size or colour."
+      },
+      "decisionBoundary": {
+        "name": "Decision boundary",
+        "plain": "The edge where the machine's answer changes from one group to the other."
+      },
+      "mislabelledData": {
+        "name": "Mislabelled data",
+        "plain": "An example with the wrong answer written on it. The machine believes it anyway."
+      },
+      "bias": {
+        "name": "Bias",
+        "plain": "When a machine is unfair to some cases because its examples left them out or showed too few."
+      },
+      "spuriousCorrelation": {
+        "name": "Spurious correlation",
+        "plain": "Two things that happen together in the examples but don't cause each other."
+      },
+      "testSet": {
+        "name": "Test set",
+        "plain": "Examples kept back from training, to check the machine on cases it hasn't seen."
+      },
+      "falsePositive": {
+        "name": "False positive and false negative",
+        "plain": "Two kinds of mistake: saying yes when the answer is no, and saying no when it's yes."
+      },
+      "confidence": {
+        "name": "Confidence",
+        "plain": "How sure a machine says it is. Sure isn't the same as right."
+      },
+      "computerVision": {
+        "name": "Computer vision",
+        "plain": "Getting computers to make sense of pictures, from grids of numbers."
+      },
+      "pixel": {
+        "name": "Pixel",
+        "plain": "One tiny square of a picture. To a computer, each one is just numbers for its colour."
+      },
+      "resolution": {
+        "name": "Resolution",
+        "plain": "How many pixels a picture has across and down. Fewer pixels, less detail."
+      },
+      "kernel": {
+        "name": "Kernel (edge detection)",
+        "plain": "A small grid of numbers slid over a picture to find where colours change sharply."
+      },
+      "clustering": {
+        "name": "Clustering",
+        "plain": "Finding groups in data that nobody labelled."
+      },
+      "outlier": {
+        "name": "Outlier",
+        "plain": "A reading far from all the others, often a mistake. It can drag a group off course."
+      },
+      "kMeans": {
+        "name": "K-means",
+        "plain": "A way to find groups: join each dot to its nearest flag, move each flag to the middle of its dots, repeat."
+      },
+      "localOptimum": {
+        "name": "Local optimum",
+        "plain": "A place where every small change makes things worse, but a better answer exists further away."
+      },
+      "regression": {
+        "name": "Regression",
+        "plain": "Finding a line (or curve) that follows the data, to predict new values."
+      },
+      "leastSquares": {
+        "name": "Least squares",
+        "plain": "The maths that picks the line with the smallest total miss: the computer's line in Fortune Teller."
+      },
+      "uncertainty": {
+        "name": "Uncertainty",
+        "plain": "How far off a prediction could be: the likely range around it."
+      },
+      "extrapolation": {
+        "name": "Extrapolation",
+        "plain": "Predicting beyond the data you have. The further out, the less sure."
+      },
+      "deepfake": {
+        "name": "Deepfake",
+        "plain": "A video, picture or voice made by a computer to look or sound real."
+      },
+      "languageModel": {
+        "name": "Language model",
+        "plain": "The program behind a chatbot. It predicts likely words, so it can sound sure and still be wrong."
+      },
+      "personalData": {
+        "name": "Personal data",
+        "plain": "Anything that could show who you are or where you are: your name, school, photo, address."
+      },
+      "humanInTheLoop": {
+        "name": "Human in the loop",
+        "plain": "A person checks a machine's decision before it counts, most of all when a mistake could hurt someone."
+      },
+      "targetedAd": {
+        "name": "Targeted advert",
+        "plain": "An advert picked for you by a computer, from what an app knows about you."
       }
     }
   },

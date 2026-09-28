@@ -20,6 +20,7 @@ import { useDraftAutosave } from "./shared/useDraftAutosave";
 import { ResultBanner } from "./shared/ResultBanner";
 import { SuccessOverlay } from "./shared/SuccessOverlay";
 import { ResultNotesCard } from "./shared/ResultNotesCard";
+import { WhatIsThisCalled } from "./shared/WhatIsThisCalled";
 import { pixelResultNotes, trendResultNotes, type ResultNotes } from "./result-notes";
 import { Walkthrough } from "./shared/Walkthrough";
 import { NextStepHint } from "./shared/NextStepHint";
@@ -344,6 +345,7 @@ export function AiSimPlayer({
               {honestyNote}
             </p>
           ) : null}
+          <WhatIsThisCalled tags={intro.tags} />
 
           <Widget
             config={payload.widget}
