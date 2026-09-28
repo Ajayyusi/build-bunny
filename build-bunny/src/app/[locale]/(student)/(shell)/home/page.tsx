@@ -1,4 +1,5 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
+import { AiSurface } from "../_components/AiSurface";
 
 import { Link } from "@/i18n/navigation";
 import { MusicScene } from "@/modules/audio/scene";
@@ -86,7 +87,7 @@ export default async function StudentHomePage({ params }: Props) {
   );
 
   return (
-    <div className="flex flex-col gap-6">
+    <AiSurface className="flex flex-col gap-6">
       <MusicScene track="map" />
 
       {warmUp ? (
@@ -296,6 +297,6 @@ export default async function StudentHomePage({ params }: Props) {
           description={t("emptyBody")}
         />
       )}
-    </div>
+    </AiSurface>
   );
 }

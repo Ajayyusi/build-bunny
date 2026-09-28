@@ -1,4 +1,5 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
+import { AiSurface } from "../_components/AiSurface";
 
 import { Link, redirect } from "@/i18n/navigation";
 import { listMyStudentAssignments } from "@/modules/assignments/server/queries";
@@ -60,7 +61,7 @@ export default async function ExplorePage({ params }: Props) {
   const fresh = adventure.worlds.every((world) => world.completedLevels === 0);
 
   return (
-    <div className="flex flex-col gap-5">
+    <AiSurface className="flex flex-col gap-5">
       <MusicScene track="map" />
       <ExploreWelcome show={fresh} userId={ctx.userId} firstActivityHref={first ? `/play/${first.levelId}` : null} />
 
@@ -84,6 +85,7 @@ export default async function ExplorePage({ params }: Props) {
           />
         </div>
       </header>
+      <div aria-hidden="true" className="bb-ai-rule" />
 
       {notices ? (
         <section
@@ -187,6 +189,6 @@ export default async function ExplorePage({ params }: Props) {
           </ul>
         </section>
       </div>
-    </div>
+    </AiSurface>
   );
 }
