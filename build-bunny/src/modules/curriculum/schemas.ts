@@ -540,6 +540,11 @@ export const aiClassificationPayload = z
     predictFirst: z.boolean().default(false),
     /** Results by group — see specimenGroupsSchema. */
     groups: specimenGroupsSchema.optional(),
+    /**
+     * Data-quality repair (handoff): a taught example's note can be fixed —
+     * moved to the other basket — instead of only taken back.
+     */
+    relabel: z.boolean().default(false),
   })
   .strict();
 
@@ -573,6 +578,7 @@ export const aiClassificationStudentPayload = z
     ruleRound: ruleRoundSchema.optional(),
     predictFirst: z.boolean().default(false),
     groups: specimenGroupsSchema.optional(),
+    relabel: z.boolean().default(false),
     // `rule` is deliberately absent, and .strict() is what enforces that.
   })
   .strict();

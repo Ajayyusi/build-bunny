@@ -302,6 +302,8 @@ export interface TeachActivityPayload {
   predictFirst: boolean;
   /** Results by group: localized group names, and each specimen's group. */
   groups?: { names: Record<string, string>; of: Record<string, string> };
+  /** A taught example's note can be fixed (data-quality repair). */
+  relabel?: boolean;
 }
 
 export interface TeachRuleRound {

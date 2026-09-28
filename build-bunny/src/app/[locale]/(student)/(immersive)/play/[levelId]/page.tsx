@@ -266,6 +266,7 @@ export default async function PlayLevelPage({ params }: Props) {
       passRule: raw.passRule,
       starCriteria: raw.starCriteria,
       predictFirst: raw.predictFirst,
+      relabel: raw.relabel,
       groups: raw.groups
         ? {
             names: Object.fromEntries(

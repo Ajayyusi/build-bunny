@@ -387,12 +387,12 @@ export const aiIsland: WorldFixture = {
             ar: "إحدى الملاحظات خاطئة! اعثر على حبة التوت التي تخدع الأرنب.",
           },
           instructions: {
-            en: "One of these notes is wrong. One — not two, and never none. Teach the bunny, look at the ? berries it gets wrong, and work out which note is lying to it.",
-            ar: "ملاحظة واحدة من هذه الملاحظات خاطئة؛ واحدة فقط، لا أكثر ولا أقل. علّم الأرنب، ثم انظر إلى حبات «؟» التي أخطأ فيها، واستنتج أيّ ملاحظة تكذب عليه.",
+            en: "One of these notes is wrong. One — not two, and never none. Teach the bunny, look at the ? berries it gets wrong, and work out which note is lying to it. Then fix that note (or take the berry out) and test again.",
+            ar: "ملاحظة واحدة من هذه الملاحظات خاطئة؛ واحدة فقط، لا أكثر ولا أقل. علّم الأرنب، ثم انظر إلى حبات «؟» التي أخطأ فيها، واستنتج أيّ ملاحظة تكذب عليه. ثم صحّح تلك الملاحظة (أو اسحب الحبة) واختبر من جديد.",
           },
           explanation: {
-            en: "The bunny checks nothing. It reads the note on a berry and believes it, so one wrong note turns into one wrong answer — and only for the ? berries sitting nearest to it. That is why the mess showed up in one small patch instead of all over the board. You fixed it by taking a berry away, not by adding one, and that is the opposite of every other level here. One honest thing: you found the lie because we told you there was exactly one. Nobody tells you that about real notes.",
-            ar: "الأرنب لا يتحقّق من شيء. يقرأ الملاحظة المكتوبة على الحبة فيصدّقها، فتتحوّل ملاحظة واحدة خاطئة إلى إجابة واحدة خاطئة — ولا يظهر أثرها إلا في حبات «؟» الأقرب إليها. لهذا ظهرت الفوضى في بقعة صغيرة واحدة، لا في اللوحة كلها. وقد أصلحت الأمر بسحب حبة، لا بإضافة حبة، وهذا عكس كل مستوى آخر هنا. وتبقى نقطة صادقة: عرفت مكان الكذبة لأننا أخبرناك أنها واحدة. أما في الملاحظات الحقيقية فلا أحد يخبرك.",
+            en: "The bunny checks nothing. It reads the note on a berry and believes it, so one wrong note turns into one wrong answer — and only for the ? berries sitting nearest to it. That is why the mess showed up in one small patch instead of all over the board. You fixed it by repairing the data (correcting the note, or taking the berry away), not by adding more, and that is the opposite of every other level here. One honest thing: you found the lie because we told you there was exactly one. Nobody tells you that about real notes.",
+            ar: "الأرنب لا يتحقّق من شيء. يقرأ الملاحظة المكتوبة على الحبة فيصدّقها، فتتحوّل ملاحظة واحدة خاطئة إلى إجابة واحدة خاطئة — ولا يظهر أثرها إلا في حبات «؟» الأقرب إليها. لهذا ظهرت الفوضى في بقعة صغيرة واحدة، لا في اللوحة كلها. وقد أصلحت الأمر بإصلاح البيانات (تصحيح الملاحظة، أو سحب الحبة)، لا بإضافة المزيد، وهذا عكس كل مستوى آخر هنا. وتبقى نقطة صادقة: عرفت مكان الكذبة لأننا أخبرناك أنها واحدة. أما في الملاحظات الحقيقية فلا أحد يخبرك.",
           },
           keyIdea: { en: "A machine believes its examples, so one wrong label becomes wrong answers: check your data.", ar: "تصدّق الآلة أمثلتها، فيتحوّل وصف خاطئ واحد إلى إجابات خاطئة: تحقّق من بياناتك." },
           teacherNotes: {
@@ -536,6 +536,7 @@ export const aiIsland: WorldFixture = {
             rule: { kind: "threshold", feature: "color", threshold: 0.5 },
             mislabelled: ["L8"],
             minPerLabel: 2,
+            relabel: true,
           } satisfies AiClassificationDraft,
         },
         {

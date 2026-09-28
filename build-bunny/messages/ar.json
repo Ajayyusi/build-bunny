@@ -511,7 +511,9 @@
         "newExampleHeading": "اختبر واحدة أخرى",
         "newExampleSays": "يقول الأرنب: {label}",
         "newExampleRight": "صحيح!",
-        "newExampleWrong": "في الحقيقة: {label}. أيّ مثال سيصلح ذلك؟"
+        "newExampleWrong": "في الحقيقة: {label}. أيّ مثال سيصلح ذلك؟",
+        "fixNote": "صحّح هذه الملاحظة",
+        "noteFixed": "تم التصحيح"
       },
       "group": {
         "howItWorks": "كيف تعمل؟",

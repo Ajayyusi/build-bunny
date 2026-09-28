@@ -111,6 +111,8 @@ interface TeachPayload {
   starCriteria: { threeStarMaxBlocks?: number };
   ruleRound?: RuleRound;
   predictFirst?: boolean;
+  /** A taught example's note can be fixed (data-quality repair). */
+  relabel?: boolean;
   groups?: { names: Record<string, string>; of: Record<string, string> };
 }
 
@@ -385,6 +387,17 @@ export function TeachPlayer({
       }
       return { ...prev, [id]: label };
     });
+  };
+
+  // Data-quality repair: move a taught example to the other basket — the
+  // child corrects its note rather than only removing it.
+  const fixNote = (id: string) => {
+    if (result?.verdict === "PASS" || !(id in assigned)) return;
+    if (result) setResult(null);
+    if (server) setServer(null);
+    resetPrediction();
+    setAssigned((prev) => ({ ...prev, [id]: prev[id] === "positive" ? "negative" : "positive" }));
+    setHopKey((k) => k + 1);
   };
 
   const holdBack = (id: string) => {
@@ -761,6 +774,21 @@ export function TeachPlayer({
                                 >
                                   <Berry specimen={e} theme={glyph} />
                                 </button>
+                                {data.relabel ? (
+                                  <span className="flex flex-col items-center">
+                                    {data.pool.find((s) => s.id === e.id)?.truth !== e.label ? (
+                                      <span className="text-[10px] font-bold text-ink-muted">{t("noteFixed")}</span>
+                                    ) : null}
+                                    <button
+                                      type="button"
+                                      onClick={() => fixNote(e.id)}
+                                      aria-label={`${t("fixNote")}: ${describe(e)}`}
+                                      className="rounded-md px-1.5 py-0.5 text-[10px] font-bold text-brand underline-offset-2 hover:underline"
+                                    >
+                                      {t("fixNote")}
+                                    </button>
+                                  </span>
+                                ) : null}
                               </li>
                             ))}
                         </ul>

@@ -511,7 +511,9 @@
         "newExampleHeading": "Test one more",
         "newExampleSays": "The bunny says: {label}",
         "newExampleRight": "Right!",
-        "newExampleWrong": "Really: {label}. Which example would fix that?"
+        "newExampleWrong": "Really: {label}. Which example would fix that?",
+        "fixNote": "Fix this note",
+        "noteFixed": "Note fixed"
       },
       "group": {
         "howItWorks": "How it works",
