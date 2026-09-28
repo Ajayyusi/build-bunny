@@ -235,6 +235,19 @@ export function GridPlayer({
   // finishes even as the page goes away.
   useEffect(() => {
     const flush = () => {
+      // Save the live workspace, not the last reported change. Blockly
+      // reports changes on a deferred queue: a block dragged from the
+      // palette is reported once when it is created (not yet attached)
+      // and again, a task later, when it snaps on. Leaving right after the
+      // drop used to keep the first report, so the block came back
+      // detached after a reload.
+      const live = workspaceHandleRef.current?.getWorkspaceJson();
+      // ({} means the workspace isn't mounted: never overwrite work with that.)
+      if (live && Object.keys(live).length > 0 && stableStringify(live) !== stableStringify(jsonRef.current ?? null)) {
+        jsonRef.current = live;
+        writeLocalDraft(draftKey, live, draftBaseRef.current);
+        unsavedRef.current = live;
+      }
       if (unsavedRef.current === null) return;
       const body = JSON.stringify({ workspaceJson: wrap(unsavedRef.current) });
       unsavedRef.current = null;
