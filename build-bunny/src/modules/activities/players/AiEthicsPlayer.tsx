@@ -76,6 +76,8 @@ export function AiEthicsPlayer({
   const [chosenChoiceId, setChosenChoiceId] = useState<string | null>(null);
   // Choices already tried in THIS scene, before the one on screen now.
   const [tried, setTried] = useState<string[]>([]);
+  // The child's verdict on this scene, asked before the choices (PREDICT).
+  const [predicted, setPredicted] = useState<string | null>(null);
   // The choice "Show me the next step" named, ringed until the child picks.
   const [pointed, setPointed] = useState<string | null>(null);
   const [path, setPath] = useState<PathStep[]>(restored.path);
@@ -140,14 +142,20 @@ export function AiEthicsPlayer({
     if (!scene || !chosenChoiceId) return;
     const choice = scene.choices.find((c) => c.id === chosenChoiceId);
     if (!choice) return;
-    const nextPath = [
+    const nextPath: PathStep[] = [
       ...path,
-      tried.length > 0 ? { sceneId: scene.id, choiceId: chosenChoiceId, tried } : { sceneId: scene.id, choiceId: chosenChoiceId },
+      {
+        sceneId: scene.id,
+        choiceId: chosenChoiceId,
+        ...(tried.length > 0 ? { tried } : {}),
+        ...(predicted ? { predicted } : {}),
+      },
     ];
     setPath(nextPath);
     const nextIndex = resolveNextSceneIndex(payload.scenes, sceneIndex, choice.next);
     setChosenChoiceId(null);
     setTried([]);
+    setPredicted(null);
     if (nextIndex < payload.scenes.length) {
       setSceneIndex(nextIndex);
     } else {
@@ -252,6 +260,7 @@ export function AiEthicsPlayer({
     ? resolveLocalized(submission.server.worldCompleted.name, locale)
     : null;
   const chosenChoice = scene?.choices.find((c) => c.id === chosenChoiceId) ?? null;
+  const predictedOption = scene?.predict?.options.find((o) => o.id === predicted) ?? null;
 
   return (
     <div className="relative flex h-dvh min-h-0 flex-col">
@@ -333,8 +342,32 @@ export function AiEthicsPlayer({
                 />
               ) : null}
 
-              {!chosenChoiceId ? (
+              {scene.predict && !predicted ? (
+                <div role="group" aria-labelledby={`predict-${scene.id}`} className="flex flex-col gap-2">
+                  <p id={`predict-${scene.id}`} className="text-sm font-bold text-ink">
+                    {resolveLocalized(scene.predict.question, locale)}
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {scene.predict.options.map((option) => (
+                      <button
+                        key={option.id}
+                        type="button"
+                        disabled={locked}
+                        onClick={() => setPredicted(option.id)}
+                        className="min-h-11 rounded-lg border-2 border-info/40 bg-info/10 px-4 py-2 text-sm font-semibold text-ink transition-colors hover:bg-info/20 focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
+                      >
+                        {resolveLocalized(option.text, locale)}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ) : !chosenChoiceId ? (
                 <div className="flex flex-col gap-2">
+                  {predictedOption ? (
+                    <p className="w-fit rounded-full bg-info/10 px-3 py-1 text-xs font-bold text-ink">
+                      {tEthics("youSaid", { answer: resolveLocalized(predictedOption.text, locale) })}
+                    </p>
+                  ) : null}
                   {scene.choices.map((choice) => {
                     const wasTried = tried.includes(choice.id);
                     return (
@@ -370,6 +403,14 @@ export function AiEthicsPlayer({
                   >
                     {chosenChoice ? resolveLocalized(chosenChoice.outcome, locale) : ""}
                   </p>
+                  {predictedOption ? (
+                    <p className="rounded-lg border border-info/40 bg-surface-raised p-3 text-sm leading-relaxed text-ink">
+                      <span className="font-bold">
+                        {tEthics("youSaid", { answer: resolveLocalized(predictedOption.text, locale) })}
+                      </span>{" "}
+                      {resolveLocalized(predictedOption.note, locale)}
+                    </p>
+                  ) : null}
                   <div className="flex flex-wrap items-center justify-end gap-2">
                     {scene.choices.some((c) => c.id !== chosenChoiceId && !tried.includes(c.id)) ? (
                       <Button size="lg" variant="secondary" onClick={tryAnother}>
@@ -458,7 +499,10 @@ export function AiEthicsPlayer({
             action={nextStepAction}
             usedBefore={intro.hintsUsedTiers.includes(5)}
             readyAction={`“${tEthics(phase === "scene" && chosenChoiceId && sceneIndex < payload.scenes.length - 1 ? "continueStory" : "finish")}”`}
-            getState={() => ({ sceneId: phase === "scene" && !chosenChoiceId ? (scene?.id ?? null) : null })}
+            getState={() => ({
+              sceneId: phase === "scene" && !chosenChoiceId ? (scene?.id ?? null) : null,
+              predicting: phase === "scene" && Boolean(scene?.predict) && !predicted,
+            })}
             names={{
               choice: (id) => {
                 const c = scene?.choices.find((x) => x.id === id);
@@ -516,6 +560,7 @@ export function AiEthicsPlayer({
             setPath([]);
             setChosenChoiceId(null);
             setTried([]);
+            setPredicted(null);
             setPhase("scene");
           }}
           certificate={submission.server?.certificate ?? null}

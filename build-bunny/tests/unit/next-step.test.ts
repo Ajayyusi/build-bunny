@@ -255,7 +255,8 @@ describe("following 'Show me the next step' finishes every level, through the ro
         predictFirst?: boolean;
       };
       let picked = "";
-      const path: { sceneId: string; choiceId: string }[] = [];
+      const path: { sceneId: string; choiceId: string; predicted?: string }[] = [];
+      let ethicsVerdict: string | undefined;
       const engine = getActivityEngine(level.activityType)!;
       const grade = (answer: unknown) => engine.grade(snapshot, answer);
       const passes = (answer: unknown) => {
@@ -305,6 +306,8 @@ describe("following 'Show me the next step' finishes every level, through the ro
       } else if (type === "AI_ETHICS") {
         const p = aiEthicsPayload.parse(level.payload);
         state.sceneId = p.scenes[0]!.id;
+        // Scenes that ask for a verdict first show only that question.
+        state.predicting = Boolean(p.scenes[0]!.predict);
         finalAnswer = () => ({ path });
       } else if (type === "AI_SIM") {
         const w = aiSimPayload.parse(level.payload).widget;
@@ -433,13 +436,24 @@ describe("following 'Show me the next step' finishes every level, through the ro
           case "restoreReading":
             state.excluded = state.excluded!.filter((id) => id !== step.specimenId);
             break;
+          case "answerQuestion": {
+            const p = aiEthicsPayload.parse(level.payload);
+            const scene = p.scenes.find((s) => s.id === state.sceneId)!;
+            if (!scene.predict || !state.predicting) throw new Error("unfollowable: no question on screen");
+            ethicsVerdict = scene.predict.options[0]!.id;
+            state.predicting = false;
+            break;
+          }
           case "chooseSafe": {
             const p = aiEthicsPayload.parse(level.payload);
-            path.push({ sceneId: state.sceneId!, choiceId: step.choiceId });
+            if (state.predicting) throw new Error("unfollowable: the choices are hidden until the question is answered");
+            path.push({ sceneId: state.sceneId!, choiceId: step.choiceId, ...(ethicsVerdict ? { predicted: ethicsVerdict } : {}) });
+            ethicsVerdict = undefined;
             const scene = p.scenes.find((s) => s.id === state.sceneId)!;
             const choice = scene.choices.find((c) => c.id === step.choiceId)!;
             const index = resolveNextSceneIndex(p.scenes, p.scenes.indexOf(scene), choice.next);
             state.sceneId = p.scenes[index]?.id ?? null;
+            state.predicting = Boolean(p.scenes[index]?.predict);
             break;
           }
           case "nudgeLine": {
@@ -530,6 +544,9 @@ describe("following 'Show me the next step' finishes every level, through the ro
       expect({ slug: level.slug, verdict, steps: seen.length }).toMatchObject({ slug: level.slug, verdict: "PASS" });
       // The learning loop's predict step is part of the path, not skipped.
       if (payload.predictFirst) expect(seen, level.slug).toContain("predictGuesses");
+      if (type === "AI_ETHICS" && aiEthicsPayload.parse(level.payload).scenes.some((sc) => sc.predict)) {
+        expect(seen, level.slug).toContain("answerQuestion");
+      }
     });
   }
 });

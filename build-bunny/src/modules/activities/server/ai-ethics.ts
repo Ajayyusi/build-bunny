@@ -27,6 +27,8 @@ const pathStepSchema = z.object({
   choiceId: z.string().min(1),
   /** Choices tried in this scene before `choiceId`, in order. */
   tried: z.array(z.string().min(1)).max(3).optional(),
+  /** The verdict given before choosing, on a scene that asks for one. */
+  predicted: z.string().min(1).optional(),
 });
 
 export const aiEthicsAnswerSchema = z.object({
@@ -72,6 +74,7 @@ export function gradeAiEthics(
   let allSafe = true;
   let firstAllSafe = true;
   let retries = 0;
+  const predictions: string[] = [];
   for (const step of answer.path) {
     const scene = scenes[index];
     if (!scene || scene.id !== step.sceneId) return invalidPath();
@@ -81,10 +84,12 @@ export function gradeAiEthics(
     // Every earlier try is a real, different choice in this scene.
     if (new Set([...tried, step.choiceId]).size !== tried.length + 1) return invalidPath();
     if (!tried.every((id) => scene.choices.some((c) => c.id === id))) return invalidPath();
+    if (step.predicted !== undefined && !scene.predict?.options.some((o) => o.id === step.predicted)) return invalidPath();
     const first = scene.choices.find((c) => c.id === (tried[0] ?? step.choiceId))!;
     if (!choice.safe) allSafe = false;
     if (!first.safe) firstAllSafe = false;
     retries += tried.length;
+    if (step.predicted) predictions.push(step.predicted);
     index = resolveNextSceneIndex(scenes, index, choice.next);
   }
   if (index < scenes.length) return invalidPath(); // story not finished yet
@@ -95,6 +100,6 @@ export function gradeAiEthics(
     primaryFeedback: null,
     generatedCode: "",
     blockCount: null,
-    summary: { path: answer.path, allSafe, firstAllSafe, retries, scenesVisited: answer.path.length },
+    summary: { path: answer.path, allSafe, firstAllSafe, retries, predictions, scenesVisited: answer.path.length },
   };
 }

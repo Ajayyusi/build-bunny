@@ -619,8 +619,8 @@ export const decidingWell: ModuleFixture = {
       ),
       mission: t("Decide when the machine can decide — and when a person should check.", "قرّر متى تستطيع الآلة أن تقرّر — ومتى يجب أن يتحقق شخص."),
       instructions: t(
-        "In each situation the machine makes a suggestion, gives its reason, and says how sure it is. Decide: approve it, ask for more, or override it. You can try another choice to see what happens.",
-        "في كل موقف تقدّم الآلة اقتراحًا، وتذكر سببها، وتقول مدى ثقتها. قرّر: توافق عليه، أو تطلب المزيد، أو تتجاوزه. يمكنك تجربة خيار آخر لترى ما يحدث.",
+        "In each situation the machine makes a suggestion, gives its reason, and says how sure it is. First say whether you think it's right. Then decide: approve it, ask for more, or override it. You can try another choice to see what happens.",
+        "في كل موقف تقدّم الآلة اقتراحًا، وتذكر سببها، وتقول مدى ثقتها. قل أولًا هل تظنها محقة. ثم قرّر: توافق عليه، أو تطلب المزيد، أو تتجاوزه. يمكنك تجربة خيار آخر لترى ما يحدث.",
       ),
       explanation: t(
         "Machines make mistakes, like people do. When a mistake is small (a wrong song suggestion) the machine can decide. When a mistake could hurt someone (health, fairness, safety), a person should check. That rule is how responsible teams use AI.",
@@ -647,6 +647,14 @@ export const decidingWell: ModuleFixture = {
             id: "songs",
             text: t("The machine picks which song to play next at the Fair.", "تختار الآلة الأغنية التالية في المعرض."),
             art: "🎵",
+            predict: {
+              question: { en: "Is the machine's suggestion right?", ar: "هل اقتراح الآلة صحيح؟" },
+              options: [
+                { id: "right", text: { en: "Probably right", ar: "على الأرجح محقة" }, note: { en: "Probably, and if not, it's only a song.", ar: "على الأرجح، وإن لم تكن، فهي مجرد أغنية." } },
+                { id: "wrong", text: { en: "Probably wrong", ar: "على الأرجح مخطئة" }, note: { en: "Maybe, but a wrong song costs almost nothing.", ar: "ربما، لكن الأغنية الخاطئة لا تكلّف شيئًا تقريبًا." } },
+                { id: "unsure", text: { en: "Can't tell from this", ar: "لا أستطيع أن أعرف من هذا" }, note: { en: "Fair, and for a song, not knowing is fine.", ar: "منصف، وفي أغنية، لا بأس في ألّا تعرف." } },
+              ],
+            },
             suggestion: {
               text: t("Play “Happy Hop” next.", "شغّل «القفزة السعيدة» تاليًا."),
               reason: t("People skipped the slow songs today.", "تخطّى الناس الأغاني البطيئة اليوم."),
@@ -662,6 +670,14 @@ export const decidingWell: ModuleFixture = {
             id: "medicine",
             text: t("The machine guesses which berries are safe for the whole village to eat.", "تخمّن الآلة أي حبات التوت آمنة ليأكلها أهل القرية كلهم."),
             art: "🫐",
+            predict: {
+              question: { en: "Is the machine's suggestion right?", ar: "هل اقتراح الآلة صحيح؟" },
+              options: [
+                { id: "right", text: { en: "Probably right", ar: "على الأرجح محقة" }, note: { en: "It might be, but 70% sure means it's wrong about some berries. Would you eat one?", ar: "قد تكون، لكن ثقة 70% تعني أنها مخطئة في بعض الحبات. هل ستأكل واحدة؟" } },
+                { id: "wrong", text: { en: "Probably wrong", ar: "على الأرجح مخطئة" }, note: { en: "It might be. You can't tell from a guess, which is why someone who knows should check.", ar: "قد تكون. لا يمكنك أن تعرف من تخمين، ولهذا يجب أن يتحقق شخص عارف." } },
+                { id: "unsure", text: { en: "Can't tell from this", ar: "لا أستطيع أن أعرف من هذا" }, note: { en: "The careful answer: \"looks like\" isn't proof. An expert can check.", ar: "الإجابة الحذرة: «تشبه» ليست دليلًا. يستطيع خبير أن يتحقق." } },
+              ],
+            },
             suggestion: {
               text: t("These blue berries are safe to eat.", "حبات التوت الزرقاء هذه آمنة للأكل."),
               reason: t("They look like the safe berries I learned from.", "تشبه حبات التوت الآمنة التي تعلّمت منها."),
@@ -677,6 +693,14 @@ export const decidingWell: ModuleFixture = {
             id: "team",
             text: t("The machine chooses who gets to be on the Fair team, from their photos.", "تختار الآلة من يكون في فريق المعرض، من صورهم."),
             art: "📷",
+            predict: {
+              question: { en: "Is the machine's suggestion right?", ar: "هل اقتراح الآلة صحيح؟" },
+              options: [
+                { id: "right", text: { en: "Probably right", ar: "على الأرجح محقة" }, note: { en: "Very sure isn't right: its only reason was photos.", ar: "الثقة الكبيرة ليست الصواب: سببها الوحيد كان الصور." } },
+                { id: "wrong", text: { en: "Probably wrong", ar: "على الأرجح مخطئة" }, note: { en: "Yes. A photo says nothing about how good someone is.", ar: "نعم. الصورة لا تقول شيئًا عن مهارة الشخص." } },
+                { id: "unsure", text: { en: "Can't tell from this", ar: "لا أستطيع أن أعرف من هذا" }, note: { en: "Look at its reason: photos only. That isn't a fair reason.", ar: "انظر إلى سببها: الصور فقط. هذا ليس سببًا منصفًا." } },
+              ],
+            },
             suggestion: {
               text: t("Pick these five children for the Fair team.", "اختر هؤلاء الأطفال الخمسة لفريق المعرض."),
               reason: t("In their photos, they look like last year's team.", "في صورهم، يشبهون فريق العام الماضي."),

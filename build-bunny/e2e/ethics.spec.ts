@@ -27,17 +27,25 @@ test("Who Decides?: review the machine's suggestion, try another choice, own che
   await expect(suggestion.getByText("People skipped the slow songs today.")).toBeVisible();
   await expect(suggestion.getByText("How sure it says it is: 85%")).toBeVisible();
 
+  // PREDICT: the choices wait until the child says what they think.
+  await expect(page.getByRole("button", { name: /Ask it for more reasons first/ })).toHaveCount(0);
+  await page.getByRole("group", { name: "Is the machine's suggestion right?" }).getByRole("button", { name: "Probably right" }).click();
+  await expect(page.getByText("You said: Probably right.").first()).toBeVisible();
   await page.getByRole("button", { name: /Ask it for more reasons first/ }).click();
   await expect(page.getByRole("status")).toContainText("a lot of checking");
+  // The verdict is talked about after the outcome.
+  await expect(page.getByText("Probably, and if not, it's only a song.")).toBeVisible();
   await page.getByRole("button", { name: "Try a different choice" }).click();
   await expect(page.getByRole("button", { name: /Ask it for more reasons first.*You tried this/ })).toBeVisible();
   await page.getByRole("button", { name: /Approve it — let the machine choose/ }).click();
   await page.getByRole("button", { name: "Continue" }).click();
 
+  await page.getByRole("button", { name: "Can't tell from this" }).click();
   await page.getByRole("button", { name: /Ask for more: an expert checks/ }).click();
   await page.getByRole("button", { name: "Continue" }).click();
   // Very sure isn't the same as right.
   await expect(page.getByText("How sure it says it is: 90%")).toBeVisible();
+  await page.getByRole("button", { name: "Probably wrong" }).click();
   await page.getByRole("button", { name: /Override it — people choose/ }).click();
   await page.getByRole("button", { name: "Continue" }).click();
 
@@ -46,11 +54,13 @@ test("Who Decides?: review the machine's suggestion, try another choice, own che
   await expect(page.getByRole("dialog", { name: /complete/i })).toBeVisible();
 });
 
-test("Is That Real?: 'not enough evidence yet' is a real choice", async ({ page, baseURL }, testInfo) => {
+test("Is That Real?: say 'not enough evidence yet', then check the source", async ({ page, baseURL }, testInfo) => {
   const kid = provisionStudent(studentName(testInfo.project.name, "ir"));
   await signIn(page, baseURL!, kid.username);
-  await openFromExplore(page, /Is That Real\?/);
+  await openFromExplore(page, /Is That Real?/);
 
-  await page.getByRole("button", { name: /Not enough evidence yet/ }).click();
+  await page.getByRole("group", { name: "Is this video real?" }).getByRole("button", { name: "Not enough evidence yet" }).click();
+  await page.getByRole("button", { name: /Not enough evidence yet — find where it first came from/ }).click();
   await expect(page.getByRole("status")).toContainText("isn't evidence");
+  await expect(page.getByText(/a video can't prove itself/)).toBeVisible();
 });

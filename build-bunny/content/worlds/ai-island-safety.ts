@@ -247,8 +247,8 @@ export const safetyAndFairness: ModuleFixture = {
         ar: "أربعة أشياء تظهر على شاشتك. قرّر ماذا تصدّق، وماذا تتحقق منه، وماذا تشارك.",
       },
       instructions: {
-        en: "Read each moment, then pick what you'd do. Every choice shows what happens next. At the end you'll have a Real-or-Not checklist.",
-        ar: "اقرأ كل موقف، ثم اختر ما ستفعله. كل خيار يُظهر ما يحدث بعده. في النهاية ستحصل على قائمة «حقيقي أم لا».",
+        en: "For each moment, first say what you think: real, made up, or not enough evidence yet? Then pick what you'd do. Every choice shows what happens next, and you can try another. At the end you'll have a Real-or-Not checklist.",
+        ar: "في كل موقف، قل أولًا ما رأيك: حقيقي، أم مصطنع، أم لا يوجد دليل كافٍ بعد؟ ثم اختر ما ستفعله. كل خيار يُظهر ما يحدث بعده، ويمكنك تجربة غيره. في النهاية ستحصل على قائمة «حقيقي أم لا».",
       },
       explanation: {
         en: "Machines can now make videos, voices and pictures of things that never happened, and a chatbot can be confidently wrong — it predicts words, it doesn't know. None of that makes the internet bad; it makes one habit precious: pause, ask 'how do I know?', check somewhere else, and ask a grown-up when it matters. And AI help is brilliant for learning — as long as the thinking you hand in is yours.",
@@ -284,6 +284,14 @@ export const safetyAndFairness: ModuleFixture = {
               ar: "مقطع فيديو يُظهر العمدة مو يقول شيئًا صادمًا. يبدو حقيقيًا. الجميع يشاركه.",
             },
             art: "🎬",
+            predict: {
+              question: { en: "Is this video real?", ar: "هل هذا الفيديو حقيقي؟" },
+              options: [
+                { id: "real", text: { en: "Real", ar: "حقيقي" }, note: { en: "It looked real, but it was made by a machine. \"Looks real\" isn't proof.", ar: "بدا حقيقيًا، لكن آلة صنعته. «يبدو حقيقيًا» ليس دليلًا." } },
+                { id: "made-up", text: { en: "Made up", ar: "مصطنع" }, note: { en: "It was made up, but you couldn't know that from the video alone. What would tell you?", ar: "كان مصطنعًا، لكنك لم تكن لتعرف ذلك من الفيديو وحده. ما الذي سيخبرك؟" } },
+                { id: "not-enough", text: { en: "Not enough evidence yet", ar: "لا يوجد دليل كافٍ بعد" }, note: { en: "The careful answer: a video can't prove itself. You'd need a source you trust.", ar: "الإجابة الحذرة: الفيديو لا يثبت نفسه. تحتاج إلى مصدر تثق به." } },
+              ],
+            },
             choices: [
               {
                 id: "share-video",
@@ -333,6 +341,14 @@ export const safetyAndFairness: ModuleFixture = {
               ar: "يجيب روبوت دردشة عن سؤالك فورًا وبثقة تامة. يبدو متأكدًا جدًا.",
             },
             art: "🤖",
+            predict: {
+              question: { en: "Is the chatbot's answer right?", ar: "هل إجابة روبوت الدردشة صحيحة؟" },
+              options: [
+                { id: "right", text: { en: "It's right", ar: "صحيحة" }, note: { en: "It sounded sure, but today it was wrong. Sure isn't the same as right.", ar: "بدا متأكدًا، لكنه كان مخطئًا اليوم. التأكد ليس الصواب." } },
+                { id: "wrong", text: { en: "It's wrong", ar: "خاطئة" }, note: { en: "It was wrong today, but you couldn't tell from how it sounded. What would tell you?", ar: "كانت خاطئة اليوم، لكنك لم تكن لتعرف من طريقة كلامه. ما الذي سيخبرك؟" } },
+                { id: "not-enough", text: { en: "Can't tell yet", ar: "لا أستطيع أن أعرف بعد" }, note: { en: "The careful answer: you'd need to check it somewhere else.", ar: "الإجابة الحذرة: تحتاج إلى التحقق منها في مكان آخر." } },
+              ],
+            },
             choices: [
               {
                 id: "believe-bot",
@@ -370,6 +386,14 @@ export const safetyAndFairness: ModuleFixture = {
               ar: "يرسل صديق صورة «تثبت» أن زميلًا فعل شيئًا سيئًا. «أرسلها للجميع!»",
             },
             art: "📸",
+            predict: {
+              question: { en: "Is the picture real?", ar: "هل الصورة حقيقية؟" },
+              options: [
+                { id: "real", text: { en: "Real", ar: "حقيقية" }, note: { en: "It had been edited. A picture can be changed in seconds.", ar: "كانت معدّلة. يمكن تغيير الصورة في ثوانٍ." } },
+                { id: "made-up", text: { en: "Edited or made up", ar: "معدّلة أو مصطنعة" }, note: { en: "It was edited, but the picture alone couldn't show you that. Who sent it first?", ar: "كانت معدّلة، لكن الصورة وحدها لم تكن لتُظهر لك ذلك. من أرسلها أولًا؟" } },
+                { id: "not-enough", text: { en: "Not enough evidence yet", ar: "لا يوجد دليل كافٍ بعد" }, note: { en: "The careful answer: with no source, a picture proves nothing.", ar: "الإجابة الحذرة: بلا مصدر، لا تثبت الصورة شيئًا." } },
+              ],
+            },
             choices: [
               {
                 id: "forward-picture",

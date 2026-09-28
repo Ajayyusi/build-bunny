@@ -146,3 +146,54 @@ describe("resuming an ethics story from its draft", () => {
     expect(restoreEthicsDraft("junk", { scenes })).toEqual({ sceneIndex: 0, path: [], finished: false });
   });
 });
+
+describe("say what you think first (the predict step)", () => {
+  const withPredict = {
+    ...story,
+    scenes: [
+      {
+        ...story.scenes[0]!,
+        predict: {
+          question: { en: "Real?" },
+          options: [
+            { id: "real", text: { en: "Real" }, note: { en: "n" } },
+            { id: "unsure", text: { en: "Not enough evidence" }, note: { en: "n" } },
+          ],
+        },
+      },
+      story.scenes[1]!,
+    ],
+  };
+
+  it("records the verdict, which is never graded", () => {
+    const graded = gradeAiEthics(snapshotOf(withPredict), {
+      path: [
+        { sceneId: "s1", choiceId: "careful", predicted: "real" },
+        { sceneId: "s2", choiceId: "a" },
+      ],
+    });
+    expect(graded).toMatchObject({ verdict: "PASS", qualityPassed: true, summary: { predictions: ["real"] } });
+  });
+
+  it("refuses a verdict the scene doesn't offer", () => {
+    const path = (sceneId: string, predicted: string) => [
+      { sceneId: "s1", choiceId: "careful", ...(sceneId === "s1" ? { predicted } : {}) },
+      { sceneId: "s2", choiceId: "a", ...(sceneId === "s2" ? { predicted } : {}) },
+    ];
+    expect(gradeAiEthics(snapshotOf(withPredict), { path: path("s1", "fake") }).verdict).toBe("ERROR");
+    // s2 asks nothing.
+    expect(gradeAiEthics(snapshotOf(withPredict), { path: path("s2", "real") }).verdict).toBe("ERROR");
+  });
+
+  it("Is That Real? and Who Decides? ask for a verdict first, with a careful 'can't tell' answer", () => {
+    for (const slug of ["is-that-real", "who-decides"]) {
+      const p = aiEthicsPayload.parse(level(slug).payload);
+      const asking = p.scenes.filter((s) => s.predict);
+      expect(asking.length, slug).toBeGreaterThanOrEqual(3);
+      for (const scene of asking) {
+        expect(scene.predict!.options.some((o) => /not enough|can't tell/i.test(o.text.en)), scene.id).toBe(true);
+        for (const o of scene.predict!.options) expect(o.note.en && o.note.ar && o.text.ar, `${scene.id}/${o.id}`).toBeTruthy();
+      }
+    }
+  });
+});

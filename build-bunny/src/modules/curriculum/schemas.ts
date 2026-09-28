@@ -694,6 +694,21 @@ export const aiEthicsPayload = z.object({
             confidence: z.number().min(0).max(1),
           })
           .optional(),
+        /**
+         * PREDICT: the child's verdict before deciding what to do ("Real,
+         * made up, or not enough evidence?"). Each option's note is shown
+         * after the outcome, talking about that verdict. Not graded: there is
+         * no right feeling, only a thought to compare with what happened.
+         */
+        predict: z
+          .object({
+            question: localizedText,
+            options: z
+              .array(z.object({ id: z.string().min(1), text: localizedText, note: localizedText }))
+              .min(2)
+              .max(4),
+          })
+          .optional(),
         choices: z
           .array(
             z.object({

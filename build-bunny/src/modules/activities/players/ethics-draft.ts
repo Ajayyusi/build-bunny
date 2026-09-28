@@ -1,6 +1,6 @@
 import { resolveNextSceneIndex, type AiEthicsActivityPayload } from "../types";
 
-export type PathStep = { sceneId: string; choiceId: string; tried?: string[] };
+export type PathStep = { sceneId: string; choiceId: string; tried?: string[]; predicted?: string };
 
 /**
  * Rebuild a branching story in progress from an autosaved draft, walking it
@@ -25,7 +25,12 @@ export function restoreEthicsDraft(
   for (const step of source.path) {
     const scene = payload.scenes[index];
     if (!scene || typeof step !== "object" || step === null) break;
-    const { sceneId, choiceId, tried } = step as { sceneId?: unknown; choiceId?: unknown; tried?: unknown };
+    const { sceneId, choiceId, tried, predicted } = step as {
+      sceneId?: unknown;
+      choiceId?: unknown;
+      tried?: unknown;
+      predicted?: unknown;
+    };
     if (sceneId !== scene.id || typeof choiceId !== "string") break;
     const choice = scene.choices.find((c) => c.id === choiceId);
     if (!choice) break;
@@ -33,7 +38,14 @@ export function restoreEthicsDraft(
     const kept = Array.isArray(tried)
       ? [...new Set(tried.filter((id): id is string => typeof id === "string" && id !== choiceId && scene.choices.some((c) => c.id === id)))]
       : [];
-    path.push(kept.length > 0 ? { sceneId: scene.id, choiceId, tried: kept } : { sceneId: scene.id, choiceId });
+    const verdict =
+      typeof predicted === "string" && scene.predict?.options.some((o) => o.id === predicted) ? predicted : undefined;
+    path.push({
+      sceneId: scene.id,
+      choiceId,
+      ...(kept.length > 0 ? { tried: kept } : {}),
+      ...(verdict ? { predicted: verdict } : {}),
+    });
     index = resolveNextSceneIndex(payload.scenes, index, choice.next);
   }
   const finished = index >= payload.scenes.length;

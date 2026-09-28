@@ -554,7 +554,8 @@
         "triedNote": "You tried this",
         "suggestionLabel": "The machine suggests",
         "suggestionWhy": "Its reason:",
-        "suggestionSure": "How sure it says it is: {percent}%"
+        "suggestionSure": "How sure it says it is: {percent}%",
+        "youSaid": "You said: {answer}."
       },
       "aiSim": {
         "submit": "Check my work",
@@ -892,7 +893,8 @@
         "tryRule": "Pick the rule “{rule}”, then press “{button}”.",
         "pressButton": "Press “{button}”.",
         "predictGuesses": "Guess what the bunny will say for each mystery one, then press “{button}”.",
-        "pressRoundButton": "In {round}, press “{button}”."
+        "pressRoundButton": "In {round}, press “{button}”.",
+        "answerQuestion": "First, say what you think. Any answer is fine: you'll see what happened next."
       },
       "check": {
         "title": "Quick check",

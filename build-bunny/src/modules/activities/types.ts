@@ -239,6 +239,7 @@ export interface NextStepStateInput {
   markers?: { size: number; color: number }[];
   excluded?: string[];
   sceneId?: string | null;
+  predicting?: boolean;
   line?: { slope: number; intercept: number };
   phase?: "fit" | "compare" | "predict" | "revealed";
   prediction?: number | null;
@@ -331,6 +332,8 @@ export interface AiEthicsActivityPayload {
     art?: string;
     /** A machine's suggestion to review: what, why, and how sure (0–1). */
     suggestion?: { text: LocalizedText; reason: LocalizedText; confidence: number };
+    /** The child's verdict first; each option's note is shown after the outcome. */
+    predict?: { question: LocalizedText; options: { id: string; text: LocalizedText; note: LocalizedText }[] };
     choices: {
       id: string;
       text: LocalizedText;

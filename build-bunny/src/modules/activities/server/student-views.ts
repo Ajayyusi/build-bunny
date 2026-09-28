@@ -29,6 +29,13 @@ export const aiEthicsStudentPayload = z
             .object({ text: localizedText, reason: localizedText, confidence: z.number() })
             .strict()
             .optional(),
+          predict: z
+            .object({
+              question: localizedText,
+              options: z.array(z.object({ id: z.string(), text: localizedText, note: localizedText }).strict()),
+            })
+            .strict()
+            .optional(),
           choices: z.array(
             z
               .object({

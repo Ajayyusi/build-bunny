@@ -554,7 +554,8 @@
         "triedNote": "جرّبت هذا",
         "suggestionLabel": "تقترح الآلة",
         "suggestionWhy": "سببها:",
-        "suggestionSure": "مدى ثقتها كما تقول: {percent}%"
+        "suggestionSure": "مدى ثقتها كما تقول: {percent}%",
+        "youSaid": "قلت: {answer}."
       },
       "aiSim": {
         "submit": "تحقّق من عملي",
@@ -892,7 +893,8 @@
         "tryRule": "اختر القاعدة «{rule}»، ثم اضغط «{button}».",
         "pressButton": "اضغط «{button}».",
         "predictGuesses": "خمّن ماذا سيقول الأرنب عن كل واحد غامض، ثم اضغط «{button}».",
-        "pressRoundButton": "في {round}، اضغط «{button}»."
+        "pressRoundButton": "في {round}، اضغط «{button}».",
+        "answerQuestion": "أولًا، قل ما رأيك. أي إجابة مقبولة: سترى ما حدث بعد ذلك."
       },
       "check": {
         "title": "سؤال سريع",

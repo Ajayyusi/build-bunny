@@ -110,6 +110,8 @@ export function useNextStepText() {
         return t("restoreReading", { specimen: name(names.specimen, step.specimenId) });
       case "chooseSafe":
         return t("chooseSafe", { choice: name(names.choice, step.choiceId) });
+      case "answerQuestion":
+        return t("answerQuestion");
       case "nudgeLine":
         return t("nudgeLine", { end: t(`end.${step.end}`), dir: t(`dir.${step.dir}`) });
       case "revealComputer":

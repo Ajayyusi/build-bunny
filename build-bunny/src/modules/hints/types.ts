@@ -65,6 +65,8 @@ export type NextStep =
   | { code: "strikeReading"; specimenId: string }
   | { code: "restoreReading"; specimenId: string }
   | { code: "chooseSafe"; choiceId: string }
+  /** Ethics: say what you think first (any answer — it isn't graded). */
+  | { code: "answerQuestion" }
   | { code: "nudgeLine"; end: "left" | "right"; dir: "up" | "down" }
   | { code: "revealComputer" }
   | { code: "setPrediction"; value: number }

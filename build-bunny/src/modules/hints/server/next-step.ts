@@ -377,6 +377,8 @@ export const nextStepStateSchema = z.object({
   markers: z.array(z.object({ size: z.number(), color: z.number() })).max(6).optional(),
   excluded: z.array(z.string()).max(4).optional(),
   sceneId: z.string().nullable().optional(),
+  /** Ethics: the scene is asking for the child's verdict first. */
+  predicting: z.boolean().optional(),
   line: z.object({ slope: z.number(), intercept: z.number() }).optional(),
   phase: z.enum(["fit", "compare", "predict", "revealed"]).optional(),
   prediction: z.number().nullable().optional(),
@@ -569,6 +571,7 @@ export function computeNextStep(
     case "AI_ETHICS": {
       const p = aiEthicsPayload.parse(payload);
       const scene = p.scenes.find((s) => s.id === state.sceneId) ?? null;
+      if (scene && state.predicting) return { code: "answerQuestion" };
       const safe = scene?.choices.find((c) => c.safe);
       return safe ? { code: "chooseSafe", choiceId: safe.id } : { code: "ready" };
     }
