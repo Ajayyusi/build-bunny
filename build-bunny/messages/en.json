@@ -1291,7 +1291,8 @@
           "caveat": "For each Explore AI activity: how many children finished it, and how many explained its idea correctly first time in the one-tap quick check. Understanding is shown apart from completion, because finishing alone doesn't show the idea landed.",
           "finished": "{finished} of {students} finished",
           "firstTry": "{firstTry} of {answered} explained it first time",
-          "noAnswers": "No quick-check answers yet"
+          "noAnswers": "No quick-check answers yet",
+          "activity": "Sessions {starts} · tests {tests} · retries {retries} · finished {completions}"
         }
       },
       "student": {
@@ -1680,7 +1681,16 @@
         "columnWorld": "World",
         "columnAttempts": "Attempts",
         "columnFailRate": "Fail rate",
-        "levelsEmpty": "Not enough attempts yet to show this."
+        "levelsEmpty": "Not enough attempts yet to show this.",
+        "ai": {
+          "heading": "AI activities: last 30 days",
+          "summary": "Across the school: {starts, plural, one {# session} other {# sessions}}, {tests, plural, one {# test} other {# tests}}, {retries, plural, one {# retry} other {# retries}}, {completions, plural, one {# completion} other {# completions}}.",
+          "starts": "Sessions",
+          "tests": "Tests",
+          "retries": "Retries",
+          "completions": "Completions",
+          "note": "A session is each time a child opens an AI activity. A test is a check or a try inside it (showing the robot's guesses, checking a picture). A retry is trying again after something didn't work. Counts only: no child is named."
+        }
       },
       "teachersPage": {
         "title": "Teachers",

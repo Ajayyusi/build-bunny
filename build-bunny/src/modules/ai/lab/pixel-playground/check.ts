@@ -2,6 +2,7 @@ import "server-only";
 
 import { z } from "zod";
 
+import { recordLearningEvent } from "@/lib/events";
 import { NotFoundError } from "@/modules/auth/server/guard";
 import type { SessionContext } from "@/modules/auth/server/session";
 import { aiSimPayload } from "@/modules/curriculum/schemas";
@@ -24,8 +25,8 @@ export type PixelRoundCheckInput = z.infer<typeof pixelRoundCheckSchema>;
  * See Like a Computer: check ONE mystery round's guess, mid-level. The
  * answer key (each round's imageId) never reaches the browser, so the
  * per-round reveal has to come from here. Same gate as every in-level call
- * (progress row + entitlement); it grades nothing and records nothing — the
- * level's graded attempt still re-checks every round.
+ * (progress row + entitlement); it grades nothing — the level's graded
+ * attempt still re-checks every round — and records one AI_TEST event.
  */
 export async function checkPixelRoundCore(
   ctx: SessionContext,
@@ -41,5 +42,14 @@ export async function checkPixelRoundCore(
   }
   const result = judgePixelRound(payload.data.widget, input);
   if (!result) throw new NotFoundError("Round not found");
+  if (!ctx.impersonatedBy && ctx.schoolId) {
+    await recordLearningEvent({
+      type: "AI_TEST",
+      schoolId: ctx.schoolId,
+      studentUserId: ctx.userId,
+      levelId,
+      meta: { what: "pixelCheck", correct: result.correct },
+    });
+  }
   return result;
 }

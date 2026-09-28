@@ -15,6 +15,7 @@ import type { AiSimWidgetPlayerProps } from "./registry";
 import { restoreLine } from "./restore-work";
 import { useStableCallback } from "./useStableCallback";
 import styles from "./widgets.module.css";
+import { sendPlayEvent } from "@/modules/activities/players/shared/play-events";
 
 /**
  * "Fortune Teller" (phase G, client half): drag a trend line, watch the
@@ -107,6 +108,7 @@ export function TrendLine({
   onWorkChange,
   initialWork,
   retryCount = 0,
+  levelId,
 }: AiSimWidgetPlayerProps) {
   const config = rawConfig as TrendLineConfig;
   const t = useTranslations("student.play.aiSim.trendLine");
@@ -529,6 +531,7 @@ export function TrendLine({
             onClick={() => {
               setComputerRevealed(true);
               setSubPhase("compare");
+              sendPlayEvent(levelId, { kind: "test", what: "computerTurn" });
             }}
             className="inline-flex h-11 items-center justify-center gap-2 rounded-lg border-2 border-border-token bg-surface-raised px-4 text-sm font-semibold text-ink transition-colors hover:bg-surface-sunken disabled:pointer-events-none disabled:opacity-60"
           >
@@ -544,6 +547,7 @@ export function TrendLine({
               onClick={() => {
                 setComputerRevealed(false);
                 setSubPhase("fit");
+                sendPlayEvent(levelId, { kind: "retry", what: "moveLineAgain" });
               }}
               className="inline-flex h-11 items-center justify-center gap-2 rounded-lg border-2 border-border-token bg-surface-raised px-4 text-sm font-semibold text-ink transition-colors hover:bg-surface-sunken disabled:pointer-events-none disabled:opacity-60"
             >
@@ -621,7 +625,10 @@ export function TrendLine({
               <button
                 type="button"
                 disabled={disabled}
-                onClick={() => setSubPhase("revealed")}
+                onClick={() => {
+                  setSubPhase("revealed");
+                  sendPlayEvent(levelId, { kind: "test", what: "lockPrediction" });
+                }}
                 className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-brand px-4 text-sm font-semibold text-on-brand transition-colors hover:bg-brand-strong disabled:pointer-events-none disabled:opacity-60"
               >
                 {t("lockPrediction")}
@@ -630,7 +637,10 @@ export function TrendLine({
               <button
                 type="button"
                 disabled={disabled}
-                onClick={() => setSubPhase("predict")}
+                onClick={() => {
+                  setSubPhase("predict");
+                  sendPlayEvent(levelId, { kind: "retry", what: "tryAnotherPrediction" });
+                }}
                 className="inline-flex h-11 items-center justify-center gap-2 rounded-lg border-2 border-border-token bg-surface-raised px-4 text-sm font-semibold text-ink transition-colors hover:bg-surface-sunken disabled:pointer-events-none disabled:opacity-60"
               >
                 {t("tryAnotherPrediction")}

@@ -13,6 +13,8 @@ import {
 import { computeLevelActivityStats, rankMostFailed } from "./level-activity";
 import type { SessionContext } from "@/modules/auth/server/session";
 import { CONCEPT_CHECKS, type ExploreConcept } from "@/modules/explore/catalog";
+
+import { countAiEvents, emptyCounts, type AiActivityCounts } from "./ai-activity";
 import { localizedText, type LocalizedText } from "@/modules/curriculum/schemas";
 import type { LevelSnapshot } from "@/modules/curriculum/server/publish";
 import { gradeWorkspace, type GradeVariantResult } from "@/modules/grading/server/grade";
@@ -1398,6 +1400,8 @@ export interface ClassAiIdea {
   /** …who answered its quick check, and who got it right first time. */
   answered: number;
   firstTry: number;
+  /** Class totals from the event stream: sessions, tests, retries, completions. */
+  activity: AiActivityCounts;
 }
 
 export interface ClassAiIdeas {
@@ -1430,7 +1434,7 @@ export async function getClassAiIdeas(ctx: SessionContext, classId: string): Pro
     .sort((a, b) => order.indexOf(a.slug) - order.indexOf(b.slug));
   if (levels.length === 0) return { students: studentIds.length, ideas: [] };
   const levelIds = levels.map((level) => level.id);
-  const [finished, checks, names] = await Promise.all([
+  const [finished, checks, names, activity] = await Promise.all([
     studentIds.length
       ? db.studentProgress.groupBy({
           by: ["levelId"],
@@ -1445,6 +1449,7 @@ export async function getClassAiIdeas(ctx: SessionContext, classId: string): Pro
         })
       : Promise.resolve([]),
     publishedLevelNames(schoolId, levelIds),
+    countAiEvents({ schoolId, levelIds, studentIds, by: "levelId" }),
   ]);
   const finishedBy = new Map(finished.map((row) => [row.levelId, row._count._all]));
   const ideas = levels.map((level): ClassAiIdea => {
@@ -1456,6 +1461,7 @@ export async function getClassAiIdeas(ctx: SessionContext, classId: string): Pro
       finished: finishedBy.get(level.id) ?? 0,
       answered: answers.length,
       firstTry: answers.filter((row) => row.firstCorrect).length,
+      activity: activity.get(level.id) ?? emptyCounts(),
     };
   });
   return { students: studentIds.length, ideas };

@@ -28,6 +28,7 @@ import type { AiSimWidgetPlayerProps } from "./registry";
 import { restoreRounds } from "./restore-work";
 import { useStableCallback } from "./useStableCallback";
 import styles from "./widgets.module.css";
+import { sendPlayEvent } from "@/modules/activities/players/shared/play-events";
 
 /**
  * "See Like a Computer" (phase G, client half): a real pixel pipeline —
@@ -578,7 +579,10 @@ export function PixelPlayground({
                     ) : state.status === "notYet" ? (
                       <button
                         type="button"
-                        onClick={() => act(round.id, { type: "moreSquares", stepCount: steps.length })}
+                        onClick={() => {
+                          act(round.id, { type: "moreSquares", stepCount: steps.length });
+                          sendPlayEvent(levelId, { kind: "retry", what: "moreSquares" });
+                        }}
                         className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-brand px-4 text-sm font-semibold text-on-brand transition-colors hover:bg-brand-strong"
                       >
                         <span aria-hidden="true">🔍</span>
@@ -587,7 +591,10 @@ export function PixelPlayground({
                     ) : state.status === "missed" ? (
                       <button
                         type="button"
-                        onClick={() => act(round.id, { type: "retry" })}
+                        onClick={() => {
+                          act(round.id, { type: "retry" });
+                          sendPlayEvent(levelId, { kind: "retry", what: "retryRound" });
+                        }}
                         className="inline-flex h-11 items-center justify-center gap-2 rounded-lg border-2 border-border-token bg-surface-raised px-4 text-sm font-semibold text-ink transition-colors hover:bg-surface-sunken"
                       >
                         {t("retryRound")}

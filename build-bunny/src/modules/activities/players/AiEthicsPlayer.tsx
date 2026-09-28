@@ -27,6 +27,7 @@ import type {
 } from "../types";
 import { resolveLocalized, resolveNextSceneIndex } from "../types";
 import { restoreEthicsDraft, type PathStep } from "./ethics-draft";
+import { sendPlayEvent } from "./shared/play-events";
 
 /**
  * AI_ETHICS player (phase G, "Secret Keepers"): a branching privacy
@@ -132,6 +133,7 @@ export function AiEthicsPlayer({
   const choose = (choiceId: string) => {
     if (locked || chosenChoiceId) return;
     setChosenChoiceId(choiceId);
+    sendPlayEvent(intro.levelId, { kind: "test", what: "choice" });
   };
 
   // Back to this scene's choices, to see what another one does.
@@ -140,6 +142,7 @@ export function AiEthicsPlayer({
     // Each choice is listed once, in the order first tried; going back to
     // one tried earlier is allowed (it then becomes the final choice too).
     setTried((current) => (current.includes(chosenChoiceId) ? current : [...current, chosenChoiceId]));
+    sendPlayEvent(intro.levelId, { kind: "retry", what: "tryAnother" });
     setChosenChoiceId(null);
   };
 

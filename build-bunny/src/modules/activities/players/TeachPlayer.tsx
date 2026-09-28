@@ -48,6 +48,7 @@ import type { PlayerButton } from "@/modules/hints/types";
 
 import type { ActivityPlayerProps, AttemptResponse, TeachRuleRound as RuleRound } from "../types";
 import { resolveLocalized } from "../types";
+import { sendPlayEvent } from "./shared/play-events";
 
 /**
  * AI_CLASSIFICATION player — "Teach the Bunny".
@@ -630,6 +631,7 @@ export function TeachPlayer({
               onTest={() => {
                 setRuleTested(ruleChosen);
                 setPointed(null);
+                sendPlayEvent(intro.levelId, { kind: "test", what: "testRule" });
               }}
               onSeeToday={() => {
                 setRuleStage("today");
@@ -891,6 +893,7 @@ export function TeachPlayer({
                       onReveal={() => {
                         setRevealed(true);
                         setPointed(null);
+                        sendPlayEvent(intro.levelId, { kind: "test", what: "revealGuesses" });
                       }}
                       renderGlyph={(probe) => <Berry specimen={probe} theme={glyph} />}
                       describe={describe}
