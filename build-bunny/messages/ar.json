@@ -995,7 +995,8 @@
         "showSteps": "أظهر كل الخطوات",
         "youngerMissed": "أخطأ في التخمين. أي مثال قد يساعده؟",
         "deeperErrors": "أخطاؤه: {falseYes, plural, one {واحد قال «{positive}» وهو ليس كذلك} two {اثنان قالا «{positive}» وهما ليسا كذلك} few {# قالت «{positive}» وهي ليست كذلك} other {# قالت «{positive}» وهي ليست كذلك}}، و{missed, plural, one {واحد فاته «{positive}» حقيقي} two {اثنان فاتهما «{positive}» حقيقي} few {# فاتها «{positive}» حقيقي} other {# فاتها «{positive}» حقيقي}}.",
-        "closeCall": "قرار متقارب"
+        "notSure": "لست متأكدًا: علّمني مثالًا كهذا",
+        "notSureOlder": "لست متأكدًا (متأكد بنسبة {sure}%): مثال كهذا سيساعد"
       },
       "explain": {
         "title": "قُلها بطريقتك",

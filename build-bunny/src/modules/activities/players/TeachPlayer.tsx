@@ -15,6 +15,7 @@ import {
   closeCall,
   mistakeKinds,
   nearest,
+  sureness,
   toTrainingExample,
   type ClassLabel,
   type LabelledSpecimen,
@@ -988,9 +989,16 @@ export function TeachPlayer({
                           >
                             {guess ? data.labels[guess] : "—"}
                           </span>
-                          {intro.aiMode === "older" && match && closeCall(examples, probe) ? (
+                          {/* "Not sure" is a real answer (handoff: uncertainty):
+                              when both kinds are nearly as near, the robot
+                              says so and asks for an example like this one.
+                              Grades 5-7 also see how sure it is. */}
+                          {match && closeCall(examples, probe) ? (
                             <span className="shrink-0 rounded-md bg-warning/14 px-1.5 py-0.5 text-[11px] font-bold text-warning-strong">
-                              {tMode("closeCall")}
+                              <span aria-hidden="true">🤔 </span>
+                              {intro.aiMode === "older"
+                                ? tMode("notSureOlder", { sure: Math.round((sureness(examples, probe) ?? 0) * 100) })
+                                : tMode("notSure")}
                             </span>
                           ) : null}
                           {data.predictFirst && predictions[probe.id] ? (

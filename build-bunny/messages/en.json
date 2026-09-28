@@ -995,7 +995,8 @@
         "showSteps": "Show all the steps",
         "youngerMissed": "It guessed wrong. Which example might help?",
         "deeperErrors": "Its mistakes: {falseYes, plural, one {# said “{positive}” when it wasn't} other {# said “{positive}” when they weren't}}, and {missed, plural, one {# missed a real “{positive}”} other {# missed a real “{positive}”}}.",
-        "closeCall": "Close call"
+        "notSure": "Not sure: teach me one like this",
+        "notSureOlder": "Not sure ({sure}% sure): an example like this would help"
       },
       "explain": {
         "title": "Say it your way",

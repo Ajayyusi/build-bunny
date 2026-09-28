@@ -88,6 +88,25 @@ export function toTrainingExample(specimen: LabelledSpecimen): LabelledSpecimen 
 }
 
 /**
+ * How sure the 1-nearest-neighbour answer is, 0 to 1: how much nearer the
+ * example it copied is than the nearest example of the other kind. 1 = the
+ * other kind is far away; 0 = both are just as near (a coin toss). Null
+ * until both kinds have been taught. An honest, simple margin — not a
+ * probability.
+ */
+export function sureness(examples: readonly LabelledSpecimen[], probe: Features): number | null {
+  const best = { positive: Infinity, negative: Infinity };
+  for (const example of examples) {
+    const d = distanceSq(example, probe);
+    if (d < best[example.label]) best[example.label] = d;
+  }
+  if (!Number.isFinite(best.positive) || !Number.isFinite(best.negative)) return null;
+  const near = Math.sqrt(Math.min(best.positive, best.negative));
+  const far = Math.sqrt(Math.max(best.positive, best.negative));
+  return far === 0 ? 0 : 1 - near / far;
+}
+
+/**
  * A close call (grades 5 to 7's deeper test): the nearest example of the
  * other label is almost as near as the one the machine copied, so a small
  * change in the examples could flip the answer — the classifier's honest

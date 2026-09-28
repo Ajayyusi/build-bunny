@@ -45,3 +45,18 @@ describe("the deeper test (grades 5-7)", () => {
     expect(mistakeKinds(guesses, [])).toEqual({ falseYes: 0, missedYes: 0 });
   });
 });
+
+describe("not sure (uncertainty)", () => {
+  it("sureness is 1 far from the other kind and 0 halfway", async () => {
+    const { sureness } = await import("@/modules/ai/knn");
+    const examples = [
+      { id: "p", size: 0, color: 0, label: "positive" as const },
+      { id: "n", size: 1, color: 0, label: "negative" as const },
+    ];
+    expect(sureness(examples, { size: 0, color: 0 })).toBe(1);
+    expect(sureness(examples, { size: 0.5, color: 0 })).toBe(0);
+    expect(sureness([examples[0]!], { size: 0.5, color: 0 })).toBeNull();
+    const s = sureness(examples, { size: 0.25, color: 0 })!;
+    expect(s).toBeCloseTo(1 - 0.25 / 0.75, 5);
+  });
+});
