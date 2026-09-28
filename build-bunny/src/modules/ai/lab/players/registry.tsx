@@ -26,8 +26,12 @@ export interface AiSimWidgetPlayerProps {
   /** True once the attempt has been submitted — every widget must stop accepting input. */
   disabled: boolean;
   reducedMotion: boolean;
-  /** Called whenever the child's work changes; `ready` gates the wrapper's Submit button. */
-  onWorkChange: (work: unknown, ready: boolean) => void;
+  /**
+   * Called whenever the child's work changes; `ready` gates the wrapper's
+   * Submit button. `step` names the widget's current step for next-step
+   * hints (never part of the graded answer).
+   */
+  onWorkChange: (work: unknown, ready: boolean, step?: string) => void;
   /**
    * A previously autosaved snapshot in the SAME shape this widget reports
    * through onWorkChange, or null. Untrusted: it comes from a past session
@@ -35,6 +39,13 @@ export interface AiSimWidgetPlayerProps {
    * the widget's normal starting state, never break the level.
    */
   initialWork?: unknown;
+  /**
+   * Bumped by the wrapper each time the child presses "Try again" after a
+   * graded attempt. A widget with steps (fit → predict) goes back to its
+   * first step on a change, keeping the child's work, so a retry is a real
+   * retry rather than a locked screen.
+   */
+  retryCount?: number;
 }
 
 const BoundaryBuilder = dynamic(

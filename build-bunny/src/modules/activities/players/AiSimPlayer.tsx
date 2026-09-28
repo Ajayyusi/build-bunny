@@ -63,6 +63,7 @@ export function AiSimPlayer({
   const tSim = useTranslations("student.play.aiSim");
   const tNext = useTranslations("student.play.nextStep");
   const locale = useLocale();
+  const tTrend = useTranslations("student.play.aiSim.trendLine");
 
   const beats = payload.walkthrough ?? null;
   // Opens on arrival when the level authored one. A child landing on an
@@ -117,9 +118,13 @@ export function AiSimPlayer({
   // Stable identity across renders (empty deps, functional setState) — the
   // widget below reports on every drag tick, so a fresh identity per render
   // would otherwise defeat the widgets' own useStableCallback guard.
-  const handleWorkChange = useCallback((nextWork: unknown, nextReady: boolean) => {
+  // The widget's own step (Fortune Teller: fit, compare, predict, revealed),
+  // for next-step hints only.
+  const [widgetStep, setWidgetStep] = useState<string | null>(null);
+  const handleWorkChange = useCallback((nextWork: unknown, nextReady: boolean, step?: string) => {
     setWork(nextWork);
     setReady(nextReady);
+    setWidgetStep(step ?? null);
   }, []);
 
   const submit = async (id: string, answer: unknown) => {
@@ -156,9 +161,13 @@ export function AiSimPlayer({
     void submit(submission.id, submission.answer);
   };
 
+  // Bumped on every "Try again", so step-based widgets reopen their first
+  // step (Fortune Teller used to stay locked in its prediction step).
+  const [retryCount, setRetryCount] = useState(0);
   const handleTryAgain = () => {
     setSubmission(null);
     setPhase("edit");
+    setRetryCount((count) => count + 1);
   };
 
   // ── Hints ──────────────────────────────────────────────────────────────
@@ -311,6 +320,7 @@ export function AiSimPlayer({
             reducedMotion={reducedMotion}
             onWorkChange={handleWorkChange}
             initialWork={draft}
+            retryCount={retryCount}
           />
 
           {showFailure ? (
@@ -365,7 +375,12 @@ export function AiSimPlayer({
               const w = (work ?? {}) as { line?: { slope: number; intercept: number }; prediction?: number; rounds?: Record<string, string> };
               if (widgetId === "pixel-playground") return { rounds: w.rounds ?? {} };
               if (widgetId === "trend-line") {
-                return { line: w.line, phase: ready ? "predict" : "fit", prediction: w.prediction ?? null };
+                const step = widgetStep ?? (ready ? "revealed" : "fit");
+                return {
+                  line: w.line,
+                  phase: step as "fit" | "compare" | "predict" | "revealed",
+                  prediction: w.prediction ?? null,
+                };
               }
               return { line: w.line };
             }}
@@ -379,6 +394,11 @@ export function AiSimPlayer({
                 const image = images.find((x) => x.id === id);
                 return image ? resolveLocalized(image.name, locale) : id;
               },
+              // Fortune Teller's step buttons, named as the child sees them.
+              button: (button) =>
+                button === "continueToPredict" || button === "moveLineAgain" || button === "lockPrediction" || button === "tryAnotherPrediction"
+                  ? tTrend(button)
+                  : button,
             }}
           />
         ) : null}

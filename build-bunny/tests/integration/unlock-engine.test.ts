@@ -588,8 +588,8 @@ describe("Explore AI levels open from day one", () => {
     await createTestLevel(mAi.id, 2, { title: "Also Before" });
     // Third in its module, in a world gated behind the coding world: the
     // normal rules would keep it shut for a long time.
-    const sorter = await createTestLevel(mAi.id, 3, { title: "Teach the Bunny" });
-    await db.level.update({ where: { id: sorter.id }, data: { slug: "berry-sorter" } });
+    const sorter = await createTestLevel(mAi.id, 3, { title: "Train a Sorter" });
+    await db.level.update({ where: { id: sorter.id }, data: { slug: "train-a-sorter" } });
     sorterId = sorter.id;
     const horizonSorter = await createTestLevel(mLater.id, 1, { title: "Roadmap Sorter" });
     await db.level.update({ where: { id: horizonSorter.id }, data: { slug: "fortune-teller" } });

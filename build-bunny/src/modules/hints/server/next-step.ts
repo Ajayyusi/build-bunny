@@ -378,7 +378,7 @@ export const nextStepStateSchema = z.object({
   excluded: z.array(z.string()).max(4).optional(),
   sceneId: z.string().nullable().optional(),
   line: z.object({ slope: z.number(), intercept: z.number() }).optional(),
-  phase: z.enum(["fit", "predict"]).optional(),
+  phase: z.enum(["fit", "compare", "predict", "revealed"]).optional(),
   prediction: z.number().nullable().optional(),
   rounds: z.record(z.string(), z.string()).optional(),
   /** Rule or Examples?: where the child is in the rule round, if the level has one. */
@@ -576,11 +576,21 @@ export function computeNextStep(
       if (w.widgetId === "trend-line") {
         const best = leastSquares(w.points);
         const line = state.line;
+        // Fit → compare → predict (blind) → revealed: the widget's steps.
+        const want = round1(best.slope * w.predictAt + best.intercept);
+        const close = state.prediction !== null && state.prediction !== undefined && Math.abs(state.prediction - want) <= 0.5;
+        if (state.phase === "revealed") {
+          if (close && line && passes({ line, prediction: state.prediction! }).pass) return { code: "ready" };
+          return { code: "pressButton", button: "tryAnotherPrediction" };
+        }
         if (state.phase === "predict") {
-          const want = round1(best.slope * w.predictAt + best.intercept);
-          if (state.prediction !== null && state.prediction !== undefined && line && passes({ line, prediction: state.prediction }).pass &&
-            Math.abs(state.prediction - want) <= 0.5) return { code: "ready" };
-          return { code: "setPrediction", value: want };
+          return close ? { code: "pressButton", button: "lockPrediction" } : { code: "setPrediction", value: want };
+        }
+        if (state.phase === "compare") {
+          if (line && passes({ line, prediction: round1(line.slope * w.predictAt + line.intercept) }).pass) {
+            return { code: "pressButton", button: "continueToPredict" };
+          }
+          return { code: "pressButton", button: "moveLineAgain" };
         }
         if (!line) return { code: "none" };
         if (passes({ line, prediction: round1(line.slope * w.predictAt + line.intercept) }).pass) return { code: "revealComputer" };

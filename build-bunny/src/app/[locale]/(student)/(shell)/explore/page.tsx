@@ -32,7 +32,6 @@ export default async function ExplorePage({ params }: Props) {
     redirect({ href: "/home", locale });
   }
   const [state, t] = await Promise.all([getExploreState(ctx), getTranslations("student.explore")]);
-  const sorter = state.cards.find((card) => card.slug === "berry-sorter");
 
   return (
     <div className="flex flex-col gap-8">
@@ -79,7 +78,7 @@ export default async function ExplorePage({ params }: Props) {
                 state.followUp,
                 t,
                 locale,
-                state.followUp.state === "LOCKED" && sorter ? resolveText(sorter.title, locale) : undefined,
+                state.followUpAfter ? resolveText(state.followUpAfter, locale) : undefined,
               )}
               index={state.cards.length}
             />

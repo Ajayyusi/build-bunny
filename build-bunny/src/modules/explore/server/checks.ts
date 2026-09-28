@@ -6,8 +6,7 @@ import type { SessionContext } from "@/modules/auth/server/session";
 
 import {
   CONCEPT_CHECKS,
-  EXPLORE_FOLLOW_UP,
-  EXPLORE_SLUGS,
+  EXPLORE_LEVEL_SLUGS,
   type CheckChoice,
   type ExploreConcept,
 } from "../catalog";
@@ -43,7 +42,7 @@ export async function getExploreLevelContext(
   if (ctx.role !== "STUDENT" || !ctx.schoolId) return { isExplore: false, check: null };
   const level = await db.level.findUnique({ where: { id: levelId }, select: { slug: true } });
   if (!level) return { isExplore: false, check: null };
-  const isExplore = EXPLORE_SLUGS.has(level.slug) || level.slug === EXPLORE_FOLLOW_UP.slug;
+  const isExplore = EXPLORE_LEVEL_SLUGS.has(level.slug);
   const check = CONCEPT_CHECKS[level.slug];
   if (!check) return { isExplore, check: null };
   const row = await db.conceptCheck.findUnique({

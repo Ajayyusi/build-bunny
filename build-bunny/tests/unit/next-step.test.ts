@@ -377,6 +377,20 @@ describe("following 'Show me the next step' finishes every level, through the ro
             state.rule = { ...state.rule!, chosen: step.ruleId };
             break;
           case "pressButton": {
+            // Fortune Teller's step buttons.
+            if (step.button === "continueToPredict" || step.button === "moveLineAgain" || step.button === "lockPrediction" || step.button === "tryAnotherPrediction") {
+              const from = { continueToPredict: "compare", moveLineAgain: "compare", lockPrediction: "predict", tryAnotherPrediction: "revealed" } as const;
+              if (state.phase !== from[step.button]) throw new Error(`unfollowable: ${step.button} isn't on screen`);
+              if (step.button === "continueToPredict") {
+                const w = aiSimPayload.parse(level.payload).widget;
+                // The slider starts at the child's own line.
+                state.prediction = state.line!.slope * ("predictAt" in w ? w.predictAt : 0) + state.line!.intercept;
+                state.phase = "predict";
+              } else if (step.button === "moveLineAgain") state.phase = "fit";
+              else if (step.button === "lockPrediction") state.phase = "revealed";
+              else state.phase = "predict";
+              break;
+            }
             const rule = state.rule!;
             if (step.button === "testRule") {
               if (!rule.chosen) throw new Error("unfollowable: Test the rule is disabled with no card picked");
@@ -430,13 +444,13 @@ describe("following 'Show me the next step' finishes every level, through the ro
             break;
           }
           case "revealComputer":
-            state.phase = "predict";
-            {
-              const w = aiSimPayload.parse(level.payload).widget;
-              state.prediction = state.line!.slope * ("predictAt" in w ? w.predictAt : 0) + state.line!.intercept;
-            }
+            // Fortune Teller: pressing "Computer's turn" locks the line
+            // beside the computer's (the compare step).
+            if (state.phase !== "fit") throw new Error("unfollowable: Computer's turn isn't on screen");
+            state.phase = "compare";
             break;
           case "setPrediction":
+            if (state.phase !== "predict") throw new Error("unfollowable: the prediction slider is locked");
             state.prediction = step.value;
             break;
           case "pickPicture":

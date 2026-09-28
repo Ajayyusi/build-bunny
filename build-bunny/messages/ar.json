@@ -571,7 +571,7 @@
         },
         "trendLine": {
           "instructionsFit": "اسحب الخط لتقليل مجموع الخطأ. ثم دع الحاسوب يُظهر لك أفضل خط لديه.",
-          "instructionsPredict": "حدّد توقعك للنقطة المُشار إليها، ثم شاهد كيف يقارَن بمدى محتمل.",
+          "instructionsPredict": "هذا هو النطاق المرجَّح. هل كان تخمينك داخله؟ يمكنك تجربة تخمين آخر.",
           "totalMissTarget": "مجموع الخطأ: {score} — الهدف: أقل من {target}",
           "totalMissReached": "مجموع الخطأ: {score} — ممتاز! خطك قريب بما يكفي",
           "computerMiss": "خطأ الحاسوب: {score}",
@@ -580,7 +580,7 @@
           "dragHandleHelp": "اسحب في أي مكان على الخط، أو من أحد طرفيه لإمالته. عند تركيز الخط، استخدم مفتاحي السهم لأعلى ولأسفل لتحريكه، أو اضغط مع مفتاح Shift ومفتاحي السهم لإمالته.",
           "computerTurn": "دور الحاسوب",
           "continueToPredict": "تابع إلى التوقّع",
-          "predictionLabel": "توقّعك عند x = {x}",
+          "predictionLabel": "توقّعك عندما يكون {axis} {x}",
           "predictionDecrease": "أنقص التوقّع",
           "predictionIncrease": "زِد التوقّع",
           "predictionValue": "تخمينك: {value}",
@@ -588,7 +588,13 @@
           "bandOutsideNote": "هذا خارج المدى الذي يتوقّعه العلماء",
           "legendYours": "خطّك",
           "legendComputer": "خط الحاسوب",
-          "legendBand": "المدى المُرجَّح"
+          "legendBand": "المدى المُرجَّح",
+          "instructionsCompare": "قارن خطك بخط الحاسوب. حرّك خطك مرة أخرى، أو تابع لتضع توقّعك.",
+          "instructionsPredictBlind": "أين تظن أن الخط سيكون عند النقطة المعلَّمة؟ ضع تخمينك قبل أن ترى النطاق المرجَّح.",
+          "moveLineAgain": "حرّك خطي مرة أخرى",
+          "lockPrediction": "ثبّت تخميني",
+          "tryAnotherPrediction": "جرّب تخمينًا آخر",
+          "bandRange": "(على الأرجح بين {low} و{high})"
         },
         "pixelPlayground": {
           "exploreIntro": "اختر صورة وشاهد كيف يخزّنها الحاسوب — كشبكة من الأرقام.",

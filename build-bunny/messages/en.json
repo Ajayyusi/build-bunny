@@ -571,7 +571,7 @@
         },
         "trendLine": {
           "instructionsFit": "Drag the line to cut the total miss score. Then let the computer show you its best line.",
-          "instructionsPredict": "Set your prediction for the marked point, then see how it compares to a likely range.",
+          "instructionsPredict": "Here is the likely range. Was your guess inside it? You can try another guess.",
           "totalMissTarget": "Total miss: {score} — aim for under {target}",
           "totalMissReached": "Total miss: {score} — close enough, nice line!",
           "computerMiss": "Computer's miss: {score}",
@@ -580,7 +580,7 @@
           "dragHandleHelp": "Drag anywhere on the line, or one of its ends to tilt it. With the line focused, use the up and down arrow keys to move it, or hold Shift with the arrow keys to tilt it.",
           "computerTurn": "Computer's turn",
           "continueToPredict": "Continue to prediction",
-          "predictionLabel": "Your prediction at x = {x}",
+          "predictionLabel": "Your prediction when {axis} is {x}",
           "predictionDecrease": "Decrease prediction",
           "predictionIncrease": "Increase prediction",
           "predictionValue": "Your guess: {value}",
@@ -588,7 +588,13 @@
           "bandOutsideNote": "that's outside the range scientists would expect",
           "legendYours": "Your line",
           "legendComputer": "Computer's line",
-          "legendBand": "Likely range"
+          "legendBand": "Likely range",
+          "instructionsCompare": "Compare your line with the computer's. Move yours again, or go on to make a prediction.",
+          "instructionsPredictBlind": "Where do you think the line will be at the marked point? Make your guess before you see the likely range.",
+          "moveLineAgain": "Move my line again",
+          "lockPrediction": "Lock in my guess",
+          "tryAnotherPrediction": "Try another guess",
+          "bandRange": "(likely between {low} and {high})"
         },
         "pixelPlayground": {
           "exploreIntro": "Pick a picture and see how a computer stores it — as a grid of numbers.",

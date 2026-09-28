@@ -240,9 +240,13 @@ export interface NextStepStateInput {
   excluded?: string[];
   sceneId?: string | null;
   line?: { slope: number; intercept: number };
-  phase?: "fit" | "predict";
+  phase?: "fit" | "compare" | "predict" | "revealed";
   prediction?: number | null;
   rounds?: Record<string, string>;
+  /** Rule or Examples?: the rule round's stage. */
+  rule?: { stage: "pick" | "today" | "done"; chosen: string | null; tested: string | null };
+  /** Predict-first Teach levels: whether the bunny's guesses are revealed. */
+  revealed?: boolean;
 }
 
 export type NextStepAction = (input: {

@@ -2,9 +2,9 @@
  * Explore AI (product redesign brief, 2026-09-25): six AI activities a child
  * can open from their very first session, with no coding before them.
  *
- * They are existing levels, not copies. Each one already teaches its idea
- * hands-on — the brief's "Train a Sorter" is Teach the Bunny, "Make a
- * Prediction" is Fortune Teller, and so on — so the hub is a new front door,
+ * Train a Sorter is the brief's first activity, built for it; the other
+ * five are existing levels that already teach their idea hands-on ("Make a
+ * Prediction" is Fortune Teller, and so on), so the hub is a new front door,
  * not a second curriculum. The unlock engine opens every level named here
  * as soon as its world is in the child's programme (unlockSource EXPLORE).
  *
@@ -40,16 +40,21 @@ export const EXPLORE_CARDS: readonly ExploreCard[] = [
 ];
 
 /**
- * The bridge the brief asks for right after the first sorter: write a rule,
- * then teach by example, and compare. It follows Teach the Bunny in AI
- * Island's first module, so it unlocks the normal way once that is done —
- * the hub shows it as the next step rather than as a seventh door.
+ * What follows the first sorter on AI Island's trail, in order: Teach the
+ * Bunny (a second sorter, with guesses to predict first), then the bridge
+ * the brief asks for — write a rule, then teach by example, and compare.
+ * They unlock the normal way, one after the other; the hub shows the first
+ * one not yet finished as the next step rather than as a seventh door.
  */
-export const EXPLORE_FOLLOW_UP: ExploreCard = {
-  slug: "rule-or-examples",
-  concept: "rules",
-  glyph: "📏",
-};
+export const EXPLORE_FOLLOW_UPS: readonly ExploreCard[] = [
+  { slug: "berry-sorter", concept: "examples", glyph: "🫐" },
+  { slug: "rule-or-examples", concept: "rules", glyph: "📏" },
+];
+
+/** Every level the hub leads to: the six cards and their follow-ups. */
+export const EXPLORE_LEVEL_SLUGS: ReadonlySet<string> = new Set(
+  [...EXPLORE_CARDS, ...EXPLORE_FOLLOW_UPS].map((card) => card.slug),
+);
 
 /** Levels the unlock engine opens from day one. */
 export const EXPLORE_SLUGS: ReadonlySet<string> = new Set(EXPLORE_CARDS.map((card) => card.slug));
