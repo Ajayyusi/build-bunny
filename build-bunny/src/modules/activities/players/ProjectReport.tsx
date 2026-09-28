@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import type { ClassLabel } from "@/modules/ai/knn";
 import type { CaseStatus } from "@/modules/ai/report";
 import { cn } from "@/ui";
+import { CharacterLine } from "@/modules/characters/Character";
 
 /**
  * The AI project report (capstone): pick one held-back case the model got
@@ -103,6 +104,7 @@ export function ProjectReport({
       </div>
 
       <div className="flex flex-col gap-2">
+        <CharacterLine id="noura" line="whoDecides" />
         <h3 id="report-safeguard" className="text-sm font-bold text-ink">
           {t("safeguardQuestion")}
         </h3>

@@ -2729,5 +2729,147 @@
     "privacy": "This is a private, read-only link shared by the school. It shows no scores against other children and changes nothing. It stops working on {date}, or sooner if the teacher switches it off.",
     "inactiveTitle": "This link isn't active",
     "inactiveBody": "It may have expired or been switched off. Ask your child's teacher for a new one."
+  },
+  "characters": {
+    "bunny": {
+      "name": "Robo Bunny",
+      "job": "Your host. Invites you to play and try things.",
+      "lines": {
+        "letsFindOut": "Let's find out together!",
+        "tryAndSee": "Try it and see what happens.",
+        "goodExperiment": "Nice experiment! You tested it and learned something."
+      }
+    },
+    "ruli": {
+      "name": "Ruli",
+      "job": "Ruli Rule Bot follows rules exactly, to show how rules differ from learning.",
+      "lines": {
+        "followExactly": "I follow the rule exactly. Nothing more, nothing less.",
+        "cantSeeThat": "My rule never mentioned that. I can't change it by myself.",
+        "someoneRewrites": "A rule only changes when someone rewrites it."
+      }
+    },
+    "tessa": {
+      "name": "Tessa",
+      "job": "Tessa Test Tortoise tries new cases and spots failures.",
+      "lines": {
+        "newExample": "What happens on a new example?",
+        "neverSeen": "Let's test it on one it has never seen.",
+        "foundAMistake": "Found a mistake? Good. Now we know what to fix.",
+        "outsideTheData": "What happens outside the data we have?"
+      }
+    },
+    "noura": {
+      "name": "Noura",
+      "job": "Noura the houbara asks about fairness, evidence, privacy and who decides.",
+      "lines": {
+        "fairExamples": "Were our examples fair to every group?",
+        "whoIsAffected": "Who is affected if this goes wrong?",
+        "enoughEvidence": "Is there enough evidence yet?",
+        "whoDecides": "Who should make the final decision?",
+        "whatDoesItNeed": "What does it really need to know?"
+      }
+    }
+  },
+  "explainers": {
+    "ui": {
+      "watch": "Watch a {seconds}-second intro",
+      "optional": "Optional. The activity works without it.",
+      "play": "Play",
+      "pause": "Pause",
+      "restart": "Start again",
+      "previous": "Previous part",
+      "next": "Next part",
+      "captionsOn": "Captions on",
+      "captionsOff": "Captions off",
+      "soundOn": "Narration on",
+      "soundOff": "Narration off",
+      "skip": "Skip to the activity",
+      "start": "Start the activity",
+      "part": "Part {current} of {total}",
+      "keys": "Space plays or pauses. The arrow keys move between parts.",
+      "yourTurn": "Your turn"
+    },
+    "scene": {
+      "trainedOn": "Learned from",
+      "newOne": "New",
+      "wrong": "Wrong",
+      "chat": "The library closes at 8 pm!",
+      "timetable": "School timetable: library open 8 am to 3 pm",
+      "checked": "Checked: it closes at 3 pm",
+      "circle": "circle",
+      "square": "square",
+      "red": "red",
+      "orange": "orange",
+      "lightBird": "light bird",
+      "darkBird": "dark bird"
+    },
+    "copied-colour": {
+      "title": "Ruli copies the colour",
+      "beats": {
+        "0": "Ruli is learning to sort shapes. It's shown four circles, and every one is red.",
+        "1": "Ruli: I've got it. Red means circle!",
+        "2": "Tessa: What happens on a new example? Here's an orange circle.",
+        "3": "Ruli: It isn't red, so it's a square! (It's a circle. Ruli got it wrong.)",
+        "4": "Ruli: I copied the colour. What should I look at instead?"
+      },
+      "choice": {
+        "question": "What should Ruli look at instead?",
+        "options": {
+          "shape": "The shape",
+          "colour": "The colour",
+          "size": "How big it is"
+        },
+        "replies": {
+          "shape": "Yes! Show it circles in different colours, and it can learn the shape.",
+          "colour": "Colour is what fooled it. Look at the shape instead.",
+          "size": "The circles were all about the same size. The shape is what makes a circle."
+        }
+      }
+    },
+    "fair-examples": {
+      "title": "Were our examples fair?",
+      "beats": {
+        "0": "Noura: This bird-spotting model learned from nine birds: eight light ones and only one dark one.",
+        "1": "Noura: Now a new bird arrives. It's a dark bird.",
+        "2": "Noura: The model says it isn't a bird at all! It hardly saw any dark birds.",
+        "3": "Noura: Were our examples fair to every kind of bird?"
+      },
+      "choice": {
+        "question": "Which examples should we add?",
+        "options": {
+          "moreDark": "More dark birds",
+          "moreLight": "More light birds",
+          "noMore": "None. It's fine."
+        },
+        "replies": {
+          "moreDark": "Yes. With more dark birds, the model can learn them too. Then test it again.",
+          "moreLight": "It already has plenty of light birds. The dark ones are missing.",
+          "noMore": "It just missed a dark bird, so something is missing. Add more dark birds."
+        }
+      }
+    },
+    "check-the-source": {
+      "title": "Check before you share",
+      "beats": {
+        "0": "Robo Bunny asked a chatbot when the school library closes today.",
+        "1": "Noura: It said “8 pm!” and sounded very sure. Is there enough evidence yet?",
+        "2": "Noura: The school timetable is a source we trust. It says the library closes at 3 pm.",
+        "3": "Tessa: The chatbot made up a time. Check a trusted source before you share."
+      },
+      "choice": {
+        "question": "Before you tell your friends, what do you do?",
+        "options": {
+          "checkFirst": "Check the school timetable",
+          "shareNow": "Share it. It sounded sure.",
+          "askAgain": "Ask the chatbot again"
+        },
+        "replies": {
+          "checkFirst": "Yes. A trusted source beats a confident guess.",
+          "shareNow": "Sounding sure isn't the same as being right. Check first.",
+          "askAgain": "It might make up another answer. Check a source you trust."
+        }
+      }
+    }
   }
 }

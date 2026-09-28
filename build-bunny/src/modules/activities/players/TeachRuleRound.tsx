@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { CharacterLine, useCharacterReaction } from "@/modules/characters/Character";
 import { useTranslations } from "next-intl";
 
 import { ruleMisses, ruleSays } from "@/modules/ai/rule-round";
@@ -62,6 +63,17 @@ export function TeachRuleRound({
   const yesterdayMisses = testedRule ? ruleMisses(testedRule, round.yesterday) : [];
   const fits = testedRule !== null && yesterdayMisses.length === 0;
   const ring = (id: string) => (pointed === id ? "ring-4 ring-accent ring-offset-2 ring-offset-surface" : "");
+  // Ruli, the rule robot, reacts to the child's choice and to each test.
+  const [ruli, react] = useCharacterReaction();
+  const choose = (id: string) => {
+    react("choice");
+    onChoose(id);
+  };
+  const test = () => {
+    const rule = round.rules.find((r) => r.id === chosen);
+    react(rule && ruleMisses(rule, round.yesterday).length === 0 ? "right" : "wrong");
+    onTest();
+  };
 
   /** A coloured label chip; `text` is the full sentence ("Rule says: Not safe"). */
   const chip = (label: "positive" | "negative", text: string) => (
@@ -109,6 +121,12 @@ export function TeachRuleRound({
           <p className="w-fit rounded-lg border-2 border-ink/15 bg-surface-sunken px-3 py-2 font-mono text-sm font-bold text-ink">
             {t("ruleYours", { rule: rule.label })}
           </p>
+          <CharacterLine
+            id="ruli"
+            line={misses.length > 0 ? "cantSeeThat" : "someoneRewrites"}
+            state={misses.length > 0 ? "error" : "idle"}
+            className="max-w-xl"
+          />
           <ul className="flex flex-wrap gap-3">
             {round.today.map((specimen) => {
               const says = ruleSays(rule, specimen);
@@ -143,6 +161,7 @@ export function TeachRuleRound({
           <h2 className="font-display text-base font-bold text-ink">{t("ruleYesterdayHeading", { kind })}</h2>
           <p className="text-sm text-ink-muted">{t("ruleYesterdayHelp")}</p>
         </div>
+        <CharacterLine id="ruli" line="followExactly" state={ruli} className="max-w-xl" />
         <ul className="flex flex-wrap gap-3">
           {round.yesterday.map((specimen) =>
             card(
@@ -173,7 +192,7 @@ export function TeachRuleRound({
               type="button"
               role="radio"
               aria-checked={chosen === rule.id}
-              onClick={() => onChoose(rule.id)}
+              onClick={() => choose(rule.id)}
               className={cn(
                 "min-h-11 rounded-lg border-2 px-4 py-2 font-mono text-sm font-bold transition-colors",
                 chosen === rule.id
@@ -205,7 +224,7 @@ export function TeachRuleRound({
             {t("ruleSeeToday", { kind })}
           </Button>
         ) : (
-          <Button size="lg" onClick={onTest} disabled={!chosen} className={ring("testRule")}>
+          <Button size="lg" onClick={test} disabled={!chosen} className={ring("testRule")}>
             {t("ruleTest")}
           </Button>
         )}
