@@ -271,7 +271,19 @@ export function PixelPlayground({
     // The hint engine follows each round's step; the graded work is only
     // the settled guesses.
     const hintState = Object.fromEntries(
-      roundIds.map((id) => [id, { selected: rounds[id]?.selected ?? null, status: rounds[id]?.status ?? "guessing" }]),
+      config.rounds.map((round) => {
+        const state = rounds[round.id];
+        const step = state?.step ?? 0;
+        return [
+          round.id,
+          {
+            selected: state?.selected ?? null,
+            status: state?.status ?? "guessing",
+            step,
+            squares: stepsFor(round)[step] ?? round.resolution,
+          },
+        ];
+      }),
     );
     reportWork(work, ready, hintState);
     // eslint-disable-next-line react-hooks/exhaustive-deps

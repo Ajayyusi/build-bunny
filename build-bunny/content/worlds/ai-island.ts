@@ -1100,6 +1100,7 @@ export const aiIsland: WorldFixture = {
                 ],
               },
             ],
+            tryNext: { en: "Next time an app asks for something, ask yourself: does it really need this to do its job?", ar: "في المرة القادمة التي يطلب فيها تطبيق شيئًا، اسأل نفسك: هل يحتاجه فعلًا ليقوم بعمله؟" },
             checklist: { title: { en: "Your Privacy Shield", ar: "درع الخصوصية الخاص بك" }, icon: "🛡️" },
             takeaways: [
               {

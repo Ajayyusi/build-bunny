@@ -58,13 +58,14 @@ describe("ethics grading: trying another choice", () => {
     expect(explored).toMatchObject({ verdict: "PASS", qualityPassed: true, summary: { retries: 2 } });
   });
 
-  it("refuses tries that aren't this scene's choices, or repeat themselves", () => {
+  it("refuses tries that aren't this scene's choices, or are listed twice", () => {
     const bad = (tried: string[]) =>
       gradeAiEthics(snapshotOf(story), { path: [{ sceneId: "s1", choiceId: "careful", tried }, { sceneId: "s2", choiceId: "a" }] }).verdict;
     expect(bad(["a"])).toBe("ERROR");
     expect(bad(["risky", "risky"])).toBe("ERROR");
-    expect(bad(["careful"])).toBe("ERROR");
     expect(bad(["risky"])).toBe("PASS");
+    // Going back to a choice tried earlier is allowed.
+    expect(bad(["careful", "risky"])).toBe("PASS");
   });
 });
 
@@ -142,7 +143,7 @@ describe("resuming an ethics story from its draft", () => {
       { path: [{ sceneId: "s1", choiceId: "y", tried: ["x", "x", "nope", "y"] }, { sceneId: "s3", choiceId: "w" }] },
       { scenes },
     );
-    expect(drifted).toEqual({ sceneIndex: 1, path: [{ sceneId: "s1", choiceId: "y", tried: ["x"] }], finished: false });
+    expect(drifted).toEqual({ sceneIndex: 1, path: [{ sceneId: "s1", choiceId: "y", tried: ["x", "y"] }], finished: false });
     expect(restoreEthicsDraft("junk", { scenes })).toEqual({ sceneIndex: 0, path: [], finished: false });
   });
 });
@@ -211,5 +212,34 @@ describe("one short explanation on every AI level", () => {
         expect(/[.!?؟](\s|$)/.test(text.slice(0, -1).replace(/"[^"]*"|«[^»]*»/g, "")), `${l.slug} ${lang} is one sentence`).toBe(false);
       }
     }
+  });
+});
+
+describe("going back to a choice tried earlier", () => {
+  it("counts the real first instinct, and the top star needs a safe final choice too", () => {
+    // risky first, then careful, then back to risky.
+    const back = gradeAiEthics(snapshotOf(story), {
+      path: [
+        { sceneId: "s1", choiceId: "risky", tried: ["risky", "careful"] },
+        { sceneId: "s2", choiceId: "a" },
+      ],
+    });
+    expect(back).toMatchObject({ verdict: "PASS", qualityPassed: false, summary: { firstAllSafe: false, allSafe: false } });
+    // careful first, explored risky, back to careful: still the star.
+    const kept = gradeAiEthics(snapshotOf(story), {
+      path: [
+        { sceneId: "s1", choiceId: "careful", tried: ["careful", "risky"] },
+        { sceneId: "s2", choiceId: "a" },
+      ],
+    });
+    expect(kept.qualityPassed).toBe(true);
+    // Safe first, but went on with the risky one: no top star.
+    const drifted = gradeAiEthics(snapshotOf(story), {
+      path: [
+        { sceneId: "s1", choiceId: "risky", tried: ["careful"] },
+        { sceneId: "s2", choiceId: "a" },
+      ],
+    });
+    expect(drifted.qualityPassed).toBe(false);
   });
 });

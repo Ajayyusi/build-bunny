@@ -18,6 +18,8 @@ import { MissionStrip } from "./shared/MissionStrip";
 import { useDraftAutosave } from "./shared/useDraftAutosave";
 import styles from "./shared/player.module.css";
 import { SuccessOverlay } from "./shared/SuccessOverlay";
+import { ResultNotesCard } from "./shared/ResultNotesCard";
+import { ethicsResultNotes } from "./result-notes";
 import type {
   ActivityPlayerProps,
   AiEthicsActivityPayload,
@@ -135,7 +137,9 @@ export function AiEthicsPlayer({
   // Back to this scene's choices, to see what another one does.
   const tryAnother = () => {
     if (locked || !chosenChoiceId) return;
-    setTried((current) => [...current, chosenChoiceId]);
+    // Each choice is listed once, in the order first tried; going back to
+    // one tried earlier is allowed (it then becomes the final choice too).
+    setTried((current) => (current.includes(chosenChoiceId) ? current : [...current, chosenChoiceId]));
     setChosenChoiceId(null);
   };
 
@@ -543,6 +547,11 @@ export function AiEthicsPlayer({
 
       {phase === "result" && submission ? (
         <SuccessOverlay
+          extra={
+            <ResultNotesCard
+              notes={ethicsResultNotes(submission.path, payload.tryNext ? resolveLocalized(payload.tryNext, locale) : null)}
+            />
+          }
           key={submission.id}
           stars={submission.server?.stars ?? 0}
           maxStars={intro.maxStars}

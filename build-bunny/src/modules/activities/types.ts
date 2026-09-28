@@ -346,6 +346,7 @@ export interface AiEthicsActivityPayload {
   }[];
   takeaways: LocalizedText[];
   checklist?: { title: LocalizedText; icon?: string };
+  tryNext?: LocalizedText;
 }
 
 /** AI_SIM: widget-specific config, opaque here — each widget owns its own shape. */

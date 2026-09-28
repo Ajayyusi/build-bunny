@@ -315,6 +315,7 @@ export default async function PlayLevelPage({ params }: Props) {
       scenes: parsed.scenes,
       takeaways: parsed.takeaways,
       ...(parsed.checklist ? { checklist: parsed.checklist } : {}),
+      ...(parsed.tryNext ? { tryNext: parsed.tryNext } : {}),
     } satisfies AiEthicsActivityPayload;
   } else if (playable.activityType === "AI_SIM") {
     // Envelope re-parse; the widget config passed through opaque because the

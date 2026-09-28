@@ -10,12 +10,13 @@ import { resolveNextSceneIndex, type ActivityGradeResult } from "../types";
  * AI_ETHICS engine (phase G, AI Island "Secret Keepers"): a branching
  * privacy scenario. There are no wrong feelings — grading is completion-
  * based (finishing the story is a PASS) and the only thing that varies is
- * the star count, which rewards having chosen the `safe` option FIRST at
- * every scene actually visited (branching can skip scenes, so "every scene"
+ * the star count, which rewards having chosen the `safe` option FIRST, and
+ * gone on with a safe one, at every scene actually visited (branching can skip scenes, so "every scene"
  * means every scene THIS path walked through, not every authored scene).
  * A child may try other choices in a scene to see what happens (`tried`,
- * in order, before the one they went on with) — that is the retry step of
- * the loop, and it is never a penalty beyond the top star. Copy never scolds
+ * in order, before the one they went on with, which may be one of them) —
+ * that is the retry step of the loop, and it is never a penalty beyond the
+ * top star. Copy never scolds
  * a wrong choice; the outcome text is the teaching moment, not a verdict.
  */
 
@@ -81,8 +82,9 @@ export function gradeAiEthics(
     const choice = scene.choices.find((c) => c.id === step.choiceId);
     if (!choice) return invalidPath();
     const tried = step.tried ?? [];
-    // Every earlier try is a real, different choice in this scene.
-    if (new Set([...tried, step.choiceId]).size !== tried.length + 1) return invalidPath();
+    // Every earlier try is a real choice in this scene, each listed once.
+    // The final choice may be one of them: the child went back to it.
+    if (new Set(tried).size !== tried.length) return invalidPath();
     if (!tried.every((id) => scene.choices.some((c) => c.id === id))) return invalidPath();
     if (step.predicted !== undefined && !scene.predict?.options.some((o) => o.id === step.predicted)) return invalidPath();
     const first = scene.choices.find((c) => c.id === (tried[0] ?? step.choiceId))!;
@@ -96,7 +98,8 @@ export function gradeAiEthics(
 
   return {
     verdict: "PASS",
-    qualityPassed: firstAllSafe,
+    // Top star: a safe first instinct, and a safe choice to go on with.
+    qualityPassed: firstAllSafe && allSafe,
     primaryFeedback: null,
     generatedCode: "",
     blockCount: null,

@@ -216,6 +216,7 @@ export const safetyAndFairness: ModuleFixture = {
             ],
           },
         ],
+        tryNext: { en: "Next time someone new messages you in a game, notice the first thing they ask for. Is it something a stranger needs?", ar: "في المرة القادمة التي يراسلك فيها شخص جديد في لعبة، لاحظ أول شيء يطلبه. هل هو شيء يحتاجه شخص غريب؟" },
         checklist: { title: { en: "Your Safe Chat Checklist", ar: "قائمة الدردشة الآمنة الخاصة بك" }, icon: "💬" },
         takeaways: [
           { en: "A friendly stranger online is still a stranger.", ar: "الغريب الودود على الإنترنت ما زال غريبًا." },
@@ -467,6 +468,7 @@ export const safetyAndFairness: ModuleFixture = {
             ],
           },
         ],
+        tryNext: { en: "Next time a video or picture surprises you, find where it first appeared before you believe it or share it.", ar: "في المرة القادمة التي يفاجئك فيها فيديو أو صورة، ابحث عن أول مكان ظهر فيه قبل أن تصدّقه أو تشاركه." },
         checklist: { title: { en: "Your Real-or-Not Checklist", ar: "قائمة «حقيقي أم لا» الخاصة بك" }, icon: "🔍" },
         takeaways: [
           { en: "Videos and pictures can be made by machines. 'Looks real' isn't proof.", ar: "يمكن للآلات صنع مقاطع الفيديو والصور. «يبدو حقيقيًا» ليس دليلًا." },

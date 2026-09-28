@@ -19,6 +19,8 @@ import { MissionStrip } from "./shared/MissionStrip";
 import { useDraftAutosave } from "./shared/useDraftAutosave";
 import { ResultBanner } from "./shared/ResultBanner";
 import { SuccessOverlay } from "./shared/SuccessOverlay";
+import { ResultNotesCard } from "./shared/ResultNotesCard";
+import { pixelResultNotes, trendResultNotes, type ResultNotes } from "./result-notes";
 import { Walkthrough } from "./shared/Walkthrough";
 import { NextStepHint } from "./shared/NextStepHint";
 import type { PixelRoundStatus } from "@/modules/hints/types";
@@ -62,6 +64,7 @@ export function AiSimPlayer({
 
   const t = useTranslations("student.play");
   const tSim = useTranslations("student.play.aiSim");
+  const tResults = useTranslations("student.play.resultNotes");
   const tNext = useTranslations("student.play.nextStep");
   const locale = useLocale();
   const tTrend = useTranslations("student.play.aiSim.trendLine");
@@ -129,6 +132,9 @@ export function AiSimPlayer({
     setWidgetStep(step ?? null);
   }, []);
 
+  // Checks that didn't pass this visit, for "what changed" on the result.
+  const [failedChecks, setFailedChecks] = useState(0);
+
   const submit = async (id: string, answer: unknown) => {
     setSubmitting(true);
     try {
@@ -140,6 +146,7 @@ export function AiSimPlayer({
       if (!response.ok) throw new Error(`attempt ${response.status}`);
       const data = (await response.json()) as AttemptResponse;
       setSubmission({ id, answer, server: data, saveFailed: false });
+      if (data.verdict !== "PASS") setFailedChecks((n) => n + 1);
       setStarsBest((best) => Math.max(best, data.starsBest ?? 0));
       setLastSubmitAt(Date.now());
       setPhase("result");
@@ -238,6 +245,29 @@ export function AiSimPlayer({
     : null;
   const introText = resolveLocalized(payload.intro, locale);
   const honestyNote = resolveLocalized(payload.honesty.note, locale);
+
+  // What you tried / what changed / one more to test, from this run.
+  const resultNotes: ResultNotes | null = (() => {
+    const answered = (submission?.answer ?? null) as { line?: { slope: number; intercept: number }; prediction?: number } | null;
+    const widget = payload.widget as Record<string, unknown>;
+    if (widgetId === "trend-line" && answered?.line && typeof answered.prediction === "number") {
+      return trendResultNotes({
+        points: widget.points as { x: number; y: number }[],
+        predictAt: widget.predictAt as number,
+        line: answered.line,
+        prediction: answered.prediction,
+        failedChecks,
+      });
+    }
+    if (widgetId === "pixel-playground" && widgetStep && typeof widgetStep === "object") {
+      const rounds = (widget.rounds as { id: string }[]).map(
+        (r) => (widgetStep as Record<string, { status: string; squares: number; step: number }>)[r.id] ?? { status: "guessing", squares: 0, step: 0 },
+      );
+      const resolutions = widget.resolutions as number[];
+      return pixelResultNotes(rounds, Math.min(...resolutions), tResults("and"));
+    }
+    return null;
+  })();
 
   if (!Widget) {
     // Registry dispatch guarantees a known widgetId in practice; this is an
@@ -443,6 +473,7 @@ export function AiSimPlayer({
           xpAwarded={submission.server ? submission.server.xpAwarded : null}
           explanation={intro.explanation}
           keyIdea={intro.keyIdea}
+          extra={resultNotes ? <ResultNotesCard notes={resultNotes} /> : undefined}
           achievements={achievements}
           worldCompletedName={worldCompletedName}
           worldPower={submission?.server?.worldCompleted?.power ?? null}

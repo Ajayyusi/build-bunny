@@ -961,6 +961,32 @@
         "tinyClassifier": "This robot is a real learning program, just a very small one, running right here on this page. It answers each new case by copying the example most like it. Big AI systems learn from millions of examples, but the idea is the same.",
         "tinyGrouping": "The grouping is real: every dot joins its nearest flag, and the meter is real arithmetic, running right here on this page. Big AI systems group millions of things in much the same way.",
         "story": "These are made-up situations to practise with. There is no real AI and there are no real people in this story."
+      },
+      "resultNotes": {
+        "triedLabel": "What you tried",
+        "changedLabel": "What changed",
+        "tryNextLabel": "Try one more",
+        "and": "and",
+        "pixel": {
+          "tried": "{count, plural, one {You named # mystery picture from its squares.} other {You named # mystery pictures from their squares.}}",
+          "changedMore": "{count, plural, one {Round {rounds} needed more squares before you could tell.} other {Rounds {rounds} needed more squares before you could tell.}}",
+          "changedMissed": "{count, plural, one {Round {rounds} fooled you, and then you saw the clue you missed.} other {Rounds {rounds} fooled you, and then you saw the clues you missed.}}",
+          "changedNone": "You got every picture at its blockiest: {squares} × {squares} squares.",
+          "tryNext": "Pick any picture at the top and slide it down to {squares} × {squares}. Which one is hardest to tell apart from the others?"
+        },
+        "trend": {
+          "triedInside": "Your line missed by {miss} in total; the computer's best line by {best}. You guessed {guess} for {x}, inside the likely range.",
+          "triedOutside": "Your line missed by {miss} in total; the computer's best line by {best}. You guessed {guess} for {x}, outside the likely range.",
+          "changedChecks": "It took {checks} checks to get your line close enough.",
+          "changedFirst": "Your line was close enough on your first check.",
+          "tryNext": "In your head: what would you predict for {further}? Would the likely range be wider or narrower than at {x}?"
+        },
+        "ethics": {
+          "tried": "{choices, plural, one {You made # choice} other {You made # choices}}, and looked at {others, plural, =0 {no other choices} one {# other choice} other {# other choices}} to see what would happen.",
+          "changed": "{count, plural, one {Once} other {# times}} you went with a different choice from your first one.",
+          "changedNone": "You kept your first choice every time.",
+          "tryNext": "Next time something like this happens for real, which question will you ask first?"
+        }
       }
     },
     "profile": {

@@ -36,7 +36,7 @@ export function restoreEthicsDraft(
     if (!choice) break;
     // Earlier tries survive only if they are still this scene's choices.
     const kept = Array.isArray(tried)
-      ? [...new Set(tried.filter((id): id is string => typeof id === "string" && id !== choiceId && scene.choices.some((c) => c.id === id)))]
+      ? [...new Set(tried.filter((id): id is string => typeof id === "string" && scene.choices.some((c) => c.id === id)))]
       : [];
     const verdict =
       typeof predicted === "string" && scene.predict?.options.some((o) => o.id === predicted) ? predicted : undefined;

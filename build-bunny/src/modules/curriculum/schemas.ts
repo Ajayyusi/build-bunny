@@ -731,6 +731,8 @@ export const aiEthicsPayload = z.object({
     .max(8),
   /** The checklist the child assembles; shown on completion. */
   takeaways: z.array(localizedText).min(2).max(6),
+  /** One real-life case to test the habit on next, shown on the result. */
+  tryNext: localizedText.optional(),
   /** The checklist's own name and icon (each level teaches its own habit). */
   checklist: z
     .object({

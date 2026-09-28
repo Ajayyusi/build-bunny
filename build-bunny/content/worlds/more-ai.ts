@@ -116,6 +116,7 @@ export const onlineLife: ModuleFixture = {
             ],
           },
         ],
+        tryNext: { en: "Next time a chat turns unkind, pick one kind move before you reply: support, don't pile on, or tell a grown-up.", ar: "في المرة القادمة التي تصبح فيها دردشة غير لطيفة، اختر خطوة لطيفة قبل أن تردّ: ادعم، ولا تشارك في المضايقة، أو أخبر شخصًا بالغًا." },
         checklist: { title: { en: "Your Kind Online Checklist", ar: "قائمة اللطف على الإنترنت الخاصة بك" }, icon: "💛" },
         takeaways: [
           t("I don't join in when someone is being picked on.", "لا أنضم عندما يتعرّض أحد للمضايقة."),
@@ -192,6 +193,7 @@ export const onlineLife: ModuleFixture = {
             ],
           },
         ],
+        tryNext: { en: "Think of a silly three-word sentence you'd remember. Would a friend be able to guess it?", ar: "فكّر في جملة طريفة من ثلاث كلمات تتذكّرها. هل يستطيع صديق أن يخمّنها؟" },
         checklist: { title: { en: "Your Strong Password Checklist", ar: "قائمة كلمات المرور القوية الخاصة بك" }, icon: "🔑" },
         takeaways: [
           t("A long, silly sentence makes a strong password.", "الجملة الطويلة المضحكة تصنع كلمة مرور قوية."),
@@ -268,6 +270,7 @@ export const onlineLife: ModuleFixture = {
             ],
           },
         ],
+        tryNext: { en: "Next time a game says \"free\" or \"only today\", spot the clue and ask a grown-up before you tap.", ar: "في المرة القادمة التي تقول فيها لعبة «مجاني» أو «اليوم فقط»، التقط الإشارة واسأل شخصًا بالغًا قبل أن تضغط." },
         checklist: { title: { en: "Your Smart Offer Checklist", ar: "قائمة العروض الذكية الخاصة بك" }, icon: "🏷️" },
         takeaways: [
           t("Pop-up prizes are usually adverts.", "الجوائز المنبثقة غالبًا إعلانات."),
@@ -722,6 +725,7 @@ export const decidingWell: ModuleFixture = {
             ],
           },
         ],
+        tryNext: { en: "Think of an app you use that makes a choice for you. If it got it wrong, how bad would that be, and who should check?", ar: "فكّر في تطبيق تستخدمه يختار نيابة عنك. إن أخطأ، فما مدى سوء ذلك، ومن يجب أن يتحقّق؟" },
         checklist: { title: { en: "Your Who-Decides Checklist", ar: "قائمة «من يقرّر» الخاصة بك" }, icon: "🙋" },
         takeaways: [
           t("Machines make mistakes too, and \"very sure\" doesn't mean right.", "الآلات تخطئ أيضًا، و«واثقة جدًّا» لا تعني أنها محقة."),

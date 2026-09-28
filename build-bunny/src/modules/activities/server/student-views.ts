@@ -52,6 +52,7 @@ export const aiEthicsStudentPayload = z
     ),
     takeaways: z.array(localizedText),
     checklist: z.object({ title: localizedText, icon: z.string().optional() }).strict().optional(),
+    tryNext: localizedText.optional(),
   })
   .strict();
 
