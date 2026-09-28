@@ -269,6 +269,30 @@ describe.each(aiLevels)("AI level $level.slug ($world)", ({ level }) => {
     expect(shipped.testSet.every((probe) => !("truth" in probe))).toBe(true);
   });
 
+  // ── Results by group (redesign brief: "tests both groups") ─────────────
+  const groups = payload.groups;
+  it.runIf(groups !== undefined)("groups: every specimen has a group, and the test covers every group", () => {
+    for (const specimen of [...pool, ...testSet]) {
+      expect(groups!.of[specimen.id], `${specimen.id} has no group`).toBeDefined();
+      expect(groups!.names[groups!.of[specimen.id]!], `${specimen.id}'s group has no name`).toBeDefined();
+    }
+    const tested = new Set(testSet.map((probe) => groups!.of[probe.id]));
+    expect([...tested].sort()).toEqual(Object.keys(groups!.names).sort());
+  });
+
+  it.runIf(groups !== undefined)("groups: teaching only the majority group fails on the minority group alone", () => {
+    const sizes = new Map<string, number>();
+    for (const specimen of pool) sizes.set(groups!.of[specimen.id]!, (sizes.get(groups!.of[specimen.id]!) ?? 0) + 1);
+    const majority = [...sizes].sort((a, b) => b[1] - a[1])[0]![0];
+    const onlyMajority = submittable.filter((set) => set.every((specimen) => groups!.of[specimen.id] === majority));
+    expect(onlyMajority.length).toBeGreaterThan(0);
+    for (const set of onlyMajority) {
+      const missed = (grade(level, set).summary.missed as string[]) ?? [];
+      expect(missed.length, set.map((x) => x.id).join(",")).toBeGreaterThan(0);
+      for (const id of missed) expect(groups!.of[id], `${id} missed from the majority group`).not.toBe(majority);
+    }
+  });
+
   it("names the specimens it got wrong, so the student knows where to teach", () => {
     const loser = failing[0]!;
     const result = grade(level, loser);

@@ -389,6 +389,8 @@ export const nextStepStateSchema = z.object({
       tested: z.string().max(40).nullable(),
     })
     .optional(),
+  /** Predict-first levels: whether the child has revealed the bunny's guesses. */
+  revealed: z.boolean().optional(),
 });
 export type NextStepState = z.infer<typeof nextStepStateSchema>;
 
@@ -483,7 +485,11 @@ export function computeNextStep(
         ...(p.holdout ? { checkSet: check } : {}),
       });
       const taughtIds = taught.map((e) => e.id);
-      if (taughtIds.length > 0 && passes(answer(taughtIds, [...held])).pass) return { code: "ready" };
+      if (taughtIds.length > 0 && passes(answer(taughtIds, [...held])).pass) {
+        // Predict before testing: the child says what the bunny will answer,
+        // then reveals its guesses. Only then is Test the next step.
+        return p.predictFirst && state.revealed === false ? { code: "predictGuesses" } : { code: "ready" };
+      }
       const lie = taughtIds.find((id) => p.mislabelled.includes(id));
       if (lie) return { code: "takeBack", specimenId: lie };
       const solution = solveAiClassification(p, (probe) => trueLabel(p.rule, probe)) ?? [];

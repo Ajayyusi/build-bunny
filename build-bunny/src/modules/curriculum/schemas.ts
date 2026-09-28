@@ -320,7 +320,7 @@ export const specimenSchema = z
 const aiThemeSchema = z
   .object({
     /** Which glyph vocabulary — see src/modules/ai/glyph.ts. */
-    glyph: z.enum(["berry", "grain", "cell", "blip", "crab", "namedBerry"]).default("berry"),
+    glyph: z.enum(["berry", "grain", "cell", "blip", "crab", "namedBerry", "shape"]).default("berry"),
     /** What the two measurements are CALLED in this world. */
     featureNames: z.object({ size: localizedText, color: localizedText }),
     /** The two outcomes, as a glyph a child reads before the words. */
@@ -428,6 +428,18 @@ export const ruleRoundSchema = z
   .strict();
 export type RuleRound = z.infer<typeof ruleRoundSchema>;
 
+/**
+ * Results by group (Find the Bias): which group each specimen belongs to,
+ * so a child can see the robot does well on one group and badly on
+ * another. Not answer-bearing — a group is not a label.
+ */
+export const specimenGroupsSchema = z
+  .object({
+    names: z.record(z.string().regex(/^[a-z0-9-]+$/), localizedText),
+    of: z.record(z.string(), z.string().regex(/^[a-z0-9-]+$/)),
+  })
+  .strict();
+
 /** See `passRule` on aiClassificationPayload. Shared with the student mirror. */
 const classificationPassRule = z
   .discriminatedUnion("kind", [
@@ -520,6 +532,14 @@ export const aiClassificationPayload = z
     starCriteria: starCriteriaSchema.default({}),
     /** Optional "rule or examples?" warm-up — see ruleRoundSchema. */
     ruleRound: ruleRoundSchema.optional(),
+    /**
+     * The learning loop's PREDICT step (redesign brief): once taught, the
+     * child says what the robot will answer for each mystery specimen
+     * before its guesses appear, then sees how their prediction did.
+     */
+    predictFirst: z.boolean().default(false),
+    /** Results by group — see specimenGroupsSchema. */
+    groups: specimenGroupsSchema.optional(),
   })
   .strict();
 
@@ -551,6 +571,8 @@ export const aiClassificationStudentPayload = z
     starCriteria: starCriteriaSchema.default({}),
     /** Ships as is: its own specimens, never the graded testSet. */
     ruleRound: ruleRoundSchema.optional(),
+    predictFirst: z.boolean().default(false),
+    groups: specimenGroupsSchema.optional(),
     // `rule` is deliberately absent, and .strict() is what enforces that.
   })
   .strict();

@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 
 import { ReadAloudButton } from "@/modules/audio/AudioControls";
 import { useNarrateOnShow } from "@/modules/audio/scene";
-import type { BlockPlace, NextStep, RuleRoundButton } from "@/modules/hints/types";
+import type { BlockPlace, NextStep, PlayerButton } from "@/modules/hints/types";
 import { BunnyMascot, Button, Dialog, cn } from "@/ui";
 
 import type { NextStepAction, NextStepStateInput } from "../../types";
@@ -33,7 +33,7 @@ export interface NextStepNames {
   spot?: (size: number, color: number) => string;
   /** Rule or Examples?: a rule card's words, and a rule-round button's label. */
   rule?: (id: string) => string;
-  button?: (button: RuleRoundButton) => string;
+  button?: (button: PlayerButton) => string;
 }
 
 export function useNextStepText() {
@@ -98,6 +98,8 @@ export function useNextStepText() {
         });
       case "pressButton":
         return t("pressButton", { button: names.button ? names.button(step.button) : step.button });
+      case "predictGuesses":
+        return t("predictGuesses", { button: names.button ? names.button("revealGuesses") : "revealGuesses" });
       case "plantFlag":
         return t("plantFlag", { spot: names.spot ? names.spot(step.size, step.color) : `${step.size}, ${step.color}` });
       case "liftFlag":

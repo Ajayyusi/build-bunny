@@ -15,7 +15,7 @@
  * theme is the same grammar in a different costume.
  */
 
-export type GlyphShape = "circle" | "diamond" | "hex" | "shell";
+export type GlyphShape = "circle" | "diamond" | "hex" | "shell" | "morph";
 
 export interface GlyphTheme {
   shape: GlyphShape;
@@ -71,6 +71,13 @@ export const GLYPH_THEMES = {
    * came out hot pink. Still clear of the green/yellow band.
    */
   namedBerry: { shape: "circle", hueFrom: 220, hueSpan: 140, pxMin: 26, pxMax: 52 },
+  /**
+   * Shapes (Train a Sorter, the first-session activity): feature 1 is the
+   * SHAPE — round at the low end, square at the high end — and every shape
+   * is the same size. Colour runs 38° orange (0) through red (≈0.35) to
+   * 290° purple (1), downward through red, clear of the green/yellow band.
+   */
+  shape: { shape: "morph", hueFrom: 38, hueSpan: -108, pxMin: 40, pxMax: 40 },
 } satisfies Record<string, GlyphTheme>;
 
 export type GlyphThemeName = keyof typeof GLYPH_THEMES;
@@ -108,8 +115,13 @@ export const MYSTERY_FILL =
  * their outline as an inset shadow rather than a border (a border is drawn
  * outside the clip and would be sliced off).
  */
-export function glyphShapeStyle(theme: GlyphTheme): React.CSSProperties {
+export function glyphShapeStyle(theme: GlyphTheme, size = 0): React.CSSProperties {
   switch (theme.shape) {
+    case "morph": {
+      // Feature 1 drawn as roundness: ≤0.05 a circle, ≥0.25 a square.
+      const round = Math.min(1, Math.max(0, (0.25 - size) / 0.2));
+      return { borderRadius: `${Math.round(8 + 42 * round)}%` };
+    }
     case "diamond":
       return { clipPath: "polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)" };
     case "hex":

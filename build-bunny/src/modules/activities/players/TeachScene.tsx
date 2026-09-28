@@ -86,7 +86,7 @@ function SceneBerry({
           width: px,
           height: px,
           background: mystery ? MYSTERY_FILL : glyphFill(glyph, color),
-          ...glyphShapeStyle(glyph),
+          ...glyphShapeStyle(glyph, size),
         }}
       />
       {mystery ? (

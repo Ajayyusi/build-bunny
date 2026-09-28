@@ -180,7 +180,9 @@ export const STUDENTS: StudentSeed[] = [
         // live frontier so a demo always has an unplayed level to open.
         // Rule or Examples? (2nd) was spliced in with the Explore AI redesign;
         // its entry sits at the same position so the rest still line up.
-        3, 3, 3, 2,
+        // Train a Sorter (the first-session shapes activity) now opens AI
+        // Island; its entry is spliced in first so the rest still line up.
+        3, 3, 3, 3, 2,
       ],
       streakCurrent: 9, streakBest: 9, lastActiveDaysAgo: 0,
     },

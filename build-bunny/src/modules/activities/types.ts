@@ -284,6 +284,10 @@ export interface TeachActivityPayload {
   starCriteria: { threeStarMaxBlocks?: number };
   /** "Rule or examples?" warm-up, localized; never the graded testSet. */
   ruleRound?: TeachRuleRound;
+  /** Predict the robot's answers before its guesses appear. */
+  predictFirst: boolean;
+  /** Results by group: localized group names, and each specimen's group. */
+  groups?: { names: Record<string, string>; of: Record<string, string> };
 }
 
 export interface TeachRuleRound {

@@ -31,7 +31,7 @@ export interface ExploreCard {
 
 /** The six cards, in the order a child should meet them. */
 export const EXPLORE_CARDS: readonly ExploreCard[] = [
-  { slug: "berry-sorter", concept: "examples", glyph: "🫐" },
+  { slug: "train-a-sorter", concept: "examples", glyph: "🔷" },
   { slug: "see-like-a-computer", concept: "vision", glyph: "👀" },
   { slug: "bias-detective", concept: "fairness", glyph: "⚖️" },
   { slug: "is-that-real", concept: "checking", glyph: "🔍" },
@@ -61,6 +61,7 @@ export const EXPLORE_SLUGS: ReadonlySet<string> = new Set(EXPLORE_CARDS.map((car
  * lives in messages under student.explore.check.<concept>.
  */
 export const CONCEPT_CHECKS: Readonly<Record<string, { concept: ExploreConcept; correct: "a" | "b" | "c" }>> = {
+  "train-a-sorter": { concept: "examples", correct: "b" },
   "berry-sorter": { concept: "examples", correct: "b" },
   "rule-or-examples": { concept: "rules", correct: "c" },
   "see-like-a-computer": { concept: "vision", correct: "a" },

@@ -260,6 +260,15 @@ export default async function PlayLevelPage({ params }: Props) {
       holdout: raw.holdout,
       passRule: raw.passRule,
       starCriteria: raw.starCriteria,
+      predictFirst: raw.predictFirst,
+      groups: raw.groups
+        ? {
+            names: Object.fromEntries(
+              Object.entries(raw.groups.names).map(([key, name]) => [key, resolveText(name, locale)]),
+            ),
+            of: raw.groups.of,
+          }
+        : undefined,
       ruleRound: raw.ruleRound
         ? {
             rules: raw.ruleRound.rules.map((rule) => ({ ...rule, label: resolveText(rule.label, locale) })),

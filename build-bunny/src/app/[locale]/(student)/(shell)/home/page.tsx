@@ -20,7 +20,6 @@ import { ExploreTile } from "../explore/_components/ExploreTile";
 import { toTile } from "../explore/_components/to-tiles";
 import { AssignmentsCard } from "./_components/AssignmentsCard";
 import { FeedbackInbox } from "./_components/FeedbackInbox";
-import { Onboarding } from "./_components/Onboarding";
 import { WorldCard, type WorldCardVM } from "./_components/WorldCard";
 
 interface Props {
@@ -95,13 +94,6 @@ export default async function StudentHomePage({ params }: Props) {
   return (
     <div className="flex flex-col gap-6">
       <MusicScene track="map" />
-      {/* A student who has never earned XP has never finished a level, so
-          this is their first visit — Bunny introduces the place. */}
-      <Onboarding
-        show={(snapshot?.xpTotal ?? 0) === 0}
-        userId={ctx.userId}
-        firstMissionHref={currentLevelHref}
-      />
 
       {warmUp ? (
         <section

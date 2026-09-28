@@ -99,8 +99,8 @@
   "student": {
     "nav": {
       "label": "Main",
-      "home": "Home",
-      "adventure": "Adventure",
+      "home": "My Learning",
+      "adventure": "Coding Lab",
       "achievements": "Achievements",
       "profile": "My profile",
       "menu": "Open menu",
@@ -164,7 +164,7 @@
       "xpPanelTitle": "XP Progress",
       "xpPanelBody": "Total XP earned across your worlds",
       "badgesEarned": "Badges earned",
-      "roadmapTitle": "Your adventure",
+      "roadmapTitle": "All your worlds",
       "roadmapWorlds": "{count} worlds",
       "roadmapLevels": "{count} levels",
       "worldChapters": "{count} levels",
@@ -172,28 +172,6 @@
       "activityTitle": "This week",
       "activityLevels": "Levels played",
       "activityStars": "Stars earned",
-      "onboarding": {
-        "title": "Meet Robo Bunny",
-        "skip": "Skip",
-        "next": "Next",
-        "done": "Start my first mission",
-        "steps": {
-          "0": {
-            "title": "Hi! I'm Robo Bunny.",
-            "body": "I just woke up in Bunny Meadow, and I can't do anything on my own. You can code me, step by step, or teach me with examples in Explore AI. Either way, it's you!"
-          },
-          "1": {
-            "title": "You give the instructions",
-            "body": "Snap blocks together to make a program. Press Run, and I'll follow your blocks one by one."
-          },
-          "2": {
-            "title": "Stuck? Tap Ask Robo Bunny.",
-            "body": "I'll give you a small clue first, then a bigger one. Every coder gets stuck — hints are how we get unstuck."
-          }
-        },
-        "later": "Look around first",
-        "letsGo": "Let's go!"
-      },
       "feedback": {
         "heading": "From your teacher",
         "from": "{teacher} sent you a message",
@@ -224,7 +202,7 @@
       "warmUpSkip": "Or keep going"
     },
     "adventure": {
-      "title": "Adventure map",
+      "title": "Coding Lab",
       "subtitle": "Follow the trail — one level at a time.",
       "emptyTitle": "Your adventure is being prepared",
       "emptyBody": "Your teacher will open the trail soon. Check back!",
@@ -267,8 +245,8 @@
       },
       "horizonHeading": "On the horizon",
       "horizonBody": "New worlds are being charted for your journey.",
-      "pathTitle": "My path",
-      "pathSubtitle": "Your learning journey",
+      "pathTitle": "Coding Lab",
+      "pathSubtitle": "Tell Robo Bunny exactly what to do, one block at a time.",
       "gradeBadge": "GRADE {grade}",
       "resume": "RESUME",
       "continueModule": "Continue world",
@@ -450,40 +428,40 @@
         "retry": "Retry"
       },
       "teach": {
-        "trayHeading": "{kind, select, grain {Seeds} cell {Cells} blip {Readings} crab {Crabs} other {Berries}} the bunny already knows about",
-        "trayEmpty": "You have taught the bunny with every {kind, select, grain {seed} cell {cell} blip {reading} crab {crab} other {berry}}.",
-        "guessHeading": "New {kind, select, grain {seeds} cell {cells} blip {readings} crab {crabs} other {berries}} — the bunny has never seen these",
+        "trayHeading": "{kind, select, grain {Seeds} cell {Cells} blip {Readings} crab {Crabs} shape {Shapes} other {Berries}} the bunny already knows about",
+        "trayEmpty": "You have taught the bunny with every {kind, select, grain {seed} cell {cell} blip {reading} crab {crab} shape {shape} other {berry}}.",
+        "guessHeading": "New {kind, select, grain {seeds} cell {cells} blip {readings} crab {crabs} shape {shapes} other {berries}} — the bunny has never seen these",
         "needMore": "Teach it at least {count} of each kind first, then it will start guessing.",
-        "removeExample": "Take this {kind, select, grain {seed} cell {cell} blip {reading} crab {crab} other {berry}} back",
+        "removeExample": "Take this {kind, select, grain {seed} cell {cell} blip {reading} crab {crab} shape {shape} other {berry}} back",
         "check": "Test the bunny",
         "taughtCount": "{count} taught",
         "passed": "The bunny got them all right! You taught it well.",
-        "missed": "The bunny got {correct} of {total} right. Teach it {kind, select, grain {a seed} cell {a cell} blip {a reading} crab {a crab} other {a berry}} that looks like the one it got wrong.",
+        "missed": "The bunny got {correct} of {total} right. Teach it {kind, select, grain {a seed} cell {a cell} blip {a reading} crab {a crab} shape {a shape} other {a berry}} that looks like the one it got wrong.",
         "trayHelp": "The bunny ate these before, so we know what happened. Pick which ones to teach it with.",
         "teachThis": "Teach this one",
         "specimenDescription": "{sizeName} {size} out of 10, {colorName} {color} out of 10",
         "sizeFallback": "Size",
         "colorFallback": "Colour",
-        "guessHelp": "These are the mystery {kind, select, grain {seeds} cell {cells} blip {readings} crab {crabs} other {berries}}. The bunny has to work them out from what you taught it.",
-        "tryAgain": "Not quite yet — teach the bunny {kind, select, grain {a seed} cell {a cell} blip {a reading} crab {a crab} other {a berry}} like the one it got wrong.",
+        "guessHelp": "These are the mystery {kind, select, grain {seeds} cell {cells} blip {readings} crab {crabs} shape {shapes} other {berries}}. The bunny has to work them out from what you taught it.",
+        "tryAgain": "Not quite yet — teach the bunny {kind, select, grain {a seed} cell {a cell} blip {a reading} crab {a crab} shape {a shape} other {a berry}} like the one it got wrong.",
         "submitFailed": "Something went wrong sending that to the bunny. Try pressing Test again.",
         "exit": "Back to map",
         "howItWorks": "How it works",
         "looksLike": "looks most like",
         "walk1Title": "Robo Bunny cannot read",
-        "walk1Body": "It has no rule for sorting these {kind, select, grain {seeds} cell {cells} blip {readings} crab {crabs} other {berries}}. You are not going to write one either — there is no code in this level at all.",
+        "walk1Body": "It has no rule for sorting these {kind, select, grain {seeds} cell {cells} blip {readings} crab {crabs} shape {shapes} other {berries}}. You are not going to write one either — there is no code in this level at all.",
         "walk2Title": "You show it examples",
-        "walk2Body": "We already know the answer for each {kind, select, grain {seed} cell {cell} blip {reading} crab {crab} other {berry}} here. Put some into the baskets. That is all 'teaching' means.",
-        "walk3Title": "Then it meets new {kind, select, grain {seeds} cell {cells} blip {readings} crab {crabs} other {berries}}",
+        "walk2Body": "We already know the answer for each {kind, select, grain {seed} cell {cell} blip {reading} crab {crab} shape {shape} other {berry}} here. Put some into the baskets. That is all 'teaching' means.",
+        "walk3Title": "Then it meets new {kind, select, grain {seeds} cell {cells} blip {readings} crab {crabs} shape {shapes} other {berries}}",
         "walk3Body": "The ? ones are new to it. To guess, it finds the example YOU taught it that looks most like the new one, and copies that answer.",
         "walk4Title": "So your choice decides",
         "walk4Body": "If you only ever show it one kind — only small ones, only light ones — a different-looking one will fool it, and it will be confidently wrong. Pick examples that cover every kind.",
         "bucketsHeading": "The bunny's two baskets",
-        "bucketsHelp": "Everything you teach it lands here. Click {kind, select, grain {a seed} cell {a cell} blip {a reading} crab {a crab} other {a berry}} to take it back out.",
+        "bucketsHelp": "Everything you teach it lands here. Click {kind, select, grain {a seed} cell {a cell} blip {a reading} crab {a crab} shape {a shape} other {a berry}} to take it back out.",
         "tooManyExamples": "That is {used} examples, and you may only use {max}. Take some back out and pick the ones that teach it the most.",
         "capUsed": "{used} of {max} used",
         "recapHeading": "How you taught it",
-        "recapTaught": "You showed it {count} {kind, select, grain {{count, plural, one {seed} other {seeds}}} cell {{count, plural, one {cell} other {cells}}} blip {{count, plural, one {reading} other {readings}}} crab {{count, plural, one {crab} other {crabs}}} other {{count, plural, one {berry} other {berries}}}}, and nothing else:",
+        "recapTaught": "You showed it {count} {kind, select, grain {{count, plural, one {seed} other {seeds}}} cell {{count, plural, one {cell} other {cells}}} blip {{count, plural, one {reading} other {readings}}} crab {{count, plural, one {crab} other {crabs}}} shape {{count, plural, one {shape} other {shapes}}} other {{count, plural, one {berry} other {berries}}}}, and nothing else:",
         "recapDecided": "Then it worked out the new ones by copying whichever of yours each one looked most like:",
         "improveFewer": "The bunny can be taught with as few as {max} examples. Fewer, better-chosen ones earn the last star.",
         "keepForTesting": "Keep for testing",
@@ -498,14 +476,14 @@
         "alarmTally": "False alarms: {count} of {max} allowed",
         "calledADangerousOneSafe": "The robot called a {danger} cell fine. That is the one mistake the lab cannot allow — teach it more cells like the one it missed.",
         "tooManyFalseAlarms": "Too many false alarms — more than {max}. Careful is good, but a robot that rejects everything is useless too.",
-        "ruleYesterdayHeading": "Yesterday's {kind, select, grain {seeds} cell {cells} blip {readings} crab {crabs} other {berries}}",
+        "ruleYesterdayHeading": "Yesterday's {kind, select, grain {seeds} cell {cells} blip {readings} crab {crabs} shape {shapes} other {berries}}",
         "ruleYesterdayHelp": "What happened when the bunny tried them.",
         "rulePickHeading": "Write a rule",
         "rulePickHelp": "Pick the rule you think fits every one from yesterday, then test it.",
         "ruleTest": "Test the rule",
         "ruleFits": "This rule fits every one from yesterday!",
         "ruleMisses": "This rule is wrong about {count} of them. Try another rule.",
-        "ruleSeeToday": "See today's {kind, select, grain {seeds} cell {cells} blip {readings} crab {crabs} other {berries}}",
+        "ruleSeeToday": "See today's {kind, select, grain {seeds} cell {cells} blip {readings} crab {crabs} shape {shapes} other {berries}}",
         "ruleTodayHeading": "Today: something new",
         "ruleTodayHelp": "New ones have appeared. Your rule decides first, then you find out what they really are.",
         "ruleYours": "Your rule: {rule}",
@@ -515,7 +493,23 @@
         "ruleTodayAllRight": "Your rule got every one right today.",
         "ruleTeach": "Teach with examples instead",
         "ruleRight": "Right",
-        "ruleWrong": "Wrong"
+        "ruleWrong": "Wrong",
+        "predictHeading": "What will the bunny say?",
+        "predictHelp": "Before you look, guess the bunny's answer for each mystery {kind, select, shape {shape} grain {seed} cell {cell} blip {reading} crab {crab} other {berry}}.",
+        "predictItem": "Mystery {number}: {description}",
+        "predictReveal": "Show its guesses",
+        "predictMatched": "You predicted that",
+        "predictSurprised": "It surprised you",
+        "groupResult": "{group}: {right} of {total} right",
+        "whatChangedHeading": "What changed",
+        "whatChangedFirstTry": "You got it on your first test. Your examples covered every kind of {kind, select, shape {shape} grain {seed} cell {cell} blip {reading} crab {crab} other {berry}}.",
+        "whatChangedNone": "You kept the same examples and tested again.",
+        "whatChangedAdded": "You added:",
+        "whatChangedRemoved": "You took out:",
+        "newExampleHeading": "Test one more",
+        "newExampleSays": "The bunny says: {label}",
+        "newExampleRight": "Right!",
+        "newExampleWrong": "Really: {label}. Which example would fix that?"
       },
       "group": {
         "howItWorks": "How it works",
@@ -871,7 +865,8 @@
         },
         "round": "Round {n}",
         "tryRule": "Pick the rule “{rule}”, then press “{button}”.",
-        "pressButton": "Press “{button}”."
+        "pressButton": "Press “{button}”.",
+        "predictGuesses": "Guess what the bunny will say for each mystery one, then press “{button}”."
       },
       "check": {
         "title": "Quick check",
@@ -879,10 +874,10 @@
         "tryAgain": "Not quite. Try another answer.",
         "notSaved": "That didn't save, but you can carry on.",
         "examples": {
-          "question": "How did Robo Bunny learn to sort the berries?",
+          "question": "How did the robot learn to sort?",
           "a": "You wrote a rule for it",
           "b": "It found the pattern in the examples you chose",
-          "c": "It already knew every berry",
+          "c": "It already knew them all",
           "why": "No one wrote a rule. The examples you picked taught it."
         },
         "rules": {
@@ -1032,6 +1027,33 @@
           "name": "People decide",
           "hook": "A machine can sort things. When should a person check its choice?"
         }
+      },
+      "worlds": {
+        "title": "AI worlds",
+        "subtitle": "Go deeper: teach machines with examples, test them, and question what they do.",
+        "back": "Back to Explore AI",
+        "empty": "No AI worlds are open for your school yet."
+      },
+      "notices": {
+        "messages": "{count, plural, one {You have # new message from your teacher.} other {You have # new messages from your teacher.}}",
+        "assignments": "{count, plural, one {Your teacher set you # activity.} other {Your teacher set you # activities.}}",
+        "open": "Open My Learning"
+      },
+      "routes": {
+        "title": "Two routes",
+        "aiTitle": "AI worlds",
+        "aiBody": "Go deeper with AI Island, Data Desert and the Machine Learning Lab.",
+        "aiCta": "Go deeper",
+        "codingTitle": "Coding Lab",
+        "codingBody": "Tell Robo Bunny exactly what to do with code blocks.",
+        "codingCta": "Open Coding Lab",
+        "progress": "{done} of {total} levels"
+      },
+      "welcome": {
+        "title": "Can you teach a robot to sort shapes?",
+        "body": "My sorting robot has never seen a shape. Show it a few examples, and let's find out what it learns.",
+        "start": "Let's try!",
+        "later": "Look around first"
       }
     }
   },

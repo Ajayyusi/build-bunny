@@ -171,5 +171,6 @@ export const ruleOrExamples: LevelDraft = {
     maxExamples: 6,
     // Four is enough: one blue, one purple, two red.
     starCriteria: { threeStarMaxBlocks: 4 },
+    predictFirst: true,
   } satisfies AiClassificationDraft,
 };

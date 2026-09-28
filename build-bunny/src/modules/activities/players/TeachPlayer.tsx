@@ -22,7 +22,9 @@ import { BunnyMascot, Button, cn, useReducedMotion } from "@/ui";
 import { PlayerSoundControls } from "@/modules/audio/AudioControls";
 import { FeatureBoard } from "./FeatureBoard";
 import { TeachRecap } from "./TeachRecap";
+import { TeachPredict } from "./TeachPredict";
 import { TeachRuleRound } from "./TeachRuleRound";
+import { TeachWhatChanged } from "./TeachWhatChanged";
 import { TeachScene } from "./TeachScene";
 
 /**
@@ -40,6 +42,8 @@ import { RoboHelp, type HelpTopic } from "./shared/RoboHelp";
 import { SuccessOverlay } from "./shared/SuccessOverlay";
 import { useHints } from "./shared/useHints";
 import styles from "./teach.module.css";
+
+import type { PlayerButton } from "@/modules/hints/types";
 
 import type { ActivityPlayerProps, AttemptResponse, TeachRuleRound as RuleRound } from "../types";
 import { resolveLocalized } from "../types";
@@ -99,6 +103,8 @@ interface TeachPayload {
     | { kind: "safetyFirst"; neverMisclassify: "positive" | "negative"; maxOtherErrors: number };
   starCriteria: { threeStarMaxBlocks?: number };
   ruleRound?: RuleRound;
+  predictFirst?: boolean;
+  groups?: { names: Record<string, string>; of: Record<string, string> };
 }
 
 /** Specimen glyph: diameter is one feature, hue is the other. */
@@ -121,7 +127,7 @@ function Berry({
         width: px,
         height: px,
         background: glyphFill(glyph, specimen.color),
-        ...glyphShapeStyle(glyph),
+        ...glyphShapeStyle(glyph, specimen.size),
       }}
     />
   );
@@ -205,6 +211,18 @@ export function TeachPlayer({
   );
   const [ruleChosen, setRuleChosen] = useState<string | null>(null);
   const [ruleTested, setRuleTested] = useState<string | null>(null);
+  // The loop's PREDICT step: the child's answer for each mystery specimen,
+  // and whether the bunny's real guesses have been revealed. Both reset
+  // whenever the examples change, so every new try starts with a guess.
+  const [predictions, setPredictions] = useState<Record<string, ClassLabel>>({});
+  const [revealed, setRevealed] = useState(false);
+  const resetPrediction = () => {
+    if (!data.predictFirst) return;
+    setPredictions({});
+    setRevealed(false);
+  };
+  // The examples on the first failed test, for "what changed" on the result.
+  const [firstTry, setFirstTry] = useState<string[] | null>(null);
   // The specimen "Show me the next step" last named, ringed wherever it sits.
   const [pointed, setPointed] = useState<string | null>(null);
   const ring = (id: string) => (pointed === id ? "ring-4 ring-accent ring-offset-2 ring-offset-surface" : "");
@@ -348,6 +366,7 @@ export function TeachPlayer({
     // it is no longer being shown.
     if (result) setResult(null);
     if (server) setServer(null);
+    if (!refused) resetPrediction();
     setAssigned((prev) => {
       if (prev[id] === label) return omit(prev, id);
       // Refuse at the cap rather than accepting the click and failing on
@@ -362,6 +381,7 @@ export function TeachPlayer({
 
   const holdBack = (id: string) => {
     if (result?.verdict === "PASS") return;
+    resetPrediction();
     if (result) setResult(null);
     if (server) setServer(null);
     setHeldBack((prev) => {
@@ -411,6 +431,7 @@ export function TeachPlayer({
       }
       const body = (await res.json()) as AttemptResponse;
       setServer(body);
+      if (body.verdict !== "PASS" && firstTry === null) setFirstTry(examples.map((e) => e.id));
       // The counts ride on the feedback payload, not a top-level summary —
       // reading the wrong one is why this said "0 of 0" for every attempt.
       const feedbackData = body.feedback?.data as
@@ -448,8 +469,14 @@ export function TeachPlayer({
   const bunnyKey = failed ? `shake-${hopKey}` : `hop-${hopKey}`;
 
   const inRuleRound = Boolean(data.ruleRound) && ruleStage !== "done";
-  const ruleButton = (button: "testRule" | "seeToday" | "teachInstead") =>
-    button === "testRule" ? t("ruleTest") : button === "seeToday" ? tk("ruleSeeToday") : t("ruleTeach");
+  const ruleButton = (button: PlayerButton) =>
+    button === "testRule"
+      ? t("ruleTest")
+      : button === "seeToday"
+        ? tk("ruleSeeToday")
+        : button === "teachInstead"
+          ? t("ruleTeach")
+          : t("predictReveal");
   const nextStepHint =
     nextStepAction && !submitting ? (
       <NextStepHint
@@ -461,6 +488,7 @@ export function TeachPlayer({
           examples: examples.map((e) => ({ id: e.id, label: e.label })),
           held: [...heldBack],
           ...(data.ruleRound ? { rule: { stage: ruleStage, chosen: ruleChosen, tested: ruleTested } } : {}),
+          ...(data.predictFirst ? { revealed } : {}),
         })}
         names={{
           specimen: (id) => {
@@ -479,7 +507,9 @@ export function TeachPlayer({
                 ? step.ruleId
                 : step.code === "pressButton"
                   ? step.button
-                  : null,
+                  : step.code === "predictGuesses"
+                    ? "revealGuesses"
+                    : null,
           )
         }
       />
@@ -849,6 +879,21 @@ export function TeachPlayer({
                         ? t("needMoreHeldBack", { need: data.holdout?.min ?? 0 })
                         : tk("needMore", { count: data.minPerLabel })}
                     </p>
+                  ) : data.predictFirst && !revealed ? (
+                    <TeachPredict
+                      probes={data.testSet}
+                      labels={data.labels}
+                      kind={glyph}
+                      predictions={predictions}
+                      onPredict={(id, label) => setPredictions((prev) => ({ ...prev, [id]: label }))}
+                      onReveal={() => {
+                        setRevealed(true);
+                        setPointed(null);
+                      }}
+                      renderGlyph={(probe) => <Berry specimen={probe} theme={glyph} />}
+                      describe={describe}
+                      pointed={pointed}
+                    />
                   ) : (
                     <ul className="flex flex-col gap-2">
                       {guesses.map(({ probe, match, guess }) => (
@@ -896,6 +941,11 @@ export function TeachPlayer({
                           >
                             {guess ? data.labels[guess] : "—"}
                           </span>
+                          {data.predictFirst && predictions[probe.id] ? (
+                            <span className="shrink-0 text-[11px] font-semibold text-ink-muted">
+                              {predictions[probe.id] === guess ? t("predictMatched") : t("predictSurprised")}
+                            </span>
+                          ) : null}
                         </li>
                       ))}
                     </ul>
@@ -947,13 +997,38 @@ export function TeachPlayer({
               </p>
             ) : null}
 
+            {/* Results by group (Find the Bias): how the bunny did on each
+                kind, so a child can see it fails one group, not "the test". */}
+            {result && data.groups && Array.isArray(result.missed) ? (
+              <ul className="flex flex-wrap gap-2">
+                {Object.entries(data.groups.names).map(([key, name]) => {
+                  const inGroup = data.testSet.filter((probe) => data.groups!.of[probe.id] === key);
+                  if (inGroup.length === 0) return null;
+                  const right = inGroup.filter((probe) => !result.missed!.includes(probe.id)).length;
+                  return (
+                    <li
+                      key={key}
+                      className={cn(
+                        "rounded-full px-3 py-1 text-sm font-semibold",
+                        right === inGroup.length ? "bg-brand/15 text-brand" : "bg-danger/15 text-danger",
+                      )}
+                    >
+                      {t("groupResult", { group: name, right, total: inGroup.length })}
+                    </li>
+                  );
+                })}
+              </ul>
+            ) : null}
+
             <div className="flex items-center gap-3 pb-2">
               <Button
                 size="lg"
                 onClick={submit}
-                disabled={!ready}
+                // Predict first: testing waits until the bunny's guesses
+                // have been revealed against the child's own.
+                disabled={!ready || (Boolean(data.predictFirst) && !revealed)}
                 loading={submitting}
-                className={ready && !result && !submitting ? styles.pulseReady : undefined}
+                className={ready && (!data.predictFirst || revealed) && !result && !submitting ? styles.pulseReady : undefined}
               >
                 {t("check")}
               </Button>
@@ -1012,12 +1087,22 @@ export function TeachPlayer({
           nextHref={nextHref}
           reducedMotion={reducedMotion}
           extra={
+            <>
+            <TeachWhatChanged
+              before={firstTry}
+              examples={examples}
+              pool={data.pool}
+              labels={data.labels}
+              kind={glyph}
+              renderGlyph={(specimen) => <Berry specimen={specimen} theme={glyph} />}
+            />
             <TeachRecap
               examples={examples}
               testSet={data.testSet}
               labels={data.labels}
               glyph={glyph}
             />
+            </>
           }
         />
       ) : null}

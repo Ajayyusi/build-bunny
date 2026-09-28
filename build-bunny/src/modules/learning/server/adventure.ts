@@ -41,6 +41,8 @@ import { EXPLORE_SLUGS } from "@/modules/explore/catalog";
  *    or ALL published levels of the previous non-horizon world COMPLETED —
  *    or the child already played in this world (started/finished a level),
  *    so new content added to an earlier world never re-locks their worlds.
+ *    The chain runs per route: AI worlds and coding worlds each gate only
+ *    on the previous world of their own kind (see routeGate).
  *  - Only PUBLISHED content is ever visible; student-facing text comes from
  *    the published LevelVersion snapshot, never from draft fields.
  */
@@ -410,8 +412,7 @@ export async function computeAdventureState(ctx: SessionContext): Promise<Advent
   }
 
   const worldNodes: AdventureWorldNode[] = [];
-  let isFirstRealWorld = true;
-  let previousRealWorldCompleted = false;
+  const gate = routeGate();
 
   for (const world of worlds) {
     const moduleNodes: AdventureModuleNode[] = world.modules.map((mod) => ({
@@ -462,13 +463,13 @@ export async function computeAdventureState(ctx: SessionContext): Promise<Advent
       // (Merely-unlocked levels don't count: an OPEN module may unlock
       // levels inside a world whose card is still meant to read LOCKED.)
       const reached = levelNodes.some((l) => l.state === "IN_PROGRESS" || l.state === "COMPLETED");
-      const available = isFirstRealWorld || previousRealWorldCompleted || reached;
+      const kind = worldKind(levelNodes);
+      const available = gate.available(kind, reached);
       const completed = totalLevels > 0 && completedLevels === totalLevels;
       state = completed ? "COMPLETED" : available ? "AVAILABLE" : "LOCKED";
-      isFirstRealWorld = false;
-      // Tightened world gate: the NEXT world opens only when this one is
-      // fully completed (an empty world never counts as completed).
-      previousRealWorldCompleted = completed;
+      // Tightened world gate: the NEXT world of the same route opens only
+      // when this one is fully completed (an empty world never counts).
+      gate.passed(kind, completed);
     }
 
     worldNodes.push({
@@ -740,11 +741,11 @@ async function recomputeUnlocksFor(
     return status === "IN_PROGRESS" || status === "COMPLETED";
   };
 
-  let isFirstRealWorld = true;
-  let previousRealWorldCompleted = false;
+  const gate = routeGate();
 
   for (const world of worlds) {
     if (world.horizon) continue; // roadmap art — nothing to unlock, ever
+    const kind = worldKind(world.modules.flatMap((m) => m.levels));
 
     // The same world gate the map shows (computeAdventureState): a world the
     // child has already played in stays open. Without this, new levels in an
@@ -752,8 +753,7 @@ async function recomputeUnlocksFor(
     // a later world stopped getting their next level — the map said the
     // world was open, but nothing new unlocked in it.
     const reached = world.modules.some((m) => m.levels.some((l) => played(l.id)));
-    const worldAvailable = isFirstRealWorld || previousRealWorldCompleted || reached;
-    isFirstRealWorld = false;
+    const worldAvailable = gate.available(kind, reached);
 
     let previousModuleAllComplete = false;
     for (const [moduleIndex, mod] of world.modules.entries()) {
@@ -797,7 +797,7 @@ async function recomputeUnlocksFor(
         mod.levels.length > 0 && mod.levels.every((l) => isCompleted(l.id));
     }
 
-    previousRealWorldCompleted = worldFullyCompleted(world, isCompleted);
+    gate.passed(kind, worldFullyCompleted(world, isCompleted));
   }
 
   if (toCreate.length > 0) {
@@ -814,6 +814,29 @@ async function recomputeUnlocksFor(
       skipDuplicates: true,
     });
   }
+}
+
+/**
+ * The world gate, run per ROUTE (redesign brief: "remove coding as a
+ * prerequisite for AI"). AI worlds and coding worlds each form their own
+ * chain in programme order: a route's first world is open, and each later
+ * world opens when the previous world OF THE SAME ROUTE is complete — or the
+ * child has already played in it. Compared with the old single chain this
+ * only ever opens worlds earlier; it never closes one, so no child's
+ * existing progress moves.
+ */
+function routeGate() {
+  const seen = new Set<"ai" | "coding">();
+  const previousDone = new Map<"ai" | "coding", boolean>();
+  return {
+    available(kind: "ai" | "coding", reached: boolean): boolean {
+      return !seen.has(kind) || previousDone.get(kind) === true || reached;
+    },
+    passed(kind: "ai" | "coding", completed: boolean): void {
+      seen.add(kind);
+      previousDone.set(kind, completed);
+    },
+  };
 }
 
 /** "ai" when most of a world's levels teach AI or machine learning. */

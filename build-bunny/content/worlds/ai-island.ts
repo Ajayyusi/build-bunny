@@ -8,6 +8,7 @@ import type {
 import { onlineLife } from "./more-ai";
 import { safetyAndFairness } from "./ai-island-safety";
 import { ruleOrExamples } from "./rule-or-examples";
+import { firstSorts } from "./train-a-sorter";
 
 /**
  * World 4 — AI Island. The first world where the student stops writing rules.
@@ -73,9 +74,11 @@ export const aiIsland: WorldFixture = {
   theme: "island",
   horizon: false,
   modules: [
+    // The redesign brief's first session: Train a Sorter (shapes).
+    firstSorts,
     {
       slug: "teaching-machines",
-      order: 1,
+      order: 2,
       name: { en: "Teaching Machines", ar: "تعليم الآلات" },
       description: {
         en: "You have spent three worlds telling Robo Bunny what to do. On this island you stop telling it, and start showing it.",
@@ -178,6 +181,8 @@ export const aiIsland: WorldFixture = {
             ],
             rule: { feature: "color", threshold: 0.5 },
             minPerLabel: 2,
+            // Predict the bunny's answers before its guesses appear.
+            predictFirst: true,
             // 6 = the whole pool, i.e. deliberately not binding. The budget
             // became live in the grader in the same commit, and this is the
             // introductory level: its lesson is WHICH examples, not how few.
@@ -710,7 +715,7 @@ export const aiIsland: WorldFixture = {
 
     {
       slug: "seeing-and-secrets",
-      order: 2,
+      order: 3,
       name: { en: "Seeing and Secrets", ar: "الرؤية والأسرار" },
       description: {
         en: "Machines don't just learn from you — they look at the world, and sometimes they ask about yours. See through a computer's eyes, then decide what an app deserves to know.",

@@ -38,7 +38,7 @@ const choice = (id: string, text: [string, string], outcome: [string, string], s
 
 export const onlineLife: ModuleFixture = {
   slug: "online-life",
-  order: 4,
+  order: 5,
   name: t("Online Life", "الحياة على الإنترنت"),
   description: t("Kindness, passwords and offers — and a machine that sorts seeds.", "اللطف وكلمات المرور والعروض — وآلة تفرز البذور."),
   levels: [

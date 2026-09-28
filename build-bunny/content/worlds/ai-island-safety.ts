@@ -18,7 +18,7 @@ type AiClassificationDraft = z.input<typeof aiClassificationPayload>;
 
 export const safetyAndFairness: ModuleFixture = {
   slug: "safety-and-fairness",
-  order: 3,
+  order: 4,
   name: { en: "Safety and Fairness", ar: "الأمان والإنصاف" },
   description: {
     en: "Strangers, fakes, and a machine that learned a shortcut.",
@@ -488,15 +488,31 @@ export const safetyAndFairness: ModuleFixture = {
           { id: "n3", size: 0.92, color: 0.8, truth: "negative" },
           { id: "n4", size: 0.15, color: 0.85, truth: "negative" },
         ],
-        // Held out: the rare kinds. Typical-only teaching misreads t1.
+        // Held out: BOTH groups (the brief's "tests both groups"). A
+        // typical-only set gets the common ones right and the rare ones
+        // wrong — which the results-by-group line shows side by side.
         testSet: [
           { id: "t1", size: 0.9, color: 0.3 },
           { id: "t2", size: 0.1, color: 0.9 },
+          { id: "t3", size: 0.12, color: 0.12 },
+          { id: "t4", size: 0.88, color: 0.8 },
         ],
         rule: { feature: "color", threshold: 0.5 },
         minPerLabel: 2,
         maxExamples: 4,
         starCriteria: { threeStarMaxBlocks: 4 },
+        predictFirst: true,
+        groups: {
+          names: {
+            common: { en: "Common berries", ar: "التوت الشائع" },
+            rare: { en: "Rare berries", ar: "التوت النادر" },
+          },
+          of: {
+            p1: "common", p2: "common", p3: "common", n1: "common", n2: "common", n3: "common",
+            p4: "rare", n4: "rare",
+            t1: "rare", t2: "rare", t3: "common", t4: "common",
+          },
+        },
       } satisfies AiClassificationDraft,
     },
   ],

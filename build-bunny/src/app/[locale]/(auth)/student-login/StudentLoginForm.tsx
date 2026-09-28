@@ -59,7 +59,7 @@ export function StudentLoginForm() {
         setLoading(false);
         return;
       }
-      window.location.assign(localePath(locale, "/home"));
+      window.location.assign(localePath(locale, "/explore"));
     } catch {
       setError(t("errors.generic"));
       setLoading(false);

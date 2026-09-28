@@ -178,8 +178,9 @@ describe("content bundle shape", () => {
     // Deciding Well (2), Code City City Workshop (7), three more Fair mazes.
     // + Rule or Examples? (1, ai-island), the redesign brief's rules-vs-learning
     // bridge after Teach the Bunny.
+    // + Train a Sorter (1, ai-island), the brief's first-session shapes activity.
     const levelCount = playableWorlds.reduce((n, w) => n + allLevels(w).length, 0);
-    expect(levelCount).toBe(101);
+    expect(levelCount).toBe(102);
     const codeCity = playableWorlds.find((w) => w.slug === "code-city");
     expect(allLevels(codeCity as WorldFixture)).toHaveLength(22);
     const inventorIsland = playableWorlds.find((w) => w.slug === "inventor-island");
@@ -187,7 +188,7 @@ describe("content bundle shape", () => {
     const robotLab = playableWorlds.find((w) => w.slug === "robot-lab");
     expect(allLevels(robotLab as WorldFixture)).toHaveLength(13);
     const aiIsland = playableWorlds.find((w) => w.slug === "ai-island");
-    expect(allLevels(aiIsland as WorldFixture)).toHaveLength(14);
+    expect(allLevels(aiIsland as WorldFixture)).toHaveLength(15);
     const dataDesert = playableWorlds.find((w) => w.slug === "data-desert");
     expect(allLevels(dataDesert as WorldFixture)).toHaveLength(11);
   });

@@ -238,7 +238,7 @@ function snapshotOf(level: (typeof levels)[number]): LevelSnapshot {
 }
 
 describe("following 'Show me the next step' finishes every level, through the route's body parse", () => {
-  it("covers all 101 levels", () => expect(levels).toHaveLength(101));
+  it("covers all 102 levels", () => expect(levels).toHaveLength(102));
 
   for (const level of levels) {
     it(`${level.slug} (${level.activityType})`, () => {
@@ -249,6 +249,7 @@ describe("following 'Show me the next step' finishes every level, through the ro
         pool?: { id: string; size: number; color: number }[];
         holdout?: unknown;
         ruleRound?: { rules: RuleCard[]; yesterday: KnownSpecimen[] };
+        predictFirst?: boolean;
       };
       let picked = "";
       const path: { sceneId: string; choiceId: string }[] = [];
@@ -283,6 +284,8 @@ describe("following 'Show me the next step' finishes every level, through the ro
         state.held = [];
         // Rule or Examples?: the player starts in the rule round.
         if (payload.ruleRound) state.rule = { stage: "pick", chosen: null, tested: null };
+        // Predict-first levels start with the bunny's guesses hidden.
+        if (payload.predictFirst) state.revealed = false;
         finalAnswer = () => ({
           examples: state.examples!.map((e) => {
             const s = payload.pool!.find((x) => x.id === e.id)!;
@@ -353,9 +356,17 @@ describe("following 'Show me the next step' finishes every level, through the ro
           case "teach":
             state.held = state.held!.filter((id) => id !== step.specimenId);
             state.examples = [...state.examples!, { id: step.specimenId, label: step.label }];
+            // Like the player: changing the examples hides the guesses again.
+            if (payload.predictFirst) state.revealed = false;
             break;
           case "takeBack":
             state.examples = state.examples!.filter((e) => e.id !== step.specimenId);
+            if (payload.predictFirst) state.revealed = false;
+            break;
+          case "predictGuesses":
+            // Only offered once the examples are enough to guess from.
+            if (!payload.predictFirst || state.revealed !== false) throw new Error("unfollowable: nothing to predict");
+            state.revealed = true;
             break;
           case "keepForTesting":
             state.held = [...state.held!, step.specimenId];
@@ -462,6 +473,8 @@ describe("following 'Show me the next step' finishes every level, through the ro
       const routed = grid ? input.workspaceJson : type === "CREATIVE_PROJECT" ? { workspaceJson: input.workspaceJson, design: input.design } : input.answer;
       const verdict = grade(routed).verdict;
       expect({ slug: level.slug, verdict, steps: seen.length }).toMatchObject({ slug: level.slug, verdict: "PASS" });
+      // The learning loop's predict step is part of the path, not skipped.
+      if (payload.predictFirst) expect(seen, level.slug).toContain("predictGuesses");
     });
   }
 });
