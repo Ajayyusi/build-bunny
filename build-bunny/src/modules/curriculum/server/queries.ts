@@ -213,6 +213,7 @@ export interface CurriculumLevelDetail {
   mission: LocalizedText | null;
   instructions: LocalizedText | null;
   explanation: LocalizedText | null;
+  keyIdea: LocalizedText | null;
   teacherNotes: LocalizedText | null;
   /** Authoring surface: payload/hints may contain answer-bearing fields. */
   payload: unknown;
@@ -282,6 +283,7 @@ export async function getCurriculumLevelDetail(
     mission: asText(level.mission),
     instructions: asText(level.instructions),
     explanation: asText(level.explanation),
+    keyIdea: asText(level.keyIdea),
     teacherNotes: asText(level.teacherNotes),
     payload: level.payload,
     hints,

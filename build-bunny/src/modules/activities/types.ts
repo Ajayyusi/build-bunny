@@ -38,6 +38,8 @@ export interface ActivityIntro {
   objective: string;
   instructions: string;
   explanation: string;
+  /** One sentence shown first on the result; "" when the level has none. */
+  keyIdea: string;
   difficulty: string;
   estimatedMinutes: number;
   maxStars: number;

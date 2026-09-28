@@ -197,3 +197,19 @@ describe("say what you think first (the predict step)", () => {
     }
   });
 });
+
+describe("one short explanation on every AI level", () => {
+  it("every AI-route level has a one-sentence big idea in both languages", () => {
+    const ai = levels.filter((l) => l.track !== "PROGRAMMING");
+    expect(ai.length).toBeGreaterThanOrEqual(31);
+    for (const l of ai) {
+      for (const lang of ["en", "ar"] as const) {
+        const text = l.keyIdea?.[lang] ?? "";
+        expect(text.length, `${l.slug} ${lang}`).toBeGreaterThan(20);
+        expect(text.length, `${l.slug} ${lang} is short`).toBeLessThanOrEqual(150);
+        // One sentence: nothing ends a sentence before the last character.
+        expect(/[.!?؟](\s|$)/.test(text.slice(0, -1).replace(/"[^"]*"|«[^»]*»/g, "")), `${l.slug} ${lang} is one sentence`).toBe(false);
+      }
+    }
+  });
+});

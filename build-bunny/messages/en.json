@@ -390,7 +390,9 @@
         "certificateEarned": "You earned this world's certificate!",
         "certificateSee": "See it on your Achievements page",
         "improveFirstTry": "Get it right on your first try for the third star.",
-        "moreAi": "More AI to explore"
+        "moreAi": "More AI to explore",
+        "keyIdeaHeading": "The big idea",
+        "tellMeMore": "Tell me more"
       },
       "blockNames": {
         "bb_whenStart": "when start",

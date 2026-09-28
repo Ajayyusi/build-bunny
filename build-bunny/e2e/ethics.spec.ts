@@ -51,7 +51,14 @@ test("Who Decides?: review the machine's suggestion, try another choice, own che
 
   await expect(page.getByRole("heading", { name: "Your Who-Decides Checklist" })).toBeVisible();
   await page.getByRole("button", { name: "Finish" }).click();
-  await expect(page.getByRole("dialog", { name: /complete/i })).toBeVisible();
+  const done = page.getByRole("dialog", { name: /complete/i });
+  await expect(done).toBeVisible();
+  // One short explanation first; the longer one waits behind "Tell me more".
+  await expect(done.getByRole("heading", { name: "The big idea" })).toBeVisible();
+  await expect(done.getByText("The more a mistake could hurt someone, the more a person should check the machine.")).toBeVisible();
+  await expect(done.getByText(/That rule is how responsible teams use AI/)).toBeHidden();
+  await done.getByText("Tell me more").click();
+  await expect(done.getByText(/That rule is how responsible teams use AI/)).toBeVisible();
 });
 
 test("Is That Real?: say 'not enough evidence yet', then check the source", async ({ page, baseURL }, testInfo) => {

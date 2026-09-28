@@ -968,6 +968,8 @@ export const levelFixtureSchema = z.object({
   mission: localizedTextOptional,
   instructions: localizedText,
   explanation: localizedText,
+  /** One sentence: the idea to take away, shown first on the result. */
+  keyIdea: localizedTextOptional,
   teacherNotes: localizedTextOptional,
   difficulty: z.enum(["EASY", "MEDIUM", "HARD"]).default("EASY"),
   recommendedGradeMin: z.number().int().min(1).max(12).optional(),

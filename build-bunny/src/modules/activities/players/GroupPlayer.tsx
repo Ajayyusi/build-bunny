@@ -755,6 +755,7 @@ export function GroupPlayer({
           maxStars={intro.maxStars}
           xpAwarded={server.xpAwarded}
           explanation={intro.explanation}
+          keyIdea={intro.keyIdea}
           achievements={server.newAchievements.map((a) => ({
             slug: a.slug,
             icon: a.icon,

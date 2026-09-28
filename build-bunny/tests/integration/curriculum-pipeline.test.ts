@@ -92,6 +92,7 @@ function makeBundle(): ImportBundle {
                 objective: { en: "Reach the goal." },
                 instructions: { en: "Use move blocks to hop to the burrow." },
                 explanation: { en: "Programs run one block at a time, in order." },
+                keyIdea: { en: "A program runs its blocks in order." },
                 difficulty: "EASY",
                 estimatedMinutes: 5,
                 tags: ["sequence"],
@@ -255,6 +256,8 @@ describe("publish + status transitions", () => {
     expect(snapshot["title"]).toEqual({ en: "First Hop" });
     expect(snapshot["worldSlug"]).toBe("pipe-meadow");
     expect(snapshot["xpReward"]).toBe(50); // EASY default resolved into the snapshot
+    // The one-sentence big idea travels from content to the published copy.
+    expect(snapshot["keyIdea"]).toEqual({ en: "A program runs its blocks in order." });
 
     const auditRow = await db.auditLog.findFirst({
       where: { action: "curriculum.status_changed", targetId: level.id },

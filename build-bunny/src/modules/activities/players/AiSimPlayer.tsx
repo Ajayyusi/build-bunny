@@ -442,6 +442,7 @@ export function AiSimPlayer({
           maxStars={intro.maxStars}
           xpAwarded={submission.server ? submission.server.xpAwarded : null}
           explanation={intro.explanation}
+          keyIdea={intro.keyIdea}
           achievements={achievements}
           worldCompletedName={worldCompletedName}
           worldPower={submission?.server?.worldCompleted?.power ?? null}

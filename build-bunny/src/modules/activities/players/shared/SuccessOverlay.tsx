@@ -43,6 +43,12 @@ interface SuccessOverlayProps {
   /** Server-confirmed XP for this attempt; null while saving. */
   xpAwarded: number | null;
   explanation: string;
+  /**
+   * One sentence: the idea to take away. When a level has one, it leads the
+   * card and the longer explanation opens on "Tell me more" (the handoff's
+   * "one short explanation" — a 4-5 sentence paragraph is not one).
+   */
+  keyIdea?: string;
   achievements: SuccessAchievement[];
   worldCompletedName: string | null;
   /** The Power earned by finishing this world (only on the finishing run). */
@@ -83,6 +89,7 @@ export function SuccessOverlay({
   maxStars,
   xpAwarded,
   explanation,
+  keyIdea,
   achievements,
   worldCompletedName,
   worldPower = null,
@@ -266,7 +273,28 @@ export function SuccessOverlay({
             just did, then reads why. */}
         <ConceptCheckRow ready={!saving && !saveFailed} />
 
-        {explanation ? (
+        {keyIdea ? (
+          <div className="flex flex-col gap-2 rounded-lg bg-surface-sunken p-4">
+            <div className="flex items-center justify-between gap-2">
+              <h2 className="font-display text-sm font-bold text-ink">
+                {t("keyIdeaHeading")}
+              </h2>
+              <ReadAloudButton text={keyIdea} />
+            </div>
+            <p className="text-base font-semibold leading-relaxed text-ink">{keyIdea}</p>
+            {explanation ? (
+              <details className="group">
+                <summary className="cursor-pointer text-sm font-semibold text-brand underline-offset-4 hover:underline">
+                  {t("tellMeMore")}
+                </summary>
+                <div className="mt-2 flex items-start gap-2">
+                  <p className="flex-1 text-sm leading-relaxed text-ink-muted">{explanation}</p>
+                  <ReadAloudButton text={explanation} />
+                </div>
+              </details>
+            ) : null}
+          </div>
+        ) : explanation ? (
           <div className="flex flex-col gap-1 rounded-lg bg-surface-sunken p-4">
             <div className="flex items-center justify-between gap-2">
               <h2 className="font-display text-sm font-bold text-ink">

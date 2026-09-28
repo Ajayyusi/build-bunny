@@ -129,6 +129,7 @@ export default async function PlayLevelPage({ params }: Props) {
     objective: resolveText(playable.mission ?? playable.objective, locale),
     instructions: resolveText(playable.instructions, locale),
     explanation: resolveText(playable.explanation, locale),
+    keyIdea: resolveText(playable.keyIdea, locale),
     difficulty: playable.difficulty,
     estimatedMinutes: playable.estimatedMinutes,
     maxStars: playable.maxStars,

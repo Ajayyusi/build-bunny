@@ -414,6 +414,9 @@ model Level {
   mission      Json?
   instructions Json?
   explanation  Json?
+  /// One sentence shown first on the result ("the big idea"); the longer
+  /// explanation sits behind "Tell me more".
+  keyIdea      Json?
   teacherNotes Json?
 
   difficulty          Difficulty @default(EASY)

@@ -41,6 +41,8 @@ export const HINT_COOLDOWN_MS = 60_000;
 export interface PlayableLevel extends LevelIntro {
   /** Post-completion teaching copy (published snapshot). */
   explanation: LocalizedText | null;
+  /** The one-sentence big idea, shown first on the result. */
+  keyIdea: LocalizedText | null;
   /** Student-stripped payload — answer-bearing fields removed. */
   payload: unknown;
   /** Autosaved workspace, wins over startWorkspace when present. */
@@ -58,6 +60,7 @@ export interface PlayableLevel extends LevelIntro {
 
 const snapshotExtrasSchema = z.object({
   explanation: localizedText.nullish(),
+  keyIdea: localizedText.nullish(),
   payload: z.unknown(),
   /** Concept tags — pick "a similar example" and the Learn step to revisit. */
   tags: z.array(z.string()).default([]),
@@ -104,6 +107,7 @@ export async function getPlayableLevel(
   return {
     ...intro,
     explanation: extras.data.explanation ?? null,
+    keyIdea: extras.data.keyIdea ?? null,
     payload,
     draftWorkspace: progressRow.draftWorkspace ?? null,
     draftSavedAt: progressRow.draftSavedAt?.toISOString() ?? null,
