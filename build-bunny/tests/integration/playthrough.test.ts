@@ -187,6 +187,14 @@ function solutionFor(level: PlayableLevel): Record<string, unknown> {
           for (const round of rounds) answerRounds[round.id] = round.imageId;
           return { answer: { rounds: answerRounds } };
         }
+        case "mark-items": {
+          // Every markable item gets its authored right mark (the key the
+          // playthrough reads from the unstripped payload).
+          const groups = widget.groups as Array<{ items: Array<{ id: string; answer?: string }> }>;
+          const marks: Record<string, string> = {};
+          for (const group of groups) for (const item of group.items) if (item.answer) marks[item.id] = item.answer;
+          return { answer: { marks } };
+        }
         case "trend-line": {
           const points = widget.points as Array<{ x: number; y: number }>;
           const predictAt = widget.predictAt as number;
