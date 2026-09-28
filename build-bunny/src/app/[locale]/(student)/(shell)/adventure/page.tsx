@@ -18,7 +18,7 @@ interface Props {
 /**
  * Coding Lab: the programming route — Bunny Meadow, Logic Forest, Robot Lab,
  * Code City and Inventor Island. The AI worlds live in Explore AI
- * (/explore/worlds); both read the same progress, so nothing moved.
+ * (/ai-worlds); both read the same progress, so nothing moved.
  */
 export default async function CodingLabPage({ params }: Props) {
   const { locale } = await params;

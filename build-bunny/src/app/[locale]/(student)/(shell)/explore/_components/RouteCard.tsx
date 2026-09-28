@@ -20,7 +20,7 @@ export function RouteCard({
   progressLabel,
   tone,
 }: {
-  href: "/explore/worlds" | "/adventure";
+  href: "/ai-worlds" | "/adventure";
   glyph: string;
   title: string;
   body: string;

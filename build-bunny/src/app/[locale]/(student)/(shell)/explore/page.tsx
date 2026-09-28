@@ -144,7 +144,7 @@ export default async function ExplorePage({ params }: Props) {
           </h2>
           <ul className="grid flex-1 gap-4 sm:grid-cols-2">
             <RouteCard
-              href="/explore/worlds"
+              href="/ai-worlds"
               glyph="🧠"
               title={t("routes.aiTitle")}
               body={t("routes.aiBody")}

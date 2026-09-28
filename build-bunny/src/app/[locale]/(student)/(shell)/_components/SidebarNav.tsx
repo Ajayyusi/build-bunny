@@ -13,6 +13,8 @@ interface SidebarNavItemProps {
   badge?: number;
   /** Localized description of what the badge counts, for screen readers. */
   badgeLabel?: string;
+  /** Other routes that belong to this item (AI worlds belongs to Explore AI). */
+  alsoActive?: string[];
 }
 
 /**
@@ -29,9 +31,10 @@ export function SidebarNavItem({
   children,
   badge = 0,
   badgeLabel,
+  alsoActive = [],
 }: SidebarNavItemProps) {
   const pathname = usePathname();
-  const active = pathname === href || pathname.startsWith(`${href}/`);
+  const active = [href, ...alsoActive].some((route) => pathname === route || pathname.startsWith(`${route}/`));
 
   return (
     <Link

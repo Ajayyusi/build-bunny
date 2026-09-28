@@ -91,7 +91,7 @@ export default async function StudentShellLayout({ children, params }: Props) {
             first — it is where a child lands — and the two routes named
             apart. My Learning keeps the teacher's messages and badge. */}
         {adventureEnabled ? (
-          <SidebarNavItem href="/explore" icon={<SparkIcon />}>
+          <SidebarNavItem href="/explore" alsoActive={["/ai-worlds"]} icon={<SparkIcon />}>
             {t("nav.explore")}
           </SidebarNavItem>
         ) : null}

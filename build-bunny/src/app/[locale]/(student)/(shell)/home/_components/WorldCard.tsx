@@ -119,7 +119,7 @@ export function WorldCard({
       <Link
         // Each world opens on its own route's trail: AI worlds inside
         // Explore AI, coding worlds in Coding Lab.
-        href={world.kind === "ai" ? "/explore/worlds" : "/adventure"}
+        href={world.kind === "ai" ? "/ai-worlds" : "/adventure"}
         className={cn(shared, "bb-pop transition-transform hover:-translate-y-0.5 active:translate-y-1")}
         style={{ "--i": index, ...colorStyle } as React.CSSProperties}
       >

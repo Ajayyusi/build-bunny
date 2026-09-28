@@ -48,7 +48,9 @@ test("Explore AI: six activities above the fold on a classroom laptop, and both 
   for (const card of await cards.all()) await expect(card).toBeInViewport({ ratio: 1 });
 
   await page.getByRole("link", { name: /AI worlds/ }).click();
-  await expect(page).toHaveURL(/\/explore\/worlds$/);
+  await expect(page).toHaveURL(/\/ai-worlds$/);
+  // The AI worlds belong to Explore AI in the navigation.
+  await expect(page.getByRole("link", { name: "Explore AI", exact: true })).toHaveAttribute("aria-current", "page");
   // First visit: AI Island tells its story first.
   await page.getByRole("dialog", { name: /the story/ }).getByRole("button", { name: "Skip" }).click();
   await page.getByRole("link", { name: "Back to Explore AI" }).click();

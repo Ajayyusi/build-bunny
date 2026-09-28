@@ -69,12 +69,12 @@ test("child-facing screens have no serious or critical axe findings", async ({ p
     }
     findings.push(...(await scan(page, `${locale}/explore`)));
 
-    await page.goto(`/${locale}/explore/worlds`);
+    await page.goto(`/${locale}/ai-worlds`);
     await page.waitForLoadState("networkidle");
     const aiScene = page.getByRole("dialog");
     await aiScene.waitFor({ state: "visible", timeout: 5000 }).catch(() => {});
     if (await aiScene.isVisible().catch(() => false)) await aiScene.getByRole("button").last().click();
-    findings.push(...(await scan(page, `${locale}/explore/worlds`)));
+    findings.push(...(await scan(page, `${locale}/ai-worlds`)));
 
     await page.goto(`/${locale}/home`);
     await page.waitForLoadState("networkidle");
