@@ -77,7 +77,11 @@ export default async function ExplorePage({ params }: Props) {
               {t("progress", { done: state.completed, total: state.cards.length })}
             </span>
           ) : null}
-          <AiModeSwitch mode={aiModeFor(snapshot?.grade, snapshot?.aiMode)} choice={choiceOf(snapshot?.aiMode)} />
+          <AiModeSwitch
+            mode={aiModeFor(snapshot?.grade, snapshot?.aiMode)}
+            gradeMode={aiModeFor(snapshot?.grade, null)}
+            choice={choiceOf(snapshot?.aiMode)}
+          />
         </div>
       </header>
 

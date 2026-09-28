@@ -12,18 +12,32 @@ import { cn, runAction } from "@/ui";
  * "Simpler words" or "More detail" for the AI activities. The child can
  * switch at any time; it changes how things are shown, never progress.
  */
-export function AiModeSwitch({ mode, choice }: { mode: AiMode; choice: AiModeChoice }) {
+export function AiModeSwitch({
+  mode,
+  gradeMode,
+  choice,
+}: {
+  mode: AiMode;
+  /** The mode the child's grade gives ("Use my grade" goes back to it). */
+  gradeMode: AiMode;
+  choice: AiModeChoice;
+}) {
   const t = useTranslations("student.explore.mode");
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [current, setCurrent] = useState<AiMode>(mode);
+  // The saved choice is tracked here too, not only through a refresh: in
+  // production builds router.refresh() on this page doesn't always land,
+  // and "Use my grade" stayed on screen after it had been used.
+  const [saved, setSaved] = useState<AiModeChoice>(choice);
 
   const pick = async (next: AiModeChoice) => {
     setBusy(true);
     try {
       const result = await runAction(() => setMyAiModeAction({ choice: next }));
       if (result.ok) {
-        if (next !== "auto") setCurrent(next);
+        setCurrent(next === "auto" ? gradeMode : next);
+        setSaved(next);
         router.refresh();
       }
     } finally {
@@ -50,7 +64,7 @@ export function AiModeSwitch({ mode, choice }: { mode: AiMode; choice: AiModeCho
           {t(option)}
         </button>
       ))}
-      {choice !== "auto" ? (
+      {saved !== "auto" ? (
         <button
           type="button"
           disabled={busy}
