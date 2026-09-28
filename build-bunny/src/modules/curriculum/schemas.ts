@@ -682,6 +682,18 @@ export const aiEthicsPayload = z.object({
         id: z.string().min(1),
         text: localizedText,
         art: z.string().optional(),
+        /**
+         * A machine's suggestion the child reviews (Who Decides?): what it
+         * suggests, the reason it gives, and how sure it says it is (0–1).
+         * Choices then approve it, ask for more, or override it.
+         */
+        suggestion: z
+          .object({
+            text: localizedText,
+            reason: localizedText,
+            confidence: z.number().min(0).max(1),
+          })
+          .optional(),
         choices: z
           .array(
             z.object({
@@ -692,6 +704,8 @@ export const aiEthicsPayload = z.object({
               /** Choices that demonstrate the safe habit this scene teaches. */
               safe: z.boolean().default(false),
               next: z.string().optional(),
+              /** On a suggestion scene: what this choice does with it. */
+              action: z.enum(["approve", "askMore", "override"]).optional(),
             }),
           )
           .min(2)
@@ -702,6 +716,13 @@ export const aiEthicsPayload = z.object({
     .max(8),
   /** The checklist the child assembles; shown on completion. */
   takeaways: z.array(localizedText).min(2).max(6),
+  /** The checklist's own name and icon (each level teaches its own habit). */
+  checklist: z
+    .object({
+      title: localizedText,
+      icon: z.string().max(8).optional(),
+    })
+    .optional(),
 });
 
 // ── AI_SIM: interactive concept widgets with real maths (phase G graft) ──

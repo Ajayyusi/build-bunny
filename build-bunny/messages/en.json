@@ -546,10 +546,15 @@
       },
       "aiEthics": {
         "continueStory": "Continue",
-        "shieldTitle": "Your Privacy Shield",
         "finish": "Finish",
         "submitFailed": "Couldn't save your story.",
-        "retry": "Try saving again"
+        "retry": "Try saving again",
+        "checklistTitle": "What to remember",
+        "tryAnother": "Try a different choice",
+        "triedNote": "You tried this",
+        "suggestionLabel": "The machine suggests",
+        "suggestionWhy": "Its reason:",
+        "suggestionSure": "How sure it says it is: {percent}%"
       },
       "aiSim": {
         "submit": "Check my work",

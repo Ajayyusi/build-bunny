@@ -215,6 +215,7 @@ export const safetyAndFairness: ModuleFixture = {
             ],
           },
         ],
+        checklist: { title: { en: "Your Safe Chat Checklist", ar: "قائمة الدردشة الآمنة الخاصة بك" }, icon: "💬" },
         takeaways: [
           { en: "A friendly stranger online is still a stranger.", ar: "الغريب الودود على الإنترنت ما زال غريبًا." },
           { en: "I keep my school, my address and my full name to myself.", ar: "أحتفظ باسم مدرستي وعنواني واسمي الكامل لنفسي." },
@@ -303,6 +304,18 @@ export const safetyAndFairness: ModuleFixture = {
                 safe: true,
               },
               {
+                id: "not-enough-evidence-video",
+                text: {
+                  en: "Not enough evidence yet — find where it first came from",
+                  ar: "لا يوجد دليل كافٍ بعد — أبحث عن مصدره الأول",
+                },
+                outcome: {
+                  en: "Smart. \"Everyone's sharing it\" isn't evidence. The first place it appeared, and whether a trusted news site reports it, tells you far more.",
+                  ar: "ذكي. «الجميع يشاركه» ليس دليلًا. أول مكان ظهر فيه، وهل ينشره موقع أخبار موثوق، يخبرك بأكثر من ذلك بكثير.",
+                },
+                safe: true,
+              },
+              {
                 id: "ask-grownup-video",
                 text: { en: "Ask a grown-up what they think", ar: "أسأل شخصًا بالغًا عن رأيه" },
                 outcome: {
@@ -377,6 +390,18 @@ export const safetyAndFairness: ModuleFixture = {
                 safe: true,
               },
               {
+                id: "check-source-picture",
+                text: {
+                  en: "I can't tell yet — who made it, and where did it come from?",
+                  ar: "لا أستطيع أن أعرف بعد — من صنعها، ومن أين جاءت؟",
+                },
+                outcome: {
+                  en: "Exactly the right question. A picture with no source isn't proof of anything, and until you know, it isn't yours to spread.",
+                  ar: "هذا هو السؤال الصحيح تمامًا. صورة بلا مصدر ليست دليلًا على أي شيء، وإلى أن تعرف، ليست لك لتنشرها.",
+                },
+                safe: true,
+              },
+              {
                 id: "tell-grownup-picture",
                 text: { en: "Tell a grown-up about it", ar: "أخبر شخصًا بالغًا عنها" },
                 outcome: {
@@ -416,6 +441,7 @@ export const safetyAndFairness: ModuleFixture = {
             ],
           },
         ],
+        checklist: { title: { en: "Your Real-or-Not Checklist", ar: "قائمة «حقيقي أم لا» الخاصة بك" }, icon: "🔍" },
         takeaways: [
           { en: "Videos and pictures can be made by machines. 'Looks real' isn't proof.", ar: "يمكن للآلات صنع مقاطع الفيديو والصور. «يبدو حقيقيًا» ليس دليلًا." },
           { en: "A chatbot predicts words — it can be confidently wrong. I check somewhere else.", ar: "روبوت الدردشة يتنبأ بالكلمات — وقد يخطئ بثقة. أتحقق في مكان آخر." },

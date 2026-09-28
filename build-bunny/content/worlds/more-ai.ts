@@ -115,6 +115,7 @@ export const onlineLife: ModuleFixture = {
             ],
           },
         ],
+        checklist: { title: { en: "Your Kind Online Checklist", ar: "قائمة اللطف على الإنترنت الخاصة بك" }, icon: "💛" },
         takeaways: [
           t("I don't join in when someone is being picked on.", "لا أنضم عندما يتعرّض أحد للمضايقة."),
           t("A kind message to the person helps a lot.", "رسالة لطيفة للشخص تساعد كثيرًا."),
@@ -189,6 +190,7 @@ export const onlineLife: ModuleFixture = {
             ],
           },
         ],
+        checklist: { title: { en: "Your Strong Password Checklist", ar: "قائمة كلمات المرور القوية الخاصة بك" }, icon: "🔑" },
         takeaways: [
           t("A long, silly sentence makes a strong password.", "الجملة الطويلة المضحكة تصنع كلمة مرور قوية."),
           t("I never use my name, birthday or 1234.", "لا أستخدم اسمي أو تاريخ ميلادي أو 1234 أبدًا."),
@@ -263,6 +265,7 @@ export const onlineLife: ModuleFixture = {
             ],
           },
         ],
+        checklist: { title: { en: "Your Smart Offer Checklist", ar: "قائمة العروض الذكية الخاصة بك" }, icon: "🏷️" },
         takeaways: [
           t("Pop-up prizes are usually adverts.", "الجوائز المنبثقة غالبًا إعلانات."),
           t("I ask a grown-up before buying anything.", "أسأل شخصًا بالغًا قبل شراء أي شيء."),
@@ -615,7 +618,10 @@ export const decidingWell: ModuleFixture = {
         "التفكير في متى يحتاج قرار الذكاء الاصطناعي إلى مراجعة بشرية، بناءً على كلفة الخطأ.",
       ),
       mission: t("Decide when the machine can decide — and when a person should check.", "قرّر متى تستطيع الآلة أن تقرّر — ومتى يجب أن يتحقق شخص."),
-      instructions: t("Read each situation and pick who should decide.", "اقرأ كل موقف واختر من يجب أن يقرّر."),
+      instructions: t(
+        "In each situation the machine makes a suggestion, gives its reason, and says how sure it is. Decide: approve it, ask for more, or override it. You can try another choice to see what happens.",
+        "في كل موقف تقدّم الآلة اقتراحًا، وتذكر سببها، وتقول مدى ثقتها. قرّر: توافق عليه، أو تطلب المزيد، أو تتجاوزه. يمكنك تجربة خيار آخر لترى ما يحدث.",
+      ),
       explanation: t(
         "Machines make mistakes, like people do. When a mistake is small (a wrong song suggestion) the machine can decide. When a mistake could hurt someone (health, fairness, safety), a person should check. That rule is how responsible teams use AI.",
         "الآلات تخطئ كما يخطئ الناس. عندما يكون الخطأ صغيرًا (اقتراح أغنية خاطئ) تستطيع الآلة أن تقرّر. وعندما قد يؤذي الخطأ أحدًا (الصحة، الإنصاف، السلامة) يجب أن يتحقق شخص. هذه القاعدة هي طريقة الفرق المسؤولة في استخدام الذكاء الاصطناعي.",
@@ -635,38 +641,57 @@ export const decidingWell: ModuleFixture = {
         ["Finish the story and read the checklist.", "أنهِ القصة واقرأ القائمة."],
       ),
       payload: {
-        prompt: t("The machine has made a decision. Who should have the final say?", "اتخذت الآلة قرارًا. من يجب أن تكون له الكلمة الأخيرة؟"),
+        prompt: t("The machine has made a suggestion. Who should have the final say?", "قدّمت الآلة اقتراحًا. من يجب أن تكون له الكلمة الأخيرة؟"),
         scenes: [
           {
             id: "songs",
             text: t("The machine picks which song to play next at the Fair.", "تختار الآلة الأغنية التالية في المعرض."),
             art: "🎵",
+            suggestion: {
+              text: t("Play “Happy Hop” next.", "شغّل «القفزة السعيدة» تاليًا."),
+              reason: t("People skipped the slow songs today.", "تخطّى الناس الأغاني البطيئة اليوم."),
+              confidence: 0.85,
+            },
             choices: [
-              choice("machine", ["Let the machine choose", "أدع الآلة تختار"], ["Fine — if it picks a song nobody likes, you just skip it.", "لا بأس — إن اختارت أغنية لا يحبها أحد، تتخطاها فحسب."], true),
-              choice("committee", ["A person must approve every song", "يجب أن يوافق شخص على كل أغنية"], ["That works, but it's a lot of checking for a very small mistake.", "هذا ينجح، لكنه تحقق كثير لخطأ صغير جدًّا."], false),
+              { ...choice("machine", ["Approve it — let the machine choose", "أوافق — أدع الآلة تختار"], ["Fine — if it picks a song nobody likes, you just skip it.", "لا بأس — إن اختارت أغنية لا يحبها أحد، تتخطاها فحسب."], true), action: "approve" },
+              { ...choice("ask-songs", ["Ask it for more reasons first", "أطلب منها أسبابًا أكثر أولًا"], ["You can, but for a song it's a lot of checking. A wrong song is a tiny mistake anyone can skip.", "يمكنك ذلك، لكنه تحقق كثير لأغنية. الأغنية الخاطئة خطأ صغير يستطيع أي أحد تخطيه."], false), action: "askMore" },
+              { ...choice("committee", ["Override it — a person must approve every song", "أتجاوزها — يجب أن يوافق شخص على كل أغنية"], ["That works, but it's a lot of checking for a very small mistake.", "هذا ينجح، لكنه تحقق كثير لخطأ صغير جدًّا."], false), action: "override" },
             ],
           },
           {
             id: "medicine",
             text: t("The machine guesses which berries are safe for the whole village to eat.", "تخمّن الآلة أي حبات التوت آمنة ليأكلها أهل القرية كلهم."),
             art: "🫐",
+            suggestion: {
+              text: t("These blue berries are safe to eat.", "حبات التوت الزرقاء هذه آمنة للأكل."),
+              reason: t("They look like the safe berries I learned from.", "تشبه حبات التوت الآمنة التي تعلّمت منها."),
+              confidence: 0.7,
+            },
             choices: [
-              choice("trust", ["Trust the machine", "أثق بالآلة"], ["If it's wrong, people get sick. A mistake here is too costly to leave to a guess.", "إن أخطأت، يمرض الناس. الخطأ هنا مكلف جدًّا ليُترك لتخمين."], false),
-              choice("check", ["An expert checks before anyone eats", "يتحقق خبير قبل أن يأكل أحد"], ["Right. The machine helps, a person who knows makes sure.", "صحيح. الآلة تساعد، وشخص عارف يتأكد."], true),
+              { ...choice("trust", ["Approve it — trust the machine", "أوافق — أثق بالآلة"], ["If it's wrong, people get sick. A mistake here is too costly to leave to a guess.", "إن أخطأت، يمرض الناس. الخطأ هنا مكلف جدًّا ليُترك لتخمين."], false), action: "approve" },
+              { ...choice("check", ["Ask for more: an expert checks before anyone eats", "أطلب المزيد: يتحقق خبير قبل أن يأكل أحد"], ["Right. The machine helps, a person who knows makes sure.", "صحيح. الآلة تساعد، وشخص عارف يتأكد."], true), action: "askMore" },
+              { ...choice("throw-away", ["Override it — throw all the berries away", "أتجاوزها — أرمي كل حبات التوت"], ["Safe, but wasteful: the machine may be right about most of them. An expert check keeps the good berries and the village safe.", "آمن، لكنه هدر: قد تكون الآلة محقة في معظمها. تحقّق الخبير يحفظ التوت الجيد ويبقي القرية آمنة."], false), action: "override" },
             ],
           },
           {
             id: "team",
             text: t("The machine chooses who gets to be on the Fair team, from their photos.", "تختار الآلة من يكون في فريق المعرض، من صورهم."),
             art: "📷",
+            suggestion: {
+              text: t("Pick these five children for the Fair team.", "اختر هؤلاء الأطفال الخمسة لفريق المعرض."),
+              reason: t("In their photos, they look like last year's team.", "في صورهم، يشبهون فريق العام الماضي."),
+              confidence: 0.9,
+            },
             choices: [
-              choice("photos", ["Let it choose from photos", "أدعها تختار من الصور"], ["A photo says nothing about how good someone is — and the machine may copy unfair patterns.", "الصورة لا تقول شيئًا عن مهارة الشخص — وقد تنسخ الآلة أنماطًا غير منصفة."], false),
-              choice("people", ["People choose, fairly, using what matters", "يختار الناس بإنصاف، بما هو مهم"], ["Yes. Decisions about people need people, and fair reasons.", "نعم. القرارات المتعلقة بالناس تحتاج إلى ناس، وإلى أسباب منصفة."], true),
+              { ...choice("photos", ["Approve it — it's very sure", "أوافق — إنها واثقة جدًّا"], ["Very sure isn't the same as right. A photo says nothing about how good someone is — and the machine may copy unfair patterns.", "الثقة الكبيرة ليست الصواب. الصورة لا تقول شيئًا عن مهارة الشخص — وقد تنسخ الآلة أنماطًا غير منصفة."], false), action: "approve" },
+              { ...choice("ask-team", ["Ask for more: what else did it look at?", "أطلب المزيد: إلى ماذا نظرت أيضًا؟"], ["Nothing else: only photos. That's the problem. Asking was the right move, and now people should decide.", "لا شيء آخر: الصور فقط. وهذه هي المشكلة. كان السؤال هو الخطوة الصحيحة، والآن يجب أن يقرّر الناس."], true), action: "askMore" },
+              { ...choice("people", ["Override it — people choose, fairly, using what matters", "أتجاوزها — يختار الناس بإنصاف، بما هو مهم"], ["Yes. Decisions about people need people, and fair reasons.", "نعم. القرارات المتعلقة بالناس تحتاج إلى ناس، وإلى أسباب منصفة."], true), action: "override" },
             ],
           },
         ],
+        checklist: { title: { en: "Your Who-Decides Checklist", ar: "قائمة «من يقرّر» الخاصة بك" }, icon: "🙋" },
         takeaways: [
-          t("Machines make mistakes too.", "الآلات تخطئ أيضًا."),
+          t("Machines make mistakes too, and \"very sure\" doesn't mean right.", "الآلات تخطئ أيضًا، و«واثقة جدًّا» لا تعني أنها محقة."),
           t("Small mistakes: the machine can decide.", "الأخطاء الصغيرة: تستطيع الآلة أن تقرّر."),
           t("Big mistakes: a person who knows should check.", "الأخطاء الكبيرة: يجب أن يتحقق شخص عارف."),
           t("Decisions about people need fair reasons, not just photos.", "القرارات المتعلقة بالناس تحتاج إلى أسباب منصفة، لا إلى صور فقط."),

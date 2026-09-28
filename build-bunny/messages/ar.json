@@ -546,10 +546,15 @@
       },
       "aiEthics": {
         "continueStory": "تابع",
-        "shieldTitle": "درع الخصوصية الخاص بك",
         "finish": "إنهاء",
         "submitFailed": "تعذّر حفظ قصتك.",
-        "retry": "حاول الحفظ مجددًا"
+        "retry": "حاول الحفظ مجددًا",
+        "checklistTitle": "ما يجب تذكّره",
+        "tryAnother": "جرّب خيارًا آخر",
+        "triedNote": "جرّبت هذا",
+        "suggestionLabel": "تقترح الآلة",
+        "suggestionWhy": "سببها:",
+        "suggestionSure": "مدى ثقتها كما تقول: {percent}%"
       },
       "aiSim": {
         "submit": "تحقّق من عملي",

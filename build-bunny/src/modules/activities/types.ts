@@ -329,9 +329,18 @@ export interface AiEthicsActivityPayload {
     id: string;
     text: LocalizedText;
     art?: string;
-    choices: { id: string; text: LocalizedText; outcome: LocalizedText; next?: string }[];
+    /** A machine's suggestion to review: what, why, and how sure (0–1). */
+    suggestion?: { text: LocalizedText; reason: LocalizedText; confidence: number };
+    choices: {
+      id: string;
+      text: LocalizedText;
+      outcome: LocalizedText;
+      next?: string;
+      action?: "approve" | "askMore" | "override";
+    }[];
   }[];
   takeaways: LocalizedText[];
+  checklist?: { title: LocalizedText; icon?: string };
 }
 
 /** AI_SIM: widget-specific config, opaque here — each widget owns its own shape. */

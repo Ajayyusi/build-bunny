@@ -23,6 +23,7 @@ import type {
   AttemptResponse,
 } from "../types";
 import { resolveLocalized, resolveNextSceneIndex } from "../types";
+import { restoreEthicsDraft, type PathStep } from "./ethics-draft";
 
 /**
  * AI_ETHICS player (phase G, "Secret Keepers"): a branching privacy
@@ -32,46 +33,24 @@ import { resolveLocalized, resolveNextSceneIndex } from "../types";
  * next scene in order — the exact rule resolveNextSceneIndex (../types)
  * also drives server-side, so what the child experiences and what gets
  * graded can never diverge. There are no wrong feelings: grading is
- * completion-based, so this player never shows a failure banner. The story
- * ends by assembling every takeaway into a "Privacy Shield" checklist before
- * the single POST that records the whole path.
+ * completion-based, so this player never shows a failure banner.
+ *
+ * The loop per scene: choose (PREDICT what you'd do) → read what happens
+ * (OBSERVE) → "Try a different choice" to see another outcome (RETRY), or
+ * go on. Earlier tries are recorded with the step; the top star rewards a
+ * safe first instinct. A scene can carry a machine's suggestion (what it
+ * suggests, its reason, how sure it is) for the child to approve, ask more
+ * about, or override. The story ends by assembling every takeaway into the
+ * level's own checklist before the single POST that records the whole path.
  */
 
 type Phase = "intro" | "scene" | "checklist" | "result";
 
 interface Submission {
   id: string;
-  path: { sceneId: string; choiceId: string }[];
+  path: PathStep[];
   server: AttemptResponse | null;
   saveFailed: boolean;
-}
-
-/**
- * Rebuild a branching story in progress: which scene the child had reached
- * and the choices behind them. Only choices this level still contains are
- * kept, so an edited or stale draft restarts the story rather than
- * stranding a child on a scene that no longer exists.
- */
-function restoreDraft(
-  draft: unknown,
-  payload: AiEthicsActivityPayload,
-): { sceneIndex: number; path: { sceneId: string; choiceId: string }[] } {
-  const empty = { sceneIndex: 0, path: [] };
-  if (draft === null || typeof draft !== "object") return empty;
-  const source = draft as { path?: unknown };
-  if (!Array.isArray(source.path)) return empty;
-
-  const path: { sceneId: string; choiceId: string }[] = [];
-  for (const step of source.path) {
-    if (typeof step !== "object" || step === null) break;
-    const { sceneId, choiceId } = step as { sceneId?: unknown; choiceId?: unknown };
-    if (typeof sceneId !== "string" || typeof choiceId !== "string") break;
-    const scene = payload.scenes.find((candidate) => candidate.id === sceneId);
-    if (!scene || !scene.choices.some((choice) => choice.id === choiceId)) break;
-    path.push({ sceneId, choiceId });
-  }
-  // Resume on the scene AFTER the last valid answer, clamped inside the story.
-  return { sceneIndex: Math.min(path.length, payload.scenes.length - 1), path };
 }
 
 export function AiEthicsPlayer({
@@ -84,7 +63,7 @@ export function AiEthicsPlayer({
 }: ActivityPlayerProps) {
   // Registry dispatch guarantees this matches intro.activityType.
   const payload = rawPayload as AiEthicsActivityPayload;
-  const restored = useMemo(() => restoreDraft(draft, payload), [draft, payload]);
+  const restored = useMemo(() => restoreEthicsDraft(draft, payload), [draft, payload]);
 
   const t = useTranslations("student.play");
   const tEthics = useTranslations("student.play.aiEthics");
@@ -95,9 +74,11 @@ export function AiEthicsPlayer({
   const [briefingOpen, setBriefingOpen] = useState(false);
   const [sceneIndex, setSceneIndex] = useState(restored.sceneIndex);
   const [chosenChoiceId, setChosenChoiceId] = useState<string | null>(null);
+  // Choices already tried in THIS scene, before the one on screen now.
+  const [tried, setTried] = useState<string[]>([]);
   // The choice "Show me the next step" named, ringed until the child picks.
   const [pointed, setPointed] = useState<string | null>(null);
-  const [path, setPath] = useState<{ sceneId: string; choiceId: string }[]>(restored.path);
+  const [path, setPath] = useState<PathStep[]>(restored.path);
   const [submission, setSubmission] = useState<Submission | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [starsBest, setStarsBest] = useState(intro.starsBest);
@@ -148,14 +129,25 @@ export function AiEthicsPlayer({
     setChosenChoiceId(choiceId);
   };
 
+  // Back to this scene's choices, to see what another one does.
+  const tryAnother = () => {
+    if (locked || !chosenChoiceId) return;
+    setTried((current) => [...current, chosenChoiceId]);
+    setChosenChoiceId(null);
+  };
+
   const handleContinue = () => {
     if (!scene || !chosenChoiceId) return;
     const choice = scene.choices.find((c) => c.id === chosenChoiceId);
     if (!choice) return;
-    const nextPath = [...path, { sceneId: scene.id, choiceId: chosenChoiceId }];
+    const nextPath = [
+      ...path,
+      tried.length > 0 ? { sceneId: scene.id, choiceId: chosenChoiceId, tried } : { sceneId: scene.id, choiceId: chosenChoiceId },
+    ];
     setPath(nextPath);
     const nextIndex = resolveNextSceneIndex(payload.scenes, sceneIndex, choice.next);
     setChosenChoiceId(null);
+    setTried([]);
     if (nextIndex < payload.scenes.length) {
       setSceneIndex(nextIndex);
     } else {
@@ -163,7 +155,7 @@ export function AiEthicsPlayer({
     }
   };
 
-  const submit = async (id: string, submittedPath: { sceneId: string; choiceId: string }[]) => {
+  const submit = async (id: string, submittedPath: PathStep[]) => {
     setSubmitting(true);
     try {
       const response = await postAttempt(intro.playerKey, `/api/levels/${intro.levelId}/attempts`, {
@@ -333,22 +325,42 @@ export function AiEthicsPlayer({
                 {resolveLocalized(scene.text, locale)}
               </h2>
 
+              {scene.suggestion ? (
+                <MachineSuggestion
+                  text={resolveLocalized(scene.suggestion.text, locale)}
+                  reason={resolveLocalized(scene.suggestion.reason, locale)}
+                  confidence={scene.suggestion.confidence}
+                />
+              ) : null}
+
               {!chosenChoiceId ? (
                 <div className="flex flex-col gap-2">
-                  {scene.choices.map((choice) => (
-                    <button
-                      key={choice.id}
-                      type="button"
-                      onClick={() => choose(choice.id)}
-                      disabled={locked}
-                      className={cn(
-                        "min-h-11 rounded-lg border-2 border-border-token bg-surface-sunken px-4 py-3 text-start text-sm font-semibold text-ink transition-colors hover:bg-surface-sunken/70 focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2",
-                        pointed === choice.id && "ring-4 ring-accent ring-offset-2 ring-offset-surface",
-                      )}
-                    >
-                      {resolveLocalized(choice.text, locale)}
-                    </button>
-                  ))}
+                  {scene.choices.map((choice) => {
+                    const wasTried = tried.includes(choice.id);
+                    return (
+                      <button
+                        key={choice.id}
+                        type="button"
+                        onClick={() => choose(choice.id)}
+                        disabled={locked}
+                        className={cn(
+                          "flex min-h-11 items-center gap-2 rounded-lg border-2 border-border-token bg-surface-sunken px-4 py-3 text-start text-sm font-semibold text-ink transition-colors hover:bg-surface-sunken/70 focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2",
+                          pointed === choice.id && "ring-4 ring-accent ring-offset-2 ring-offset-surface",
+                          wasTried && "border-dashed opacity-75",
+                        )}
+                      >
+                        {choice.action ? (
+                          <span aria-hidden="true">{ACTION_ICON[choice.action]}</span>
+                        ) : null}
+                        <span className="flex-1">{resolveLocalized(choice.text, locale)}</span>
+                        {wasTried ? (
+                          <span className="shrink-0 rounded-full bg-surface-raised px-2 py-0.5 text-xs font-bold text-ink-muted">
+                            {tEthics("triedNote")}
+                          </span>
+                        ) : null}
+                      </button>
+                    );
+                  })}
                 </div>
               ) : (
                 <div className="flex flex-col gap-3">
@@ -358,9 +370,16 @@ export function AiEthicsPlayer({
                   >
                     {chosenChoice ? resolveLocalized(chosenChoice.outcome, locale) : ""}
                   </p>
-                  <Button size="lg" onClick={handleContinue} className="self-end">
-                    {tEthics("continueStory")}
-                  </Button>
+                  <div className="flex flex-wrap items-center justify-end gap-2">
+                    {scene.choices.some((c) => c.id !== chosenChoiceId && !tried.includes(c.id)) ? (
+                      <Button size="lg" variant="secondary" onClick={tryAnother}>
+                        {tEthics("tryAnother")}
+                      </Button>
+                    ) : null}
+                    <Button size="lg" onClick={handleContinue}>
+                      {tEthics("continueStory")}
+                    </Button>
+                  </div>
                 </div>
               )}
             </div>
@@ -373,10 +392,10 @@ export function AiEthicsPlayer({
                 tabIndex={-1}
                 className="text-center font-display text-lg font-bold text-ink focus:outline-none"
               >
-                {tEthics("shieldTitle")}
+                {payload.checklist ? resolveLocalized(payload.checklist.title, locale) : tEthics("checklistTitle")}
               </h2>
               <span aria-hidden="true" className="text-center text-4xl">
-                🛡️
+                {payload.checklist?.icon ?? "📋"}
               </span>
               <ul className="flex flex-col gap-2">
                 {payload.takeaways.map((takeaway, index) => (
@@ -469,7 +488,9 @@ export function AiEthicsPlayer({
               return;
             }
             editStartRef.current = Date.now();
-            setPhase("scene");
+            // A story finished in an earlier session reopens on its
+            // checklist, ready to save — not on its last scene again.
+            setPhase(restored.finished && path.length === restored.path.length ? "checklist" : "scene");
           }}
         />
       ) : null}
@@ -494,6 +515,7 @@ export function AiEthicsPlayer({
             setSceneIndex(0);
             setPath([]);
             setChosenChoiceId(null);
+            setTried([]);
             setPhase("scene");
           }}
           certificate={submission.server?.certificate ?? null}
@@ -529,5 +551,38 @@ export function AiEthicsPlayer({
         onReveal={(tier) => void handleRevealHint(tier)}
       />
     </div>
+  );
+}
+
+const ACTION_ICON = { approve: "✅", askMore: "❓", override: "✋" } as const;
+
+/**
+ * A machine's suggestion for the child to review: what it suggests, the
+ * reason it gives, and how sure it says it is. Confidence is shown as the
+ * machine's own claim — sure is not the same as right, which is the point.
+ */
+function MachineSuggestion({ text, reason, confidence }: { text: string; reason: string; confidence: number }) {
+  const tEthics = useTranslations("student.play.aiEthics");
+  const percent = Math.round(confidence * 100);
+  return (
+    <section
+      aria-label={tEthics("suggestionLabel")}
+      className="flex flex-col gap-2 rounded-xl border-2 border-info/40 bg-info/10 p-4"
+    >
+      <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-ink-muted">
+        <span aria-hidden="true">🤖</span>
+        {tEthics("suggestionLabel")}
+      </p>
+      <p className="text-base font-semibold text-ink">{text}</p>
+      <p className="text-sm text-ink">
+        <span className="font-semibold">{tEthics("suggestionWhy")}</span> {reason}
+      </p>
+      <div className="flex items-center gap-3">
+        <span className="text-sm font-semibold text-ink">{tEthics("suggestionSure", { percent })}</span>
+        <span aria-hidden="true" className="h-2 flex-1 overflow-hidden rounded-full bg-surface-raised">
+          <span className="block h-full rounded-full bg-info" style={{ width: `${percent}%` }} />
+        </span>
+      </div>
+    </section>
   );
 }

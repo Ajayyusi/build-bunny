@@ -1094,6 +1094,7 @@ export const aiIsland: WorldFixture = {
                 ],
               },
             ],
+            checklist: { title: { en: "Your Privacy Shield", ar: "درع الخصوصية الخاص بك" }, icon: "🛡️" },
             takeaways: [
               {
                 en: "I don't have to share my real name.",
