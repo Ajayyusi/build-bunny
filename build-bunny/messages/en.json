@@ -440,7 +440,7 @@
         "taughtCount": "{count} taught",
         "passed": "The bunny got them all right! You taught it well.",
         "missed": "The bunny got {correct} of {total} right. Teach it {kind, select, grain {a seed} cell {a cell} blip {a reading} crab {a crab} shape {a shape} other {a berry}} that looks like the one it got wrong.",
-        "trayHelp": "The bunny ate these before, so we know what happened. Pick which ones to teach it with.",
+        "trayHelp": "{kind, select, shape {We already know what each of these shapes is.} grain {We already know how each of these seeds turned out.} cell {We already know how each of these cells behaved.} blip {We already know what each of these readings was.} crab {We already know about each of these crabs.} other {The bunny ate these before, so we know what happened.}} Pick which ones to teach it with.",
         "teachThis": "Teach this one",
         "specimenDescription": "{sizeName} {size} out of 10, {colorName} {color} out of 10",
         "sizeFallback": "Size",
@@ -956,7 +956,7 @@
           "why": "No one wrote a rule. The examples you picked taught it."
         },
         "rules": {
-          "question": "A new kind of berry turns up. What's the difference?",
+          "question": "A new kind of shape turns up. What's the difference?",
           "a": "The rule learns about it by itself",
           "b": "Neither of them can ever change",
           "c": "Someone has to rewrite the rule, but the learner can be shown a new example",

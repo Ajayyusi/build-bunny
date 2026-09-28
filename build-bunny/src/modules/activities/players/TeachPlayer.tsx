@@ -718,7 +718,7 @@ export function TeachPlayer({
               <div className="flex flex-col gap-5">
                 {/* Tray of berries still to teach with */}
                 <section className="flex flex-col gap-3">
-                  <StepHeading n={1} title={tk("trayHeading")} help={t("trayHelp")} />
+                  <StepHeading n={1} title={tk("trayHeading")} help={tk("trayHelp")} />
                   <ul className="flex flex-wrap gap-3">
                     {unassigned.map((s) => (
                       <li
