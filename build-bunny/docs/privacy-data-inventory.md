@@ -250,6 +250,31 @@ A review of everything the product records about play, against the rule
 - Deleting a child deletes their reflections with them (foreign key to the
   user, like every other child row).
 
+## 8f. The AI-first redesign (2026-09-28/29)
+
+- **LearningEvent** gained three types: `LEVEL_SESSION_STARTED` (a child
+  opened a level; at most one per child and level per 30 minutes),
+  `AI_TEST` and `AI_RETRY`. Their only payload is a small code (`{ what:
+  "revealGuesses" }`, `{ what: "pixelCheck", correct: true }`). Nothing is
+  recorded while a platform admin views as a child. Teachers and school
+  admins see class and school totals only.
+- **ConceptCheck** (from 2026-09-25) stores which of three fixed answers a
+  child picked first on an Explore AI quick check, and when they got it
+  right. No free text.
+- **StudentProfile.aiMode** is YOUNGER, OLDER or null (null follows the
+  grade). It changes how the AI activities are shown, never progress. A
+  teacher or school admin changing it is audited.
+- **ExplanationSentence** ("Say it your way") stores the ids of three fixed
+  phrases a child picked (for example `examples.why1`) and how many hold
+  up. The child cannot type anything into it. The latest sentence replaces
+  the one before. Only the child's teachers (and the school admin) see it.
+- **ConceptObservation** records that a teacher heard a child explain one
+  of five AI concepts aloud: the concept, the teacher's id, the date. No
+  notes. Ticking or clearing it is audited.
+- Deleting a child deletes all of the above with them (foreign keys to the
+  user). Known gap, not new: the school data export does not yet include
+  ConceptCheck, LevelReflection, ExplanationSentence or ConceptObservation.
+
 ## 9. Where this is enforced in code (for an auditor who wants to verify, not just read)
 
 - Tenant scoping: every data-layer query lives in `src/modules/*/server/**`,
