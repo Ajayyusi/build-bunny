@@ -638,7 +638,14 @@
           "retryRound": "Try this round again",
           "checkError": "Robo Bunny couldn't check that just now. Try again.",
           "realPictureLabel": "The real picture: {name}",
-          "guessLabel": "Your guess for {round}"
+          "guessLabel": "Your guess for {round}",
+          "lightLabel": "Light",
+          "lightDim": "Dim",
+          "lightBright": "Bright",
+          "lightNormalLabel": "The picture in normal light",
+          "lightChangedLabel": "The same picture in your light",
+          "lightNumbers": "Average number: {value}",
+          "lightNote": "Same picture, but every number changed. A computer has to learn that these are the same thing; to you it's obvious."
         }
       },
       "mission": {

@@ -17,6 +17,14 @@ test("mystery rounds: guess, check, add squares, reveal the clue", async ({ page
   await page.getByRole("button", { name: "Skip" }).click();
   await page.getByRole("button", { name: "Let's build!" }).click();
 
+  // Lighting: the same picture in dimmer light is different numbers.
+  const light = page.getByLabel("Light");
+  await light.focus();
+  await page.keyboard.press("ArrowLeft");
+  await page.keyboard.press("ArrowLeft");
+  await expect(page.getByRole("img", { name: "The same picture in your light" })).toBeVisible();
+  await expect(page.getByText(/Same picture, but every number changed/)).toBeVisible();
+
   const round1 = page.getByRole("radiogroup", { name: "Your guess for Round 1" });
   const card1 = round1.locator("xpath=ancestor::div[contains(@class,'rounded-xl')][1]");
   const pick = (group: Locator, name: string) => group.getByText(name, { exact: true }).click();

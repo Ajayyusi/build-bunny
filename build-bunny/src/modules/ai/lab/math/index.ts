@@ -14,3 +14,4 @@ export * from "./convolve3x3";
 export * from "./greyscale";
 export * from "./downsample";
 export * from "./predictionBand";
+export * from "./light";

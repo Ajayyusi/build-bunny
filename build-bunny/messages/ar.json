@@ -638,7 +638,14 @@
           "retryRound": "أعد هذه الجولة",
           "checkError": "لم يستطع روبو باني التحقّق الآن. حاول مرة أخرى.",
           "realPictureLabel": "الصورة الحقيقية: {name}",
-          "guessLabel": "تخمينك في {round}"
+          "guessLabel": "تخمينك في {round}",
+          "lightLabel": "الإضاءة",
+          "lightDim": "خافتة",
+          "lightBright": "ساطعة",
+          "lightNormalLabel": "الصورة في إضاءة عادية",
+          "lightChangedLabel": "الصورة نفسها في إضاءتك",
+          "lightNumbers": "متوسط الأرقام: {value}",
+          "lightNote": "الصورة نفسها، لكن كل رقم تغيّر. على الحاسوب أن يتعلّم أنهما الشيء نفسه؛ أما بالنسبة لك فالأمر واضح."
         }
       },
       "mission": {
