@@ -751,7 +751,7 @@ export const aiEthicsPayload = z.object({
 // ── AI_SIM: interactive concept widgets with real maths (phase G graft) ──
 
 /** AI_SIM widgets — free-form interactive concept toys with real maths. */
-export const AI_SIM_WIDGETS = ["boundary-builder", "trend-line", "pixel-playground"] as const;
+export const AI_SIM_WIDGETS = ["boundary-builder", "trend-line", "pixel-playground", "mark-items"] as const;
 export type AiSimWidget = (typeof AI_SIM_WIDGETS)[number];
 
 const point2d = z.object({
@@ -818,11 +818,57 @@ export const pixelPlaygroundConfig = z.object({
     .max(6),
 });
 
+/**
+ * Mark the items (handoff backlog: generative AI, AI and privacy, natural
+ * language). A child gives every markable item a mark: "matches the
+ * notice" or "made up" on a chatbot's sentences; keep or strike out a
+ * detail in a message to a helper; the clear wording for each vague part
+ * of an instruction. Each item's `answer` is the key and is stripped.
+ */
+const markItemsText = z.object({ id: z.string().min(1), text: localizedText });
+export const markItemsConfig = z.object({
+  widgetId: z.literal("mark-items"),
+  layout: z.enum(["sentences", "tokens", "choices"]),
+  /** What the child checks against: a notice, a task. */
+  source: z.object({ title: localizedText, lines: z.array(localizedText).min(1).max(8) }).optional(),
+  /** Marks offered on every item (sentences, tokens). */
+  marks: z.array(markItemsText.extend({ icon: z.string().max(8).optional() })).min(2).max(3).optional(),
+  /** The mark an untouched item has (e.g. "keep" for tokens). */
+  defaultMark: z.string().min(1).optional(),
+  /** PREDICT first: a question answered before the items appear. */
+  predict: z.object({ question: localizedText, options: z.array(markItemsText).min(2).max(4) }).optional(),
+  groups: z
+    .array(
+      z.object({
+        id: z.string().min(1),
+        title: localizedText.optional(),
+        items: z
+          .array(
+            z.object({
+              id: z.string().min(1),
+              text: localizedText,
+              /** Choices layout: this item's own options. */
+              options: z.array(markItemsText).min(2).max(4).optional(),
+              /** The right mark; absent = plain text, not markable. */
+              answer: z.string().min(1).optional(),
+            }),
+          )
+          .min(1)
+          .max(24),
+      }),
+    )
+    .min(1)
+    .max(3),
+  /** One real-life case to try next, on the result. */
+  tryNext: localizedText.optional(),
+});
+
 export const aiSimPayload = z.object({
   widget: z.discriminatedUnion("widgetId", [
     boundaryBuilderConfig,
     trendLineConfig,
     pixelPlaygroundConfig,
+    markItemsConfig,
   ]),
   /** Shown above the widget: what the child is exploring and why it is honest. */
   intro: localizedText,

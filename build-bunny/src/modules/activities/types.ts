@@ -249,6 +249,7 @@ export interface NextStepStateInput {
   excluded?: string[];
   sceneId?: string | null;
   predicting?: boolean;
+  marks?: Record<string, string>;
   line?: { slope: number; intercept: number };
   phase?: "fit" | "compare" | "predict" | "revealed";
   prediction?: number | null;

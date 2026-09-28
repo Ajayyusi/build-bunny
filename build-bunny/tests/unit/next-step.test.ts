@@ -241,7 +241,7 @@ function snapshotOf(level: (typeof levels)[number]): LevelSnapshot {
 }
 
 describe("following 'Show me the next step' finishes every level, through the route's body parse", () => {
-  it("covers all 102 levels", () => expect(levels).toHaveLength(102));
+  it("covers all 105 levels", () => expect(levels).toHaveLength(105));
 
   for (const level of levels) {
     it(`${level.slug} (${level.activityType})`, () => {
@@ -311,7 +311,11 @@ describe("following 'Show me the next step' finishes every level, through the ro
         finalAnswer = () => ({ path });
       } else if (type === "AI_SIM") {
         const w = aiSimPayload.parse(level.payload).widget;
-        if (w.widgetId === "pixel-playground") {
+        if (w.widgetId === "mark-items") {
+          state.marks = {};
+          state.predicting = Boolean(w.predict);
+          finalAnswer = () => ({ marks: state.marks });
+        } else if (w.widgetId === "pixel-playground") {
           // See Like a Computer: every round runs guess → check → reveal,
           // through the player's own reducer and the server's judgement.
           pixelRounds = Object.fromEntries(w.rounds.map((r) => [r.id, freshRound()]));
@@ -437,6 +441,11 @@ describe("following 'Show me the next step' finishes every level, through the ro
             state.excluded = state.excluded!.filter((id) => id !== step.specimenId);
             break;
           case "answerQuestion": {
+            if (type === "AI_SIM") {
+              if (!state.predicting) throw new Error("unfollowable: no question on screen");
+              state.predicting = false;
+              break;
+            }
             const p = aiEthicsPayload.parse(level.payload);
             const scene = p.scenes.find((s) => s.id === state.sceneId)!;
             if (!scene.predict || !state.predicting) throw new Error("unfollowable: no question on screen");
@@ -481,6 +490,10 @@ describe("following 'Show me the next step' finishes every level, through the ro
           case "setPrediction":
             if (state.phase !== "predict") throw new Error("unfollowable: the prediction slider is locked");
             state.prediction = step.value;
+            break;
+          case "markItem":
+            if (state.predicting) throw new Error("unfollowable: the items appear after the question");
+            state.marks = { ...state.marks, [step.itemId]: step.markId };
             break;
           case "pickPicture": {
             const round = pixelRounds[step.roundId]!;

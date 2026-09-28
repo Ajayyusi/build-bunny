@@ -379,6 +379,8 @@ export const nextStepStateSchema = z.object({
   sceneId: z.string().nullable().optional(),
   /** Ethics: the scene is asking for the child's verdict first. */
   predicting: z.boolean().optional(),
+  /** Mark the items: each item's chosen mark. */
+  marks: z.record(z.string(), z.string()).optional(),
   line: z.object({ slope: z.number(), intercept: z.number() }).optional(),
   phase: z.enum(["fit", "compare", "predict", "revealed"]).optional(),
   prediction: z.number().nullable().optional(),
@@ -608,6 +610,18 @@ export function computeNextStep(
         if (!line) return { code: "none" };
         if (passes({ line, prediction: round1(line.slope * w.predictAt + line.intercept) }).pass) return { code: "revealComputer" };
         return nudgeToward(line, best, w.points.map((q) => q.x));
+      }
+      if (w.widgetId === "mark-items") {
+        // Say what you think first, then the first item with the wrong mark.
+        if (w.predict && state.predicting) return { code: "answerQuestion" };
+        const marks = state.marks ?? {};
+        for (const group of w.groups) {
+          for (const item of group.items) {
+            if (item.answer === undefined) continue;
+            if ((marks[item.id] ?? w.defaultMark) !== item.answer) return { code: "markItem", itemId: item.id, markId: item.answer };
+          }
+        }
+        return { code: "ready" };
       }
       // Each round: guess → check → (not yet: add squares, guess again) →
       // settled. The first round not yet right is the one to work on.

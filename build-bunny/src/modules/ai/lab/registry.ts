@@ -3,6 +3,7 @@ import "server-only";
 import {
   AI_SIM_WIDGETS,
   boundaryBuilderConfig,
+  markItemsConfig,
   pixelPlaygroundConfig,
   trendLineConfig,
   type AiSimWidget,
@@ -10,6 +11,7 @@ import {
 import type { ActivityGradeResult } from "@/modules/activities/types";
 
 import { gradeBoundaryBuilder, stripBoundaryBuilderConfig } from "./boundary-builder/grade";
+import { gradeMarkItems, stripMarkItemsConfig } from "./mark-items/grade";
 import { gradePixelPlayground, stripPixelPlaygroundConfig } from "./pixel-playground/grade";
 import { gradeTrendLine, stripTrendLineConfig } from "./trend-line/grade";
 
@@ -80,10 +82,22 @@ const pixelPlayground: AiSimWidgetEngine = {
   },
 };
 
+const markItems: AiSimWidgetEngine = {
+  grade: (config, submission) => {
+    const parsed = markItemsConfig.safeParse(config);
+    return parsed.success ? gradeMarkItems(parsed.data, submission) : invalidConfigResult();
+  },
+  stripConfig: (config) => {
+    const parsed = markItemsConfig.safeParse(config);
+    return parsed.success ? stripMarkItemsConfig(parsed.data) : config;
+  },
+};
+
 export const AI_SIM_WIDGET_ENGINES: Record<AiSimWidget, AiSimWidgetEngine> = {
   "boundary-builder": boundaryBuilder,
   "trend-line": trendLine,
   "pixel-playground": pixelPlayground,
+  "mark-items": markItems,
 };
 
 export function getAiSimWidgetEngine(widgetId: string): AiSimWidgetEngine | undefined {

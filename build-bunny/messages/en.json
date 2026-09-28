@@ -339,7 +339,8 @@
         "noTrick": "“Do my trick” needs a trick to do — add a “my trick” block and put some blocks inside it.",
         "mazeInvalid": "Your maze can't be solved yet. Tap “Change my maze” and fix the line without a tick.",
         "emptyTrick": "Your trick has no blocks inside yet. Put the steps in “my trick”, then use “do my trick”.",
-        "didNotRunEnough": "The counter has to count each one as it happens. Put the “add” block inside the loop, so it runs every time."
+        "didNotRunEnough": "The counter has to count each one as it happens. Put the “add” block inside the loop, so it runs every time.",
+        "marksWrong": "{correct} of {total} are right so far. Look again at the ones you weren't sure about!"
       },
       "learn": {
         "stepWatch": "Step 1 of 2 · Watch",
@@ -646,6 +647,14 @@
           "lightChangedLabel": "The same picture in your light",
           "lightNumbers": "Average number: {value}",
           "lightNote": "Same picture, but every number changed. A computer has to learn that these are the same thing; to you it's obvious."
+        },
+        "markItems": {
+          "youSaid": "You said: {answer}.",
+          "tokensHelp": "Tap a detail to strike it out. Tap again to keep it.",
+          "struck": "{text}, struck out. Tap to keep it.",
+          "kept": "{text}, kept. Tap to strike it out.",
+          "vague": "Instead of “{text}”:",
+          "hears": "Robo Helper hears:"
         }
       },
       "mission": {
@@ -716,7 +725,8 @@
           "pilesNotTight": "Things in the same group should be close together. If a group is spread out, it is probably really two groups, or its centre is in the wrong place.",
           "tooManyExamples": "This level is about teaching well with only a few examples. Choose the ones that cover every kind, and leave the rest out.",
           "emptyTrick": "A trick is a set of steps with a name. Calling an empty trick does nothing, so fill “my trick” with the steps you want to repeat.",
-          "didNotRunEnough": "A counter only counts when its “add” block runs. If “add” runs once, the counter changes once, even if Robo Bunny hops many times. Put “add” where it runs once for each thing you count."
+          "didNotRunEnough": "A counter only counts when its “add” block runs. If “add” runs once, the counter changes once, even if Robo Bunny hops many times. Put “add” where it runs once for each thing you count.",
+          "marksWrong": "Check each part against what you know is true (the notice, the task), not against how it sounds."
         },
         "blocks": {
           "bb_whenStart": "The start. Everything snapped under this block runs when you press Run — from the top, one block at a time.",
@@ -769,7 +779,9 @@
           "sensors": "A sensor lets a robot notice the world, like whether the path ahead is blocked. The program decides what to do with what it senses.",
           "robot": "A robot follows its program exactly. It can't guess what you meant, so every step has to be there.",
           "creative": "This is your own creation. There is more than one good answer. Plan it, try it, and improve it.",
-          "evaluation": "Testing an AI means checking it on examples it has never seen. That is the only fair way to know how well it learned."
+          "evaluation": "Testing an AI means checking it on examples it has never seen. That is the only fair way to know how well it learned.",
+          "generative-ai": "A chatbot writes words that sound right, but it doesn't know if they are. Check the details that matter against a source you trust.",
+          "natural-language": "An AI assistant only has your words. Say exactly which thing, where, who and when, so it doesn't have to guess."
         }
       },
       "maze": {
@@ -907,7 +919,8 @@
         "predictGuesses": "Guess what the bunny will say for each mystery one, then press “{button}”.",
         "pressRoundButton": "In {round}, press “{button}”.",
         "answerQuestion": "First, say what you think. Any answer is fine: you'll see what happened next.",
-        "checkingRound": "Checking your guess for {round}… give it a moment."
+        "checkingRound": "Checking your guess for {round}… give it a moment.",
+        "markItem": "For “{item}”, choose “{mark}”."
       },
       "check": {
         "title": "Quick check",
@@ -996,6 +1009,12 @@
           "changed": "{count, plural, one {Once} other {# times}} you went with a different choice from your first one.",
           "changedNone": "You kept your first choice every time.",
           "tryNext": "Next time something like this happens for real, which question will you ask first?"
+        },
+        "marks": {
+          "tried": "{count, plural, one {You checked # part.} other {You checked # parts.}}",
+          "changedChecks": "It took {checks} checks to get every part right.",
+          "changedFirst": "Every part was right on your first check.",
+          "tryNext": "Next time, check one detail that matters somewhere you trust."
         }
       },
       "aiMode": {
@@ -1356,6 +1375,14 @@
       "targetedAd": {
         "name": "Targeted advert",
         "plain": "An advert picked for you by a computer, from what an app knows about you."
+      },
+      "hallucination": {
+        "name": "Hallucination",
+        "plain": "When an AI system makes up something that isn't true and says it as if it were."
+      },
+      "prompt": {
+        "name": "Prompt",
+        "plain": "The words you give an AI system to tell it what to do."
       }
     },
     "lessonKind": {
@@ -1877,7 +1904,9 @@
           "privacy": "privacy",
           "cyber-safety": "online safety",
           "misinformation": "misinformation",
-          "media-literacy": "media literacy"
+          "media-literacy": "media literacy",
+          "generative-ai": "generative AI",
+          "natural-language": "natural language"
         }
       },
       "worksheet": {

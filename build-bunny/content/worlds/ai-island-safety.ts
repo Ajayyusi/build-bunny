@@ -16,6 +16,8 @@ import type {
 type AiEthicsDraft = z.input<typeof aiEthicsPayload>;
 type AiClassificationDraft = z.input<typeof aiClassificationPayload>;
 
+import { twoAnswers } from "./new-ai-lessons";
+
 export const safetyAndFairness: ModuleFixture = {
   slug: "safety-and-fairness",
   order: 4,
@@ -570,5 +572,6 @@ export const safetyAndFairness: ModuleFixture = {
         },
       } satisfies AiClassificationDraft,
     },
+    twoAnswers,
   ],
 };

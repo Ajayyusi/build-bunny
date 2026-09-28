@@ -77,6 +77,16 @@ export function trendResultNotes(input: {
   };
 }
 
+/** Mark the items: how many parts were marked, the checks it took, and the level's own case. */
+export function markItemsResultNotes(count: number, failedChecks: number, tryNext: string | null): ResultNotes {
+  return {
+    tried: { key: "marks.tried", values: { count } },
+    changed:
+      failedChecks > 0 ? { key: "marks.changedChecks", values: { checks: failedChecks + 1 } } : { key: "marks.changedFirst" },
+    tryNext: tryNext ? { text: tryNext } : { key: "marks.tryNext" },
+  };
+}
+
 /** An ethics story: choices, earlier tries and changes of mind. */
 export function ethicsResultNotes(
   path: { choiceId: string; tried?: string[] }[],

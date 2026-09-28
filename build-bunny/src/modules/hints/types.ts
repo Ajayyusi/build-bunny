@@ -73,6 +73,8 @@ export type NextStep =
   | { code: "pickPicture"; roundId: string; imageId: string }
   /** A button inside one mystery round (Check my guess, Add more squares…). */
   | { code: "pressRoundButton"; roundId: string; button: PlayerButton }
+  /** Mark the items: give this item this mark (or choose this wording). */
+  | { code: "markItem"; itemId: string; markId: string }
   /** A round's guess is being checked right now: nothing to do but wait. */
   | { code: "checkingRound"; roundId: string }
   | { code: "designAdd"; tile: "#" | "W" | "C"; x: number; y: number }

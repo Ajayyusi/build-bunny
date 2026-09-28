@@ -22,7 +22,7 @@ import { SuccessOverlay } from "./shared/SuccessOverlay";
 import { ResultNotesCard } from "./shared/ResultNotesCard";
 import { WhatIsThisCalled } from "./shared/WhatIsThisCalled";
 import { LessonKindChip } from "./shared/LessonKindChip";
-import { pixelResultNotes, trendResultNotes, type ResultNotes } from "./result-notes";
+import { markItemsResultNotes, pixelResultNotes, trendResultNotes, type ResultNotes } from "./result-notes";
 import { Walkthrough } from "./shared/Walkthrough";
 import { NextStepHint } from "./shared/NextStepHint";
 import type { PixelRoundStatus } from "@/modules/hints/types";
@@ -248,6 +248,11 @@ export function AiSimPlayer({
   const introText = resolveLocalized(payload.intro, locale);
   const honestyNote = resolveLocalized(payload.honesty.note, locale);
 
+  // Mark the items: every item across its groups (text, options, markable).
+  type MarkItem = { id: string; text: Parameters<typeof resolveLocalized>[0]; markable?: boolean; options?: { id: string; text: Parameters<typeof resolveLocalized>[0] }[] };
+  const markItemsList = (): MarkItem[] =>
+    ((payload.widget.groups as { items: MarkItem[] }[] | undefined) ?? []).flatMap((g) => g.items);
+
   // What you tried / what changed / one more to test, from this run.
   const resultNotes: ResultNotes | null = (() => {
     const answered = (submission?.answer ?? null) as { line?: { slope: number; intercept: number }; prediction?: number } | null;
@@ -260,6 +265,14 @@ export function AiSimPlayer({
         prediction: answered.prediction,
         failedChecks,
       });
+    }
+    if (widgetId === "mark-items" && submission?.answer) {
+      const tryNextText = widget.tryNext as Parameters<typeof resolveLocalized>[0] | undefined;
+      return markItemsResultNotes(
+        markItemsList().filter((x) => x.markable).length,
+        failedChecks,
+        tryNextText ? resolveLocalized(tryNextText, locale) : null,
+      );
     }
     if (widgetId === "pixel-playground" && widgetStep && typeof widgetStep === "object") {
       const rounds = (widget.rounds as { id: string }[]).map(
@@ -410,6 +423,10 @@ export function AiSimPlayer({
             readyAction={`“${tSim("submit")}”`}
             getState={() => {
               const w = (work ?? {}) as { line?: { slope: number; intercept: number }; prediction?: number; rounds?: Record<string, string> };
+              if (widgetId === "mark-items") {
+                const hint = (widgetStep ?? {}) as { predicting?: boolean };
+                return { marks: (work as { marks?: Record<string, string> } | null)?.marks ?? {}, predicting: hint.predicting ?? false };
+              }
               if (widgetId === "pixel-playground") {
                 return widgetStep && typeof widgetStep === "object"
                   ? { rounds: w.rounds ?? {}, pixel: widgetStep as Record<string, { selected: string | null; status: PixelRoundStatus }> }
@@ -434,6 +451,16 @@ export function AiSimPlayer({
                 const images = (payload.widget.images as { id: string; name: Parameters<typeof resolveLocalized>[0] }[] | undefined) ?? [];
                 const image = images.find((x) => x.id === id);
                 return image ? resolveLocalized(image.name, locale) : id;
+              },
+              // Mark the items: an item's words, and a mark's or option's.
+              item: (id) => {
+                const found = markItemsList().find((x) => x.id === id);
+                return found ? resolveLocalized(found.text, locale) : id;
+              },
+              mark: (id) => {
+                const marks = (payload.widget.marks as { id: string; text: Parameters<typeof resolveLocalized>[0] }[] | undefined) ?? [];
+                const found = marks.find((m) => m.id === id) ?? markItemsList().flatMap((x) => x.options ?? []).find((o) => o.id === id);
+                return found ? resolveLocalized(found.text, locale) : id;
               },
               // Fortune Teller's step buttons, named as the child sees them.
               button: (button) =>

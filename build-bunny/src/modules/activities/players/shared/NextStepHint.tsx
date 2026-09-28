@@ -29,6 +29,8 @@ export interface NextStepNames {
   choice?: (id: string) => string;
   round?: (id: string) => string;
   image?: (id: string) => string;
+  /** Mark the items: a mark's (or an option's) text; items use `item`. */
+  mark?: (id: string) => string;
   /** Plain words for a spot on a feature board (plantFlag). */
   spot?: (size: number, color: number) => string;
   /** Rule or Examples?: a rule card's words, and a rule-round button's label. */
@@ -120,6 +122,8 @@ export function useNextStepText() {
         return t("setPrediction", { value: step.value });
       case "pickPicture":
         return t("pickPicture", { round: name(names.round, step.roundId), image: name(names.image, step.imageId) });
+      case "markItem":
+        return t("markItem", { item: name(names.item, step.itemId), mark: name(names.mark, step.markId) });
       case "checkingRound":
         return t("checkingRound", { round: name(names.round, step.roundId) });
       case "pressRoundButton":
