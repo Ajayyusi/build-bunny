@@ -39,6 +39,7 @@ import { NextStepHint } from "./shared/NextStepHint";
 import { postAttempt, runIdFor } from "./shared/attempt-outbox";
 import { HintDrawer } from "./shared/HintDrawer";
 import { HonestyNote } from "./shared/HonestyNote";
+import { LessonKindChip } from "./shared/LessonKindChip";
 import { WhatIsThisCalled } from "./shared/WhatIsThisCalled";
 import { RoboHelp, type HelpTopic } from "./shared/RoboHelp";
 import { SuccessOverlay } from "./shared/SuccessOverlay";
@@ -588,6 +589,7 @@ export function TeachPlayer({
       <div className="min-h-0 flex-1 overflow-y-auto">
         <div className="mx-auto flex w-full max-w-5xl flex-col gap-5 p-4 sm:p-6">
           <div className="flex flex-wrap items-start gap-2">
+            {intro.lessonKind ? <LessonKindChip kind={intro.lessonKind} /> : null}
             <HonestyNote kind="tinyClassifier" />
             <WhatIsThisCalled tags={intro.tags} />
           </div>

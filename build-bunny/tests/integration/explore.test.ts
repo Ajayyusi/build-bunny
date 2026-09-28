@@ -32,6 +32,7 @@ let schoolId: string;
 const kids: { id: string; ctx: SessionContext }[] = [];
 let sorterId: string;
 let secondSorterId: string;
+let lyingId: string;
 let bridgeId: string;
 let predictId: string;
 let codingId: string;
@@ -88,6 +89,8 @@ beforeAll(async () => {
   const lines = await createTestModule(data.id, 1);
   await createTestLevel(lines.id, 1, { title: "Before the Line" });
   predictId = await slugged(lines.id, 2, "fortune-teller", "Fortune Teller");
+  // Fourth in its module: normally shut until the three before it are done.
+  lyingId = await slugged(teaching.id, 4, "the-berry-that-lied", "The Berry That Lied");
   await enableProgramForSchool(schoolId, program.id);
 
   for (const [i, name] of ["rana", "sami"].entries()) {
@@ -118,6 +121,8 @@ describe("Explore AI hub", () => {
     expect(state.followUp).toMatchObject({ levelId: secondSorterId, state: "LOCKED" });
     expect(state.followUpAfter).toEqual({ en: "Train a Sorter" });
     expect(state.completed).toBe(0);
+    // The Berry That Lied is open from day one too, listed apart.
+    expect(state.alsoOpen).toEqual([expect.objectContaining({ levelId: lyingId, state: "UNLOCKED", concept: "dataQuality" })]);
     // The coding path is untouched: its first level is open as always.
     const coding = await db.studentProgress.findUnique({
       where: { studentUserId_levelId: { studentUserId: kids[0]!.id, levelId: codingId } },

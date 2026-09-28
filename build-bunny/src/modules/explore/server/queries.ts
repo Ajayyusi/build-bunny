@@ -10,7 +10,7 @@ import {
   type AdventureWorldNode,
 } from "@/modules/learning/server/adventure";
 
-import { EXPLORE_CARDS, EXPLORE_FOLLOW_UPS, type ExploreCard, type ExploreConcept } from "../catalog";
+import { EXPLORE_ALSO_OPEN, EXPLORE_CARDS, EXPLORE_FOLLOW_UPS, type ExploreCard, type ExploreConcept } from "../catalog";
 
 /**
  * The Explore AI hub's data: each card resolved against THIS child's
@@ -40,6 +40,8 @@ export interface ExploreState {
   followUp: ExploreCardView | null;
   /** The level that opens `followUp` when it's still locked, to name it. */
   followUpAfter: LocalizedText | null;
+  /** Open from day one besides the six cards (The Berry That Lied). */
+  alsoOpen: ExploreCardView[];
   completed: number;
 }
 
@@ -81,6 +83,7 @@ function buildExploreState(adventure: AdventureState, explainedLevelIds: Readonl
     cards,
     followUp,
     followUpAfter: followUp?.state === "LOCKED" && previous ? previous.title : null,
+    alsoOpen: EXPLORE_ALSO_OPEN.map(view).filter((card): card is ExploreCardView => card !== null),
     completed: cards.filter((card) => card.state === "COMPLETED").length,
   };
 }
@@ -96,7 +99,7 @@ async function explainedLevelIds(ctx: SessionContext): Promise<Set<string>> {
 
 /** The hub for the signed-in child. Empty for anyone who isn't a student. */
 export async function getExploreState(ctx: SessionContext, adventure?: AdventureState): Promise<ExploreState> {
-  if (ctx.role !== "STUDENT" || !ctx.schoolId) return { cards: [], followUp: null, followUpAfter: null, completed: 0 };
+  if (ctx.role !== "STUDENT" || !ctx.schoolId) return { cards: [], followUp: null, followUpAfter: null, alsoOpen: [], completed: 0 };
   const [state, explained] = await Promise.all([
     adventure ? Promise.resolve(adventure) : computeAdventureState(ctx),
     explainedLevelIds(ctx),

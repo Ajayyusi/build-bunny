@@ -120,7 +120,7 @@ export default async function ExplorePage({ params }: Props) {
             <h2 id="explore-next" className="font-display text-lg font-bold text-ink">
               {t("followUpTitle")}
             </h2>
-            <ul className="grid flex-1">
+            <ul className="grid flex-1 gap-3">
               <ExploreTile
                 tile={toTile(
                   state.followUp,
@@ -132,6 +132,16 @@ export default async function ExplorePage({ params }: Props) {
                 compact
               />
             </ul>
+            {state.alsoOpen.length > 0 ? (
+              <>
+                <h3 className="text-sm font-bold text-ink-muted">{t("alsoOpenTitle")}</h3>
+                <ul className="grid gap-3">
+                  {state.alsoOpen.map((card, index) => (
+                    <ExploreTile key={card.slug} tile={toTile(card, t, locale)} index={state.cards.length + 1 + index} compact />
+                  ))}
+                </ul>
+              </>
+            ) : null}
           </section>
         ) : null}
 

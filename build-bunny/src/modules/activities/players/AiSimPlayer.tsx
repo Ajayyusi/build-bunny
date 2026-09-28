@@ -21,6 +21,7 @@ import { ResultBanner } from "./shared/ResultBanner";
 import { SuccessOverlay } from "./shared/SuccessOverlay";
 import { ResultNotesCard } from "./shared/ResultNotesCard";
 import { WhatIsThisCalled } from "./shared/WhatIsThisCalled";
+import { LessonKindChip } from "./shared/LessonKindChip";
 import { pixelResultNotes, trendResultNotes, type ResultNotes } from "./result-notes";
 import { Walkthrough } from "./shared/Walkthrough";
 import { NextStepHint } from "./shared/NextStepHint";
@@ -335,6 +336,7 @@ export function AiSimPlayer({
       <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6">
         <div className="mx-auto flex max-w-3xl flex-col gap-4">
           <div className="flex flex-wrap items-center gap-2">
+            {intro.lessonKind ? <LessonKindChip kind={intro.lessonKind} /> : null}
             <Badge variant={payload.honesty.kind === "REAL" ? "positive" : "accent"}>
               {payload.honesty.kind === "REAL" ? tSim("honestyReal") : tSim("honestySimulated")}
             </Badge>

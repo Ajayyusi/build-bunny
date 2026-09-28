@@ -1087,6 +1087,10 @@
         "people": {
           "name": "People decide",
           "hook": "A machine can sort things. When should a person check its choice?"
+        },
+        "dataQuality": {
+          "name": "Checking your data",
+          "hook": "One of the bunny's examples has the wrong note. Can you find the one that's lying?"
         }
       },
       "worlds": {
@@ -1115,7 +1119,8 @@
         "body": "My sorting robot has never seen a shape. Show it a few examples, and let's find out what it learns.",
         "start": "Let's try!",
         "later": "Look around first"
-      }
+      },
+      "alsoOpenTitle": "Also open now"
     },
     "glossary": {
       "ask": "What is this called?",
@@ -1239,6 +1244,11 @@
         "name": "Targeted advert",
         "plain": "An advert picked for you by a computer, from what an app knows about you."
       }
+    },
+    "lessonKind": {
+      "ai": "AI lesson",
+      "citizenship": "Digital citizenship",
+      "coding": "Coding"
     }
   },
   "staff": {

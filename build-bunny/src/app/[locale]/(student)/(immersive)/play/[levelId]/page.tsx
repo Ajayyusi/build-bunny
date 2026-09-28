@@ -46,6 +46,7 @@ import {
   saveWorkspaceDraft,
 } from "@/modules/learning/server/actions";
 import { ageBandFor, supportFor } from "@/modules/learning/age-band";
+import { lessonKindOf } from "@/modules/explore/catalog";
 import { getPlayableLevel } from "@/modules/learning/server/queries";
 import { getExploreLevelContext } from "@/modules/explore/server/checks";
 import { isFeatureEnabled } from "@/modules/shared/features";
@@ -130,6 +131,7 @@ export default async function PlayLevelPage({ params }: Props) {
     instructions: resolveText(playable.instructions, locale),
     explanation: resolveText(playable.explanation, locale),
     keyIdea: resolveText(playable.keyIdea, locale),
+    lessonKind: lessonKindOf({ slug: playable.slug, activityType: playable.activityType }),
     difficulty: playable.difficulty,
     estimatedMinutes: playable.estimatedMinutes,
     maxStars: playable.maxStars,

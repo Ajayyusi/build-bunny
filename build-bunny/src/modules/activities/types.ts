@@ -25,6 +25,8 @@ export interface ActivityNextLevel {
 }
 
 /** Fields every activity type's player needs, regardless of engine. */
+import type { LessonKind } from "@/modules/explore/catalog";
+
 export interface ActivityIntro {
   levelId: string;
   /**
@@ -40,6 +42,8 @@ export interface ActivityIntro {
   explanation: string;
   /** One sentence shown first on the result; "" when the level has none. */
   keyIdea: string;
+  /** AI lesson, digital citizenship or coding (a chip on AI levels). */
+  lessonKind?: LessonKind;
   difficulty: string;
   estimatedMinutes: number;
   maxStars: number;

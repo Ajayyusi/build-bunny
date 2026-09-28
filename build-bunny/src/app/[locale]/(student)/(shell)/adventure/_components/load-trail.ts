@@ -1,5 +1,7 @@
 import "server-only";
 
+import { lessonKindOf } from "@/modules/explore/catalog";
+
 import { ageBandFor } from "@/modules/learning/age-band";
 import { resolveText } from "@/modules/curriculum/schemas";
 import {
@@ -50,6 +52,7 @@ async function loadIntros(
         difficulty: intro.difficulty,
         estimatedMinutes: intro.estimatedMinutes,
         ageBand: ageBandFor(intro.recommendedGradeMin),
+        lessonKind: lessonKindOf(intro),
         stars: intro.stars,
         maxStars: intro.maxStars,
       } satisfies TrailIntroVM,
@@ -96,6 +99,7 @@ function toTrailWorld(
                 difficulty: level.difficulty,
                 estimatedMinutes: level.estimatedMinutes,
                 ageBand: null,
+                lessonKind: lessonKindOf(level),
                 stars: level.stars,
                 maxStars: level.maxStars,
               }),

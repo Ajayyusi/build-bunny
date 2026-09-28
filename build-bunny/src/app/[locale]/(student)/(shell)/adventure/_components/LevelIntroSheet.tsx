@@ -6,6 +6,7 @@ import { Link } from "@/i18n/navigation";
 import { Badge, Button, cn, Dialog, type BadgeVariant } from "@/ui";
 
 import type { TrailLevelVM } from "./types";
+import { LessonKindChip } from "@/modules/activities/players/shared/LessonKindChip";
 
 interface LevelIntroSheetProps {
   level: TrailLevelVM;
@@ -69,6 +70,7 @@ export function LevelIntroSheet({ level, onClose }: LevelIntroSheetProps) {
           {intro.ageBand ? (
             <Badge variant="neutral">{t(`intro.bandName.${intro.ageBand}`)}</Badge>
           ) : null}
+          <LessonKindChip kind={intro.lessonKind} />
           <span
             className="ms-auto inline-flex items-center gap-1"
             role="img"
