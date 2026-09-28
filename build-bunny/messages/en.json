@@ -1838,7 +1838,12 @@
           "tests": "Tests",
           "retries": "Retries",
           "completions": "Completions",
-          "note": "A session is each time a child opens an AI activity. A test is a check or a try inside it (showing the robot's guesses, checking a picture). A retry is trying again after something didn't work. Counts only: no child is named."
+          "note": "A session is each time a child opens an AI activity. A test is a check or a try inside it (showing the robot's guesses, checking a picture). A retry is trying again after something didn't work. Counts only: no child is named.",
+          "secureOf": "{secure}/{students}",
+          "conceptsHeading": "AI concepts by class: who's secure",
+          "weeklyHeading": "AI activities week by week",
+          "weekLine": "{starts, plural, one {# session} other {# sessions}} · {tests, plural, one {# test} other {# tests}} · {retries, plural, one {# retry} other {# retries}} · {completions, plural, one {# completion} other {# completions}}",
+          "weeklyKey": "Weeks start on Monday. Top bar: sessions. Bottom bar: tests."
         }
       },
       "teachersPage": {
@@ -2056,7 +2061,10 @@
         "gradeProgressCta": "Download progress by grade (CSV)",
         "certificatesTitle": "Certificates issued",
         "certificatesHint": "Every certificate issued to a student at this school.",
-        "certificatesCta": "Download certificates (CSV)"
+        "certificatesCta": "Download certificates (CSV)",
+        "aiTitle": "AI activities and concepts",
+        "aiHint": "Sessions, tests, retries and completions in the last 30 days, and who's secure in each AI concept, by class. Counts only.",
+        "aiCta": "Download CSV"
       },
       "activityPage": {
         "title": "Activity log",

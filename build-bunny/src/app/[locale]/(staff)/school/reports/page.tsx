@@ -39,6 +39,12 @@ const REPORTS: ReportCard[] = [
     href: "/api/school/reports/grades",
   },
   {
+    titleKey: "aiTitle",
+    hintKey: "aiHint",
+    ctaKey: "aiCta",
+    href: "/api/school/reports/ai",
+  },
+  {
     titleKey: "certificatesTitle",
     hintKey: "certificatesHint",
     ctaKey: "certificatesCta",

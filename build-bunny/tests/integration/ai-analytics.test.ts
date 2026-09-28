@@ -177,6 +177,14 @@ describe("reading it back", () => {
     expect(row!.starts).toBeGreaterThanOrEqual(3);
     expect(analytics?.aiActivityTotal).toMatchObject({ tests: 3, retries: 2, completions: 1 });
     expect(JSON.stringify(analytics?.aiActivity)).not.toContain(kid.userId);
+    // The trend: this week holds everything recorded above.
+    const week = analytics!.aiWeekly[analytics!.aiWeekly.length - 1]!;
+    expect(analytics!.aiWeekly).toHaveLength(8);
+    expect(week).toMatchObject({ tests: 3, retries: 2, completions: 1 });
+    // Concepts by class: Fortune Teller teaches uncertainty; one child finished it.
+    const concepts = analytics!.aiConceptsByClass.find((r) => r.classId === classId)!;
+    expect(concepts.concepts.uncertainty).toMatchObject({ levels: 1, students: 2 });
+    expect(JSON.stringify(analytics?.aiConceptsByClass)).not.toContain(kid.userId);
   });
 });
 

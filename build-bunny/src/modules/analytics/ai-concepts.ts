@@ -125,3 +125,28 @@ export function summariseAiConcepts(input: ConceptInput): ClassAiConcept[] {
     };
   });
 }
+
+/** The four AI activity counts (start, test, retry, completion). */
+export interface AiActivityCountsShape {
+  starts: number;
+  tests: number;
+  retries: number;
+  completions: number;
+}
+
+/** Per-class secure counts for the school admin: the same rule, fewer rows. */
+export function secureByConcept(concepts: readonly ClassAiConcept[]): Record<AiConcept, { secure: number; students: number; levels: number }> {
+  return Object.fromEntries(
+    concepts.map((c) => [c.concept, { secure: c.secure, students: c.secure + c.working + c.notStarted, levels: c.levels }]),
+  ) as Record<AiConcept, { secure: number; students: number; levels: number }>;
+}
+
+/** Narrow a class-wide input to some of its children (school admin, by class). */
+export function forStudents(input: ConceptInput, studentIds: ReadonlySet<string>): ConceptInput {
+  return {
+    ...input,
+    students: input.students.filter((s) => studentIds.has(s.id)),
+    completed: input.completed.filter((r) => studentIds.has(r.studentId)),
+    checks: input.checks.filter((r) => studentIds.has(r.studentId)),
+  };
+}
