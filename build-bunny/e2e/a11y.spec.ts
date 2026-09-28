@@ -60,13 +60,24 @@ test("child-facing screens have no serious or critical axe findings", async ({ p
   const findings: string[] = [];
 
   for (const locale of ["en", "ar"]) {
-    await page.goto(`/${locale}/home`);
+    await page.goto(`/${locale}/explore`);
     await page.waitForLoadState("networkidle");
-    const onboarding = page.getByRole("dialog");
-    if (await onboarding.isVisible().catch(() => false)) {
-      findings.push(...(await scan(page, `${locale}/home (welcome)`)));
+    const welcome = page.getByRole("dialog");
+    if (await welcome.isVisible().catch(() => false)) {
+      findings.push(...(await scan(page, `${locale}/explore (welcome)`)));
       await page.keyboard.press("Escape");
     }
+    findings.push(...(await scan(page, `${locale}/explore`)));
+
+    await page.goto(`/${locale}/explore/worlds`);
+    await page.waitForLoadState("networkidle");
+    const aiScene = page.getByRole("dialog");
+    await aiScene.waitFor({ state: "visible", timeout: 5000 }).catch(() => {});
+    if (await aiScene.isVisible().catch(() => false)) await aiScene.getByRole("button").last().click();
+    findings.push(...(await scan(page, `${locale}/explore/worlds`)));
+
+    await page.goto(`/${locale}/home`);
+    await page.waitForLoadState("networkidle");
     findings.push(...(await scan(page, `${locale}/home`)));
 
     if (locale === "en") await openMap(page);

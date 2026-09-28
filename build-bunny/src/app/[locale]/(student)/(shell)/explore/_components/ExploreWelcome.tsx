@@ -6,7 +6,7 @@ import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { BunnyMascot, Button, cn, useFocusTrap } from "@/ui";
 
-import styles from "./welcome.module.css";
+import styles from "../../_components/dialog-entrance.module.css";
 
 /**
  * First-run welcome on Explore AI, the student landing (redesign brief's

@@ -1,26 +1,39 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { Link, redirect } from "@/i18n/navigation";
+import { listMyStudentAssignments } from "@/modules/assignments/server/queries";
 import { MusicScene } from "@/modules/audio/scene";
 import { requireRole } from "@/modules/auth/server/session";
 import { resolveText } from "@/modules/curriculum/schemas";
 import { getExploreState } from "@/modules/explore/server/queries";
+import { computeAdventureState } from "@/modules/learning/server/adventure";
 import { isFeatureEnabled } from "@/modules/shared/features";
-import { getMyStudentSnapshot } from "@/modules/students/server/queries";
+import { getMyStudentSnapshot, getMyUnreadFeedbackCount } from "@/modules/students/server/queries";
 import { BunnyMascot, EmptyState } from "@/ui";
 
 import { ExploreTile } from "./_components/ExploreTile";
+import { ExploreWelcome } from "./_components/ExploreWelcome";
+import { RouteCard } from "./_components/RouteCard";
+import { landingNotices, routeProgress } from "./_components/landing";
 import { toTile } from "./_components/to-tiles";
 
 interface Props {
   params: Promise<{ locale: string }>;
 }
 
+/** The first AI activity, where the welcome's "Let's try!" leads. */
+const FIRST_ACTIVITY = "train-a-sorter";
+
 /**
- * Explore AI (redesign brief 2026-09-25): six hands-on AI activities a child
- * can open from their very first session, with no coding before them, and
- * the rule-versus-learning bridge that follows the first one. Each card is
- * an existing level, opened from day one by the unlock engine.
+ * Explore AI — the student landing (redesign brief 2026-09-25, AI-first).
+ *
+ * Top to bottom: a one-line header; anything a teacher sent (unread
+ * messages, assignments still to do) as notices that lead to My Learning,
+ * where they live; the six AI activities, sized so all six sit above the
+ * fold on a 1366×768 classroom laptop; the next idea after the first
+ * sorter; then the two routes deeper in — AI worlds and Coding Lab — each
+ * with the child's progress. A brand-new child is greeted by the first-run
+ * welcome, whose main button opens Train a Sorter.
  */
 export default async function ExplorePage({ params }: Props) {
   const { locale } = await params;
@@ -31,95 +44,130 @@ export default async function ExplorePage({ params }: Props) {
   if (!isFeatureEnabled(snapshot?.school.features, "adventure")) {
     redirect({ href: "/home", locale });
   }
-  const [state, t] = await Promise.all([getExploreState(ctx), getTranslations("student.explore")]);
+  const [adventure, assignments, unreadMessages, t] = await Promise.all([
+    computeAdventureState(ctx),
+    listMyStudentAssignments(ctx),
+    getMyUnreadFeedbackCount(ctx),
+    getTranslations("student.explore"),
+  ]);
+  const state = await getExploreState(ctx, adventure);
+  const routes = routeProgress(adventure);
+  const notices = landingNotices(unreadMessages, assignments);
+  const first = state.cards.find((card) => card.slug === FIRST_ACTIVITY && card.state !== "LOCKED");
+  // Brand new: nothing finished anywhere yet.
+  const fresh = adventure.worlds.every((world) => world.completedLevels === 0);
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-5">
       <MusicScene track="map" />
+      <ExploreWelcome show={fresh} userId={ctx.userId} firstActivityHref={first ? `/play/${first.levelId}` : null} />
 
-      <section className="bb-cascade relative overflow-hidden rounded-2xl bg-surface-raised p-6 shadow-raised sm:p-8">
-        <BunnyMascot
-          state="pointing"
-          size="lg"
-          className="pointer-events-none absolute -bottom-2 end-4 hidden opacity-95 sm:block"
-        />
-        <div className="relative flex max-w-xl flex-col items-start gap-3 sm:pe-32">
-          <span className="rounded-full bg-brand px-3 py-1 text-xs font-bold tracking-wide text-on-brand">
-            {t("kicker")}
-          </span>
-          <h1 className="font-display text-2xl font-bold text-ink sm:text-3xl">{t("title")}</h1>
+      <header className="flex flex-wrap items-center gap-x-4 gap-y-2">
+        <BunnyMascot state="pointing" size="sm" className="shrink-0" />
+        <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+          <p className="text-xs font-bold uppercase tracking-wide text-brand">{t("kicker")}</p>
+          <h1 className="font-display text-2xl font-bold text-ink">{t("title")}</h1>
           <p className="text-sm text-ink-muted">{t("body")}</p>
-          {state.cards.length > 0 ? (
-            <span className="rounded-full bg-surface-sunken px-3 py-1 text-xs font-bold text-ink-muted">
-              {t("progress", { done: state.completed, total: state.cards.length })}
-            </span>
-          ) : null}
         </div>
-      </section>
+        {state.cards.length > 0 ? (
+          <span className="rounded-full bg-surface-sunken px-3 py-1 text-xs font-bold text-ink-muted">
+            {t("progress", { done: state.completed, total: state.cards.length })}
+          </span>
+        ) : null}
+      </header>
+
+      {notices ? (
+        <section
+          aria-label={t("notices.open")}
+          className="flex flex-col gap-2 rounded-2xl border-2 border-info/40 bg-info/10 px-4 py-3 sm:flex-row sm:items-center"
+        >
+          <ul className="flex min-w-0 flex-1 flex-col gap-1 text-sm font-semibold text-ink">
+            {notices.messages > 0 ? (
+              <li>
+                <span aria-hidden="true">💬 </span>
+                {t("notices.messages", { count: notices.messages })}
+              </li>
+            ) : null}
+            {notices.toDo > 0 ? (
+              <li>
+                <span aria-hidden="true">📋 </span>
+                {t("notices.assignments", { count: notices.toDo })}
+              </li>
+            ) : null}
+          </ul>
+          <Link
+            href="/home"
+            className="inline-flex h-11 w-fit items-center rounded-lg bg-surface-raised px-4 text-sm font-semibold text-brand shadow-soft underline-offset-4 hover:underline"
+          >
+            {t("notices.open")}
+          </Link>
+        </section>
+      ) : null}
 
       {state.cards.length === 0 ? (
         <EmptyState icon={<BunnyMascot state="sleeping" size="sm" />} title={t("kicker")} description={t("body")} />
       ) : (
-        <ul className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+        <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" data-testid="explore-cards">
           {state.cards.map((card, index) => (
-            <ExploreTile key={card.slug} tile={toTile(card, t, locale)} index={index} />
+            <ExploreTile key={card.slug} tile={toTile(card, t, locale)} index={index} compact />
           ))}
         </ul>
       )}
 
-      {state.followUp ? (
-        <section aria-labelledby="explore-next" className="flex flex-col gap-3">
-          <h2 id="explore-next" className="font-display text-lg font-bold text-ink">
-            {t("followUpTitle")}
+      <div className="grid gap-4 lg:grid-cols-3">
+        {state.followUp ? (
+          <section aria-labelledby="explore-next" className="flex flex-col gap-2">
+            <h2 id="explore-next" className="font-display text-lg font-bold text-ink">
+              {t("followUpTitle")}
+            </h2>
+            <ul className="grid flex-1">
+              <ExploreTile
+                tile={toTile(
+                  state.followUp,
+                  t,
+                  locale,
+                  state.followUpAfter ? resolveText(state.followUpAfter, locale) : undefined,
+                )}
+                index={state.cards.length}
+                compact
+              />
+            </ul>
+          </section>
+        ) : null}
+
+        <section
+          aria-labelledby="explore-routes"
+          className={state.followUp ? "flex flex-col gap-2 lg:col-span-2" : "flex flex-col gap-2 lg:col-span-3"}
+        >
+          <h2 id="explore-routes" className="font-display text-lg font-bold text-ink">
+            {t("routes.title")}
           </h2>
-          <ul className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-            <ExploreTile
-              tile={toTile(
-                state.followUp,
-                t,
-                locale,
-                state.followUpAfter ? resolveText(state.followUpAfter, locale) : undefined,
-              )}
-              index={state.cards.length}
+          <ul className="grid flex-1 gap-4 sm:grid-cols-2">
+            <RouteCard
+              href="/explore/worlds"
+              glyph="🧠"
+              title={t("routes.aiTitle")}
+              body={t("routes.aiBody")}
+              idea={t("ai")}
+              cta={t("routes.aiCta")}
+              progress={routes.ai}
+              progressLabel={t("routes.progress", { ...routes.ai })}
+              tone="ai"
+            />
+            <RouteCard
+              href="/adventure"
+              glyph="</>"
+              title={t("routes.codingTitle")}
+              body={t("routes.codingBody")}
+              idea={t("coding")}
+              cta={t("routes.codingCta")}
+              progress={routes.coding}
+              progressLabel={t("routes.progress", { ...routes.coding })}
+              tone="coding"
             />
           </ul>
         </section>
-      ) : null}
-
-      <section
-        aria-labelledby="explore-two-ways"
-        className="flex flex-col gap-3 rounded-2xl border border-border-token bg-surface-raised p-5 shadow-soft sm:p-6"
-      >
-        <h2 id="explore-two-ways" className="font-display text-lg font-bold text-ink">
-          {t("twoWaysTitle")}
-        </h2>
-        <ul className="grid gap-3 sm:grid-cols-2">
-          <li className="flex items-start gap-3 rounded-xl bg-surface-sunken p-4 text-sm text-ink">
-            <span aria-hidden="true" className="grid size-9 shrink-0 place-items-center rounded-lg bg-white font-mono text-sm font-bold">
-              {"</>"}
-            </span>
-            {t("coding")}
-          </li>
-          <li className="flex items-start gap-3 rounded-xl bg-surface-sunken p-4 text-sm text-ink">
-            <span aria-hidden="true" className="grid size-9 shrink-0 place-items-center rounded-lg bg-white text-lg">
-              🧠
-            </span>
-            {t("ai")}
-          </li>
-        </ul>
-        <Link
-          href="/adventure"
-          className="w-fit text-sm font-semibold text-brand underline-offset-4 hover:underline"
-        >
-          {t("codingLink")}{" "}
-          <span aria-hidden="true" className="rtl:hidden">
-            →
-          </span>
-          <span aria-hidden="true" className="hidden rtl:inline">
-            ←
-          </span>
-        </Link>
-      </section>
+      </div>
     </div>
   );
 }

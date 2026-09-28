@@ -986,10 +986,8 @@
       "title": "Teach it. Test it. Question it.",
       "body": "Hands-on games about how AI works, and when to think carefully. No coding needed: start with any card.",
       "progress": "{done} of {total} explored",
-      "twoWaysTitle": "Two ways to make a computer do something",
       "coding": "Coding: you tell it exactly what to do, step by step.",
       "ai": "AI: you show it examples, and it works out the pattern itself.",
-      "codingLink": "Go to the coding worlds on the map",
       "status": {
         "new": "New",
         "going": "Keep going",
@@ -1001,13 +999,10 @@
       "explained": "Explained",
       "followUpTitle": "Next idea",
       "followUpLocked": "Opens after “{after}”",
-      "homeTitle": "Explore AI",
-      "homeBody": "No coding needed. Pick any card.",
-      "homeSeeAll": "See all",
       "concept": {
         "examples": {
           "name": "Learning from examples",
-          "hook": "Show a robot some berries. Can it sort ones it has never seen?"
+          "hook": "Show a robot a few examples. Can it sort ones it has never seen?"
         },
         "rules": {
           "name": "Rules vs learning",

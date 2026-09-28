@@ -10,21 +10,60 @@ import { dragBlockUnderStack, provisionStudent, signIn, studentName } from "./he
 
 const RUN = /^▶?\s*Run$/;
 
-test("welcome → first mission → coached mistake → success → next level", async ({
+test("AI first: a new child lands on Explore AI, and the welcome opens Train a Sorter", async ({
+  page,
+  baseURL,
+}, testInfo) => {
+  const kid = provisionStudent(studentName(testInfo.project.name, "d"));
+  await signIn(page, baseURL!, kid.username);
+
+  await page.goto("/en");
+  await expect(page).toHaveURL(/\/explore$/);
+  const welcome = page.getByRole("dialog", { name: "Can you teach a robot to sort shapes?" });
+  await expect(welcome).toBeVisible();
+  // The welcome ends IN the first AI activity, not on a dashboard.
+  await welcome.getByRole("link", { name: "Let's try!" }).click();
+  await expect(page).toHaveURL(/\/play\//);
+  await expect(page.getByRole("dialog", { name: "A robot that knows nothing" })).toBeVisible();
+
+  // Seen once per child and device: back on Explore AI it stays closed.
+  await page.goto("/en/explore");
+  await expect(page.getByRole("heading", { name: "Teach it. Test it. Question it." })).toBeVisible();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+});
+
+test("Explore AI: six activities above the fold on a classroom laptop, and both routes one tap away", async ({
+  page,
+  baseURL,
+}, testInfo) => {
+  const kid = provisionStudent(studentName(testInfo.project.name, "e"));
+  await signIn(page, baseURL!, kid.username);
+  await page.setViewportSize({ width: 1366, height: 768 });
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/en/explore");
+  await page.getByRole("dialog").getByRole("button", { name: "Look around first" }).click();
+
+  const cards = page.getByTestId("explore-cards").getByRole("link");
+  await expect(cards).toHaveCount(6);
+  for (const card of await cards.all()) await expect(card).toBeInViewport({ ratio: 1 });
+
+  await page.getByRole("link", { name: /AI worlds/ }).click();
+  await expect(page).toHaveURL(/\/explore\/worlds$/);
+  // First visit: AI Island tells its story first.
+  await page.getByRole("dialog", { name: /the story/ }).getByRole("button", { name: "Skip" }).click();
+  await page.getByRole("link", { name: "Back to Explore AI" }).click();
+  await page.getByRole("link", { name: /Coding Lab.*Open Coding Lab/ }).click();
+  await expect(page).toHaveURL(/\/adventure$/);
+});
+
+test("Coding Lab: first mission → coached mistake → success → next level", async ({
   page,
   baseURL,
 }, testInfo) => {
   const kid = provisionStudent(studentName(testInfo.project.name, "a"));
   await signIn(page, baseURL!, kid.username);
 
-  await page.goto("/en/home");
-  const welcome = page.getByRole("dialog", { name: "Meet Robo Bunny" });
-  await expect(welcome).toBeVisible();
-  await welcome.getByRole("button", { name: "Next" }).click();
-  await welcome.getByRole("button", { name: "Next" }).click();
-  // The welcome ends IN the first mission, not on a dashboard.
-  await welcome.getByRole("link", { name: "Start my first mission" }).click();
-  await expect(page).toHaveURL(new RegExp(`/play/${kid.firstLevelId}`));
+  await page.goto(`/en/play/${kid.firstLevelId}`);
 
   // One-screen briefing with a child-facing mission (not the teacher objective).
   const briefing = page.getByRole("dialog", { name: "First Hop" });
