@@ -994,6 +994,97 @@
         "youngerMissed": "It guessed wrong. Which example might help?",
         "deeperErrors": "Its mistakes: {falseYes, plural, one {# said “{positive}” when it wasn't} other {# said “{positive}” when they weren't}}, and {missed, plural, one {# missed a real “{positive}”} other {# missed a real “{positive}”}}.",
         "closeCall": "Close call"
+      },
+      "explain": {
+        "title": "Say it your way",
+        "help": "Build a sentence about what just happened. Pick one part from each row.",
+        "slot": {
+          "what": "What happened",
+          "why": "Because…",
+          "next": "So…"
+        },
+        "sentence": "{what}, because {why}, so {next}.",
+        "save": "That's my sentence",
+        "saved": "Saved. Your teacher can see your sentence.",
+        "notSaved": "Couldn't save that just now.",
+        "change": "Change it",
+        "examples": {
+          "what1": "the robot followed a rule I wrote",
+          "what2": "the robot sorted new shapes by copying my examples",
+          "what3": "the robot already knew every shape",
+          "why1": "it only knows what my examples show it",
+          "why2": "robots never make mistakes",
+          "why3": "it picked at random",
+          "next1": "it can never be fixed",
+          "next2": "I should use fewer examples",
+          "next3": "a better example helps it with new cases"
+        },
+        "rules": {
+          "what1": "my rule only worked on the kinds I thought of",
+          "what2": "my rule learned the new kind by itself",
+          "what3": "my rule was always right",
+          "why1": "rules learn from mistakes",
+          "why2": "the robot ignored my rule",
+          "why3": "a rule only changes when a person rewrites it",
+          "next1": "rules are always better than examples",
+          "next2": "teaching with examples can cover new kinds",
+          "next3": "I should never test my rule"
+        },
+        "vision": {
+          "what1": "the computer saw a real rabbit",
+          "what2": "the computer read the picture's name",
+          "what3": "the computer saw the picture as a grid of numbers",
+          "why1": "each square is just numbers for its colour",
+          "why2": "computers have eyes like ours",
+          "why3": "pictures are made of words",
+          "next1": "it can always tell, however blocky",
+          "next2": "with fewer squares, it's harder to tell",
+          "next3": "colours don't matter at all"
+        },
+        "fairness": {
+          "what1": "the robot was unfair to the kind I didn't teach it",
+          "what2": "the robot was fair to everyone",
+          "what3": "the robot didn't like one kind",
+          "why1": "it was tired",
+          "why2": "my examples left that kind out",
+          "why3": "that kind is always wrong",
+          "next1": "I should teach it every kind",
+          "next2": "I should remove that kind",
+          "next3": "unfair robots can't be fixed"
+        },
+        "checking": {
+          "what1": "I believed it because it looked real",
+          "what2": "I checked where it came from before believing it",
+          "what3": "I shared it straight away",
+          "why1": "everything online is true",
+          "why2": "sharing is always kind",
+          "why3": "machines can make fake videos, voices and pictures",
+          "next1": "\"not enough evidence yet\" is a fine answer",
+          "next2": "I must decide straight away",
+          "next3": "sounding sure means it's right"
+        },
+        "prediction": {
+          "what1": "the prediction was a careful guess from data",
+          "what2": "the prediction was a fact",
+          "what3": "the prediction was a random number",
+          "why1": "computers are always right",
+          "why2": "the data only shows what already happened",
+          "why3": "the line is magic",
+          "next1": "it's just as sure everywhere",
+          "next2": "more data always makes it perfect",
+          "next3": "the further from the data, the less sure it is"
+        },
+        "people": {
+          "what1": "the machine should decide everything",
+          "what2": "a person should never check",
+          "what3": "a person should check when a mistake could hurt someone",
+          "why1": "machines make mistakes too",
+          "why2": "machines are perfect",
+          "why3": "people are slower",
+          "next1": "we should only check songs",
+          "next2": "the more it matters, the more a person checks",
+          "next3": "a very sure machine is always right"
+        }
       }
     },
     "profile": {
@@ -1442,7 +1533,7 @@
         },
         "aiConcepts": {
           "heading": "AI concepts: who's secure",
-          "rule": "Secure means: finished at least two of the concept's activities, with 2 or more stars on average, and explained it correctly where there's a quick check. Class totals only.",
+          "rule": "Secure means: finished at least two of the concept's activities, with 2 or more stars on average, and explained it: the quick check right, a fully sound \"Say it your way\" sentence, or you heard them explain it aloud. Class totals only.",
           "name": {
             "exampleQuality": "Good examples",
             "testing": "Testing on new cases",
@@ -1570,6 +1661,14 @@
             "older": "grades 5–7"
           },
           "saved": "Saved.",
+          "error": "Couldn't save that. Try again."
+        },
+        "explain": {
+          "heading": "How they explain AI",
+          "help": "Sentences they built after an Explore AI activity, from fixed phrases (nothing typed), and what you've heard them explain aloud. Either counts as explaining a concept on the class page.",
+          "none": "No sentences yet.",
+          "sound": "{sound} of 3 parts hold up",
+          "heardHeading": "I heard them explain it aloud",
           "error": "Couldn't save that. Try again."
         }
       },

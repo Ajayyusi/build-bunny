@@ -22,9 +22,11 @@ export const AI_CONCEPT_LEVELS: Readonly<Record<AiConcept, readonly string[]>> =
 
 /**
  * Secure: finished at least two of the concept's levels (all of them when it
- * has fewer), averaging two stars or more, and — where any of its levels
- * asks the one-tap check — answered one correctly. Working on it: finished
- * at least one. The rule is shown to teachers as written here.
+ * has fewer), averaging two stars or more, and explained it — where any of
+ * its levels asks the one-tap check: answered one correctly, built a fully
+ * sound "Say it your way" sentence on one, or was heard explaining it
+ * aloud by their teacher. Working on it: finished at least one. The rule
+ * is shown to teachers as written here.
  */
 export const SECURE_MIN_LEVELS = 2;
 export const SECURE_MIN_AVG_STARS = 2;
@@ -57,6 +59,10 @@ export interface ConceptInput {
   checkConceptOf: ReadonlyMap<string, ExploreConcept>;
   attemptsByLevel: ReadonlyMap<string, number>;
   retriesByLevel: ReadonlyMap<string, number>;
+  /** "Say it your way" sentences whose three parts all hold up. */
+  soundSentences?: readonly { studentId: string; levelId: string }[];
+  /** A teacher heard the child explain the concept aloud. */
+  observed?: readonly { studentId: string; concept: string }[];
 }
 
 export function masteryOf(
@@ -69,7 +75,8 @@ export function masteryOf(
   if (finished.length === 0) return "notStarted";
   const need = Math.min(SECURE_MIN_LEVELS, levelIds.length);
   const avg = finished.reduce((sum, id) => sum + (done.get(id) ?? 0), 0) / finished.length;
-  const explained = checkLevels.length === 0 || checkLevels.some((id) => explainedLevels.has(id));
+  // Explained on any of its levels (a right check or a fully sound sentence).
+  const explained = checkLevels.length === 0 || levelIds.some((id) => explainedLevels.has(id));
   return finished.length >= need && avg >= SECURE_MIN_AVG_STARS && explained ? "secure" : "working";
 }
 
@@ -81,8 +88,7 @@ export function summariseAiConcepts(input: ConceptInput): ClassAiConcept[] {
     doneByStudent.set(row.studentId, map);
   }
   const explainedByStudent = new Map<string, Set<string>>();
-  for (const row of input.checks) {
-    if (!row.correct) continue;
+  for (const row of [...input.checks.filter((c) => c.correct), ...(input.soundSentences ?? [])]) {
     const set = explainedByStudent.get(row.studentId) ?? new Set<string>();
     set.add(row.levelId);
     explainedByStudent.set(row.studentId, set);
@@ -94,10 +100,16 @@ export function summariseAiConcepts(input: ConceptInput): ClassAiConcept[] {
     const counts = { notStarted: 0, working: 0, secure: 0 };
     const byBand = { younger: { secure: 0, students: 0 }, older: { secure: 0, students: 0 } };
     for (const student of input.students) {
+      const heard = (input.observed ?? []).some((o) => o.studentId === student.id && o.concept === concept);
       const mastery =
         levelIds.length === 0
           ? "notStarted"
-          : masteryOf(levelIds, doneByStudent.get(student.id) ?? new Map(), explainedByStudent.get(student.id) ?? new Set(), checkLevels);
+          : masteryOf(
+              levelIds,
+              doneByStudent.get(student.id) ?? new Map(),
+              explainedByStudent.get(student.id) ?? new Set(),
+              heard ? [] : checkLevels,
+            );
       counts[mastery] += 1;
       const band = student.grade <= 4 ? byBand.younger : byBand.older;
       band.students += 1;
@@ -148,5 +160,7 @@ export function forStudents(input: ConceptInput, studentIds: ReadonlySet<string>
     students: input.students.filter((s) => studentIds.has(s.id)),
     completed: input.completed.filter((r) => studentIds.has(r.studentId)),
     checks: input.checks.filter((r) => studentIds.has(r.studentId)),
+    soundSentences: (input.soundSentences ?? []).filter((r) => studentIds.has(r.studentId)),
+    observed: (input.observed ?? []).filter((r) => studentIds.has(r.studentId)),
   };
 }

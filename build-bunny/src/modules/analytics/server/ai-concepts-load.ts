@@ -24,7 +24,7 @@ export async function loadConceptInput(
     [...levelIdBySlug].flatMap(([slug, id]) => (CONCEPT_CHECKS[slug] ? [[id, CONCEPT_CHECKS[slug]!.concept] as const] : [])),
   );
   const none = studentIds.length === 0 || levelIds.length === 0;
-  const [profiles, completed, checks, attempts, events] = await Promise.all([
+  const [profiles, completed, checks, attempts, events, sentences, observed] = await Promise.all([
     studentIds.length
       ? db.studentProfile.findMany({ where: { schoolId, userId: { in: studentIds } }, select: { userId: true, grade: true } })
       : Promise.resolve([]),
@@ -48,6 +48,18 @@ export async function loadConceptInput(
           _count: { _all: true },
         }),
     none ? Promise.resolve(new Map<string, AiActivityCounts>()) : countAiEvents({ schoolId, levelIds, studentIds, by: "levelId" }),
+    none
+      ? Promise.resolve([])
+      : db.explanationSentence.findMany({
+          where: { schoolId, levelId: { in: levelIds }, studentUserId: { in: studentIds }, soundParts: 3 },
+          select: { studentUserId: true, levelId: true },
+        }),
+    studentIds.length
+      ? db.conceptObservation.findMany({
+          where: { schoolId, studentUserId: { in: studentIds } },
+          select: { studentUserId: true, concept: true },
+        })
+      : Promise.resolve([]),
   ]);
   return {
     levelIdBySlug,
@@ -63,5 +75,7 @@ export async function loadConceptInput(
     checkConceptOf,
     attemptsByLevel: new Map(attempts.map((row) => [row.levelId, row._count._all])),
     retriesByLevel: new Map([...events].map(([id, counts]) => [id, counts.retries])),
+    soundSentences: sentences.map((row) => ({ studentId: row.studentUserId, levelId: row.levelId })),
+    observed: observed.map((row) => ({ studentId: row.studentUserId, concept: row.concept })),
   };
 }

@@ -6,6 +6,7 @@ import { getStudentDetail } from "@/modules/analytics/server/queries";
 import { getFamilyLinkStatus } from "@/modules/family/server/queries";
 import { FamilyLinkPanel } from "./_components/FamilyLinkPanel";
 import { AiModeSetting } from "./_components/AiModeSetting";
+import { ExplanationsPanel } from "./_components/ExplanationsPanel";
 import { resolveText } from "@/modules/curriculum/schemas";
 import {
   Avatar,
@@ -318,6 +319,12 @@ export default async function StudentDetailPage({ params }: Props) {
       </section>
 
       <AiModeSetting studentUserId={detail.studentUserId} choice={detail.aiModeChoice} mode={detail.aiMode} />
+
+      <ExplanationsPanel
+        studentUserId={detail.studentUserId}
+        explanations={detail.explanations.map((e) => ({ ...e, levelTitle: resolveText(e.levelTitle, locale) }))}
+        observed={detail.observedConcepts}
+      />
 
       {familyLink ? (
         <FamilyLinkPanel

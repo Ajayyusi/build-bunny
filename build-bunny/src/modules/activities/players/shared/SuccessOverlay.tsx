@@ -19,6 +19,7 @@ import {
 
 import styles from "./player.module.css";
 import { ConceptCheckRow } from "./ConceptCheckRow";
+import { ExplainRow } from "./ExplainRow";
 import { useLevelContext } from "./level-context";
 import { ReflectionRow } from "./ReflectionRow";
 import { resolveLocalized } from "../../types";
@@ -272,6 +273,7 @@ export function SuccessOverlay({
         {/* Asked before the explanation: the child reasons from what they
             just did, then reads why. */}
         <ConceptCheckRow ready={!saving && !saveFailed} />
+        <ExplainRow ready={!saving && !saveFailed} />
 
         {keyIdea ? (
           <div className="flex flex-col gap-2 rounded-lg bg-surface-sunken p-4">

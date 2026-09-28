@@ -191,6 +191,10 @@ export interface StudentDetail {
   progress: StudentDetailWorldProgress[];
   recentAttempts: StudentDetailAttempt[];
   achievements: StudentDetailAchievement[];
+  /** "Say it your way" sentences (phrase ids) and how many parts hold up. */
+  explanations: { levelId: string; levelTitle: LocalizedText; concept: ExploreConcept; parts: string[]; soundParts: number; updatedAt: string }[];
+  /** AI concepts a teacher heard this child explain aloud. */
+  observedConcepts: string[];
   certificates: StudentDetailCertificate[];
   feedback: StudentDetailFeedback[];
 }
@@ -1064,6 +1068,15 @@ export async function getStudentDetail(
     progressByWorld.set(key, bucket);
   }
 
+  const [sentences, observations] = await Promise.all([
+    db.explanationSentence.findMany({
+      where: { schoolId, studentUserId: student.id },
+      orderBy: { updatedAt: "desc" },
+      select: { levelId: true, parts: true, soundParts: true, updatedAt: true, level: { select: { slug: true, title: true } } },
+    }),
+    db.conceptObservation.findMany({ where: { schoolId, studentUserId: student.id }, select: { concept: true } }),
+  ]);
+
   return {
     studentUserId: student.id,
     displayName: student.displayName,
@@ -1082,6 +1095,20 @@ export async function getStudentDetail(
     flags,
     interventions,
     progress: [...progressByWorld.values()],
+    explanations: sentences.flatMap((row) => {
+      const check = CONCEPT_CHECKS[row.level.slug];
+      return check
+        ? [{
+            levelId: row.levelId,
+            levelTitle: asText(row.level.title, ""),
+            concept: check.concept,
+            parts: row.parts,
+            soundParts: row.soundParts,
+            updatedAt: row.updatedAt.toISOString(),
+          }]
+        : [];
+    }),
+    observedConcepts: observations.map((row) => row.concept),
     recentAttempts: attempts.slice(0, 20).map((a) => ({
       id: a.id,
       levelId: a.levelId,
