@@ -38,6 +38,7 @@ import { Walkthrough } from "./shared/Walkthrough";
 import { NextStepHint } from "./shared/NextStepHint";
 import { postAttempt, runIdFor } from "./shared/attempt-outbox";
 import { HintDrawer } from "./shared/HintDrawer";
+import { HonestyNote } from "./shared/HonestyNote";
 import { RoboHelp, type HelpTopic } from "./shared/RoboHelp";
 import { SuccessOverlay } from "./shared/SuccessOverlay";
 import { useHints } from "./shared/useHints";
@@ -584,6 +585,7 @@ export function TeachPlayer({
       {/* ── Board ── */}
       <div className="min-h-0 flex-1 overflow-y-auto">
         <div className="mx-auto flex w-full max-w-5xl flex-col gap-5 p-4 sm:p-6">
+          <HonestyNote kind="tinyClassifier" />
           {/* The bunny hosts its own level: the instructions are its speech,
               and its body answers the child's actions — a hop for every
               example taught, a shake for a wrong verdict. */}

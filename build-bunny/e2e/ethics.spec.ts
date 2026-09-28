@@ -22,6 +22,9 @@ test("Who Decides?: review the machine's suggestion, try another choice, own che
   await signIn(page, baseURL!, kid.username);
   await openFromExplore(page, /Who Decides\?/);
 
+  // Honest about what this is: a made-up story, no real AI.
+  await expect(page.getByText("Made-up story")).toBeVisible();
+
   const suggestion = page.getByRole("region", { name: "The machine suggests" });
   await expect(suggestion.getByText("Play “Happy Hop” next.")).toBeVisible();
   await expect(suggestion.getByText("People skipped the slow songs today.")).toBeVisible();
@@ -70,4 +73,17 @@ test("Is That Real?: say 'not enough evidence yet', then check the source", asyn
   await page.getByRole("button", { name: /Not enough evidence yet — find where it first came from/ }).click();
   await expect(page.getByRole("status")).toContainText("isn't evidence");
   await expect(page.getByText(/a video can't prove itself/)).toBeVisible();
+});
+
+test("Train a Sorter says what its robot really is", async ({ page, baseURL }, testInfo) => {
+  const kid = provisionStudent(studentName(testInfo.project.name, "ts"));
+  await signIn(page, baseURL!, kid.username);
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/en/explore");
+  await page.getByRole("dialog").getByRole("link", { name: "Let's try!" }).click();
+  await page.getByRole("dialog", { name: "A robot that knows nothing" }).getByRole("button", { name: "Skip" }).click();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await expect(page.getByText("Real, but tiny")).toBeVisible();
+  await page.getByText("What is this?").click();
+  await expect(page.getByText(/a real learning program, just a very small one/)).toBeVisible();
 });

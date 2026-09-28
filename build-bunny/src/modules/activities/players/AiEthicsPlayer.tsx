@@ -8,6 +8,7 @@ import { Button, cn, useReducedMotion } from "@/ui";
 
 import { PlayerSoundControls } from "@/modules/audio/AudioControls";
 import { HintDrawer, type HintTierState } from "./shared/HintDrawer";
+import { HonestyNote } from "./shared/HonestyNote";
 import { RoboHelp, type HelpTopic } from "./shared/RoboHelp";
 import { postAttempt, runIdFor } from "./shared/attempt-outbox";
 import { EthicsScene } from "./shared/EthicsScene";
@@ -319,6 +320,7 @@ export function AiEthicsPlayer({
       {/* ── Content ── */}
       <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6">
         <div className="mx-auto flex max-w-xl flex-col gap-4">
+          <HonestyNote kind="story" />
           {phase === "scene" && scene ? (
             <div className="flex flex-col gap-4 rounded-xl border-2 border-border-token bg-surface-raised p-5">
               {scene.art ? (

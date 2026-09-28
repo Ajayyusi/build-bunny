@@ -952,6 +952,14 @@
           "c": "Only when the machine is slow",
           "why": "Machines make mistakes too. When a mistake could hurt someone, a person should check."
         }
+      },
+      "honesty": {
+        "tinyBadge": "Real, but tiny",
+        "storyBadge": "Made-up story",
+        "what": "What is this?",
+        "tinyClassifier": "This robot is a real learning program, just a very small one, running right here on this page. It answers each new case by copying the example most like it. Big AI systems learn from millions of examples, but the idea is the same.",
+        "tinyGrouping": "The grouping is real: every dot joins its nearest flag, and the meter is real arithmetic, running right here on this page. Big AI systems group millions of things in much the same way.",
+        "story": "These are made-up situations to practise with. There is no real AI and there are no real people in this story."
       }
     },
     "profile": {
