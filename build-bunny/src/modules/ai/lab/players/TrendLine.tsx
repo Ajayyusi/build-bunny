@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { cn } from "@/ui";
 
 import { leastSquares } from "../math/leastSquares";
+import { dataMiddleX, predictionBand } from "../math/predictionBand";
 import { sumSquaredError } from "../math/sumSquaredError";
 import { INTERCEPT_STEP_FRACTION, SLOPE_STEP_FRACTION } from "../trend-line/steps";
 import type { TrendLineConfig, TrendLineWork } from "../trend-line/types";
@@ -29,7 +30,6 @@ const VIEW_H = 400;
 const MARGIN = { top: 20, right: 24, bottom: 40, left: 52 };
 const PLOT_W = VIEW_W - MARGIN.left - MARGIN.right;
 const PLOT_H = VIEW_H - MARGIN.top - MARGIN.bottom;
-const BAND_MULTIPLIER = 1.5; // must match trend-line/grade.ts exactly
 
 /**
  * Radius of the invisible circle that actually catches the drag, in viewBox
@@ -119,16 +119,18 @@ export function TrendLine({
     () => sumSquaredError(config.points, optimum),
     [config.points, optimum],
   );
-  const residualStd = useMemo(
-    () => Math.sqrt(optimumSSE / config.points.length),
-    [optimumSSE, config.points.length],
-  );
   const fittedPrediction = useMemo(
     () => yAt(optimum, config.predictAt),
     [optimum, config.predictAt],
   );
-  const bandLow = fittedPrediction - BAND_MULTIPLIER * residualStd;
-  const bandHigh = fittedPrediction + BAND_MULTIPLIER * residualStd;
+  // The same likely range the grader uses: narrowest in the middle of the
+  // data, wider the further the prediction reaches past it.
+  const band = useMemo(() => predictionBand(config.points, config.predictAt), [config.points, config.predictAt]);
+  const bandLow = band.low;
+  const bandHigh = band.high;
+  // For comparison: the range in the middle of the measured data.
+  const middleX = useMemo(() => dataMiddleX(config.points), [config.points]);
+  const middleBand = useMemo(() => predictionBand(config.points, middleX), [config.points, middleX]);
 
   const domain = useMemo<Domain>(() => {
     const xs = config.points.map((p) => p.x).concat(config.predictAt);
@@ -437,6 +439,18 @@ export function TrendLine({
                 className={cn("fill-info/15", !reducedMotion && styles.gridFadeIn)}
               />
             ) : null}
+            {/* Past the data, the same range in the middle of the measured
+                dots, drawn faintly beside it: the difference is the lesson. */}
+            {subPhase === "revealed" && band.beyondData ? (
+              <rect
+                x={dataToScreenX(middleX, domain) - 20}
+                y={dataToScreenY(middleBand.high, domain)}
+                width={40}
+                height={Math.max(dataToScreenY(middleBand.low, domain) - dataToScreenY(middleBand.high, domain), 1)}
+                className="fill-info/10 stroke-info/40"
+                strokeDasharray="3 3"
+              />
+            ) : null}
             <line x1={predictAtX} y1={MARGIN.top} x2={predictAtX} y2={MARGIN.top + PLOT_H} className="stroke-info" strokeWidth={1.5} strokeDasharray="4 4" />
           </g>
         ) : null}
@@ -593,6 +607,15 @@ export function TrendLine({
               </>
             ) : null}
           </p>
+          {subPhase === "revealed" && band.beyondData ? (
+            <p className="rounded-lg bg-info/10 p-3 text-sm leading-relaxed text-ink">
+              {t("beyondDataNote", {
+                x: config.predictAt,
+                wide: round1(band.halfWidth * 2),
+                narrow: round1(middleBand.halfWidth * 2),
+              })}
+            </p>
+          ) : null}
           <div className="flex flex-wrap gap-2">
             {subPhase === "predict" ? (
               <button

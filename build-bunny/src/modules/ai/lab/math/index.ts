@@ -13,3 +13,4 @@ export * from "./centroidRule";
 export * from "./convolve3x3";
 export * from "./greyscale";
 export * from "./downsample";
+export * from "./predictionBand";

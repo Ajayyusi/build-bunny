@@ -844,8 +844,8 @@ export const dataDesert: WorldFixture = {
             ar: "اسحب خطك لتجعل درجة «الخطأ الكلي» أصغر ما يمكن — هذا الرقم هو مجموع بُعد كل نقطة عن خطك. ثم دع الحاسوب يأخذ دوره، وتوقّع طول شتلة حصلت على ضوء شمس أكثر من أي شتلة في البيانات.",
           },
           explanation: {
-            en: "The computer's line is called a least-squares fit — it's the ONE line that makes the 'total miss' score as small as it can possibly be, checked by real arithmetic, not a guess. But look at your prediction: it came with a band around it, not one exact number. That band is the honest part — more sunlight almost always means a taller plant here, but 'almost always' is not 'always', and the further you predict beyond the real data, the less certain any line can be. Predictions are educated guesses built from real evidence — not facts, and not magic.",
-            ar: "يُسمّى خط الحاسوب بخط أقل المربعات — إنه الخط الوحيد الذي يجعل درجة «الخطأ الكلي» أصغر ما يمكن، محسوبًا بعملية حسابية حقيقية، لا تخمينًا. لكن انظر إلى توقّعك: جاء مصحوبًا بمدى حوله، لا برقم واحد دقيق. هذا المدى هو الجزء الصادق — ضوء الشمس الأكثر يعني غالبًا نبتة أطول هنا، لكن «غالبًا» ليست «دائمًا»، وكلما توقّعت أبعد عن البيانات الحقيقية، قلّ يقين أي خط. التوقّعات تخمينات مبنية على أدلّة حقيقية — وليست حقائق، وليست سحرًا.",
+            en: "The computer's line is the ONE line that makes the 'total miss' score as small as it can possibly be, checked by real arithmetic, not a guess. But look at your prediction: it came with a band around it, not one exact number. That band is the honest part — more sunlight almost always means a taller plant here, but 'almost always' is not 'always', and the further you predict beyond the real data, the less certain any line can be. Predictions are educated guesses built from real evidence — not facts, and not magic.",
+            ar: "خط الحاسوب هو الخط الوحيد الذي يجعل درجة «الخطأ الكلي» أصغر ما يمكن، محسوبًا بعملية حسابية حقيقية، لا تخمينًا. لكن انظر إلى توقّعك: جاء مصحوبًا بمدى حوله، لا برقم واحد دقيق. هذا المدى هو الجزء الصادق — ضوء الشمس الأكثر يعني غالبًا نبتة أطول هنا، لكن «غالبًا» ليست «دائمًا»، وكلما توقّعت أبعد عن البيانات الحقيقية، قلّ يقين أي خط. التوقّعات تخمينات مبنية على أدلّة حقيقية — وليست حقائق، وليست سحرًا.",
           },
           keyIdea: { en: "A prediction is an estimate, and it gets less sure the further it goes beyond the data.", ar: "التنبؤ تقدير، ويصبح أقل يقينًا كلما ابتعد عن البيانات." },
           teacherNotes: {
@@ -946,8 +946,8 @@ export const dataDesert: WorldFixture = {
             honesty: {
               kind: "REAL",
               note: {
-                en: "Real: your total-miss score and the computer's least-squares line are both genuinely computed from the data — nothing here is scripted.",
-                ar: "حقيقي: درجة خطئك الكلي وخط الحاسوب الأدق كلاهما محسوبان فعليًا من البيانات — لا شيء هنا مُعدّ مسبقًا.",
+                en: "Real: your total-miss score, the computer's best-fit line and the likely range are all genuinely computed from the data — nothing here is scripted.",
+                ar: "حقيقي: درجة خطئك الكلي وخط الحاسوب الأدق والمدى المحتمل كلها محسوبة فعليًا من البيانات — لا شيء هنا مُعدّ مسبقًا.",
               },
             },
           } satisfies AiSimDraft,

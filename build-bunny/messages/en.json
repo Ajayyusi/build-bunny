@@ -602,7 +602,8 @@
           "moveLineAgain": "Move my line again",
           "lockPrediction": "Lock in my guess",
           "tryAnotherPrediction": "Try another guess",
-          "bandRange": "(likely between {low} and {high})"
+          "bandRange": "(likely between {low} and {high})",
+          "beyondDataNote": "{x} is past the last dot anyone measured, so the likely range is wider there ({wide} wide) than in the middle of the dots ({narrow} wide). The further you predict beyond the data, the less sure anyone can be."
         },
         "pixelPlayground": {
           "exploreIntro": "Pick a picture and see how a computer stores it — as a grid of numbers.",
