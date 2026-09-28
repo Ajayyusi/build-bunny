@@ -31,7 +31,7 @@ test("a new world's story plays once, can be skipped, and can be replayed", asyn
 
   // Not shown again on the next visit…
   await page.reload();
-  await expect(page.getByRole("heading", { name: "My path" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Coding Lab" })).toBeVisible();
   await expect(page.getByRole("dialog", { name: /the story/ })).toHaveCount(0);
 
   // …but replayable, all three lines, ending in "Let's go!".

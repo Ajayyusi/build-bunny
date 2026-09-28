@@ -70,7 +70,7 @@ test("silent by default, starts on a tap, music stops on mute / hidden tab / lea
 
   // Nothing is created, let alone played, on arrival — even after clicks.
   await openMap(page);
-  await page.getByRole("heading", { name: "My path" }).click();
+  await page.getByRole("heading", { name: "Coding Lab" }).click();
   expect(await audio(page)).toMatchObject({ contexts: 0, oscillators: 0 });
 
   // Turn effects + music on from the sidebar.
@@ -121,7 +121,7 @@ test("silent by default, starts on a tap, music stops on mute / hidden tab / lea
   // Leave the game area (map → profile, client-side): the music fades out
   // and stops scheduling notes.
   await page.getByRole("link", { name: "Back to map" }).click();
-  await expect(page.getByRole("heading", { name: "My path" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Coding Lab" })).toBeVisible();
   await page.getByRole("link", { name: "My profile" }).click();
   await expect(page).toHaveURL(/\/profile/);
   await page.waitForTimeout(1800);
