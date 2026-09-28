@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 
 import { cn } from "@/ui";
+import { CharacterLine } from "@/modules/characters/Character";
 
 import { leastSquares } from "../math/leastSquares";
 import { dataMiddleX, predictionBand } from "../math/predictionBand";
@@ -616,6 +617,8 @@ export function TrendLine({
               })}
             </p>
           ) : null}
+          {/* Tessa asks the testing question: what happens beyond the data? */}
+          {subPhase === "predict" ? <CharacterLine id="tessa" line="outsideTheData" state="thinking" /> : null}
           <div className="flex flex-wrap gap-2">
             {subPhase === "predict" ? (
               <button

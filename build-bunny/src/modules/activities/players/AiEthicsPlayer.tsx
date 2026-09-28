@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 
 import { Link } from "@/i18n/navigation";
+import { CharacterLine } from "@/modules/characters/Character";
 import { Button, cn, useReducedMotion } from "@/ui";
 
 import { PlayerSoundControls } from "@/modules/audio/AudioControls";
@@ -359,6 +360,9 @@ export function AiEthicsPlayer({
 
               {scene.predict && !predicted ? (
                 <div role="group" aria-labelledby={`predict-${scene.id}`} className="flex flex-col gap-2">
+                  {/* Noura asks the question behind the question: is there
+                      enough evidence, and who should decide? */}
+                  <CharacterLine id="noura" line={scene.suggestion ? "whoDecides" : "enoughEvidence"} state="thinking" />
                   <p id={`predict-${scene.id}`} className="text-sm font-bold text-ink">
                     {resolveLocalized(scene.predict.question, locale)}
                   </p>
@@ -538,6 +542,7 @@ export function AiEthicsPlayer({
           objective={intro.objective}
           instructions={intro.instructions}
           instructionsCollapsed={intro.aiMode === "younger"}
+          explainerId={intro.explainer}
           difficulty={intro.difficulty}
           estimatedMinutes={intro.estimatedMinutes}
           worldTheme={intro.worldTheme}

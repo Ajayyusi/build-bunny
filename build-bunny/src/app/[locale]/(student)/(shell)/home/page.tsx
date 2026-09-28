@@ -1,4 +1,5 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
+import { AiSurface } from "../_components/AiSurface";
 
 import { Link } from "@/i18n/navigation";
 import { MusicScene } from "@/modules/audio/scene";
@@ -86,7 +87,7 @@ export default async function StudentHomePage({ params }: Props) {
   );
 
   return (
-    <div className="flex flex-col gap-6">
+    <AiSurface className="flex flex-col gap-6">
       <MusicScene track="map" />
 
       {warmUp ? (
@@ -152,14 +153,17 @@ export default async function StudentHomePage({ params }: Props) {
               {t("kicker")}
             </span>
             <h1 className="font-display text-2xl font-bold text-ink sm:text-3xl">
-              {fresh ? t("greeting", { name: displayName }) : t("heroTitle")}
+              {fresh ? t("greeting", { name: displayName }) : currentLevelHref ? t("heroTitle") : t("heroTitleDone")}
             </h1>
             <p className="text-sm text-ink-muted">
               {currentWorld && !fresh
                 ? t("heroBody", {
                     world: resolveText(currentWorld.name, locale),
                   })
-                : t("heroBodyFresh")}
+                : fresh || currentLevelHref
+                  ? t("heroBodyFresh")
+                  : // Every level finished: not "your very first mission".
+                    t("heroBodyDone")}
             </p>
             {adventureEnabled ? (
               <div className="mt-1 flex flex-wrap items-center gap-3">
@@ -296,6 +300,6 @@ export default async function StudentHomePage({ params }: Props) {
           description={t("emptyBody")}
         />
       )}
-    </div>
+    </AiSurface>
   );
 }

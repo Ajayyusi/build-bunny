@@ -279,6 +279,54 @@
   --bb-shadow-overlay: 0 4px 12px rgb(27 26 23 / 0.1), 0 16px 48px rgb(27 26 23 / 0.16);
 }
 
+/* AI: the AI-first surfaces (Explore AI, My Learning, the student
+   navigation) in the brief's direction: mostly white, green #2E7D32 as the
+   primary, teal accents, dark text #1F2937, calm elevation, no neon. The
+   brief's teal #2BBBAD is 2.4:1 on white, so it is decorative only
+   (--bb-ai-teal-decor); text and controls use the repo's accessible teal
+   step (--bb-sky-600, 4.5:1+). Level play and Coding Lab keep Toy Box. */
+[data-theme="ai"] {
+  --color-surface: #ffffff;
+  --color-surface-raised: #ffffff;
+  --color-surface-sunken: #f1f7f3;
+  --color-border: #d9e6de;
+  --color-ink: #1f2937;
+  --color-ink-muted: #4b5563;
+  --color-ink-faint: #9ca3af;
+  --color-brand: var(--bb-meadow-600);
+  --color-brand-strong: var(--bb-meadow-700);
+  --color-on-brand: #ffffff;
+  --color-accent: var(--bb-sky-600);
+  --color-on-accent: #ffffff;
+  --color-positive: var(--bb-meadow-600);
+  --color-warning: var(--bb-star-700);
+  --color-positive-strong: var(--bb-meadow-700);
+  --color-warning-strong: var(--bb-star-800);
+  --color-danger: var(--bb-coral-600);
+  --color-info: var(--bb-sky-600);
+  --color-focus: var(--bb-sky-500);
+  --bb-ai-teal-decor: var(--bb-sky-400);
+
+  --bb-shadow-soft: 0 1px 2px rgb(31 41 55 / 0.05), 0 2px 6px rgb(31 41 55 / 0.05);
+  --bb-shadow-raised: 0 2px 4px rgb(31 41 55 / 0.06), 0 8px 24px rgb(31 41 55 / 0.08);
+  --bb-shadow-overlay: 0 4px 12px rgb(31 41 55 / 0.1), 0 16px 48px rgb(31 41 55 / 0.16);
+}
+
+/* An AI-first page paints the whole content area white, not just itself. */
+main:has(> .bb-ai-surface) {
+  background-color: #ffffff;
+}
+.bb-ai-surface {
+  color: var(--color-ink);
+}
+/* A thin green-to-teal rule under the page header: the futuristic cue lives
+   in small details, not dense dashboards. */
+.bb-ai-rule {
+  height: 3px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--bb-meadow-600), var(--bb-ai-teal-decor));
+}
+
 /* ── Layer 3 · Tailwind mapping ───────────────────────────────────────── */
 /* `inline` keeps utilities as live var() references, so a nested
    [data-theme] subtree restyles everything inside it. */
@@ -589,6 +637,13 @@ html[data-contrast="high"] :focus-visible {
 }
 [data-theme="play"] .bb-go:active { translate: 0 3px; box-shadow: 0 2px 0 var(--bb-toy-sun-strong); }
 [data-theme="play"] .bb-ledge-brand { box-shadow: 0 6px 0 var(--color-brand-strong); }
+/* On AI-first pages the one big "go" action is the green primary, not sun. */
+[data-theme="ai"] .bb-go {
+  background-color: var(--color-brand);
+  color: var(--color-on-brand);
+  box-shadow: 0 4px 0 var(--color-brand-strong);
+}
+[data-theme="ai"] .bb-go:active { translate: 0 3px; box-shadow: 0 1px 0 var(--color-brand-strong); }
 
 @media (prefers-reduced-motion: reduce) {
   [data-theme="play"] [data-bb-button],

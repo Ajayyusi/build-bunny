@@ -8,6 +8,7 @@ import { useNarrateOnShow } from "@/modules/audio/scene";
 import { Badge, BunnyMascot, Button, useFocusTrap, type BadgeVariant } from "@/ui";
 
 import { MissionIntro } from "./MissionIntro";
+import { ExplainerOffer } from "@/modules/explainers/ExplainerPlayer";
 import styles from "./player.module.css";
 
 interface IntroOverlayProps {
@@ -43,6 +44,8 @@ interface IntroOverlayProps {
   reopened?: boolean;
   /** Saved blocks were restored: the button says "Continue building". */
   resumeDraft?: boolean;
+  /** An optional short explainer offered before starting (never required). */
+  explainerId?: string | null;
   onStart: () => void;
 }
 
@@ -75,6 +78,7 @@ export function IntroOverlay({
   howScene,
   reopened = false,
   resumeDraft = false,
+  explainerId = null,
   onStart,
 }: IntroOverlayProps) {
   const t = useTranslations("student.play.intro");
@@ -187,6 +191,7 @@ export function IntroOverlay({
             {t("draftRestored")}
           </p>
         ) : null}
+        {explainerId && !reopened ? <ExplainerOffer explainerId={explainerId} /> : null}
         <div className="flex justify-end pt-1">
           <Button size="lg" onClick={onStart} className="w-full sm:w-auto">
             {reopened ? t("resume") : resumeDraft ? t("continueBuilding") : t("start")}

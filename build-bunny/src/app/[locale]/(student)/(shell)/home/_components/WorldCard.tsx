@@ -39,9 +39,9 @@ export function WorldCard({
       ? 0
       : Math.round((world.completedLevels / world.totalLevels) * 100);
 
-  // Toy Box: every world is its own bold colour (white text ≥ 4.5:1). A
-  // locked world keeps a pale tint of its colour with navy text, so it
-  // still looks like itself but clearly isn't open yet.
+  // The AI-first look (My Learning): mostly white. Each world keeps its
+  // colour as a pale tint with dark text and a coloured progress bar; a
+  // locked world is paler still, with a grey icon and a lock badge.
   const color = worldColor(world.theme);
   const inner = (
     <>
@@ -50,7 +50,7 @@ export function WorldCard({
           aria-hidden="true"
           className={cn(
             "grid size-12 place-items-center rounded-2xl text-2xl",
-            world.locked ? "bg-white/70 grayscale" : "bg-white/25",
+            world.locked ? "bg-white/70 grayscale" : "bg-white/80",
           )}
         >
           {world.emoji}
@@ -65,12 +65,12 @@ export function WorldCard({
       <span
         className={cn(
           "mt-3 line-clamp-2 font-display text-base font-extrabold",
-          world.locked ? "text-ink" : "text-white",
+          "text-ink",
         )}
       >
         {world.name}
       </span>
-      <span className={cn("mt-0.5 text-xs font-semibold", world.locked ? "text-ink" : "text-white")}>
+      <span className="mt-0.5 text-xs font-semibold text-ink-muted">
         {levelsLabel}
       </span>
       <WorldKindChip kind={world.kind} label={kindLabel} className="mt-2" />
@@ -80,13 +80,13 @@ export function WorldCard({
       <span
         className={cn(
           "mt-3 block h-2.5 w-full overflow-hidden rounded-full",
-          world.locked ? "bg-white/70" : "bg-black/20",
+          "bg-white/80",
         )}
       >
         <span
           aria-hidden="true"
-          className="block h-full rounded-full bg-white transition-[width] duration-700 ease-out"
-          style={{ width: `${pct}%`, backgroundColor: world.locked ? color.fill : undefined }}
+          className="block h-full rounded-full transition-[width] duration-700 ease-out"
+          style={{ width: `${pct}%`, backgroundColor: color.fill }}
         />
       </span>
       <span className="sr-only">{progressSr}</span>
@@ -94,7 +94,7 @@ export function WorldCard({
   );
   const colorStyle: React.CSSProperties = world.locked
     ? { backgroundColor: `color-mix(in oklab, ${color.fill} 22%, white)`, boxShadow: `0 5px 0 color-mix(in oklab, ${color.fill} 35%, white)` }
-    : { backgroundColor: color.fill, boxShadow: `0 6px 0 ${color.ledge}` };
+    : { backgroundColor: `color-mix(in oklab, ${color.fill} 14%, white)`, boxShadow: `0 5px 0 color-mix(in oklab, ${color.fill} 45%, white)` };
 
   // Locked worlds are dimmed with a sunken surface, grayscale icon and a
   // lock badge — NOT opacity: the bb-cascade entrance animation ends at

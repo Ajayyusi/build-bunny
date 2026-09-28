@@ -47,6 +47,8 @@ export interface ActivityIntro {
   lessonKind?: LessonKind;
   /** Grade range mode for AI activities: younger (3-4) or older (5-7). */
   aiMode?: AiMode;
+  /** An optional short explainer for this level (modules/explainers), or null. */
+  explainer?: string | null;
   difficulty: string;
   estimatedMinutes: number;
   maxStars: number;

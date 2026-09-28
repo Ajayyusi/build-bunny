@@ -1,4 +1,5 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
+import { AiSurface } from "../_components/AiSurface";
 
 import { Link, redirect } from "@/i18n/navigation";
 import { MusicScene } from "@/modules/audio/scene";
@@ -37,7 +38,7 @@ export default async function AiWorldsPage({ params }: Props) {
   ]);
 
   return (
-    <div className="flex flex-col gap-6">
+    <AiSurface className="flex flex-col gap-6">
       <MusicScene track="map" />
       <Link href="/explore" className="w-fit text-sm font-semibold text-brand underline-offset-4 hover:underline">
         <span aria-hidden="true" className="rtl:hidden">
@@ -54,6 +55,6 @@ export default async function AiWorldsPage({ params }: Props) {
       ) : (
         <AdventureTrail worlds={worlds} userId={ctx.userId} />
       )}
-    </div>
+    </AiSurface>
   );
 }

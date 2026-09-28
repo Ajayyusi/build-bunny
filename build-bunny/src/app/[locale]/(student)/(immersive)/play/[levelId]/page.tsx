@@ -47,6 +47,7 @@ import {
 } from "@/modules/learning/server/actions";
 import { ageBandFor, supportFor } from "@/modules/learning/age-band";
 import { lessonKindOf } from "@/modules/explore/catalog";
+import { EXPLAINER_FOR_LEVEL } from "@/modules/explainers/scripts";
 import { aiModeFor } from "@/modules/students/ai-mode";
 import { getPlayableLevel } from "@/modules/learning/server/queries";
 import { getExploreLevelContext } from "@/modules/explore/server/checks";
@@ -133,6 +134,7 @@ export default async function PlayLevelPage({ params }: Props) {
     explanation: resolveText(playable.explanation, locale),
     keyIdea: resolveText(playable.keyIdea, locale),
     lessonKind: lessonKindOf({ slug: playable.slug, activityType: playable.activityType }),
+    explainer: EXPLAINER_FOR_LEVEL[playable.slug] ?? null,
     aiMode: aiModeFor(snapshot?.grade, snapshot?.aiMode),
     difficulty: playable.difficulty,
     estimatedMinutes: playable.estimatedMinutes,

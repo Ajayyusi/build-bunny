@@ -106,6 +106,9 @@ export function SidebarShell({
       ) : null}
 
       <aside
+        // The navigation wears the AI-first look (brief: Explore AI, My
+        // Learning, Coding Lab), on every page it frames.
+        data-theme="ai"
         style={drawerStyle}
         className={cn(
           "z-50 flex w-64 shrink-0 flex-col gap-6 overflow-y-auto border-e border-border-token bg-surface-raised px-4 py-5",
@@ -120,7 +123,7 @@ export function SidebarShell({
 
       <div className="flex min-w-0 flex-1 flex-col">
         {/* Mobile-only top bar carrying the drawer toggle. */}
-        <div className="flex items-center gap-3 border-b border-border-token bg-surface-raised px-4 py-3 lg:hidden">
+        <div data-theme="ai" className="flex items-center gap-3 border-b border-border-token bg-surface-raised px-4 py-3 lg:hidden">
           <button
             type="button"
             onClick={() => setOpen(true)}

@@ -30,6 +30,8 @@ import { TeachRuleRound } from "./TeachRuleRound";
 import { TeachWhatChanged } from "./TeachWhatChanged";
 import { TeachScene } from "./TeachScene";
 import { ProjectReport, type ReportValue } from "./ProjectReport";
+import { CharacterLine, useCharacterReaction } from "@/modules/characters/Character";
+import { ExplainerOffer } from "@/modules/explainers/ExplainerPlayer";
 import { caseStatuses } from "@/modules/ai/report";
 
 /**
@@ -241,6 +243,8 @@ export function TeachPlayer({
   // and whether the bunny's real guesses have been revealed. Both reset
   // whenever the examples change, so every new try starts with a guess.
   const [predictions, setPredictions] = useState<Record<string, ClassLabel>>({});
+  // Tessa the test tortoise asks what happens on a new example, and reacts.
+  const [tessa, tessaReacts] = useCharacterReaction();
   const [revealed, setRevealed] = useState(false);
   const resetPrediction = () => {
     if (!data.predictFirst) return;
@@ -651,6 +655,7 @@ export function TeachPlayer({
             <HonestyNote kind="tinyClassifier" />
             {intro.aiMode === "older" ? <WhatIsThisCalled tags={intro.tags} /> : null}
           </div>
+          {intro.explainer ? <ExplainerOffer explainerId={intro.explainer} /> : null}
           {/* The bunny hosts its own level: the instructions are its speech,
               and its body answers the child's actions — a hop for every
               example taught, a shake for a wrong verdict. */}
@@ -846,6 +851,7 @@ export function TeachPlayer({
                       title={t("holdHeading")}
                       help={t("holdHelp", { min: data.holdout.min })}
                     />
+                    {heldBack.size === 0 ? <CharacterLine id="tessa" line="neverSeen" /> : null}
                     <div className="flex min-h-20 flex-col gap-2 rounded-xl border-2 border-dashed border-info/50 bg-info/5 p-3">
                       <h3 className="font-display text-sm font-bold text-ink">
                         <span aria-hidden="true" className="me-1">
@@ -967,12 +973,17 @@ export function TeachPlayer({
                         : tk("needMore", { count: data.minPerLabel })}
                     </p>
                   ) : data.predictFirst && !revealed ? (
+                    <>
+                    <CharacterLine id="tessa" line="newExample" state={tessa} />
                     <TeachPredict
                       probes={data.testSet}
                       labels={data.labels}
                       kind={glyph}
                       predictions={predictions}
-                      onPredict={(id, label) => setPredictions((prev) => ({ ...prev, [id]: label }))}
+                      onPredict={(id, label) => {
+                        tessaReacts("choice");
+                        setPredictions((prev) => ({ ...prev, [id]: label }));
+                      }}
                       onReveal={() => {
                         setRevealed(true);
                         setPointed(null);
@@ -982,6 +993,7 @@ export function TeachPlayer({
                       describe={describe}
                       pointed={pointed}
                     />
+                    </>
                   ) : (
                     <ul className="flex flex-col gap-2">
                       {guesses.map(({ probe, match, guess }) => (
@@ -1161,6 +1173,9 @@ export function TeachPlayer({
                   );
                 })}
               </ul>
+            ) : null}
+            {result && data.groups && Array.isArray(result.missed) && result.missed.length > 0 ? (
+              <CharacterLine id="noura" line="fairExamples" state="thinking" className="max-w-xl" />
             ) : null}
 
             <div className="flex items-center gap-3 pb-2">

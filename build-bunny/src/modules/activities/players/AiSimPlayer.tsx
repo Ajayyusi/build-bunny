@@ -483,6 +483,7 @@ export function AiSimPlayer({
           objective={intro.objective}
           instructions={intro.instructions}
           instructionsCollapsed={intro.aiMode === "younger"}
+          explainerId={intro.explainer}
           difficulty={intro.difficulty}
           estimatedMinutes={intro.estimatedMinutes}
           worldTheme={intro.worldTheme}
