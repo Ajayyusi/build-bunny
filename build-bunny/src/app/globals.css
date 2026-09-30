@@ -618,6 +618,8 @@ html[data-contrast="high"] :focus-visible {
 }
 [data-theme="play"] [data-bb-button="primary"] { --bb-press: var(--color-brand-strong); }
 [data-theme="play"] [data-bb-button="go"] { --bb-press: var(--bb-toy-sun-strong); }
+/* Inside the AI-first look the go button is teal: its ledge follows. */
+[data-theme="ai"] [data-bb-button="go"] { box-shadow: 0 5px 0 var(--bb-sky-700); --bb-press: var(--bb-sky-700); }
 
 /* Links styled as the main button (a.bg-brand) get the same ledge. */
 [data-theme="play"] a.bg-brand {
