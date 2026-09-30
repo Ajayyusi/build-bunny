@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { NavigationProgress } from "@/ui/NavigationProgress";
 import type { ReactNode } from "react";
 import { notFound } from "next/navigation";
 import { hasLocale, NextIntlClientProvider } from "next-intl";
@@ -69,6 +70,7 @@ export default async function LocaleLayout({ children, params }: Props) {
         <script dangerouslySetInnerHTML={{ __html: DISPLAY_BOOT_SCRIPT }} />
       </head>
       <body>
+        <NavigationProgress />
         <NextIntlClientProvider>
           <ToastProvider dismissLabel={t("dismiss")}>{children}</ToastProvider>
         </NextIntlClientProvider>
