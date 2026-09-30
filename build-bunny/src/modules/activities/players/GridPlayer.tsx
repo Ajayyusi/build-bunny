@@ -621,7 +621,7 @@ export function GridPlayer({
         aria-haspopup="dialog"
       >
         <span aria-hidden="true">💡</span>
-        {t("help.open")}
+        <span className="sr-only sm:not-sr-only">{t("help.open")}</span>
       </Button>
     </>
   );

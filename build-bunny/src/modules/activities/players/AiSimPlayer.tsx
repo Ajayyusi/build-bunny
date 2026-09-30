@@ -413,7 +413,7 @@ export function AiSimPlayer({
         <Button variant="secondary" size="lg" onClick={() => openRobo(null)}
           aria-haspopup="dialog" disabled={phase === "result"}>
           <span aria-hidden="true">💡</span>
-          {t("help.open")}
+          <span className="sr-only sm:not-sr-only">{t("help.open")}</span>
         </Button>
         {nextStepAction && phase !== "result" ? (
           <NextStepHint

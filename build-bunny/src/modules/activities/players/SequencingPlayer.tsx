@@ -405,7 +405,7 @@ export function SequencingPlayer({
           disabled={phase === "result"}
         >
           <span aria-hidden="true">💡</span>
-          {t("help.open")}
+          <span className="sr-only sm:not-sr-only">{t("help.open")}</span>
         </Button>
         {nextStepAction && phase !== "result" ? (
           <NextStepHint

@@ -429,7 +429,7 @@ export function GroupPlayer({
           className="inline-flex h-11 shrink-0 items-center gap-1.5 rounded-lg border border-border-token bg-surface-raised px-3 text-sm font-bold text-ink-muted transition-colors hover:bg-surface-sunken hover:text-ink"
         >
           <span aria-hidden="true">🧭</span>
-          {tPlay("help.open")}
+          <span className="sr-only sm:not-sr-only">{tPlay("help.open")}</span>
         </button>
       </header>
 
