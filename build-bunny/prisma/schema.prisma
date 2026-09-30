@@ -149,25 +149,26 @@ model School {
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
 
-  users            User[]
-  licences         Licence[]
-  academicYears    AcademicYear[]
-  classes          Class[]
-  studentProfiles  StudentProfile[]
-  teacherProfiles  TeacherProfile[]
-  classMemberships ClassMembership[]
-  learningEvents   LearningEvent[]
-  schoolPrograms   SchoolProgram[]
-  studentProgress  StudentProgress[]
-  attempts         ActivityAttempt[]
-  feedback         TeacherFeedback[]
-  assignments      Assignment[]
-  certificates     Certificate[]
-  familyLinks      FamilyLink[]
-  reflections      LevelReflection[]
-  conceptChecks    ConceptCheck[]
-  explanations     ExplanationSentence[]
-  observations     ConceptObservation[]
+  users             User[]
+  licences          Licence[]
+  academicYears     AcademicYear[]
+  classes           Class[]
+  studentProfiles   StudentProfile[]
+  teacherProfiles   TeacherProfile[]
+  classMemberships  ClassMembership[]
+  learningEvents    LearningEvent[]
+  schoolPrograms    SchoolProgram[]
+  studentProgress   StudentProgress[]
+  attempts          ActivityAttempt[]
+  feedback          TeacherFeedback[]
+  assignments       Assignment[]
+  certificates      Certificate[]
+  familyLinks       FamilyLink[]
+  reflections       LevelReflection[]
+  conceptChecks     ConceptCheck[]
+  explanations      ExplanationSentence[]
+  observations      ConceptObservation[]
+  exploreActivities ClassExploreActivity[]
 }
 
 enum LicenceStatus {
@@ -221,8 +222,9 @@ model Class {
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
 
-  memberships ClassMembership[]
-  assignments Assignment[]
+  memberships       ClassMembership[]
+  assignments       Assignment[]
+  exploreActivities ClassExploreActivity[]
 
   @@unique([schoolId, academicYearId, name])
   @@index([schoolId])
@@ -246,6 +248,27 @@ model ClassMembership {
 
   @@unique([classId, userId])
   @@index([schoolId, userId])
+}
+
+/// A teacher's Explore AI settings for one class (handoff: "activity launch
+/// control"). One row per class and Explore AI card (by level slug), only
+/// once the teacher changes something: no row means open, not launched.
+/// `launchedAt` pins the activity as "Today's AI activity" on the class's
+/// Explore AI page; at most one per class is launched at a time.
+model ClassExploreActivity {
+  id              String    @id @default(cuid())
+  schoolId        String
+  school          School    @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  classId         String
+  class           Class     @relation(fields: [classId], references: [id], onDelete: Cascade)
+  slug            String
+  hidden          Boolean   @default(false)
+  launchedAt      DateTime?
+  updatedByUserId String?
+  updatedAt       DateTime  @updatedAt
+
+  @@unique([classId, slug])
+  @@index([schoolId, classId])
 }
 
 /// How the AI activities speak to a child (handoff: grade range modes).

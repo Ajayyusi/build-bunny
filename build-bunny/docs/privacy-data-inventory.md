@@ -275,6 +275,15 @@ A review of everything the product records about play, against the rule
   user). Known gap, not new: the school data export does not yet include
   ConceptCheck, LevelReflection, ExplanationSentence or ConceptObservation.
 
+## 8g. Activity launch control (2026-09-30)
+
+- **ClassExploreActivity** holds a teacher's settings for one class: which
+  Explore AI activities are switched off, which one is launched and when,
+  and the id of the teacher who last changed it. Nothing about any child
+  is stored; a child's Explore AI page reads their classes' settings.
+- Only the class's own teacher can change it; the school admin can see it.
+  Every change is audited. Deleting the class deletes its settings.
+
 ## 9. Where this is enforced in code (for an auditor who wants to verify, not just read)
 
 - Tenant scoping: every data-layer query lives in `src/modules/*/server/**`,

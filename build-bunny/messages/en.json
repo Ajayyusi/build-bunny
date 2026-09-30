@@ -1275,6 +1275,11 @@
         "younger": "Simpler",
         "older": "More detail",
         "auto": "Use my grade"
+      },
+      "today": {
+        "heading": "Today's AI activity",
+        "start": "Start",
+        "again": "Play again"
       }
     },
     "glossary": {
@@ -1605,6 +1610,20 @@
           "bands": "Grades 3–4: {youngSecure} of {young} secure · Grades 5–7: {oldSecure} of {old} secure",
           "activity": "{attempts, plural, one {# check} other {# checks}} · {retries, plural, one {# retry} other {# retries}}",
           "misconception": "Most common wrong first answer ({count, plural, one {# child} other {# children}}): “{answer}”"
+        },
+        "launch": {
+          "heading": "Explore AI for this class",
+          "help": "Switch activities on or off for this class, and launch one to pin it at the top of your students' Explore AI page. Switching one off only takes it off that page: the level stays open, and progress is never touched.",
+          "noneLaunched": "Nothing is launched. Launch an activity to pin it as “Today's AI activity”.",
+          "launchedNow": "Launched now: {title}. It's pinned at the top of your students' Explore AI page.",
+          "on": "On",
+          "off": "Off",
+          "openLabel": "Show {title} to this class",
+          "launch": "Launch",
+          "launchLabel": "Launch {title} for this class",
+          "stop": "Stop",
+          "launchedBadge": "Launched",
+          "error": "That didn't save. Check your connection and try again."
         }
       },
       "student": {

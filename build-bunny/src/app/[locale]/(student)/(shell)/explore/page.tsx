@@ -115,6 +115,31 @@ export default async function ExplorePage({ params }: Props) {
         </section>
       ) : null}
 
+      {/* The teacher's launch: one activity pinned for today. */}
+      {state.launched ? (
+        <section
+          aria-labelledby="explore-today"
+          data-testid="todays-activity"
+          className="flex flex-col gap-2 rounded-2xl border-2 border-brand/40 bg-brand/10 px-4 py-3 sm:flex-row sm:items-center"
+        >
+          <span aria-hidden="true" className="text-2xl">
+            {state.launched.glyph}
+          </span>
+          <div className="flex min-w-0 flex-1 flex-col">
+            <h2 id="explore-today" className="text-xs font-bold uppercase tracking-wide text-brand">
+              {t("today.heading")}
+            </h2>
+            <p className="font-display text-lg font-bold text-ink">{resolveText(state.launched.title, locale)}</p>
+          </div>
+          <Link
+            href={`/play/${state.launched.levelId}`}
+            className="inline-flex h-11 w-fit items-center rounded-lg bg-brand px-4 text-sm font-semibold text-on-brand hover:bg-brand-strong"
+          >
+            {state.launched.state === "COMPLETED" ? t("today.again") : t("today.start")}
+          </Link>
+        </section>
+      ) : null}
+
       {state.cards.length === 0 ? (
         <EmptyState icon={<BunnyMascot state="sleeping" size="sm" />} title={t("kicker")} description={t("body")} />
       ) : (

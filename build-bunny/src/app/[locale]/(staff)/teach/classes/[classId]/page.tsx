@@ -20,6 +20,8 @@ import { Badge, Button, Card, CardBody, ErrorState, PageHeader, StatCard, cn } f
 
 import { AssignmentsManager, type AssignmentRowVM } from "../../_components/AssignmentsManager";
 import { MatrixLegend, ProgressMatrix } from "./_components/ProgressMatrix";
+import { ExploreLaunchPanel } from "./_components/ExploreLaunchPanel";
+import { getClassExploreSettings } from "@/modules/explore/server/queries";
 
 interface Props {
   params: Promise<{ locale: string; classId: string }>;
@@ -31,12 +33,13 @@ export default async function ClassPage({ params, searchParams }: Props) {
   const { tab } = await searchParams;
   setRequestLocale(locale);
   const ctx = await requireRole("TEACHER", "SCHOOL_ADMIN");
-  const [matrix, hardestLevels, misconceptions, reflections, aiIdeas, t, tCommon, tExplore, tCheck] = await Promise.all([
+  const [matrix, hardestLevels, misconceptions, reflections, aiIdeas, exploreSettings, t, tCommon, tExplore, tCheck] = await Promise.all([
     getClassMatrix(ctx, classId),
     getClassHardestLevels(ctx, classId),
     getClassMisconceptions(ctx, classId),
     getClassReflections(ctx, classId),
     getClassAiIdeas(ctx, classId),
+    getClassExploreSettings(ctx, classId),
     getTranslations("staff.teach.matrix"),
     getTranslations("common"),
     getTranslations("student.explore"),
@@ -160,6 +163,31 @@ export default async function ClassPage({ params, searchParams }: Props) {
                 </li>
               ))}
             </ul>
+          </CardBody>
+        </Card>
+      ) : null}
+
+      {/* Activity launch control: which Explore AI activities this class
+          sees, and the one pinned as "Today's AI activity". */}
+      {exploreSettings ? (
+        <Card>
+          <CardBody className="flex flex-col gap-3">
+            <div className="flex flex-col gap-0.5">
+              <h2 className="font-display text-base font-semibold text-ink">{t("launch.heading")}</h2>
+              <p className="text-sm text-ink-muted">{t("launch.help")}</p>
+            </div>
+            <ExploreLaunchPanel
+              classId={classId}
+              canManage={exploreSettings.canManage}
+              rows={exploreSettings.activities.map((activity) => ({
+                slug: activity.slug,
+                glyph: activity.glyph,
+                concept: tExplore(`concept.${activity.concept}.name`),
+                title: activity.title ? resolveText(activity.title, locale) : tExplore(`concept.${activity.concept}.name`),
+                open: activity.open,
+                launched: activity.launched,
+              }))}
+            />
           </CardBody>
         </Card>
       ) : null}
