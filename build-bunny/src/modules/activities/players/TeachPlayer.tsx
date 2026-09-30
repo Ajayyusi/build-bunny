@@ -746,7 +746,7 @@ export function TeachPlayer({
                           className={cn(
                             "whitespace-nowrap rounded-full px-2 py-0.5 text-[11px] font-bold",
                             s.truth === "positive"
-                              ? "bg-brand/15 text-brand"
+                              ? "bg-brand/15 text-brand-strong"
                               : "bg-danger/15 text-danger",
                           )}
                         >
@@ -928,7 +928,7 @@ export function TeachPlayer({
                             "rounded-full px-3 py-1",
                             (result.data.dangerousMisses as number) > 0
                               ? "bg-danger/15 text-danger"
-                              : "bg-brand/15 text-brand",
+                              : "bg-brand/15 text-brand-strong",
                           )}
                         >
                           {t("dangerTally", { count: result.data.dangerousMisses as number })}
@@ -938,7 +938,7 @@ export function TeachPlayer({
                             "rounded-full px-3 py-1",
                             (result.data.falseAlarms as number) > (data.passRule.maxOtherErrors ?? 0)
                               ? "bg-danger/15 text-danger"
-                              : "bg-brand/15 text-brand",
+                              : "bg-brand/15 text-brand-strong",
                           )}
                         >
                           {t("alarmTally", {
@@ -1035,7 +1035,7 @@ export function TeachPlayer({
                               styles.popIn,
                               "shrink-0 rounded-md px-2 py-0.5 text-[11px] font-bold",
                               guess === "positive"
-                                ? "bg-brand/15 text-brand"
+                                ? "bg-brand/15 text-brand-strong"
                                 : "bg-danger/15 text-danger",
                             )}
                           >
@@ -1100,7 +1100,7 @@ export function TeachPlayer({
                   styles.popIn,
                   "rounded-lg px-3 py-2 text-sm font-semibold",
                   result.verdict === "PASS"
-                    ? "bg-brand/15 text-brand"
+                    ? "bg-brand/15 text-brand-strong"
                     : "bg-accent/20 text-warning",
                 )}
               >
@@ -1165,7 +1165,7 @@ export function TeachPlayer({
                       key={key}
                       className={cn(
                         "rounded-full px-3 py-1 text-sm font-semibold",
-                        right === inGroup.length ? "bg-brand/15 text-brand" : "bg-danger/15 text-danger",
+                        right === inGroup.length ? "bg-brand/15 text-brand-strong" : "bg-danger/15 text-danger",
                       )}
                     >
                       {t("groupResult", { group: name, right, total: inGroup.length })}

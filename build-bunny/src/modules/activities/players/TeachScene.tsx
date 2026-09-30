@@ -115,7 +115,7 @@ function Chip({
   return (
     <span
       className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-bold ${
-        tone === "safe" ? "bg-brand/15 text-brand" : "bg-danger/15 text-danger"
+        tone === "safe" ? "bg-brand/15 text-brand-strong" : "bg-danger/15 text-danger"
       } ${className ?? ""}`}
       style={style}
     >

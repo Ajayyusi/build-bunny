@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 
-import { openMap, provisionStudent, signIn, studentName } from "./helpers";
+import { openMap, provisionStudent, signIn, skipTo, studentName } from "./helpers";
 
 /**
  * Automated accessibility scan (brief §7) with axe-core on the screens a
@@ -136,6 +136,69 @@ test("teacher planning screens have no serious or critical axe findings", async 
     await page.waitForLoadState("networkidle");
     findings.push(...(await scan(page, `${locale}/teach/class`)));
   }
+
+  expect(findings, findings.join("\n")).toEqual([]);
+});
+
+test("the AI-first additions have no serious or critical axe findings", async ({ page, baseURL }, testInfo) => {
+  test.skip(testInfo.project.name !== "laptop", "one viewport is enough for a structural scan");
+  test.setTimeout(180_000);
+  const kid = provisionStudent(studentName(testInfo.project.name, "ax2"));
+  await signIn(page, baseURL!, kid.username);
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  const findings: string[] = [];
+  const closeDialogs = async () => {
+    for (let i = 0; i < 6 && (await page.getByRole("dialog").count()) > 0; i++) {
+      await page.keyboard.press("Escape");
+      await page.waitForTimeout(200);
+    }
+  };
+
+  for (const locale of ["en", "ar"]) {
+    // The explainer player, open, on Train a Sorter's page.
+    await page.goto(`/${locale}/explore`);
+    const welcome = page.getByRole("dialog");
+    await welcome.waitFor({ state: "visible", timeout: 5000 }).catch(() => {});
+    await closeDialogs();
+    const sorter = await page.getByTestId("explore-cards").filter({ visible: true }).getByRole("link").first().getAttribute("href");
+    await page.goto(sorter!.startsWith(`/${locale}/`) ? sorter! : `/${locale}${sorter}`);
+    await page.waitForLoadState("networkidle");
+    await closeDialogs();
+    await page.locator("button", { hasText: /25/ }).first().click();
+    await page.getByRole("dialog").waitFor();
+    findings.push(...(await scan(page, `${locale}/explainer`)));
+    await closeDialogs();
+  }
+
+  // AI worlds: the world story plays first on a new visit (Skip closes it),
+  // then the level's own briefing and walkthrough (their last button goes on).
+  const openFromWorlds = async (title: RegExp) => {
+    await page.goto("/en/ai-worlds");
+    const story = page.getByRole("dialog", { name: /the story/ });
+    await story.waitFor({ state: "visible", timeout: 5000 }).catch(() => {});
+    if (await story.isVisible().catch(() => false)) await story.getByRole("button", { name: "Skip" }).click();
+    await page.getByRole("button", { name: title }).click();
+    await page.getByRole("link", { name: "Start level" }).click();
+    await page.waitForURL(/\/play\//);
+    for (let i = 0; i < 10 && (await page.getByRole("dialog").count()) === 0; i++) await page.waitForTimeout(500);
+    while ((await page.getByRole("dialog").count()) > 0) await page.getByRole("dialog").getByRole("button").last().click();
+  };
+
+  // Ruli in the rule round, and the project report panel.
+  skipTo("rule-or-examples", kid.username);
+  await openFromWorlds(/Rule or Examples\?/);
+  findings.push(...(await scan(page, "en/rule-round")));
+
+  skipTo("my-ai-project", kid.username);
+  await openFromWorlds(/My AI Project/);
+  const card = (id: string) => page.getByRole("listitem").filter({ has: page.locator(`#specimen-${id}`) });
+  for (const id of ["b2", "b3", "b5", "b6", "b7", "b8", "b10"]) await card(id).getByRole("button", { name: "Teach this one" }).click();
+  for (const id of ["b1", "b4", "b9"]) await card(id).getByRole("button", { name: "Keep for testing" }).click();
+  const mysteries = page.getByRole("radiogroup", { name: /^Mystery \d/ });
+  for (let i = 0; i < (await mysteries.count()); i++) await mysteries.nth(i).getByRole("radio").first().click();
+  await page.getByRole("button", { name: "Show its guesses" }).click();
+  await page.getByRole("radiogroup", { name: /Pick one case from your test pile/ }).waitFor();
+  findings.push(...(await scan(page, "en/project-report")));
 
   expect(findings, findings.join("\n")).toEqual([]);
 });
