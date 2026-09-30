@@ -610,6 +610,14 @@ async function assertQueryIsolated(entry: RegistryEntry): Promise<void> {
       expectNoForeignIds(await query(teacherCtxA, A.classId), name);
       break;
     }
+    case "getClassExploreSettings": {
+      // Launch control: same access rule as the class report. A foreign
+      // class (another school, or another teacher's class) is null.
+      expect(await query(teacherCtxA, B.classId)).toBeNull();
+      expect(await query(teacherCtxB, classTwoBId)).toBeNull();
+      expectNoForeignIds(await query(teacherCtxA, A.classId), name);
+      break;
+    }
     case "getExploreState": {
       // A child's own cards only; staff get nothing.
       expect(await query(teacherCtxA)).toMatchObject({ cards: [], followUp: null });
