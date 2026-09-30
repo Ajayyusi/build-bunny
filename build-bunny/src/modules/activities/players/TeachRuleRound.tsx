@@ -80,7 +80,7 @@ export function TeachRuleRound({
     <span
       className={cn(
         "rounded-full px-2 py-0.5 text-center text-[11px] font-bold",
-        label === "positive" ? "bg-brand/15 text-brand" : "bg-danger/15 text-danger",
+        label === "positive" ? "bg-brand/15 text-brand-strong" : "bg-danger/15 text-danger",
       )}
     >
       <span aria-hidden="true">{truthEmoji[label]} </span>
@@ -210,7 +210,7 @@ export function TeachRuleRound({
             role="status"
             className={cn(
               "rounded-lg px-3 py-2 text-sm font-semibold",
-              fits ? "bg-brand/15 text-brand" : "bg-accent/20 text-ink",
+              fits ? "bg-brand/15 text-brand-strong" : "bg-accent/20 text-ink",
             )}
           >
             {fits ? t("ruleFits") : t("ruleMisses", { count: yesterdayMisses.length })}

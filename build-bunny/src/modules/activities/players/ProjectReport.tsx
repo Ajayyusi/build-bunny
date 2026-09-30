@@ -31,7 +31,7 @@ const STATUS_STYLE: Record<CaseStatus, string> = {
   wrong: "bg-danger/15 text-danger",
   closeCall: "bg-warning/14 text-warning-strong",
   leastSure: "bg-warning/14 text-warning-strong",
-  right: "bg-brand/15 text-brand",
+  right: "bg-brand/15 text-brand-strong",
 };
 
 export function ProjectReport({

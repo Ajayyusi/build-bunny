@@ -67,12 +67,14 @@ export default async function ExplorePage({ params }: Props) {
 
       <header className="flex flex-wrap items-center gap-x-4 gap-y-2">
         <BunnyMascot state="pointing" size="sm" className="shrink-0" />
-        <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+        {/* At least 16rem wide: on a phone the progress and the Words switch
+            wrap below the title instead of squeezing it to a word a line. */}
+        <div className="flex min-w-[min(100%,16rem)] flex-1 flex-col gap-0.5">
           <p className="text-xs font-bold uppercase tracking-wide text-brand">{t("kicker")}</p>
           <h1 className="font-display text-2xl font-bold text-ink">{t("title")}</h1>
           <p className="text-sm text-ink-muted">{t("body")}</p>
         </div>
-        <div className="flex flex-col items-end gap-2">
+        <div className="flex flex-col items-start gap-2 sm:items-end">
           {state.cards.length > 0 ? (
             <span className="rounded-full bg-surface-sunken px-3 py-1 text-xs font-bold text-ink-muted">
               {t("progress", { done: state.completed, total: state.cards.length })}
