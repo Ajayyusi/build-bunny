@@ -1,19 +1,42 @@
 import { describe, expect, it } from "vitest";
 
 import { masteryOf, summariseAiConcepts } from "@/modules/analytics/ai-concepts";
-import { CONCEPT_CHECKS } from "@/modules/explore/catalog";
-import { EXPLAIN_CONCEPTS, EXPLAIN_SLOTS, isValidSentence, partId, phrasesFor } from "@/modules/explore/explanations";
+import { CONCEPT_CHECKS, lessonKindOf } from "@/modules/explore/catalog";
+import {
+  EXPLAIN_CONCEPT_FOR_LEVEL,
+  EXPLAIN_CONCEPTS,
+  EXPLAIN_SLOTS,
+  isValidSentence,
+  partId,
+  phrasesFor,
+} from "@/modules/explore/explanations";
 import { SOUND_PARTS, soundCount } from "@/modules/explore/server/explanations-key";
 
 import en from "../../messages/en.json";
 import ar from "../../messages/ar.json";
+import { bundle } from "../../content";
 
 type Phrases = Record<string, Record<string, string>>;
 
 describe("Say it your way", () => {
-  it("covers every concept with a quick check", () => {
-    const checked = new Set(Object.values(CONCEPT_CHECKS).map((c) => c.concept));
-    expect(new Set(EXPLAIN_CONCEPTS)).toEqual(checked);
+  // Handoff launch criterion: "every AI lesson produces an explanation in
+  // the learner's own words".
+  it("is offered on every AI lesson, about an idea that has phrases", () => {
+    const aiLessons = bundle.worlds.flatMap((w) =>
+      w.modules.flatMap((m) => m.levels.filter((l) => lessonKindOf({ slug: l.slug, activityType: l.activityType }) === "ai")),
+    );
+    expect(aiLessons.length).toBeGreaterThanOrEqual(30);
+    for (const level of aiLessons) {
+      expect(EXPLAIN_CONCEPT_FOR_LEVEL[level.slug], level.slug).toBeDefined();
+      expect(EXPLAIN_CONCEPTS).toContain(EXPLAIN_CONCEPT_FOR_LEVEL[level.slug]);
+    }
+    // Nothing mapped that isn't a real AI lesson.
+    const slugs = new Set(aiLessons.map((l) => l.slug));
+    for (const slug of Object.keys(EXPLAIN_CONCEPT_FOR_LEVEL)) expect(slugs.has(slug), slug).toBe(true);
+  });
+
+  it("asks about the same idea as the level's quick check", () => {
+    for (const [slug, check] of Object.entries(CONCEPT_CHECKS)) expect(EXPLAIN_CONCEPT_FOR_LEVEL[slug], slug).toBe(check.concept);
   });
 
   it("has three phrases per row, in both languages, and one sound phrase per row", () => {

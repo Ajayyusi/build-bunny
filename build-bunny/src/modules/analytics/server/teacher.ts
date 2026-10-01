@@ -13,6 +13,7 @@ import {
 import { computeLevelActivityStats, rankMostFailed } from "./level-activity";
 import type { SessionContext } from "@/modules/auth/server/session";
 import { CONCEPT_CHECKS, type ExploreConcept } from "@/modules/explore/catalog";
+import { explainConceptFor, type ExplainConcept } from "@/modules/explore/explanations";
 
 import { summariseAiConcepts, type ClassAiConcept } from "../ai-concepts";
 import { aiModeFor, choiceOf, type AiMode, type AiModeChoice } from "@/modules/students/ai-mode";
@@ -192,7 +193,7 @@ export interface StudentDetail {
   recentAttempts: StudentDetailAttempt[];
   achievements: StudentDetailAchievement[];
   /** "Say it your way" sentences (phrase ids) and how many parts hold up. */
-  explanations: { levelId: string; levelTitle: LocalizedText; concept: ExploreConcept; parts: string[]; soundParts: number; updatedAt: string }[];
+  explanations: { levelId: string; levelTitle: LocalizedText; concept: ExplainConcept; parts: string[]; soundParts: number; updatedAt: string }[];
   /** AI concepts a teacher heard this child explain aloud. */
   observedConcepts: string[];
   certificates: StudentDetailCertificate[];
@@ -1096,12 +1097,12 @@ export async function getStudentDetail(
     interventions,
     progress: [...progressByWorld.values()],
     explanations: sentences.flatMap((row) => {
-      const check = CONCEPT_CHECKS[row.level.slug];
-      return check
+      const concept = explainConceptFor(row.level.slug);
+      return concept
         ? [{
             levelId: row.levelId,
             levelTitle: asText(row.level.title, ""),
-            concept: check.concept,
+            concept,
             parts: row.parts,
             soundParts: row.soundParts,
             updatedAt: row.updatedAt.toISOString(),

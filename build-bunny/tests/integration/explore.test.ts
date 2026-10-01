@@ -147,11 +147,12 @@ describe("Explore AI hub", () => {
     expect(await getExploreLevelContext(kids[0]!.ctx, sorterId)).toEqual({
       isExplore: true,
       check: { concept: "examples", answeredCorrectly: false },
+      explain: "examples",
     });
     expect(await getExploreLevelContext(kids[0]!.ctx, secondSorterId)).toMatchObject({ isExplore: true, check: { concept: "examples" } });
     expect(await getExploreLevelContext(kids[0]!.ctx, bridgeId)).toMatchObject({ isExplore: true, check: { concept: "rules" } });
-    expect(await getExploreLevelContext(kids[0]!.ctx, codingId)).toEqual({ isExplore: false, check: null });
-    expect(await getExploreLevelContext(teacherCtx, sorterId)).toEqual({ isExplore: false, check: null });
+    expect(await getExploreLevelContext(kids[0]!.ctx, codingId)).toEqual({ isExplore: false, check: null, explain: null });
+    expect(await getExploreLevelContext(teacherCtx, sorterId)).toEqual({ isExplore: false, check: null, explain: null });
   });
 });
 

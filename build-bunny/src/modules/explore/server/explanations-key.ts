@@ -13,6 +13,11 @@ export const SOUND_PARTS: ReadonlySet<string> = new Set([
   "checking.what2", "checking.why3", "checking.next1",
   "prediction.what1", "prediction.why2", "prediction.next3",
   "people.what3", "people.why1", "people.next2",
+  "dataQuality.what1", "dataQuality.why2", "dataQuality.next3",
+  "patterns.what2", "patterns.why1", "patterns.next2",
+  "testing.what2", "testing.why1", "testing.next3",
+  "privacy.what2", "privacy.why2", "privacy.next1",
+  "language.what2", "language.why3", "language.next1",
 ]);
 
 export function soundCount(parts: readonly string[]): number {

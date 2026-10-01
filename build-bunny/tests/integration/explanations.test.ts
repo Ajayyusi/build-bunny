@@ -5,6 +5,7 @@ import { getStudentDetail } from "@/modules/analytics/server/queries";
 import { NotFoundError } from "@/modules/auth/server/guard";
 import { createStaff, createStudent } from "@/modules/auth/server/provisioning";
 import type { SessionContext } from "@/modules/auth/server/session";
+import { getExploreLevelContext } from "@/modules/explore/server/checks";
 import { saveExplanationCore, setConceptObservedCore } from "@/modules/explore/server/explanations";
 import {
   addWorldToProgram,
@@ -98,5 +99,25 @@ describe("the teacher's view and tick", () => {
     await setConceptObservedCore(teacher, { studentUserId: kid.userId, concept: "exampleQuality", observed: false });
     expect((await getStudentDetail(teacher, kid.userId))?.observedConcepts).toEqual([]);
     expect(await db.auditLog.count({ where: { action: "student.concept_observed", targetId: kid.userId } })).toBe(2);
+  });
+});
+
+describe("every AI lesson, not just the ones with a quick check", () => {
+  it("offers and saves a sentence on Keep Some Back, about fair testing", async () => {
+    const mod = await db.level.findUniqueOrThrow({ where: { id: levelId }, select: { moduleId: true } });
+    const keep = await createTestLevel(mod.moduleId, 3, { title: "Keep Some Back" });
+    await db.level.update({ where: { id: keep.id }, data: { slug: "keep-some-back" } });
+    expect(await getExploreLevelContext(kid, keep.id)).toMatchObject({ check: null, explain: "testing" });
+
+    const testing = ["testing.what2", "testing.why1", "testing.next3"];
+    await expect(saveExplanationCore(kid, { levelId: keep.id, parts: testing })).rejects.toThrow(NotFoundError);
+    await db.studentProgress.create({
+      data: { schoolId: kid.schoolId!, studentUserId: kid.userId, levelId: keep.id, status: "COMPLETED", stars: 3 },
+    });
+    // The other idea's phrases don't fit this lesson.
+    await expect(saveExplanationCore(kid, { levelId: keep.id, parts: sound })).rejects.toThrow(NotFoundError);
+    expect(await saveExplanationCore(kid, { levelId: keep.id, parts: testing })).toEqual({ saved: true });
+    const detail = await getStudentDetail(teacher, kid.userId);
+    expect(detail?.explanations).toContainEqual(expect.objectContaining({ levelId: keep.id, concept: "testing", parts: testing, soundParts: 3 }));
   });
 });

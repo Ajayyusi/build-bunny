@@ -17,7 +17,7 @@ import { useLevelContext } from "./level-context";
  */
 export function ExplainRow({ ready }: { ready: boolean }) {
   const level = useLevelContext();
-  const concept = level?.explore?.check?.concept ?? null;
+  const concept = level?.explore?.explain ?? null;
   const t = useTranslations("student.play.explain");
   const locale = useLocale();
   const headingId = useId();

@@ -90,6 +90,8 @@ export interface ExploreLevelContext {
   /** Offer "More AI to explore" on the success card. */
   isExplore: boolean;
   check: { concept: string; answeredCorrectly: boolean } | null;
+  /** The idea "Say it your way" asks about (every AI lesson has one). */
+  explain: string | null;
 }
 
 // ── Per-type student-facing payloads (answer-free by construction) ────────

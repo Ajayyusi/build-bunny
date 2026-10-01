@@ -1083,8 +1083,8 @@
         "change": "Change it",
         "examples": {
           "what1": "the robot followed a rule I wrote",
-          "what2": "the robot sorted new shapes by copying my examples",
-          "what3": "the robot already knew every shape",
+          "what2": "the robot sorted new ones by copying my examples",
+          "what3": "the robot already knew every one",
           "why1": "it only knows what my examples show it",
           "why2": "robots never make mistakes",
           "why3": "it picked at random",
@@ -1131,7 +1131,7 @@
           "what3": "I shared it straight away",
           "why1": "everything online is true",
           "why2": "sharing is always kind",
-          "why3": "machines can make fake videos, voices and pictures",
+          "why3": "machines can make up pictures, voices and facts that seem real",
           "next1": "\"not enough evidence yet\" is a fine answer",
           "next2": "I must decide straight away",
           "next3": "sounding sure means it's right"
@@ -1157,6 +1157,61 @@
           "next1": "we should only check songs",
           "next2": "the more it matters, the more a person checks",
           "next3": "a very sure machine is always right"
+        },
+        "dataQuality": {
+          "what1": "one wrong or strange example threw its answers off",
+          "what2": "the machine ignored the bad example",
+          "what3": "more data always fixes everything",
+          "why1": "a machine always knows which data is wrong",
+          "why2": "it believes every example it is given",
+          "why3": "bad data only matters in big projects",
+          "next1": "it's fine to keep every reading",
+          "next2": "the machine will clean the data by itself",
+          "next3": "I should check the data before trusting the answers"
+        },
+        "patterns": {
+          "what1": "someone told the machine the name of every group",
+          "what2": "the machine put readings that were close together into groups",
+          "what3": "the machine found the one right answer by itself",
+          "why1": "a group is just readings near each other",
+          "why2": "machines understand what things are",
+          "why3": "the groups were hidden in the labels",
+          "next1": "a higher score always means better groups",
+          "next2": "a person still decides how many groups make sense",
+          "next3": "the machine's groups are always right"
+        },
+        "testing": {
+          "what1": "it scored perfectly on the examples it learned from",
+          "what2": "I tested it on cases it had never seen",
+          "what3": "I trusted it because it looked finished",
+          "why1": "a test on cases it learned from is too easy",
+          "why2": "a high score means no mistakes are left",
+          "why3": "every mistake costs the same",
+          "next1": "one test is enough forever",
+          "next2": "I should hide its mistakes",
+          "next3": "I should say where it goes wrong and keep a person in charge"
+        },
+        "privacy": {
+          "what1": "I gave the helper every detail about me",
+          "what2": "I gave the helper only what the task needed",
+          "what3": "I let the helper choose what to keep",
+          "why1": "a helper needs to know everything to help",
+          "why2": "personal details can be kept, shared or misused",
+          "why3": "nobody ever reads what I type",
+          "next1": "I should leave out what the task doesn't need",
+          "next2": "I should share my address to get better answers",
+          "next3": "privacy only matters for grown-ups"
+        },
+        "language": {
+          "what1": "I made my instruction longer",
+          "what2": "I changed vague words like “it” and “there” into exact ones",
+          "what3": "I let the assistant guess",
+          "why1": "assistants always know what I mean",
+          "why2": "longer instructions are always better",
+          "why3": "an assistant can only do what my words say",
+          "next1": "I should say exactly which, where, who and when",
+          "next2": "I should use as few words as possible",
+          "next3": "it will work it out if I ask again"
         }
       }
     },

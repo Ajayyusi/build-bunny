@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { ConflictError, NotFoundError } from "@/modules/auth/server/guard";
 import type { SessionContext } from "@/modules/auth/server/session";
 
+import { explainConceptFor } from "../explanations";
 import {
   CONCEPT_CHECKS,
   EXPLORE_LEVEL_SLUGS,
@@ -38,18 +39,19 @@ export interface ConceptCheckState {
 export async function getExploreLevelContext(
   ctx: SessionContext,
   levelId: string,
-): Promise<{ isExplore: boolean; check: ConceptCheckState | null }> {
-  if (ctx.role !== "STUDENT" || !ctx.schoolId) return { isExplore: false, check: null };
+): Promise<{ isExplore: boolean; check: ConceptCheckState | null; explain: string | null }> {
+  if (ctx.role !== "STUDENT" || !ctx.schoolId) return { isExplore: false, check: null, explain: null };
   const level = await db.level.findUnique({ where: { id: levelId }, select: { slug: true } });
-  if (!level) return { isExplore: false, check: null };
+  if (!level) return { isExplore: false, check: null, explain: null };
   const isExplore = EXPLORE_LEVEL_SLUGS.has(level.slug);
+  const explain = explainConceptFor(level.slug);
   const check = CONCEPT_CHECKS[level.slug];
-  if (!check) return { isExplore, check: null };
+  if (!check) return { isExplore, check: null, explain };
   const row = await db.conceptCheck.findUnique({
     where: { studentUserId_levelId: { studentUserId: ctx.userId, levelId } },
     select: { correctAt: true },
   });
-  return { isExplore, check: { concept: check.concept, answeredCorrectly: Boolean(row?.correctAt) } };
+  return { isExplore, check: { concept: check.concept, answeredCorrectly: Boolean(row?.correctAt) }, explain };
 }
 
 export async function answerConceptCheckCore(

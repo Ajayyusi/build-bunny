@@ -6,8 +6,7 @@ import { NotFoundError } from "@/modules/auth/server/guard";
 import type { SessionContext } from "@/modules/auth/server/session";
 import { AI_CONCEPTS, type AiConcept } from "@/modules/analytics/ai-concepts";
 
-import { CONCEPT_CHECKS } from "../catalog";
-import { isValidSentence } from "../explanations";
+import { explainConceptFor, isValidSentence } from "../explanations";
 import { soundCount } from "./explanations-key";
 
 /**
@@ -21,8 +20,8 @@ export async function saveExplanationCore(
   if (ctx.role !== "STUDENT" || !ctx.schoolId) throw new NotFoundError("Not a student");
   const schoolId = ctx.schoolId;
   const level = await db.level.findUnique({ where: { id: input.levelId }, select: { slug: true } });
-  const check = level ? CONCEPT_CHECKS[level.slug] : undefined;
-  if (!check || !isValidSentence(check.concept, input.parts)) throw new NotFoundError("No sentence for this level");
+  const concept = level ? explainConceptFor(level.slug) : null;
+  if (!concept || !isValidSentence(concept, input.parts)) throw new NotFoundError("No sentence for this level");
   // Only for a level this child finished, in their own school.
   const finished = await db.studentProgress.findFirst({
     where: { studentUserId: ctx.userId, schoolId, levelId: input.levelId, status: "COMPLETED" },
