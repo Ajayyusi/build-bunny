@@ -102,6 +102,15 @@ describe("gradeAiClassification", () => {
     expect(result.summary).toMatchObject({ positives: 2, negatives: 0 });
   });
 
+  it("with a total minimum (Train a Sorter: 3 to 5), refuses fewer and grades 3 with one of a kind", () => {
+    const three = { payload: { ...payload, minPerLabel: 1, minExamples: 3 } } as unknown as Parameters<typeof gradeAiClassification>[0];
+    const two = gradeAiClassification(three, teach(["a", "positive"], ["c", "negative"]));
+    expect(two.primaryFeedback).toMatchObject({ code: "teachMoreExamples", data: { need: 3, taught: 2 } });
+    const graded = gradeAiClassification(three, teach(["a", "positive"], ["b", "positive"], ["c", "negative"]));
+    expect(graded.primaryFeedback?.code).not.toBe("teachMoreExamples");
+    expect(graded.summary).toMatchObject({ total: 2 });
+  });
+
   it("names the specimens the model got wrong, so the student knows where to teach", () => {
     // Taught only the blue corner: everything red is unseen territory.
     const result = gradeAiClassification(

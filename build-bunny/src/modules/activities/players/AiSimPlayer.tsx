@@ -22,7 +22,7 @@ import { SuccessOverlay } from "./shared/SuccessOverlay";
 import { ResultNotesCard } from "./shared/ResultNotesCard";
 import { WhatIsThisCalled } from "./shared/WhatIsThisCalled";
 import { LessonKindChip } from "./shared/LessonKindChip";
-import { markItemsResultNotes, pixelResultNotes, trendResultNotes, type ResultNotes } from "./result-notes";
+import { boundaryResultNotes, markItemsResultNotes, pixelResultNotes, trendResultNotes, type ResultNotes } from "./result-notes";
 import { Walkthrough } from "./shared/Walkthrough";
 import { NextStepHint } from "./shared/NextStepHint";
 import type { PixelRoundStatus } from "@/modules/hints/types";
@@ -274,6 +274,7 @@ export function AiSimPlayer({
         tryNextText ? resolveLocalized(tryNextText, locale) : null,
       );
     }
+    if (widgetId === "boundary-builder" && submission?.answer) return boundaryResultNotes(failedChecks);
     if (widgetId === "pixel-playground" && widgetStep && typeof widgetStep === "object") {
       const rounds = (widget.rounds as { id: string }[]).map(
         (r) => (widgetStep as Record<string, { status: string; squares: number; step: number }>)[r.id] ?? { status: "guessing", squares: 0, step: 0 },
@@ -299,7 +300,7 @@ export function AiSimPlayer({
       {/* ── Top bar ── */}
       <header className="flex h-14 shrink-0 items-center gap-2 border-b border-border-token bg-surface-raised px-2 sm:px-4">
         <Link
-          href="/adventure"
+          href={intro.mapHref}
           aria-label={t("backToMap")}
           className="grid size-11 shrink-0 place-items-center rounded-md text-ink-muted transition-colors hover:bg-surface-sunken hover:text-ink"
         >
@@ -360,7 +361,8 @@ export function AiSimPlayer({
               {honestyNote}
             </p>
           ) : null}
-          {intro.aiMode === "older" ? <WhatIsThisCalled tags={intro.tags} /> : null}
+          {/* Terms only when the child asks (handoff), in either mode. */}
+          <WhatIsThisCalled tags={intro.tags} />
 
           <Widget
             config={payload.widget}
@@ -377,7 +379,7 @@ export function AiSimPlayer({
             <ResultBanner
               feedback={submission?.server?.feedback ?? { code: "runtimeError" }}
               onTryAgain={handleTryAgain}
-              showHintNudge
+              showHintNudge={failedChecks >= 2}
               onOpenHints={() => setHintOpen(true)}
               onWhy={() => openRobo("why")}
               whyLabel={t("help.whyWrong")}

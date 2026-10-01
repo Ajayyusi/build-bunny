@@ -55,3 +55,29 @@ describe("result notes: what you tried, what changed, one more to test", () => {
     }
   });
 });
+
+describe("result notes on grouping levels and You Be the Classifier", () => {
+  const has = (messages: Record<string, unknown>, key: string) =>
+    key.split(".").reduce<unknown>((node, k) => (node as Record<string, unknown> | undefined)?.[k], (messages as { student: { play: { resultNotes: unknown } } }).student.play.resultNotes);
+
+  it("say what was tried, what changed and one more to test", async () => {
+    const { groupResultNotes, boundaryResultNotes } = await import("@/modules/activities/players/result-notes");
+    const en = (await import("../../messages/en.json")).default as Record<string, unknown>;
+    const ar = (await import("../../messages/ar.json")).default as Record<string, unknown>;
+    const first = groupResultNotes({ flags: 3, score: 92, failedChecks: 0 });
+    expect(first).toEqual({
+      tried: { key: "groups.tried", values: { flags: 3, score: 92 } },
+      changed: { key: "groups.changedFirst" },
+      tryNext: { key: "groups.tryNext" },
+    });
+    expect(groupResultNotes({ flags: 3, score: 80, failedChecks: 2 }).changed).toEqual({ key: "groups.changedChecks", values: { checks: 3 } });
+    expect(boundaryResultNotes(1).changed).toEqual({ key: "boundary.changedChecks", values: { checks: 2 } });
+    for (const notes of [first, boundaryResultNotes(0), boundaryResultNotes(1)]) {
+      for (const line of Object.values(notes)) {
+        if (!("key" in line)) continue;
+        expect(has(en, line.key), line.key).toBeTypeOf("string");
+        expect(has(ar, line.key), line.key).toBeTypeOf("string");
+      }
+    }
+  });
+});

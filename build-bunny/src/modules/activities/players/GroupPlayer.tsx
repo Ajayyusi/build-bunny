@@ -22,6 +22,9 @@ import { Walkthrough } from "./shared/Walkthrough";
 import { NextStepHint } from "./shared/NextStepHint";
 import { postAttempt, runIdFor } from "./shared/attempt-outbox";
 import { HintDrawer } from "./shared/HintDrawer";
+import { HintNudge } from "./shared/HintNudge";
+import { ResultNotesCard } from "./shared/ResultNotesCard";
+import { groupResultNotes } from "./result-notes";
 import { HonestyNote } from "./shared/HonestyNote";
 import { LessonKindChip } from "./shared/LessonKindChip";
 import { WhatIsThisCalled } from "./shared/WhatIsThisCalled";
@@ -171,6 +174,7 @@ export function GroupPlayer({
   const [lastSubmitAt, setLastSubmitAt] = useState<number | null>(null);
   const [server, setServer] = useState<AttemptResponse | null>(null);
   const reducedMotion = useReducedMotion();
+  const [failedChecks, setFailedChecks] = useState(0);
   const [result, setResult] = useState<{
     verdict: string;
     code?: string;
@@ -344,6 +348,7 @@ export function GroupPlayer({
       }
       const body = (await res.json()) as AttemptResponse;
       setServer(body);
+      if (body.verdict === "FAIL") setFailedChecks((n) => n + 1);
       setResult({
         verdict: body.verdict,
         code: body.feedback?.code,
@@ -374,7 +379,7 @@ export function GroupPlayer({
     <div className="relative flex h-dvh min-h-0 flex-col">
       <header className="flex h-14 shrink-0 items-center gap-2 border-b border-border-token bg-surface-raised px-2 sm:px-4">
         <Link
-          href="/adventure"
+          href={intro.mapHref}
           aria-label={tPlay("backToMap")}
           className="grid size-11 shrink-0 place-items-center rounded-md text-ink-muted transition-colors hover:bg-surface-sunken hover:text-ink"
         >
@@ -438,7 +443,8 @@ export function GroupPlayer({
           <div className="flex flex-wrap items-start gap-2">
             {intro.lessonKind ? <LessonKindChip kind={intro.lessonKind} /> : null}
             <HonestyNote kind="tinyGrouping" />
-            {intro.aiMode === "older" ? <WhatIsThisCalled tags={intro.tags} /> : null}
+            {/* Terms only when the child asks (handoff), in either mode. */}
+            <WhatIsThisCalled tags={intro.tags} />
           </div>
           <div className="flex items-start gap-3">
             <span aria-hidden="true" className="mt-1">
@@ -702,6 +708,7 @@ export function GroupPlayer({
                           : t("tryAgain")}
                 </p>
               ) : null}
+              {result && result.verdict === "FAIL" ? <HintNudge failedChecks={failedChecks} onOpen={() => hints.setOpen(true)} /> : null}
 
               <div className="flex items-center gap-3">
                 <Button
@@ -813,6 +820,7 @@ export function GroupPlayer({
                   })}
                 </p>
               ) : null}
+              <ResultNotesCard notes={groupResultNotes({ flags: seed.length, score: scorePct ?? 0, failedChecks })} />
             </div>
           }
         />

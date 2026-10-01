@@ -502,6 +502,8 @@ export const aiClassificationPayload = z
     mislabelled: z.array(z.string()).default([]),
     /** Refuse to grade until the student has taught both buckets. */
     minPerLabel: z.number().int().min(1).default(2),
+    /** And at least this many examples in all (handoff: "3 to 5 examples"). */
+    minExamples: z.number().int().min(2).max(64).optional(),
     /**
      * Hard cap on examples. Levels whose lesson is WHICH examples to pick
      * need one, because otherwise "teach the whole pool" wins without the
@@ -582,6 +584,7 @@ export const aiClassificationStudentPayload = z
     pool: z.array(specimenSchema.extend({ truth: z.enum(["positive", "negative"]) })).min(4),
     testSet: z.array(specimenSchema).min(2),
     minPerLabel: z.number().int().min(1).default(2),
+    minExamples: z.number().int().min(2).max(64).optional(),
     /** Ships on purpose: a cap the student cannot see is an unfair rule. */
     maxExamples: z.number().int().min(2).max(64).optional(),
     theme: aiThemeSchema.optional(),
@@ -820,6 +823,17 @@ export const pixelPlaygroundConfig = z.object({
          *  mystery round is settled ("the clue you used / missed"). Server
          *  side only until then: the student payload drops it. */
         clue: localizedText.optional(),
+        /** "Name the clues" once a round is settled (handoff, AI Vision:
+         *  "names a visual clue the model used and a clue it missed"): a few
+         *  clues about this picture, each one either still there in the
+         *  squares (`kept`) or lost in them. Server side until the round is
+         *  settled, like `clue`. */
+        clueChoices: z
+          .array(z.object({ id: z.string().min(1).max(32), text: localizedText, kept: z.boolean() }))
+          .min(3)
+          .max(4)
+          .refine((choices) => choices.some((c) => c.kept) && choices.some((c) => !c.kept), "needs a kept and a lost clue")
+          .optional(),
       }),
     )
     .min(2)

@@ -278,7 +278,7 @@ export function AiEthicsPlayer({
       {/* ── Top bar ── */}
       <header className="flex h-14 shrink-0 items-center gap-2 border-b border-border-token bg-surface-raised px-2 sm:px-4">
         <Link
-          href="/adventure"
+          href={intro.mapHref}
           aria-label={t("backToMap")}
           className="grid size-11 shrink-0 place-items-center rounded-md text-ink-muted transition-colors hover:bg-surface-sunken hover:text-ink"
         >
@@ -333,7 +333,8 @@ export function AiEthicsPlayer({
           <div className="flex flex-wrap items-start gap-2">
             {intro.lessonKind ? <LessonKindChip kind={intro.lessonKind} /> : null}
             <HonestyNote kind="story" />
-            {intro.aiMode === "older" ? <WhatIsThisCalled tags={intro.tags} /> : null}
+            {/* Terms only when the child asks (handoff), in either mode. */}
+            <WhatIsThisCalled tags={intro.tags} />
           </div>
           {phase === "scene" && scene ? (
             <div className="flex flex-col gap-4 rounded-xl border-2 border-border-token bg-surface-raised p-5">

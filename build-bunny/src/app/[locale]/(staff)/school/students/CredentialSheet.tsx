@@ -40,7 +40,7 @@ export function CredentialSheet({
         <tbody>
           {rows.map((row) => (
             <tr key={row.username ?? row.displayName} className="break-inside-avoid">
-              <td className="border border-border-token px-3 py-2">{row.displayName}</td>
+              <td className="border border-border-token px-3 py-2"><bdi>{row.displayName}</bdi></td>
               <td className="border border-border-token px-3 py-2 font-mono" dir="ltr">
                 {schoolCode}
               </td>

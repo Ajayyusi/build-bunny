@@ -25,6 +25,7 @@ export interface SolvablePayload {
   pool: { id: string; size: number; color: number; truth: ClassLabel }[];
   testSet: { id: string; size: number; color: number }[];
   minPerLabel: number;
+  minExamples?: number;
   maxExamples?: number;
   /** Levels demanding a student-designed test pile: the untaught remainder
    *  must be at least this big, so the training set is capped implicitly. */
@@ -87,6 +88,7 @@ function* legalTrainingSets(payload: SolvablePayload): Generator<LabelledSpecime
         continue;
       }
       const positives = set.filter((e) => e.label === "positive").length;
+      if (payload.minExamples !== undefined && set.length < payload.minExamples) continue;
       if (positives < payload.minPerLabel) continue;
       if (set.length - positives < payload.minPerLabel) continue;
       yield set;

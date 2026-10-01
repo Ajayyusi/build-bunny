@@ -327,7 +327,7 @@ describe("following 'Show me the next step' finishes every level, through the ro
           pixelRounds = Object.fromEntries(w.rounds.map((r) => [r.id, freshRound()]));
           const sync = () => {
             state.pixel = Object.fromEntries(
-              Object.entries(pixelRounds).map(([id, r]) => [id, { selected: r.selected, status: r.status }]),
+              Object.entries(pixelRounds).map(([id, r]) => [id, { selected: r.selected, status: r.status, named: r.named }]),
             );
             state.rounds = settledWork(pixelRounds, w.rounds.map((r) => r.id)).work.rounds;
           };
@@ -536,6 +536,14 @@ describe("following 'Show me the next step' finishes every level, through the ro
               round = roundReducer(round, { type: "retry" });
             } else throw new Error(`unknown round button ${step.button}`);
             pixelRounds = { ...pixelRounds, [step.roundId]: round };
+            syncPixel();
+            break;
+          }
+          case "nameClue": {
+            const round = pixelRounds[step.roundId]!;
+            const clue = round.answer?.clueChoices?.find((c) => c.text.en === step.clue.en);
+            if (!clue) throw new Error("unfollowable: that clue isn't on screen");
+            pixelRounds = { ...pixelRounds, [step.roundId]: roundReducer(round, { type: "name", slot: step.slot, clueId: clue.id }) };
             syncPixel();
             break;
           }

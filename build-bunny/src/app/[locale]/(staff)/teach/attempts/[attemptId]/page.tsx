@@ -87,6 +87,7 @@ export default async function AttemptReplayPage({ params }: Props) {
         levelPayload={replay.levelPayload}
         runs={replay.runs}
         perVariant={replay.perVariant}
+        previousWorkspaceJson={replay.previousWorkspaceJson}
       />
     </div>
   );

@@ -66,21 +66,22 @@ interface Props {
 function locateOnTrail(
   state: AdventureState,
   levelId: string,
-): { theme: string; next: { id: string; locked: boolean } | null } {
-  const flat: { id: string; state: string; theme: string }[] = [];
+): { theme: string; kind: "ai" | "coding"; next: { id: string; locked: boolean } | null } {
+  const flat: { id: string; state: string; theme: string; kind: "ai" | "coding" }[] = [];
   for (const world of state.worlds) {
     if (world.horizon) continue;
     for (const moduleNode of world.modules) {
       for (const level of moduleNode.levels) {
-        flat.push({ id: level.id, state: level.state, theme: world.theme });
+        flat.push({ id: level.id, state: level.state, theme: world.theme, kind: world.kind });
       }
     }
   }
   const index = flat.findIndex((entry) => entry.id === levelId);
-  if (index === -1) return { theme: "", next: null };
+  if (index === -1) return { theme: "", kind: "coding", next: null };
   const next = flat[index + 1];
   return {
     theme: flat[index]!.theme,
+    kind: flat[index]!.kind,
     next: next ? { id: next.id, locked: next.state === "LOCKED" } : null,
   };
 }
@@ -118,8 +119,11 @@ export default async function PlayLevelPage({ params }: Props) {
   // First open flips UNLOCKED → IN_PROGRESS and records LEVEL_STARTED (once).
   await markLevelStarted({ levelId });
 
-  const { theme, next } = locateOnTrail(adventure, levelId);
+  const { theme, kind, next } = locateOnTrail(adventure, levelId);
   const explore = await getExploreLevelContext(ctx, levelId);
+  // Back to the route the child came from: Explore AI, the AI worlds, or
+  // the Coding Lab — never the Coding Lab for an AI lesson.
+  const mapHref = explore.isExplore ? "/explore" : kind === "ai" ? "/ai-worlds" : "/adventure";
 
   const intro: ActivityIntro = {
     levelId: playable.id,
@@ -149,6 +153,7 @@ export default async function PlayLevelPage({ params }: Props) {
     firstSteps: adventure.worlds.every((world) => world.completedLevels === 0),
     draftVersion: playable.draftSavedAt,
     explore,
+    mapHref,
   };
 
   // Re-parse the (student-stripped) payload per activity type so schema
@@ -237,6 +242,7 @@ export default async function PlayLevelPage({ params }: Props) {
       pool: raw.pool,
       testSet: raw.testSet,
       minPerLabel: raw.minPerLabel,
+      minExamples: raw.minExamples,
       maxExamples: raw.maxExamples,
       // Localized once, on the server. The player receives strings, never
       // LocalizedText, so no client component needs to know about locales.

@@ -191,11 +191,18 @@ describe("say what you think first (the predict step)", () => {
       const p = aiEthicsPayload.parse(level(slug).payload);
       const asking = p.scenes.filter((s) => s.predict);
       expect(asking.length, slug).toBeGreaterThanOrEqual(3);
+      // The evidence scenes offer the careful answer; at least three do.
+      const careful = asking.filter((scene) => scene.predict!.options.some((o) => /not enough|can't tell/i.test(o.text.en)));
+      expect(careful.length, slug).toBeGreaterThanOrEqual(3);
       for (const scene of asking) {
-        expect(scene.predict!.options.some((o) => /not enough|can't tell/i.test(o.text.en)), scene.id).toBe(true);
         for (const o of scene.predict!.options) expect(o.note.en && o.note.ar && o.text.ar, `${scene.id}/${o.id}`).toBeTruthy();
       }
     }
+  });
+
+  it("every Is That Real? scene asks first, the homework one included", () => {
+    const p = aiEthicsPayload.parse(level("is-that-real").payload);
+    for (const scene of p.scenes) expect(scene.predict, scene.id).toBeDefined();
   });
 });
 

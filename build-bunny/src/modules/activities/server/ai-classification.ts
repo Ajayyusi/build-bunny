@@ -166,6 +166,16 @@ export function gradeAiClassification(
 
   const positives = examples.filter((e) => e.label === "positive").length;
   const negatives = examples.length - positives;
+  if (payload.minExamples !== undefined && examples.length < payload.minExamples) {
+    return {
+      verdict: "FAIL",
+      qualityPassed: false,
+      primaryFeedback: { code: "teachMoreExamples", data: { need: payload.minExamples, taught: examples.length } },
+      generatedCode: "",
+      blockCount: null,
+      summary: { positives, negatives, taught: examples.length },
+    };
+  }
   if (positives < payload.minPerLabel || negatives < payload.minPerLabel) {
     return {
       verdict: "FAIL",

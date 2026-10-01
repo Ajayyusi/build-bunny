@@ -12,6 +12,9 @@ import type { PixelRoundCheckResult } from "./types";
  *   right / missed — settled: the real picture and the clue the child used
  *               or missed (OBSERVE + EXPLAIN); a missed round can be tried
  *               again from its blockiest step.
+ *   named      — then the child names one clue still there in the squares
+ *               and one lost in them (handoff, AI Vision: "names a visual
+ *               clue the model used and a clue it missed").
  */
 export interface RoundState {
   /** Index into roundSteps(): 0 is the blockiest. */
@@ -19,7 +22,11 @@ export interface RoundState {
   selected: string | null;
   status: PixelRoundStatus;
   answer: PixelRoundCheckResult["answer"];
+  /** The clues the child named once the round settled. */
+  named: { kept: string | null; lost: string | null };
 }
+
+export type ClueSlot = "kept" | "lost";
 
 export type RoundAction =
   | { type: "pick"; imageId: string }
@@ -27,10 +34,24 @@ export type RoundAction =
   | { type: "checked"; result: PixelRoundCheckResult }
   | { type: "error" }
   | { type: "moreSquares"; stepCount: number }
-  | { type: "retry" };
+  | { type: "retry" }
+  | { type: "name"; slot: ClueSlot; clueId: string };
 
 export function freshRound(selected: string | null = null): RoundState {
-  return { step: 0, selected, status: "guessing", answer: null };
+  return { step: 0, selected, status: "guessing", answer: null, named: { kept: null, lost: null } };
+}
+
+/** Is this pick right: a kept clue for "kept", a lost one for "lost"? */
+export function clueFits(round: RoundState, slot: ClueSlot, clueId: string | null): boolean {
+  const clue = round.answer?.clueChoices?.find((c) => c.id === clueId);
+  return clue !== undefined && clue.kept === (slot === "kept");
+}
+
+/** Settled, and (where the picture has clues to name) both named right. */
+export function isDone(round: RoundState): boolean {
+  if (!isSettled(round)) return false;
+  if (!round.answer?.clueChoices) return true;
+  return clueFits(round, "kept", round.named.kept) && clueFits(round, "lost", round.named.lost);
 }
 
 export function isSettled(round: RoundState): boolean {
@@ -61,12 +82,17 @@ export function roundReducer(round: RoundState, action: RoundAction): RoundState
         : round;
     case "retry":
       return round.status === "missed" ? freshRound() : round;
+    case "name":
+      return isSettled(round) && round.answer?.clueChoices?.some((c) => c.id === action.clueId)
+        ? { ...round, named: { ...round.named, [action.slot]: action.clueId } }
+        : round;
   }
 }
 
 /**
  * The graded work: each settled round's final guess (a missed round keeps
- * the wrong one — the grader counts it). Ready once every round is settled.
+ * the wrong one — the grader counts it). Ready once every round is settled
+ * and its clues are named.
  */
 export function settledWork(
   rounds: Readonly<Record<string, RoundState>>,
@@ -77,5 +103,9 @@ export function settledWork(
     const round = rounds[id];
     if (round && isSettled(round) && round.selected) picks[id] = round.selected;
   }
-  return { work: { rounds: picks }, ready: roundIds.every((id) => picks[id] !== undefined) };
+  const named = roundIds.every((id) => {
+    const round = rounds[id];
+    return round !== undefined && isDone(round);
+  });
+  return { work: { rounds: picks }, ready: named && roundIds.every((id) => picks[id] !== undefined) };
 }

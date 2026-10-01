@@ -286,7 +286,7 @@ export function StudentsManager({
     {
       key: "name",
       header: t("columnName"),
-      cell: (row) => <span className="font-medium text-ink">{row.displayName}</span>,
+      cell: (row) => <span className="font-medium text-ink"><bdi>{row.displayName}</bdi></span>,
     },
     {
       key: "username",

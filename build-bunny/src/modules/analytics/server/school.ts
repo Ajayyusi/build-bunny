@@ -3,7 +3,7 @@ import "server-only";
 import { db } from "@/lib/db";
 import type { SessionContext } from "@/modules/auth/server/session";
 import { localizedText, type LocalizedText } from "@/modules/curriculum/schemas";
-import { forStudents, secureByConcept, summariseAiConcepts, type AiConcept } from "../ai-concepts";
+import { AI_CONCEPTS, conceptInputAsOf, forStudents, secureByConcept, summariseAiConcepts, type AiConcept } from "../ai-concepts";
 import { weekStarts, weeklySeries, type WeekRow } from "../weekly";
 import { aiLevelIdsOf, countAiEvents, emptyCounts, returningAiStudents, type AiActivityCounts } from "./ai-activity";
 import { loadConceptInput } from "./ai-concepts-load";
@@ -62,6 +62,8 @@ export interface SchoolAiConceptsClass {
   classId: string;
   className: string;
   concepts: Record<AiConcept, { secure: number; students: number; levels: number }>;
+  /** Secure per concept four weeks ago, the same children (the trend). */
+  secureBefore: Record<AiConcept, number>;
 }
 
 /** AI activity in one class over the last 30 days (counts only). */
@@ -348,12 +350,18 @@ export async function getSchoolAnalytics(ctx: SessionContext): Promise<SchoolAna
     students.map((s) => s.userId),
     [...levelIndex].map(([id, meta]) => ({ id, slug: meta.slug })),
   );
+  const trendFrom = new Date(now.getTime() - 28 * 24 * 60 * 60 * 1000);
   const aiConceptsByClass: SchoolAiConceptsClass[] = classes
-    .map((cls) => ({
-      classId: cls.id,
-      className: cls.name,
-      concepts: secureByConcept(summariseAiConcepts(forStudents(conceptInput, new Set(studentIdsByClass.get(cls.id) ?? [])))),
-    }))
+    .map((cls) => {
+      const input = forStudents(conceptInput, new Set(studentIdsByClass.get(cls.id) ?? []));
+      const before = secureByConcept(summariseAiConcepts(conceptInputAsOf(input, trendFrom)));
+      return {
+        classId: cls.id,
+        className: cls.name,
+        concepts: secureByConcept(summariseAiConcepts(input)),
+        secureBefore: Object.fromEntries(AI_CONCEPTS.map((c) => [c, before[c].secure])) as Record<AiConcept, number>,
+      };
+    })
     .sort((a, b) => a.className.localeCompare(b.className));
 
   // Week by week, over the event index ([schoolId, type, createdAt]).

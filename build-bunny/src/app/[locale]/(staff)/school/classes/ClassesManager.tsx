@@ -404,7 +404,7 @@ export function ClassesManager({
               <option value="">{t("noTeacherOption")}</option>
               {teachers.map((tch) => (
                 <option key={tch.id} value={tch.id}>
-                  {tch.displayName}
+                  <bdi>{tch.displayName}</bdi>
                 </option>
               ))}
             </Select>
@@ -492,7 +492,7 @@ export function ClassesManager({
                   .filter((m) => m.role === "STUDENT")
                   .map((m) => (
                     <li key={m.user.id} className="flex items-center justify-between gap-3 px-3 py-2">
-                      <span className="text-sm text-ink">{m.user.displayName}</span>
+                      <span className="text-sm text-ink"><bdi>{m.user.displayName}</bdi></span>
                       <Button
                         variant="ghost"
                         size="sm"
@@ -526,7 +526,7 @@ export function ClassesManager({
               <ul className="flex flex-col divide-y divide-border-token rounded-md border border-border-token">
                 {rosterCandidates.map((s) => (
                   <li key={s.id} className="flex items-center justify-between gap-3 px-3 py-2">
-                    <span className="text-sm text-ink">{s.displayName}</span>
+                    <span className="text-sm text-ink"><bdi>{s.displayName}</bdi></span>
                     <Button
                       variant="secondary"
                       size="sm"

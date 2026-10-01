@@ -184,6 +184,8 @@ describe("reading it back", () => {
     // Concepts by class: Fortune Teller teaches uncertainty; one child finished it.
     const concepts = analytics!.aiConceptsByClass.find((r) => r.classId === classId)!;
     expect(concepts.concepts.uncertainty).toMatchObject({ levels: 1, students: 2 });
+    // The trend: everything above happened today, so four weeks ago nobody was secure.
+    expect(concepts.secureBefore.uncertainty).toBe(0);
     expect(JSON.stringify(analytics?.aiConceptsByClass)).not.toContain(kid.userId);
   });
 });

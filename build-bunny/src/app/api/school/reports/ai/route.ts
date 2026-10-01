@@ -31,6 +31,7 @@ export async function GET() {
       "completions_30d",
       "returned_another_day_30d",
       ...AI_CONCEPTS.map((c) => `secure_${c}`),
+      ...AI_CONCEPTS.map((c) => `secure_${c}_4_weeks_ago`),
     ],
     ...rows.map((row) => {
       const a = activity.get(row.classId);
@@ -43,6 +44,7 @@ export async function GET() {
         a?.completions ?? 0,
         a?.returned ?? 0,
         ...AI_CONCEPTS.map((c) => (row.concepts[c].levels > 0 ? `${row.concepts[c].secure}/${row.concepts[c].students}` : "")),
+        ...AI_CONCEPTS.map((c) => (row.concepts[c].levels > 0 ? row.secureBefore[c] : "")),
       ];
     }),
   ]);

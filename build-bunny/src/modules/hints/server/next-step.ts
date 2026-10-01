@@ -393,6 +393,7 @@ export const nextStepStateSchema = z.object({
       z.object({
         selected: z.string().nullable(),
         status: z.enum(["guessing", "checking", "notYet", "right", "missed", "error"]),
+        named: z.object({ kept: z.string().max(32).nullable(), lost: z.string().max(32).nullable() }).optional(),
       }),
     )
     .optional(),
@@ -657,6 +658,17 @@ export function computeNextStep(
           const at = state.pixel[round.id];
           if (!at || at.status === "right") {
             if (!at) return { code: "pickPicture", roundId: round.id, imageId: round.imageId };
+            // Then name one clue still in the squares and one lost in them.
+            const choices = w.images.find((image) => image.id === round.imageId)?.clueChoices;
+            if (choices) {
+              for (const slot of ["kept", "lost"] as const) {
+                const named = choices.find((c) => c.id === at.named?.[slot]);
+                if (!named || named.kept !== (slot === "kept")) {
+                  const fit = choices.find((c) => c.kept === (slot === "kept"))!;
+                  return { code: "nameClue", roundId: round.id, slot, clue: fit.text };
+                }
+              }
+            }
             continue;
           }
           if (at.status === "checking") return { code: "checkingRound", roundId: round.id };

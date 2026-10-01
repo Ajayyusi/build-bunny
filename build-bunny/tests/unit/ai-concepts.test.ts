@@ -70,3 +70,47 @@ describe("AI concept mastery", () => {
     }
   });
 });
+
+describe("concept trends (the school admin's four-week change)", () => {
+  it("counts only the evidence that existed at the cutoff", async () => {
+    const { conceptInputAsOf } = await import("@/modules/analytics/ai-concepts");
+    const old = new Date("2026-09-01T00:00:00Z");
+    const recent = new Date("2026-09-30T00:00:00Z");
+    const cutoff = new Date("2026-09-15T00:00:00Z");
+    const input = {
+      levelIdBySlug: new Map(),
+      students: [{ id: "a", grade: 5 }],
+      completed: [
+        { studentId: "a", levelId: "L1", stars: 3, at: old },
+        { studentId: "a", levelId: "L2", stars: 3, at: recent },
+        { studentId: "a", levelId: "L3", stars: 2, at: null },
+      ],
+      checks: [
+        { studentId: "a", levelId: "L1", firstChoice: "b", firstCorrect: true, correct: true, at: old },
+        { studentId: "a", levelId: "L2", firstChoice: "a", firstCorrect: false, correct: true, at: recent },
+      ],
+      checkConceptOf: new Map(),
+      attemptsByLevel: new Map(),
+      retriesByLevel: new Map(),
+      soundSentences: [{ studentId: "a", levelId: "L2", at: recent }],
+      observed: [{ studentId: "a", concept: "bias", at: recent }],
+    };
+    const then = conceptInputAsOf(input, cutoff);
+    expect(then.completed.map((r) => r.levelId)).toEqual(["L1", "L3"]);
+    expect(then.checks.map((r) => r.correct)).toEqual([true, false]);
+    expect(then.soundSentences).toEqual([]);
+    expect(then.observed).toEqual([]);
+  });
+
+  it("the change reads with its sign, in both languages", async () => {
+    const { createTranslator } = await import("next-intl");
+    const en = (await import("../../messages/en.json")).default;
+    const ar = (await import("../../messages/ar.json")).default;
+    const tEn = createTranslator({ locale: "en", messages: en, namespace: "staff.school.analytics.ai" });
+    expect(tEn("trend", { change: 2 })).toBe("+2 in 4 weeks");
+    expect(tEn("trend", { change: 0 })).toBe("no change in 4 weeks");
+    expect(tEn("trend", { change: -1 })).toBe("-1 in 4 weeks");
+    const tAr = createTranslator({ locale: "ar", messages: ar, namespace: "staff.school.analytics.ai" });
+    expect(tAr("trend", { change: 2 })).toMatch(/خلال 4 أسابيع/);
+  });
+});

@@ -31,7 +31,7 @@ export default async function StudentProfilePage({ params }: Props) {
           <Avatar displayName={displayName} size="lg" />
           <div className="flex min-w-0 flex-col">
             <p className="truncate font-display text-xl font-bold">
-              {displayName}
+              <bdi>{displayName}</bdi>
             </p>
             {snapshot?.user.displayUsername ? (
               <p className="truncate text-sm text-ink-muted">

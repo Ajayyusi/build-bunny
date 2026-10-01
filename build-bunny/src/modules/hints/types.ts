@@ -75,6 +75,8 @@ export type NextStep =
   | { code: "revealComputer" }
   | { code: "setPrediction"; value: number }
   | { code: "pickPicture"; roundId: string; imageId: string }
+  /** See Like a Computer: name a clue still in the squares, or one lost. */
+  | { code: "nameClue"; roundId: string; slot: "kept" | "lost"; clue: { en: string; ar?: string } }
   /** A button inside one mystery round (Check my guess, Add more squares…). */
   | { code: "pressRoundButton"; roundId: string; button: PlayerButton }
   /** Mark the items: give this item this mark (or choose this wording). */

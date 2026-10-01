@@ -72,11 +72,11 @@ export default async function StudentShellLayout({ children, params }: Props) {
           <Avatar displayName={displayName} size="md" />
           <div className="flex min-w-0 flex-col">
             <span className="truncate font-display text-sm font-bold text-ink">
-              {displayName}
+              <bdi>{displayName}</bdi>
             </span>
             {snapshot?.school.name ? (
               <span className="truncate text-xs text-ink-muted">
-                {snapshot.school.name}
+                <bdi>{snapshot.school.name}</bdi>
               </span>
             ) : null}
           </div>

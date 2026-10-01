@@ -102,3 +102,24 @@ export function ethicsResultNotes(
     tryNext: tryNext ? { text: tryNext } : { key: "ethics.tryNext" },
   };
 }
+
+/** Grouping levels (PATTERN_RECOGNITION): the flags placed and the checks taken. */
+export function groupResultNotes(input: { flags: number; score: number; failedChecks: number }): ResultNotes {
+  return {
+    tried: { key: "groups.tried", values: { flags: input.flags, score: input.score } },
+    changed:
+      input.failedChecks > 0
+        ? { key: "groups.changedChecks", values: { checks: input.failedChecks + 1 } }
+        : { key: "groups.changedFirst" },
+    tryNext: { key: "groups.tryNext" },
+  };
+}
+
+/** You Be the Classifier: one line drawn between two kinds. */
+export function boundaryResultNotes(failedChecks: number): ResultNotes {
+  return {
+    tried: { key: "boundary.tried" },
+    changed: failedChecks > 0 ? { key: "boundary.changedChecks", values: { checks: failedChecks + 1 } } : { key: "boundary.changedFirst" },
+    tryNext: { key: "boundary.tryNext" },
+  };
+}

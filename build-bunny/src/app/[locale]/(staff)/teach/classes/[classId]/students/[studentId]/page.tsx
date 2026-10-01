@@ -143,7 +143,7 @@ export default async function StudentDetailPage({ params }: Props) {
         {t("backLink")}
       </Link>
       <PageHeader
-        title={detail.displayName}
+        title={<bdi>{detail.displayName}</bdi>}
         description={detail.class ? `${detail.class.name} · ${tCommon("grade", { grade: String(detail.class.grade) })}` : t("header.noClass")}
       />
 

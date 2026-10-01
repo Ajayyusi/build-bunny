@@ -80,7 +80,7 @@ export default async function StaffLayout({ children, params }: Props) {
             <span className="flex items-center gap-2">
               <Avatar displayName={ctx.displayName} size="sm" />
               <span className="hidden text-sm font-semibold md:inline">
-                {ctx.displayName}
+                <bdi>{ctx.displayName}</bdi>
               </span>
             </span>
             <SignOutButton variant="ghost" size="sm" />

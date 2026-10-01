@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 
 import { ReadAloudButton } from "@/modules/audio/AudioControls";
 import { useNarrateOnShow } from "@/modules/audio/scene";
@@ -42,6 +42,7 @@ export interface NextStepNames {
 
 export function useNextStepText() {
   const t = useTranslations("student.play.nextStep");
+  const locale = useLocale();
   const tBlocks = useTranslations("student.play.blockNames");
   const block = (type: string) => (tBlocks.has(type) ? tBlocks(type) : type);
   const place = (p: BlockPlace): string => {
@@ -128,6 +129,11 @@ export function useNextStepText() {
         return t("setPrediction", { value: step.value });
       case "pickPicture":
         return t("pickPicture", { round: name(names.round, step.roundId), image: name(names.image, step.imageId) });
+      case "nameClue":
+        return t(step.slot === "kept" ? "nameClueKept" : "nameClueLost", {
+          round: name(names.round, step.roundId),
+          clue: (locale === "ar" ? step.clue.ar : undefined) ?? step.clue.en,
+        });
       case "markItem":
         return t("markItem", { item: name(names.item, step.itemId), mark: name(names.mark, step.markId) });
       case "checkingRound":

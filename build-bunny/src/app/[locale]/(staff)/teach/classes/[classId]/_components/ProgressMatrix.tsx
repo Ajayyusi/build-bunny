@@ -147,7 +147,7 @@ export async function ProgressMatrix({
                 >
                   <Avatar displayName={student.displayName} size="sm" />
                   <span className="flex min-w-0 flex-col">
-                    <span className="truncate font-semibold text-ink">{student.displayName}</span>
+                    <span className="truncate font-semibold text-ink"><bdi>{student.displayName}</bdi></span>
                     <FlagList flags={student.flags} />
                   </span>
                 </Link>

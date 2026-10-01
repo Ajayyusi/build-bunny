@@ -41,5 +41,10 @@ export interface PixelRoundCheckResult {
    * or wrong at its clearest step). A wrong guess with squares still to add
    * learns nothing but "not yet", so it's a real second try.
    */
-  answer: { imageId: string; clue: LocalizedText | null } | null;
+  answer: {
+    imageId: string;
+    clue: LocalizedText | null;
+    /** The picture's clues to name, each kept in the squares or lost. */
+    clueChoices?: { id: string; text: LocalizedText; kept: boolean }[];
+  } | null;
 }
