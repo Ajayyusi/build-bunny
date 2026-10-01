@@ -157,6 +157,11 @@ they should be reviewed and merged in the order above.
     - Who Decides?: how many of 10 suggestions at 80% sure could be wrong?
     - Is That Real?: how sure can looking alone make you?
   - Grades 3 to 4 get one friendly line in place of a technical one (a miss score, an error allowance) on Fortune Teller, You Be the Sorter and the grouping levels. The picture and marks messages were already plain and keep their counts.
+- **Also:**
+  - "You Be the Classifier" is now "You Be the Sorter" ("classifier" stays behind "What is this called?"), with a test that keeps AI titles and mission lines free of technical terms.
+  - The first session is timed in real classrooms: the school page shows the median minutes to finish Train a Sorter, and how many finished within 8 minutes, once five children have.
+  - The return-session test picked an event without saying which type, which failed CI once; it is fixed.
+  - Raw-SQL time windows now compare in UTC.
 - **Tested:** the full unit and integration suite; the full Playwright suite on a production build (95 passed); and "Show me the next step" finishing all 17 levels whose content changed.
 
 ### Checkpoint 14 — 2026-10-01 (second audit: every "Done" row re-checked against the code)

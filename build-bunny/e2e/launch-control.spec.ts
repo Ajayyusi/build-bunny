@@ -58,6 +58,9 @@ test("a teacher launches an activity and switches one off; the class sees it", a
     await expect(today.getByRole("heading", { name: "Today's AI activity" })).toBeVisible();
     await expect(today).toContainText("Fortune Teller");
     await expect(child.getByTestId("explore-cards").getByRole("link", { name: /Who Decides\?/ })).toHaveCount(0);
+    // The banner doesn't push the cards below the fold (1280 × 720, a classroom laptop).
+    const cards = child.getByTestId("explore-cards").filter({ visible: true }).getByRole("link");
+    for (let i = 0; i < (await cards.count()); i++) await expect(cards.nth(i)).toBeInViewport({ ratio: 1 });
     await today.getByRole("link", { name: "Start" }).click();
     await expect(child).toHaveURL(/\/play\//);
     await child.close();
