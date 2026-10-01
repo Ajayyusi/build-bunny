@@ -20,7 +20,11 @@ What this checklist is for: a person with a real iPad (Safari, iPadOS 17 or late
    Text without marks is perfect.
    - Example: the first word of the Explore AI card "درّب آلة فرز": "أرِ روبوتًا بعض الأمثلة…".
    - In emulated WebKit it happens only with the app's Arabic webfont (IBM Plex Sans Arabic). The same text in Tahoma, Arial or Segoe UI is fine, and Chromium draws the webfont correctly. It may be the emulator's text stack or a real Safari problem with that font, which is why this check comes first.
-   - If it shows on a real iPad, the fix is in the font setup (`src/ui/fonts.ts`), not the copy.
+   - The shipped font files are sound:
+     - every IBM Plex Sans Arabic weight and Baloo Bhaijaan 2 contain the kasra and kasra-tanween glyphs and the mark-positioning features (`mark`, `mkmk`);
+     - a standard shaper (fontkit) places the kasra below the letter.
+   - So this is very likely the Windows WebKit build, not Safari. Still, check it once on a real iPad.
+   - If it shows there, the fix is in the font setup (`src/ui/fonts.ts`), not the copy.
    - To check: open `/ar/explore` and read that card. If the word sits low or is cut off on a real iPad, report it with a photo.
 2. **Dragging with a finger:**
    - the Fortune Teller line ends;
