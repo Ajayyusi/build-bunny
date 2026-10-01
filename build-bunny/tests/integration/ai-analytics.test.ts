@@ -205,7 +205,12 @@ describe("return session", () => {
     expect((await getSchoolAnalytics(admin))!.aiReturnedTotal).toBe(0);
 
     // One of the child's sessions three days earlier: a return.
-    const first = await db.learningEvent.findFirstOrThrow({ where: { studentUserId: kid.userId, levelId } });
+    // A session start: one of the counted types (an unordered pick could land on
+    // an event type the measure ignores, which is how CI once read 0).
+    const first = await db.learningEvent.findFirstOrThrow({
+      where: { studentUserId: kid.userId, levelId, type: "LEVEL_SESSION_STARTED" },
+      orderBy: { createdAt: "asc" },
+    });
     await db.learningEvent.update({ where: { id: first.id }, data: { createdAt: new Date(now.getTime() - 3 * 86_400_000) } });
     const analytics = await getSchoolAnalytics(admin);
     expect(analytics!.aiReturnedTotal).toBe(1);
