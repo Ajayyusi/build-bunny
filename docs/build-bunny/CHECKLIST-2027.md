@@ -152,11 +152,11 @@ they should be reviewed and merged in the order above.
   - Grades 5 to 7 get one deeper question after a pass:
     - Fortune Teller: further out, a wider or narrower range?
     - See Like a Computer: how many numbers is an 8 × 8 picture?
-    - You Be the Classifier: what should a careful computer say about a fruit on the line?
+    - You Be the Sorter: what should a careful computer say about a fruit on the line?
     - grouping levels: does one more flag raise the score?
     - Who Decides?: how many of 10 suggestions at 80% sure could be wrong?
     - Is That Real?: how sure can looking alone make you?
-  - Grades 3 to 4 get one friendly line in place of a technical one (a miss score, an error allowance) on Fortune Teller, You Be the Classifier and the grouping levels. The picture and marks messages were already plain and keep their counts.
+  - Grades 3 to 4 get one friendly line in place of a technical one (a miss score, an error allowance) on Fortune Teller, You Be the Sorter and the grouping levels. The picture and marks messages were already plain and keep their counts.
 - **Tested:** the full unit and integration suite; the full Playwright suite on a production build (95 passed); and "Show me the next step" finishing all 17 levels whose content changed.
 
 ### Checkpoint 14 — 2026-10-01 (second audit: every "Done" row re-checked against the code)
@@ -170,7 +170,7 @@ they should be reviewed and merged in the order above.
   - Train a Sorter ("3 to 5 examples"): testing is possible with three; it used to need four.
   - Is That Real?: the homework scene asks what you think first, like the others.
   - "A hint after repeated failure": offered after the second failed check in Teach, grouping and simulation levels.
-  - Result notes (what you tried, what changed, try one more) on grouping levels and You Be the Classifier.
+  - Result notes (what you tried, what changed, try one more) on grouping levels and You Be the Sorter.
   - "What is this called?" in both modes: terms only when a child asks, and younger children can ask.
   - Tessa reacts to each test and gestures when the hints open.
   - Teacher replay of Teach-the-bunny attempts: what was taught, kept back, reported, and what changed since the previous try.

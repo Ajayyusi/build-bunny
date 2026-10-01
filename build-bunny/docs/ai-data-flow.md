@@ -28,7 +28,7 @@ which re-evaluates it server-side. Nothing else is sent.
 | Teach the Bunny family (AI Island, AI_CLASSIFICATION) | The specimen ids the child chose to teach with and the label they assigned each one (plus, where the level asks for one, their hold-out picks). | — |
 | The Grouping Machine family (Data Desert / ML Lab, PATTERN_RECOGNITION) | The flag positions the child placed (a few coordinate pairs) and any readings they struck out. | — |
 | Learn steps (CONCEPT_CARDS) | The block type dropped into the faded example's gap. | — |
-| You Be the Classifier | The child's dividing-line parameters (two numbers). | — |
+| You Be the Sorter | The child's dividing-line parameters (two numbers). | — |
 | Fortune Teller | The child's trend-line parameters (slope, intercept) and their predicted value. | — |
 | See Like a Computer | Answers to the mystery rounds (which image was identified, per round). Pixel data stays in the canvas. | The image pixels themselves; nothing is uploaded. |
 | Secret Keepers | The branch choices made in the scenario. | — |

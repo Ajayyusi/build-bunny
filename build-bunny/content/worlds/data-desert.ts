@@ -691,7 +691,8 @@ export const dataDesert: WorldFixture = {
           order: 1,
           activityType: "AI_SIM",
           track: "AI_CONCEPTS",
-          title: { en: "You Be the Classifier", ar: "كن أنت المصنِّف" },
+          // Plain words on screen; "classifier" waits behind "What is this called?".
+          title: { en: "You Be the Sorter", ar: "كن أنت آلة الفرز" },
           story: {
             en: "A desert market stall has a basket of mixed fruit: some tart, some sweet, and no labels. The stallholder wants a quick way to sort future baskets without tasting every single piece.",
             ar: "على كشك في سوق الصحراء سلة فواكه مختلطة: بعضها حامض وبعضها حلو، بلا بطاقات. يريد صاحب الكشك طريقة سريعة لفرز السلال القادمة دون تذوّق كل قطعة.",
