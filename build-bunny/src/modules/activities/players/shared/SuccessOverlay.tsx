@@ -417,7 +417,7 @@ export function SuccessOverlay({
             </Link>
           ) : null}
           <Link
-            href="/adventure"
+            href={level?.mapHref ?? "/adventure"}
             className="inline-flex h-11 items-center justify-center gap-2 rounded-lg border border-border-token bg-surface-raised px-5 text-base font-semibold text-ink transition-colors hover:bg-surface-sunken"
           >
             {t("backToMap")}

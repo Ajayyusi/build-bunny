@@ -68,6 +68,8 @@ export interface ActivityIntro {
    */
   support: SupportLevel;
   nextLevel: ActivityNextLevel | null;
+  /** Where "back to the map" goes: the level's own route. */
+  mapHref: "/explore" | "/ai-worlds" | "/adventure";
   /**
    * True only for a child who has never finished a level: the block editor
    * then points at "Add block", and then at Run, until the first run.
@@ -283,6 +285,7 @@ export interface TeachActivityPayload {
   pool: { id: string; size: number; color: number; truth: "positive" | "negative" }[];
   testSet: { id: string; size: number; color: number }[];
   minPerLabel: number;
+  minExamples?: number;
   /** Hard cap on examples, when the level sets one. */
   maxExamples?: number;
   /** Presentation, already resolved to the request locale. */

@@ -12,6 +12,8 @@ import type { ExploreLevelContext } from "../../types";
 export interface LevelContextValue {
   levelId: string;
   explore?: ExploreLevelContext;
+  /** The level's own route, for "back to the map". */
+  mapHref?: string;
 }
 
 export const LevelContext = createContext<LevelContextValue | null>(null);

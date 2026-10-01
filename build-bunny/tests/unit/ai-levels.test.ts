@@ -119,6 +119,7 @@ describe.each(aiLevels)("AI level $level.slug ($world)", ({ level }) => {
   // no more examples than the level's cap allows.
   const submittable = sets.filter(
     (s) =>
+      (payload.minExamples === undefined || s.length >= payload.minExamples) &&
       s.filter((x) => x.truth === "positive").length >= payload.minPerLabel &&
       s.filter((x) => x.truth === "negative").length >= payload.minPerLabel &&
       (payload.maxExamples === undefined || s.length <= payload.maxExamples) &&

@@ -135,8 +135,10 @@ export const firstSorts: ModuleFixture = {
           { id: "t4", size: 0.3, color: 0.0 },
         ],
         rule: { feature: "size", threshold: 0.175 },
-        minPerLabel: 2,
-        // The handoff's "3 to 5 examples": at least 2 of each, at most 5.
+        // The handoff's "3 to 5 examples": one of each kind and 3 in all
+        // before the first test, at most 5.
+        minPerLabel: 1,
+        minExamples: 3,
         maxExamples: 5,
         starCriteria: { threeStarMaxBlocks: 4 },
         predictFirst: true,

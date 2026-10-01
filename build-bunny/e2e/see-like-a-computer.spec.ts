@@ -46,6 +46,17 @@ test("mystery rounds: guess, check, add squares, reveal the clue", async ({ page
   await expect(card1.getByText(/The clue you used:/)).toBeVisible();
   await expect(card1.getByRole("img", { name: "The real picture: Carrot" })).toBeVisible();
 
+  // Name the clues: one still there in the squares, one lost in them.
+  const clues = card1.getByTestId("name-clues-round-1");
+  const kept = clues.getByRole("radiogroup", { name: "Which clue is still there in the squares?" });
+  const lost = clues.getByRole("radiogroup", { name: "Which clue got lost in the squares?" });
+  await kept.getByRole("radio", { name: "three separate leaves" }).click();
+  await expect(clues.getByText(/that detail is gone at this size/)).toBeVisible();
+  await kept.getByRole("radio", { name: "a big orange-red triangle" }).click();
+  await expect(clues.getByText(/Big shapes and colours survive the squares/)).toBeVisible();
+  await lost.getByRole("radio", { name: "three separate leaves" }).click();
+  await expect(clues.getByText(/Small details and smooth edges turn into blocks/)).toBeVisible();
+
   // A one-step round, missed: the answer, the clue missed, and a retry.
   const round2 = page.getByRole("radiogroup", { name: "Your guess for Round 2" });
   const card2 = round2.locator("xpath=ancestor::div[contains(@class,'rounded-xl')][1]");

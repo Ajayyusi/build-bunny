@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { judgePixelRound } from "@/modules/ai/lab/pixel-playground/judge";
-import { freshRound, roundReducer, settledWork, type RoundState } from "@/modules/ai/lab/pixel-playground/round-state";
+import { clueFits, freshRound, isDone, roundReducer, settledWork, type RoundState } from "@/modules/ai/lab/pixel-playground/round-state";
 import { roundSteps } from "@/modules/ai/lab/pixel-playground/steps";
 import { stripPixelPlaygroundConfig } from "@/modules/ai/lab/pixel-playground/grade";
 import type { PixelPlaygroundConfig } from "@/modules/ai/lab/pixel-playground/types";
@@ -142,5 +142,83 @@ describe("next-step hint while a round is being checked", () => {
     const level = bundle.worlds.flatMap((w) => w.modules.flatMap((m) => m.levels)).find((l) => l.slug === "see-like-a-computer")!;
     const step = computeNextStep("AI_SIM", level.payload, { pixel: { "round-1": { selected: "carrot", status: "checking" } } }, () => ({ pass: false, top: false }));
     expect(step).toEqual({ code: "checkingRound", roundId: "round-1" });
+  });
+});
+
+describe("naming the clues (AI Vision: a clue it used, a clue it missed)", () => {
+  const withClues: PixelPlaygroundConfig = {
+    ...config,
+    images: [
+      {
+        ...config.images[0]!,
+        clueChoices: [
+          { id: "orange", text: { en: "orange triangle" }, kept: true },
+          { id: "green", text: { en: "green on top" }, kept: true },
+          { id: "leaves", text: { en: "three leaves" }, kept: false },
+        ],
+      },
+      config.images[1]!,
+    ],
+  };
+  const settle = () => {
+    const picked = roundReducer(roundReducer(freshRound(), { type: "pick", imageId: "carrot" }), { type: "checking" });
+    return roundReducer(picked, {
+      type: "checked",
+      result: judgePixelRound(withClues, { roundId: "r1", imageId: "carrot", resolution: 8 })!,
+    });
+  };
+
+  it("are revealed only once the round is settled, and never in the student payload", () => {
+    expect(judgePixelRound(withClues, { roundId: "r1", imageId: "house", resolution: 8 })!.answer).toBeNull();
+    expect(settle().answer?.clueChoices).toHaveLength(3);
+    expect(JSON.stringify(stripPixelPlaygroundConfig(withClues))).not.toContain("three leaves");
+  });
+
+  it("the round is done only when a kept clue and a lost clue are both named right", () => {
+    let round = settle();
+    const house = check2();
+    expect(isDone(round)).toBe(false);
+    expect(settledWork({ r1: round, r2: house }, ["r1", "r2"]).ready).toBe(false);
+    round = roundReducer(round, { type: "name", slot: "kept", clueId: "leaves" });
+    expect(clueFits(round, "kept", round.named.kept)).toBe(false);
+    round = roundReducer(round, { type: "name", slot: "kept", clueId: "green" });
+    round = roundReducer(round, { type: "name", slot: "lost", clueId: "orange" });
+    expect(isDone(round)).toBe(false);
+    round = roundReducer(round, { type: "name", slot: "lost", clueId: "leaves" });
+    expect(isDone(round)).toBe(true);
+    expect(settledWork({ r1: round, r2: house }, ["r1", "r2"]).ready).toBe(true);
+    // Not before the round is settled, and only this picture's clues.
+    expect(roundReducer(freshRound(), { type: "name", slot: "kept", clueId: "green" }).named.kept).toBeNull();
+    expect(roundReducer(round, { type: "name", slot: "kept", clueId: "nope" }).named.kept).toBe("green");
+  });
+
+  function check2() {
+    const picked = roundReducer(roundReducer(freshRound(), { type: "pick", imageId: "house" }), { type: "checking" });
+    return roundReducer(picked, {
+      type: "checked",
+      result: judgePixelRound(withClues, { roundId: "r2", imageId: "house", resolution: 8 })!,
+    });
+  }
+
+  it("every picture in the level has a kept and a lost clue, in both languages", () => {
+    const level = bundle.worlds.flatMap((w) => w.modules.flatMap((m) => m.levels)).find((l) => l.slug === "see-like-a-computer")!;
+    const widget = aiSimPayload.parse(level.payload).widget;
+    if (widget.widgetId !== "pixel-playground") throw new Error("not the pixel playground");
+    for (const image of widget.images) {
+      const choices = image.clueChoices ?? [];
+      expect(choices.some((c) => c.kept), image.id).toBe(true);
+      expect(choices.some((c) => !c.kept), image.id).toBe(true);
+      for (const c of choices) expect(c.text.ar, `${image.id}.${c.id}`).toBeTruthy();
+    }
+  });
+
+  it("the next step names the clues after a right guess", async () => {
+    const { computeNextStep } = await import("@/modules/hints/server/next-step");
+    const level = bundle.worlds.flatMap((w) => w.modules.flatMap((m) => m.levels)).find((l) => l.slug === "see-like-a-computer")!;
+    const at = (named: { kept: string | null; lost: string | null }) =>
+      computeNextStep("AI_SIM", level.payload, { pixel: { "round-1": { selected: "carrot", status: "right", named } } }, () => ({ pass: false, top: false }));
+    expect(at({ kept: null, lost: null })).toMatchObject({ code: "nameClue", roundId: "round-1", slot: "kept" });
+    expect(at({ kept: "orange", lost: null })).toMatchObject({ code: "nameClue", roundId: "round-1", slot: "lost", clue: { en: "three separate leaves" } });
+    expect(at({ kept: "orange", lost: "leaves" })).toMatchObject({ code: "pickPicture", roundId: "round-2" });
   });
 });

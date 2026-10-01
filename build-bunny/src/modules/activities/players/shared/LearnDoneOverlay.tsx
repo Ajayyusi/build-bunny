@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { Button, Spinner, useFocusTrap } from "@/ui";
 
+import { useLevelContext } from "./level-context";
 import styles from "./player.module.css";
 
 /**
@@ -40,6 +41,7 @@ export function LearnDoneOverlay({
   // Same manual focus trap as IntroOverlay/SuccessOverlay — this overlay sits
   // inside the immersive player, so it can't use the top-layer <dialog>.
   const dialogRef = useFocusTrap<HTMLDivElement>(true);
+  const mapHref = useLevelContext()?.mapHref ?? "/adventure";
 
   return (
     <div
@@ -92,7 +94,7 @@ export function LearnDoneOverlay({
 
         <div className="flex flex-col-reverse gap-2 pt-1 sm:flex-row sm:justify-end">
           <Link
-            href="/adventure"
+            href={mapHref}
             className="inline-flex h-11 items-center justify-center gap-2 rounded-lg border border-border-token bg-surface-raised px-5 text-base font-semibold text-ink transition-colors hover:bg-surface-sunken"
           >
             {tSuccess("backToMap")}

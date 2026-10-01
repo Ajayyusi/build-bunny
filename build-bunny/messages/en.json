@@ -343,7 +343,8 @@
         "mazeInvalid": "Your maze can't be solved yet. Tap “Change my maze” and fix the line without a tick.",
         "emptyTrick": "Your trick has no blocks inside yet. Put the steps in “my trick”, then use “do my trick”.",
         "didNotRunEnough": "The counter has to count each one as it happens. Put the “add” block inside the loop, so it runs every time.",
-        "marksWrong": "{correct} of {total} are right so far. Look again at the ones you weren't sure about!"
+        "marksWrong": "{correct} of {total} are right so far. Look again at the ones you weren't sure about!",
+        "teachMoreExamples": "Teach the bunny at least {need} examples first."
       },
       "learn": {
         "stepWatch": "Step 1 of 2 · Watch",
@@ -536,7 +537,8 @@
           "needReport": "Your AI passed the fair's test! Now finish your project report: pick a case it got wrong or wasn't sure about, and a way for a person to stay in charge.",
           "reportNotAFailure": "Your report names a case your AI got right and was sure about. Pick one it got wrong, or wasn't sure about.",
           "safeguardNotSafe": "That plan leaves the robot on its own. Pick one where a person checks, or where you keep testing it."
-        }
+        },
+        "needMoreInAll": "Teach it at least {count} examples, with {each, plural, one {one} other {#}} of each kind, then it will start guessing."
       },
       "group": {
         "howItWorks": "How it works",
@@ -668,7 +670,16 @@
           "lightNormalLabel": "The picture in normal light",
           "lightChangedLabel": "The same picture in your light",
           "lightNumbers": "Average number: {value}",
-          "lightNote": "Same picture, but every number changed. A computer has to learn that these are the same thing; to you it's obvious."
+          "lightNote": "Same picture, but every number changed. A computer has to learn that these are the same thing; to you it's obvious.",
+          "clues": {
+            "heading": "Name the clues at {resolution} squares across",
+            "keptQuestion": "Which clue is still there in the squares?",
+            "lostQuestion": "Which clue got lost in the squares?",
+            "keptRight": "Yes. Big shapes and colours survive the squares, so a computer can still use them.",
+            "keptWrong": "Look again: that detail is gone at this size. Find something big.",
+            "lostRight": "Yes. Small details and smooth edges turn into blocks, so a computer misses them.",
+            "lostWrong": "That one is still there. Look for a small detail the squares hid."
+          }
         },
         "markItems": {
           "youSaid": "You said: {answer}.",
@@ -748,7 +759,8 @@
           "tooManyExamples": "This level is about teaching well with only a few examples. Choose the ones that cover every kind, and leave the rest out.",
           "emptyTrick": "A trick is a set of steps with a name. Calling an empty trick does nothing, so fill “my trick” with the steps you want to repeat.",
           "didNotRunEnough": "A counter only counts when its “add” block runs. If “add” runs once, the counter changes once, even if Robo Bunny hops many times. Put “add” where it runs once for each thing you count.",
-          "marksWrong": "Check each part against what you know is true (the notice, the task), not against how it sounds."
+          "marksWrong": "Check each part against what you know is true (the notice, the task), not against how it sounds.",
+          "teachMoreExamples": "The bunny learns only from examples. With just a couple, it has almost nothing to go on, so it needs a few more first."
         },
         "blocks": {
           "bb_whenStart": "The start. Everything snapped under this block runs when you press Run — from the top, one block at a time.",
@@ -944,7 +956,9 @@
         "checkingRound": "Checking your guess for {round}… give it a moment.",
         "markItem": "For “{item}”, choose “{mark}”.",
         "reportCase": "For your report, pick this case: {specimen}.",
-        "reportSafeguard": "For your report, pick this safeguard: “{safeguard}”."
+        "reportSafeguard": "For your report, pick this safeguard: “{safeguard}”.",
+        "nameClueKept": "In {round}, pick “{clue}” as the clue still there in the squares.",
+        "nameClueLost": "In {round}, pick “{clue}” as the clue lost in the squares."
       },
       "check": {
         "title": "Quick check",

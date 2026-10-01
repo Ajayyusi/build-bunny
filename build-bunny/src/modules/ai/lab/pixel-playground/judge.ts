@@ -20,6 +20,13 @@ export function judgePixelRound(
   return {
     correct,
     final,
-    answer: correct || final ? { imageId: round.imageId, clue: image?.clue ?? null } : null,
+    answer:
+      correct || final
+        ? {
+            imageId: round.imageId,
+            clue: image?.clue ?? null,
+            ...(image?.clueChoices ? { clueChoices: image.clueChoices } : {}),
+          }
+        : null,
   };
 }

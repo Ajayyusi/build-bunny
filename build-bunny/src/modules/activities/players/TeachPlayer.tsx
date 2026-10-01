@@ -103,6 +103,7 @@ interface TeachPayload {
   pool: KnownSpecimen[];
   testSet: Specimen[];
   minPerLabel: number;
+  minExamples?: number;
   maxExamples?: number;
   theme?: {
     glyph: string;
@@ -318,7 +319,9 @@ export function TeachPlayer({
   const negatives = examples.length - positives;
   const atCap = data.maxExamples !== undefined && examples.length >= data.maxExamples;
   const holdOk = !data.holdout || heldBack.size >= data.holdout.min;
+  const enoughInAll = data.minExamples === undefined || examples.length >= data.minExamples;
   const ready =
+    enoughInAll &&
     positives >= data.minPerLabel &&
     negatives >= data.minPerLabel &&
     holdOk &&
@@ -590,7 +593,7 @@ export function TeachPlayer({
           has played ANY level already knows where the exit is. ── */}
       <header className="flex h-14 shrink-0 items-center gap-2 border-b border-border-token bg-surface-raised px-2 sm:px-4">
         <Link
-          href="/adventure"
+          href={intro.mapHref}
           aria-label={tPlay("backToMap")}
           className="grid size-11 shrink-0 place-items-center rounded-md text-ink-muted transition-colors hover:bg-surface-sunken hover:text-ink"
         >
@@ -972,7 +975,9 @@ export function TeachPlayer({
                           the wrong place when the test pile was what was short. */}
                       {positives >= data.minPerLabel && negatives >= data.minPerLabel && !holdOk
                         ? t("needMoreHeldBack", { need: data.holdout?.min ?? 0 })
-                        : tk("needMore", { count: data.minPerLabel })}
+                        : !enoughInAll && data.minExamples !== undefined
+                          ? tk("needMoreInAll", { count: data.minExamples, each: data.minPerLabel })
+                          : tk("needMore", { count: data.minPerLabel })}
                     </p>
                   ) : data.predictFirst && !revealed ? (
                     <>

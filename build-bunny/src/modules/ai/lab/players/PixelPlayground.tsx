@@ -11,6 +11,7 @@ import { applyLight, averageBrightness } from "../math/light";
 import { greyscaleGrid } from "../math/greyscale";
 import type { Grid, Kernel3x3, RGB } from "../math/types";
 import {
+  clueFits,
   freshRound,
   isSettled,
   roundReducer,
@@ -287,6 +288,7 @@ export function PixelPlayground({
           {
             selected: state?.selected ?? null,
             status: state?.status ?? "guessing",
+            named: state?.named ?? { kept: null, lost: null },
             step,
             squares: stepsFor(round)[step] ?? round.resolution,
           },
@@ -610,6 +612,46 @@ export function PixelPlayground({
                     <p className="text-sm font-semibold text-danger">{t("checkError")}</p>
                   ) : null}
                 </div>
+
+                {/* Name the clues: one still there in the squares, one lost. */}
+                {settled && state.answer?.clueChoices ? (
+                  <div data-testid={`name-clues-${round.id}`} className="flex flex-col gap-3 rounded-lg bg-surface-sunken p-3">
+                    <p className="text-sm font-bold text-ink">{t("clues.heading", { resolution })}</p>
+                    {(["kept", "lost"] as const).map((slot) => {
+                      const picked = state.named[slot];
+                      return (
+                        <div key={slot} className="flex flex-col gap-1.5">
+                          <p id={`clue-${round.id}-${slot}`} className="text-sm text-ink">
+                            {t(`clues.${slot}Question`)}
+                          </p>
+                          <div role="radiogroup" aria-labelledby={`clue-${round.id}-${slot}`} className="flex flex-wrap gap-2">
+                            {state.answer!.clueChoices!.map((choice) => (
+                              <button
+                                key={choice.id}
+                                type="button"
+                                role="radio"
+                                aria-checked={picked === choice.id}
+                                disabled={disabled}
+                                onClick={() => act(round.id, { type: "name", slot, clueId: choice.id })}
+                                className={cn(
+                                  "min-h-11 rounded-lg border-2 px-3 py-2 text-start text-sm",
+                                  picked === choice.id ? "border-brand bg-brand/10 font-semibold" : "border-border-token bg-surface-raised hover:bg-surface-sunken",
+                                )}
+                              >
+                                {resolveLocalized(choice.text, locale)}
+                              </button>
+                            ))}
+                          </div>
+                          {picked ? (
+                            <p role="status" className={cn("text-sm", clueFits(state, slot, picked) ? "font-semibold text-positive" : "text-ink")}>
+                              {t(`clues.${slot}${clueFits(state, slot, picked) ? "Right" : "Wrong"}`)}
+                            </p>
+                          ) : null}
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : null}
 
                 {!disabled ? (
                   <div className="flex flex-wrap gap-2">

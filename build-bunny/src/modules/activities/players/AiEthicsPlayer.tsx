@@ -278,7 +278,7 @@ export function AiEthicsPlayer({
       {/* ── Top bar ── */}
       <header className="flex h-14 shrink-0 items-center gap-2 border-b border-border-token bg-surface-raised px-2 sm:px-4">
         <Link
-          href="/adventure"
+          href={intro.mapHref}
           aria-label={t("backToMap")}
           className="grid size-11 shrink-0 place-items-center rounded-md text-ink-muted transition-colors hover:bg-surface-sunken hover:text-ink"
         >
