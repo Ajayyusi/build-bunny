@@ -397,7 +397,8 @@
         "improveFirstTry": "Get it right on your first try for the third star.",
         "moreAi": "More AI to explore",
         "keyIdeaHeading": "The big idea",
-        "tellMeMore": "Tell me more"
+        "tellMeMore": "Tell me more",
+        "replayAgain": "Play again"
       },
       "blockNames": {
         "bb_whenStart": "when start",

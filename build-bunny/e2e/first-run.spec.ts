@@ -98,6 +98,8 @@ test("Coding Lab: first mission → coached mistake → success → next level",
 
   const success = page.getByRole("dialog", { name: "Level complete!" });
   await expect(success).toBeVisible();
+  // Replay is always offered, full stars or not (handoff: "allow replay").
+  await expect(success.getByRole("button", { name: /Play again/ })).toBeVisible();
   // XP shows a real number (it used to render "+ XP").
   await expect(success.getByText("What you learned")).toBeVisible();
   await expect

@@ -2,6 +2,7 @@
 
 import { useTranslations } from "next-intl";
 
+import { ReadAloudButton } from "@/modules/audio/AudioControls";
 import type { AiMode } from "@/modules/students/ai-mode";
 
 /**
@@ -22,7 +23,10 @@ export function ModeInstructions({
   if (mode !== "younger" || !mission || mission === instructions) return <>{instructions}</>;
   return (
     <>
-      <span className="block font-semibold text-ink">{mission}</span>
+      <span className="flex items-start gap-2">
+        <span className="block font-semibold text-ink">{mission}</span>
+        <ReadAloudButton text={mission} />
+      </span>
       <details className="mt-1">
         <summary className="cursor-pointer text-xs font-semibold text-brand underline-offset-4 hover:underline">
           {t("showSteps")}

@@ -121,3 +121,15 @@ describe("every AI lesson, not just the ones with a quick check", () => {
     expect(detail?.explanations).toContainEqual(expect.objectContaining({ levelId: keep.id, concept: "testing", parts: testing, soundParts: 3 }));
   });
 });
+
+describe("the concept trend dates a sentence by when it was first saved", () => {
+  it("re-saving an old sentence doesn't move it into the last four weeks", async () => {
+    const { loadConceptInput } = await import("@/modules/analytics/server/ai-concepts-load");
+    const old = new Date(Date.now() - 40 * 86_400_000);
+    await db.explanationSentence.updateMany({ where: { studentUserId: kid.userId, levelId }, data: { createdAt: old } });
+    await saveExplanationCore(kid, { levelId, parts: sound });
+    const input = await loadConceptInput(kid.schoolId!, [kid.userId], [{ id: levelId, slug: "train-a-sorter" }]);
+    const row = input.soundSentences?.find((r) => r.levelId === levelId);
+    expect(row?.at?.getTime()).toBe(old.getTime());
+  });
+});
