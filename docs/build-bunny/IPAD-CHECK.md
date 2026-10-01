@@ -4,8 +4,7 @@ What this checklist is for: a person with a real iPad (Safari, iPadOS 17 or late
 
 ## What emulation already shows
 
-- **Every AI-route level:** 35 of 35 finish by following "Show me the next step", in WebKit on iPad landscape.
-- **Coding levels:** see the WebKit row in the checklist (`CHECKLIST-2027.md`, checkpoint 15).
+- **Every level:** all 106 finish by following "Show me the next step" in WebKit on iPad landscape. That covers the 35 AI-route levels and every Blockly coding, debugging and maze-design level.
 - **iPad portrait (WebKit):** no horizontal scrolling on Explore AI (English and Arabic), the AI worlds, or the six Explore AI activities.
 - **Fortune Teller:** dragging the line's ends follows the pointer exactly.
   - In landscape, the lower end can sit under the bottom bar.

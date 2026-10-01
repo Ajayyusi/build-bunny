@@ -162,6 +162,7 @@ they should be reviewed and merged in the order above.
   - The first session is timed in real classrooms: the school page shows the median minutes to finish Train a Sorter, and how many finished within 8 minutes, once five children have.
   - The return-session test picked an event without saying which type, which failed CI once; it is fixed.
   - Raw-SQL time windows now compare in UTC.
+  - Safari's engine (WebKit) on an emulated iPad: all 106 levels finish by following their hints, and the six Explore AI activities and both routes don't scroll sideways in portrait. One thing needs a real iPad first: emulated WebKit misdraws Arabic vowel marks with the app's font, though the font files and Chromium are fine (`IPAD-CHECK.md`).
 - **Tested:** the full unit and integration suite; the full Playwright suite on a production build (95 passed); and "Show me the next step" finishing all 17 levels whose content changed.
 
 ### Checkpoint 14 — 2026-10-01 (second audit: every "Done" row re-checked against the code)
