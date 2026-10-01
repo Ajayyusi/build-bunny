@@ -53,16 +53,18 @@ export interface ConceptInput {
   /** Programme levels by slug. */
   levelIdBySlug: ReadonlyMap<string, string>;
   students: readonly { id: string; grade: number }[];
-  completed: readonly { studentId: string; levelId: string; stars: number }[];
-  checks: readonly { studentId: string; levelId: string; firstChoice: string; firstCorrect: boolean; correct: boolean }[];
+  /** `at`: when the evidence arrived (first completion, the check answered
+   *  right, the sentence saved, the tick given), for trends (asOf). */
+  completed: readonly { studentId: string; levelId: string; stars: number; at?: Date | null }[];
+  checks: readonly { studentId: string; levelId: string; firstChoice: string; firstCorrect: boolean; correct: boolean; at?: Date | null }[];
   /** Levels that ask a quick check, and which check. */
   checkConceptOf: ReadonlyMap<string, ExploreConcept>;
   attemptsByLevel: ReadonlyMap<string, number>;
   retriesByLevel: ReadonlyMap<string, number>;
   /** "Say it your way" sentences whose three parts all hold up. */
-  soundSentences?: readonly { studentId: string; levelId: string }[];
+  soundSentences?: readonly { studentId: string; levelId: string; at?: Date | null }[];
   /** A teacher heard the child explain the concept aloud. */
-  observed?: readonly { studentId: string; concept: string }[];
+  observed?: readonly { studentId: string; concept: string; at?: Date | null }[];
 }
 
 export function masteryOf(
@@ -151,6 +153,24 @@ export function secureByConcept(concepts: readonly ClassAiConcept[]): Record<AiC
   return Object.fromEntries(
     concepts.map((c) => [c.concept, { secure: c.secure, students: c.secure + c.working + c.notStarted, levels: c.levels }]),
   ) as Record<AiConcept, { secure: number; students: number; levels: number }>;
+}
+
+/**
+ * The same evidence as it stood at `cutoff` (the school admin's concept
+ * trend: secure now against four weeks ago). Evidence with no date is
+ * treated as older than any cutoff. Stars are each level's best, so a level
+ * replayed since for more stars counts its new stars back then too; the
+ * trend can only understate a rise, never invent one.
+ */
+export function conceptInputAsOf(input: ConceptInput, cutoff: Date): ConceptInput {
+  const by = (at: Date | null | undefined) => !at || at.getTime() <= cutoff.getTime();
+  return {
+    ...input,
+    completed: input.completed.filter((r) => by(r.at)),
+    checks: input.checks.map((r) => (r.correct && !by(r.at) ? { ...r, correct: false } : r)),
+    soundSentences: (input.soundSentences ?? []).filter((r) => by(r.at)),
+    observed: (input.observed ?? []).filter((r) => by(r.at)),
+  };
 }
 
 /** Narrow a class-wide input to some of its children (school admin, by class). */

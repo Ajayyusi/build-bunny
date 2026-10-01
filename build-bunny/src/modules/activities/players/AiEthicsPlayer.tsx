@@ -333,7 +333,8 @@ export function AiEthicsPlayer({
           <div className="flex flex-wrap items-start gap-2">
             {intro.lessonKind ? <LessonKindChip kind={intro.lessonKind} /> : null}
             <HonestyNote kind="story" />
-            {intro.aiMode === "older" ? <WhatIsThisCalled tags={intro.tags} /> : null}
+            {/* Terms only when the child asks (handoff), in either mode. */}
+            <WhatIsThisCalled tags={intro.tags} />
           </div>
           {phase === "scene" && scene ? (
             <div className="flex flex-col gap-4 rounded-xl border-2 border-border-token bg-surface-raised p-5">

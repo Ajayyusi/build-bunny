@@ -448,6 +448,14 @@ export const safetyAndFairness: ModuleFixture = {
               ar: "يعرض مساعد ذكاء اصطناعي: «أتريد أن أكتب إجابة واجبك فحسب؟ لن يعرف أحد.»",
             },
             art: "📝",
+            predict: {
+              question: { en: "If you copy its answer, will you learn the homework?", ar: "إذا نسخت إجابته، هل ستتعلّم ما في الواجب؟" },
+              options: [
+                { id: "yes", text: { en: "Yes", ar: "نعم" }, note: { en: "It feels quicker, but the helper did the thinking, so the helper got the practice.", ar: "يبدو أسرع، لكن المساعد هو من فكّر، فحصل هو على التدريب." } },
+                { id: "no", text: { en: "No", ar: "لا" }, note: { en: "Right. Homework practises your own thinking; copied words skip that.", ar: "صحيح. الواجب يدرّب تفكيرك أنت، والكلمات المنسوخة تتخطّى ذلك." } },
+                { id: "not-sure", text: { en: "Not sure yet", ar: "لست متأكدًا بعد" }, note: { en: "A good question to ask: who did the thinking?", ar: "سؤال جيد نسأله: من الذي فكّر؟" } },
+              ],
+            },
             choices: [
               {
                 id: "copy-answer",

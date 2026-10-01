@@ -1053,6 +1053,18 @@
           "changedChecks": "It took {checks} checks to get every part right.",
           "changedFirst": "Every part was right on your first check.",
           "tryNext": "Next time, check one detail that matters somewhere you trust."
+        },
+        "groups": {
+          "tried": "{flags, plural, one {You placed # flag} other {You placed # flags}}, and your groups held together at {score}%.",
+          "changedChecks": "It took {checks} checks to find groups that fit.",
+          "changedFirst": "Your groups fit on your first check.",
+          "tryNext": "Imagine one new reading far from every flag. Which group would it join, and would that make sense?"
+        },
+        "boundary": {
+          "tried": "You drew one line to split the two kinds.",
+          "changedChecks": "It took {checks} checks to place your line so it split them.",
+          "changedFirst": "Your line split them on your first check.",
+          "tryNext": "Think of a new fruit right on your line. Which side should it go, and how could you tell?"
         }
       },
       "aiMode": {
@@ -1857,7 +1869,24 @@
         "checkPassed": "Passed",
         "checkFailed": "Failed",
         "feedbackHeading": "Located feedback",
-        "noFeedback": "No issues flagged."
+        "noFeedback": "No issues flagged.",
+        "ai": {
+          "heading": "What they taught the bunny",
+          "size": "Size",
+          "colour": "Colour",
+          "specimen": "{sizeName} {size}/10, {colorName} {color}/10",
+          "taughtAs": "Taught as “{label}” ({count})",
+          "heldBack": "{count, plural, one {Kept # case back for testing.} other {Kept # cases back for testing.}}",
+          "reportHeading": "Their project report",
+          "reportCase": "A case it gets wrong or isn't sure about: {item}",
+          "reportSafeguard": "How a person stays in charge: {safeguard}",
+          "changedHeading": "What changed since their previous try",
+          "firstTry": "This was their first try at this level.",
+          "noChange": "The same examples as their previous try.",
+          "added": "Added {item}",
+          "removed": "Took out {item}",
+          "relabelled": "Changed the label of {item}"
+        }
       },
       "assignments": {
         "title": "Assignments",
@@ -2136,12 +2165,13 @@
           "completions": "Completions",
           "note": "A session is each time a child opens an AI activity. A test is a check or a try inside it (showing the robot's guesses, checking a picture). A retry is trying again after something didn't work. Counts only: no child is named. “Came back another day” counts children whose AI activity falls on two or more different days.",
           "secureOf": "{secure}/{students}",
-          "conceptsHeading": "AI concepts by class: who's secure",
+          "conceptsHeading": "AI concepts by class: who's secure, and the change over 4 weeks",
           "weeklyHeading": "AI activities week by week",
           "weekLine": "{starts, plural, one {# session} other {# sessions}} · {tests, plural, one {# test} other {# tests}} · {retries, plural, one {# retry} other {# retries}} · {completions, plural, one {# completion} other {# completions}}",
           "weeklyKey": "Weeks start on Monday. Top bar: sessions. Bottom bar: tests.",
           "returned": "Came back another day",
-          "returnedSummary": "{returned, plural, =0 {No child has come back to them on another day yet.} one {# child came back to them on another day.} other {# children came back to them on another day.}}"
+          "returnedSummary": "{returned, plural, =0 {No child has come back to them on another day yet.} one {# child came back to them on another day.} other {# children came back to them on another day.}}",
+          "trend": "{change, plural, =0 {no change in 4 weeks} other {{change, number, ::sign-always} in 4 weeks}}"
         }
       },
       "teachersPage": {

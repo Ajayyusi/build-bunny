@@ -10,6 +10,8 @@ import { useFeedbackText } from "@/modules/activities/players/shared/ResultBanne
 import { blockCodingPayload, resolveText, type LocalizedText } from "@/modules/curriculum/schemas";
 import { Badge, Button, Card, CardBody, CardHeader, CardTitle, cn } from "@/ui";
 
+import { AiAttemptReplay } from "./AiAttemptReplay";
+
 // Blockly renders into a real DOM — client-only by contract, read-only here.
 const BlocklyWorkspace = dynamic(() => import("@/modules/blockly/BlocklyWorkspace"), {
   ssr: false,
@@ -44,6 +46,8 @@ export interface ReplayViewerProps {
     worldTheme: string;
   };
   workspaceJson: unknown;
+  /** AI classification: the previous try's answer, for "what changed". */
+  previousWorkspaceJson?: unknown | null;
   generatedCode: string;
   levelPayload: unknown;
   runs: ProgramRun[];
@@ -64,9 +68,21 @@ export function ReplayViewer({
   levelPayload,
   runs,
   perVariant,
+  previousWorkspaceJson = null,
 }: ReplayViewerProps) {
   const t = useTranslations("staff.teach.replay");
   const locale = useLocale();
+
+  if (attempt.activityType === "AI_CLASSIFICATION") {
+    return (
+      <AiAttemptReplay
+        levelPayload={levelPayload}
+        workspaceJson={workspaceJson}
+        previousWorkspaceJson={previousWorkspaceJson}
+        locale={locale}
+      />
+    );
+  }
 
   if (!GRID_TYPES.has(attempt.activityType)) {
     return <AnswerReplay activityType={attempt.activityType} levelPayload={levelPayload} workspaceJson={workspaceJson} locale={locale} />;

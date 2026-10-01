@@ -11,6 +11,7 @@ import {
   Card,
   CardBody,
   CardTitle,
+  cn,
   DataTable,
   ErrorState,
   PageHeader,
@@ -136,8 +137,16 @@ export default async function SchoolPage({ params }: Props) {
       header: tConcepts(`name.${concept}`),
       cell: (row: NonNullable<typeof analytics>["aiConceptsByClass"][number]) =>
         row.concepts[concept].levels > 0 ? (
-          <span className="tabular-nums">
+          <span className="flex flex-col items-end tabular-nums">
             {tAnalytics("ai.secureOf", { secure: row.concepts[concept].secure, students: row.concepts[concept].students })}
+            {(() => {
+              const change = row.concepts[concept].secure - row.secureBefore[concept];
+              return (
+                <span className={cn("text-xs", change > 0 ? "font-semibold text-brand-strong" : "text-ink-muted")}>
+                  {tAnalytics("ai.trend", { change })}
+                </span>
+              );
+            })()}
           </span>
         ) : (
           <span className="text-ink-faint">—</span>

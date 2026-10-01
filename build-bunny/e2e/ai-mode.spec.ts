@@ -30,13 +30,14 @@ test("switching between simpler words and more detail", async ({ page, baseURL }
   await expect(page.getByText("What is this called?")).toBeVisible();
   await expect(page.getByText("Show all the steps")).toHaveCount(0);
 
-  // Simpler: the mission line, the steps one tap away, no terms.
+  // Simpler: the mission line, the steps one tap away, and terms only if
+  // the child asks (the chip stays closed until tapped).
   await page.goto("/en/explore");
   await modes.getByRole("radio", { name: "Simpler" }).click();
   await expect(modes.getByRole("radio", { name: "Simpler" })).toHaveAttribute("aria-checked", "true");
   await openSorter();
   await expect(page.getByText("Show all the steps")).toBeVisible();
-  await expect(page.getByText("What is this called?")).toHaveCount(0);
+  await expect(page.locator("details").filter({ hasText: "What is this called?" })).not.toHaveAttribute("open", "");
 
   // Back to the grade's own mode.
   await page.goto("/en/explore");

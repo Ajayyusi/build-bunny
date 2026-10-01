@@ -235,6 +235,9 @@ export interface AttemptReplay {
   runs: ProgramRun[];
   /** Per-variant check results from the re-run — empty for non-grid types. */
   perVariant: GradeVariantResult[];
+  /** The same child's previous answer on this level (AI classification:
+   *  "what changed"), or null on a first try. */
+  previousWorkspaceJson: unknown | null;
 }
 
 // ── Shared helpers ─────────────────────────────────────────────────────────
@@ -1229,6 +1232,15 @@ export async function getAttemptReplay(
     }
   }
 
+  const previous =
+    snapshot.activityType === "AI_CLASSIFICATION"
+      ? await db.activityAttempt.findFirst({
+          where: { schoolId, studentUserId: attempt.studentUserId, levelId: attempt.levelId, createdAt: { lt: attempt.createdAt } },
+          orderBy: { createdAt: "desc" },
+          select: { workspaceJson: true },
+        })
+      : null;
+
   return {
     attempt: {
       id: attempt.id,
@@ -1255,6 +1267,7 @@ export async function getAttemptReplay(
     levelPayload: replayPayload,
     runs: grade.runs,
     perVariant: grade.perVariant,
+    previousWorkspaceJson: previous?.workspaceJson ?? null,
   };
 }
 

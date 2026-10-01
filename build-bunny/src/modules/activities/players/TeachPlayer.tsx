@@ -47,6 +47,7 @@ import { Walkthrough } from "./shared/Walkthrough";
 import { NextStepHint } from "./shared/NextStepHint";
 import { postAttempt, runIdFor } from "./shared/attempt-outbox";
 import { HintDrawer } from "./shared/HintDrawer";
+import { HintNudge } from "./shared/HintNudge";
 import { HonestyNote } from "./shared/HonestyNote";
 import { LessonKindChip } from "./shared/LessonKindChip";
 import { WhatIsThisCalled } from "./shared/WhatIsThisCalled";
@@ -248,6 +249,11 @@ export function TeachPlayer({
   const [predictions, setPredictions] = useState<Record<string, ClassLabel>>({});
   // Tessa the test tortoise asks what happens on a new example, and reacts.
   const [tessa, tessaReacts] = useCharacterReaction();
+  // Opening the hints: Tessa's one hint gesture, then the drawer.
+  const openHints = () => {
+    tessaReacts("hint");
+    hints.setOpen(true);
+  };
   const [revealed, setRevealed] = useState(false);
   const resetPrediction = () => {
     if (!data.predictFirst) return;
@@ -273,6 +279,7 @@ export function TeachPlayer({
   // Bumped every time the bunny is taught something — remounting the bunny
   // span on this key is what retriggers the hop animation.
   const [hopKey, setHopKey] = useState(0);
+  const [failedChecks, setFailedChecks] = useState(0);
   const [result, setResult] = useState<{
     verdict: string;
     code?: string;
@@ -499,6 +506,9 @@ export function TeachPlayer({
       const body = (await res.json()) as AttemptResponse;
       setServer(body);
       if (body.verdict !== "PASS" && firstTry === null) setFirstTry(examples.map((e) => e.id));
+      if (body.verdict !== "PASS") setFailedChecks((n) => n + 1);
+      // Tessa, who tests things, reacts to every test: celebration or error.
+      tessaReacts(body.verdict === "PASS" ? "right" : "wrong");
       // The counts ride on the feedback payload, not a top-level summary —
       // reading the wrong one is why this said "0 of 0" for every attempt.
       const feedbackData = body.feedback?.data as
@@ -658,7 +668,8 @@ export function TeachPlayer({
           <div className="flex flex-wrap items-start gap-2">
             {intro.lessonKind ? <LessonKindChip kind={intro.lessonKind} /> : null}
             <HonestyNote kind="tinyClassifier" />
-            {intro.aiMode === "older" ? <WhatIsThisCalled tags={intro.tags} /> : null}
+            {/* Terms only when the child asks (handoff), in either mode. */}
+            <WhatIsThisCalled tags={intro.tags} />
           </div>
           {intro.explainer ? <ExplainerOffer explainerId={intro.explainer} /> : null}
           {/* The bunny hosts its own level: the instructions are its speech,
@@ -1146,6 +1157,10 @@ export function TeachPlayer({
               </p>
             ) : null}
 
+            {result && (result.verdict === "FAIL" || result.verdict === "PARTIAL") ? (
+              <HintNudge failedChecks={failedChecks} onOpen={openHints} />
+            ) : null}
+
             {/* Grades 5 to 7: the two kinds of mistake, as a small grid and in
                 words, not just a count. */}
             {intro.aiMode === "older" && result && result.verdict !== "PASS" && Array.isArray(result.missed) ? (
@@ -1318,7 +1333,7 @@ export function TeachPlayer({
         onRevealTier1={() => void hints.reveal(1)}
         onOpenHints={() => {
           setRoboOpen(false);
-          hints.setOpen(true);
+          openHints();
         }}
         initialTopic={roboTopic}
       />
