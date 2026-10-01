@@ -22,6 +22,7 @@ import { useDraftAutosave } from "./shared/useDraftAutosave";
 import styles from "./shared/player.module.css";
 import { SuccessOverlay } from "./shared/SuccessOverlay";
 import { ResultNotesCard } from "./shared/ResultNotesCard";
+import { DeeperQuestion } from "./shared/DeeperQuestion";
 import { ethicsResultNotes } from "./result-notes";
 import type {
   ActivityPlayerProps,
@@ -564,9 +565,15 @@ export function AiEthicsPlayer({
       {phase === "result" && submission ? (
         <SuccessOverlay
           extra={
-            <ResultNotesCard
-              notes={ethicsResultNotes(submission.path, payload.tryNext ? resolveLocalized(payload.tryNext, locale) : null)}
-            />
+            <>
+              <ResultNotesCard
+                notes={ethicsResultNotes(submission.path, payload.tryNext ? resolveLocalized(payload.tryNext, locale) : null)}
+              />
+              {/* Grades 5 to 7, on the AI lessons (not the citizenship missions). */}
+              {intro.aiMode === "older" && intro.lessonKind === "ai" ? (
+                <DeeperQuestion id={intro.tags.includes("misinformation") ? "isThatReal" : "whoDecides"} />
+              ) : null}
+            </>
           }
           key={submission.id}
           stars={submission.server?.stars ?? 0}

@@ -14,6 +14,7 @@ import {
   glyphTheme,
 } from "@/modules/ai/glyph";
 import { assign, lloydStep, tightness } from "@/modules/ai/grouping";
+import { TIGHT_GUESSES, tightGuessFits, type TightGuess } from "@/modules/ai/tight-guess";
 import { BunnyMascot, Button, cn, useReducedMotion } from "@/ui";
 
 import { PlayerSoundControls } from "@/modules/audio/AudioControls";
@@ -24,6 +25,7 @@ import { postAttempt, runIdFor } from "./shared/attempt-outbox";
 import { HintDrawer } from "./shared/HintDrawer";
 import { HintNudge } from "./shared/HintNudge";
 import { ResultNotesCard } from "./shared/ResultNotesCard";
+import { DeeperQuestion } from "./shared/DeeperQuestion";
 import { groupResultNotes } from "./result-notes";
 import { HonestyNote } from "./shared/HonestyNote";
 import { LessonKindChip } from "./shared/LessonKindChip";
@@ -44,6 +46,7 @@ const BUILT_IN_BEATS = [1, 2, 3, 4] as const;
 import type { ActivityPlayerProps, AttemptResponse } from "../types";
 import { resolveLocalized, type GroupActivityPayload } from "../types";
 import { ModeInstructions } from "./shared/ModeInstructions";
+import { sendPlayEvent } from "./shared/play-events";
 
 /**
  * PATTERN_RECOGNITION player — "the Grouping Machine".
@@ -175,6 +178,8 @@ export function GroupPlayer({
   const [server, setServer] = useState<AttemptResponse | null>(null);
   const reducedMotion = useReducedMotion();
   const [failedChecks, setFailedChecks] = useState(0);
+  /** Predict first: how tight the child thinks the groups are, before the meter shows. */
+  const [predicted, setPredicted] = useState<TightGuess | null>(null);
   const [result, setResult] = useState<{
     verdict: string;
     code?: string;
@@ -220,7 +225,8 @@ export function GroupPlayer({
   // On training levels the meter previews the SEED score until Run is
   // pressed; the submit gate requires a run so the child never submits a
   // number they have not seen the machine settle on.
-  const ready = countOk && kept.length > 0 && (!data.training || hasRun);
+  const predicting = Boolean(data.predictFirst) && predicted === null;
+  const ready = countOk && kept.length > 0 && !predicting && (!data.training || hasRun);
 
   const invalidate = () => {
     if (result) setResult(null);
@@ -631,6 +637,32 @@ export function GroupPlayer({
                 )}
               >
                 <h2 className="font-display text-sm font-bold text-ink">{t("meterHeading")}</h2>
+                {predicting ? (
+                  // Predict, then observe: the meter shows once the child has said.
+                  <div role="group" aria-labelledby="tight-guess" className="flex flex-col gap-2">
+                    <p id="tight-guess" className="text-sm font-semibold text-ink">
+                      {t(data.training ? "predict.questionRun" : "predict.question")}
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {TIGHT_GUESSES.map((guess) => (
+                        <button
+                          key={guess}
+                          type="button"
+                          disabled={!countOk}
+                          onClick={() => {
+                            setPredicted(guess);
+                            sendPlayEvent(intro.levelId, { kind: "test", what: "lockPrediction" });
+                          }}
+                          className="min-h-11 rounded-lg border-2 border-border-token bg-surface-raised px-3 py-2 text-sm font-semibold text-ink hover:bg-surface-sunken disabled:opacity-60"
+                        >
+                          {t(`predict.${guess}`)}
+                        </button>
+                      ))}
+                    </div>
+                    {!countOk ? <p className="text-xs text-ink-muted">{t("predict.placeFirst")}</p> : null}
+                  </div>
+                ) : (
+                <>
                 <div
                   role="meter"
                   aria-valuemin={0}
@@ -665,6 +697,16 @@ export function GroupPlayer({
                     ? ` · ${t("excludedCount", { used: excluded.size, max: data.maxExclusions })}`
                     : ""}
                 </p>
+                {predicted !== null && scorePct !== null && (!data.training || hasRun) ? (
+                  <p role="status" className="text-sm text-ink">
+                    {t(
+                      tightGuessFits(predicted, scorePct, needPct) ? "predict.matched" : "predict.surprised",
+                      { guess: t(`predict.${predicted}`), score: scorePct },
+                    )}
+                  </p>
+                ) : null}
+                </>
+                )}
               </section>
 
               {data.training ? (
@@ -672,7 +714,7 @@ export function GroupPlayer({
                   size="lg"
                   variant="secondary"
                   onClick={run}
-                  disabled={!countOk || running || frozen}
+                  disabled={!countOk || running || frozen || predicting}
                   loading={running}
                 >
                   <span aria-hidden="true" className="me-1.5">
@@ -693,6 +735,8 @@ export function GroupPlayer({
                 >
                   {result.verdict === "ERROR"
                     ? t("submitFailed")
+                    : result.code === "pilesNotTight" && intro.aiMode === "younger"
+                      ? tPlay("aiMode.younger.group")
                     : result.code === "pilesNotTight"
                       ? t("pilesNotTight", {
                           score: (result.data?.score as number) ?? 0,
@@ -726,7 +770,7 @@ export function GroupPlayer({
                     action={nextStepAction}
                     usedBefore={intro.hintsUsedTiers.includes(5)}
                     readyAction={data.training ? `“${t("run")}”, “${t("check")}”` : `“${t("check")}”`}
-                    getState={() => ({ markers: seed, excluded: [...excluded] })}
+                    getState={() => ({ markers: seed, excluded: [...excluded], predicting })}
                     names={{
                       specimen: (id) => {
                         const sp = data.specimens.find((x) => x.id === id);
@@ -821,6 +865,7 @@ export function GroupPlayer({
                 </p>
               ) : null}
               <ResultNotesCard notes={groupResultNotes({ flags: seed.length, score: scorePct ?? 0, failedChecks })} />
+              {intro.aiMode === "older" ? <DeeperQuestion id="group" /> : null}
             </div>
           }
         />

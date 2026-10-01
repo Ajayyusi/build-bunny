@@ -213,6 +213,8 @@ export const dataDesert: WorldFixture = {
             ],
             markers: { min: 2, max: 2 },
             maxExclusions: 0,
+            // Say how tight the groups are before the meter shows (the handoff's loop).
+            predictFirst: true,
             // Reference scores 0.9676; a sloppy one-per-clump answer 0.9100;
             // one flag in the gap 0.3894. Verified in
             // tests/unit/pattern-recognition.test.ts.
@@ -356,6 +358,8 @@ export const dataDesert: WorldFixture = {
             ],
             markers: { min: 2, max: 4 },
             maxExclusions: 0,
+            // Say how tight the groups are before the meter shows (the handoff's loop).
+            predictFirst: true,
             // Three flags on the clump means → 0.9728. Best possible two-flag
             // answer → 0.5291 (unreachable bar). Four flags → 0.9756, passes,
             // and the 3-flag star budget takes the third star. Verified.
@@ -492,6 +496,8 @@ export const dataDesert: WorldFixture = {
             ],
             markers: { min: 3, max: 3 },
             maxExclusions: 1,
+            // Say how tight the groups are before the meter shows (the handoff's loop).
+            predictFirst: true,
             // Keep the outlier: best three-clump placement 0.6032; best
             // spend-a-flag-on-it placement 0.7983 — both under the bar.
             // Exclude it: reference 0.9595; even 0.06 off on every axis
@@ -657,6 +663,8 @@ export const dataDesert: WorldFixture = {
             ],
             rule: { kind: "threshold", feature: "size", threshold: 0.5 },
             minPerLabel: 2,
+            // Say what the bunny will answer before seeing it (the handoff's loop).
+            predictFirst: true,
             maxExamples: 5,
             starCriteria: { threeStarMaxBlocks: 4 },
           } satisfies AiDraft,

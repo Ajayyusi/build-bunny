@@ -46,6 +46,10 @@ const DELIBERATELY_IDENTICAL = new Set([
   "student.header.xpChip",
   "staff.teach.replay.meta",
   "staff.school.analytics.licenceSeatsValue",
+  // Numbers as answers (See Like a Computer, older mode): the same digits in both.
+  "student.play.aiMode.deeper.pixel.options.n64",
+  "student.play.aiMode.deeper.pixel.options.n192",
+  "student.play.aiMode.deeper.pixel.options.n8",
   "staff.school.studentsPage.noClass",
   "platform.curriculum.levels.order",
   "platform.users.noSchool",

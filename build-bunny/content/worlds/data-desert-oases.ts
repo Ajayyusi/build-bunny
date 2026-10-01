@@ -94,6 +94,8 @@ export const threeOases: ModuleFixture = {
         ],
         markers: { min: 3, max: 3 },
         maxExclusions: 0,
+        // Say how tight the groups are before the meter shows (the handoff's loop).
+        predictFirst: true,
         objective: { minTightness: 0.8 },
         groundTruth: {
           referencePlacement: [

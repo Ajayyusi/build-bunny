@@ -640,6 +640,9 @@ export const patternRecognitionPayload = z
       .refine((m) => m.min <= m.max, { message: "markers.min must be <= markers.max" }),
     /** Readings the student may strike out ("not an animal"). */
     maxExclusions: z.number().int().min(0).max(2).default(0),
+    /** The tightness meter stays hidden until the child says how tight they
+     *  think their groups are (the handoff's predict, then observe). */
+    predictFirst: z.boolean().default(false),
     /** Pass bar on the tightness score, computed over the KEPT specimens. */
     objective: z.object({ minTightness: z.number().min(0).max(1) }).strict(),
     /**
@@ -684,6 +687,7 @@ export const patternRecognitionStudentPayload = z
       })
       .strict(),
     maxExclusions: z.number().int().min(0).max(2).default(0),
+    predictFirst: z.boolean().default(false),
     objective: z.object({ minTightness: z.number().min(0).max(1) }).strict(),
     training: z
       .object({

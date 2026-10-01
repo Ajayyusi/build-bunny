@@ -1,6 +1,17 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 
 import { provisionStudent, signIn, studentName } from "./helpers";
+
+/** Say what the bunny will answer (predict first), then test it. */
+async function predictAndTest(page: Page) {
+  const reveal = page.getByRole("button", { name: "Show its guesses" });
+  if (await reveal.isVisible().catch(() => false)) {
+    const groups = page.locator("[role=radiogroup][aria-labelledby^=predict-]");
+    for (let i = 0; i < (await groups.count()); i++) await groups.nth(i).getByRole("radio").first().click();
+    await reveal.click();
+  }
+  await page.getByRole("button", { name: "Test the bunny" }).click();
+}
 
 /**
  * The Berry That Lied, open from day one: a taught berry's note can be
@@ -40,11 +51,11 @@ test("with the wrong note in, the test fails; fixed, the same examples pass", as
   for (const id of ["L1", "L2", "L3", "L4", "L5", "L6", "L7", "L8"]) {
     await page.getByRole("listitem").filter({ has: page.locator(`#specimen-${id}`) }).getByRole("button", { name: "Teach this one" }).click();
   }
-  await page.getByRole("button", { name: "Test the bunny" }).click();
+  await predictAndTest(page);
   await expect(page.getByText(/got d of 3 right|It guessed wrong/)).toBeVisible();
 
   // Fix that one note and test the same examples again.
   await page.getByRole("button", { name: /^Fix this note:.*3 out of 10.*8 out of 10/ }).click();
-  await page.getByRole("button", { name: "Test the bunny" }).click();
+  await predictAndTest(page);
   await expect(page.getByRole("dialog", { name: /complete/i })).toBeVisible();
 });

@@ -346,6 +346,8 @@ export const onlineLife: ModuleFixture = {
         ],
         rule: { feature: "size", threshold: 0.5 },
         minPerLabel: 2,
+        // Say what the bunny will answer before seeing it (the handoff's loop).
+        predictFirst: true,
         starCriteria: { threeStarMaxBlocks: 6 },
       } satisfies AiClassificationDraft,
     },
@@ -418,6 +420,8 @@ export const moreReadings: ModuleFixture = {
         ],
         markers: { min: 2, max: 2 },
         maxExclusions: 0,
+        // Say how tight the groups are before the meter shows (the handoff's loop).
+        predictFirst: true,
         objective: { minTightness: 0.75 },
         groundTruth: {
           referencePlacement: [
@@ -476,6 +480,8 @@ export const moreReadings: ModuleFixture = {
         ],
         markers: { min: 4, max: 4 },
         maxExclusions: 0,
+        // Say how tight the groups are before the meter shows (the handoff's loop).
+        predictFirst: true,
         objective: { minTightness: 0.85 },
         groundTruth: {
           referencePlacement: [
@@ -538,6 +544,8 @@ export const moreReadings: ModuleFixture = {
         ],
         markers: { min: 2, max: 2 },
         maxExclusions: 1,
+        // Say how tight the groups are before the meter shows (the handoff's loop).
+        predictFirst: true,
         objective: { minTightness: 0.93 },
         groundTruth: {
           referencePlacement: [
@@ -602,6 +610,8 @@ export const moreReadings: ModuleFixture = {
         ],
         rule: { feature: "color", threshold: 0.3 },
         minPerLabel: 1,
+        // Say what the bunny will answer before seeing it (the handoff's loop).
+        predictFirst: true,
         maxExamples: 4,
         starCriteria: { threeStarMaxBlocks: 3 },
       } satisfies AiClassificationDraft,
@@ -791,6 +801,8 @@ export const decidingWell: ModuleFixture = {
         ],
         rule: { feature: "color", threshold: 0.5 },
         minPerLabel: 1,
+        // Say what the bunny will answer before seeing it (the handoff's loop).
+        predictFirst: true,
         maxExamples: 3,
         starCriteria: { threeStarMaxBlocks: 3 },
       } satisfies AiClassificationDraft,

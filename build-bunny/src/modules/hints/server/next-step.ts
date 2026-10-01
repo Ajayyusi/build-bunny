@@ -562,7 +562,10 @@ export function computeNextStep(
         markers: m.map((x) => ({ size: round(x.size), color: round(x.color) })),
         excluded: [...ex],
       });
-      if (markers.length >= p.markers.min && passes(asAnswer(markers, excluded)).pass) return { code: "ready" };
+      // Predict first: once the flags would pass, the meter waits for the
+      // child to say how tight they think the groups are.
+      const readyOr = (): NextStep => (p.predictFirst && state.predicting ? { code: "answerQuestion" } : { code: "ready" });
+      if (markers.length >= p.markers.min && passes(asAnswer(markers, excluded)).pass) return readyOr();
       const ref = p.groundTruth.referencePlacement;
       const dist = (a: { size: number; color: number }, b: { size: number; color: number }) =>
         Math.hypot(a.size - b.size, a.color - b.color);
@@ -596,7 +599,7 @@ export function computeNextStep(
         const r = ref[firstGap]!;
         return { code: "plantFlag", size: r.size, color: r.color };
       }
-      return { code: "ready" };
+      return readyOr();
     }
     case "AI_ETHICS": {
       const p = aiEthicsPayload.parse(payload);

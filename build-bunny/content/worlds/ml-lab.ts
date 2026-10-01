@@ -227,6 +227,8 @@ export const mlLab: WorldFixture = {
             rule: { kind: "threshold", feature: "color", threshold: 0.5 },
             holdout: { min: 3 },
             minPerLabel: 2,
+            // Say what the bunny will answer before seeing it (the handoff's loop).
+            predictFirst: true,
             starCriteria: {},
           } satisfies AiDraft,
         },
@@ -377,6 +379,8 @@ export const mlLab: WorldFixture = {
             rule: { kind: "threshold", feature: "color", threshold: 0.5 },
             passRule: { kind: "safetyFirst", neverMisclassify: "negative", maxOtherErrors: 2 },
             minPerLabel: 2,
+            // Say what the bunny will answer before seeing it (the handoff's loop).
+            predictFirst: true,
             maxExamples: 8,
             starCriteria: {},
           } satisfies AiDraft,
@@ -504,6 +508,8 @@ export const mlLab: WorldFixture = {
             ],
             markers: { min: 3, max: 3 },
             maxExclusions: 0,
+            // Say how tight the groups are before the meter shows (the handoff's loop).
+            predictFirst: true,
             // Pinned in tests/unit/pattern-recognition.test.ts: a one-per-
             // clump seed converges to 0.9534 (PASS); a two-flags-in-the-big-
             // clump seed converges to a stable 0.8859 (FAIL); the sloppy seed

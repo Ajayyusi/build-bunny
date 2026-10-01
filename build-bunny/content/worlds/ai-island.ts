@@ -362,6 +362,8 @@ export const aiIsland: WorldFixture = {
             ],
             rule: { kind: "threshold", feature: "color", threshold: 0.5 },
             minPerLabel: 1,
+            // Say what the bunny will answer before seeing it (the handoff's loop).
+            predictFirst: true,
             maxExamples: 2,
           } satisfies AiClassificationDraft,
         },
@@ -536,6 +538,8 @@ export const aiIsland: WorldFixture = {
             rule: { kind: "threshold", feature: "color", threshold: 0.5 },
             mislabelled: ["L8"],
             minPerLabel: 2,
+            // Say what the bunny will answer before seeing it (the handoff's loop).
+            predictFirst: true,
             relabel: true,
           } satisfies AiClassificationDraft,
         },
@@ -711,6 +715,8 @@ export const aiIsland: WorldFixture = {
             ],
             rule: { kind: "box", size: [0, 0.5], color: [0, 0.5] },
             minPerLabel: 2,
+            // Say what the bunny will answer before seeing it (the handoff's loop).
+            predictFirst: true,
             maxExamples: 6,
             starCriteria: { threeStarMaxBlocks: 5 },
           } satisfies AiClassificationDraft,

@@ -143,6 +143,22 @@ they should be reviewed and merged in the order above.
 
 ## Checkpoint log
 
+### Checkpoint 15 — 2026-10-01 (the two open audit items, built with the proposed defaults)
+
+- **Live:** nothing new.
+- **On branches:** `feat/audit-gaps-3`, stacked on `feat/audit-gaps-2` (#36).
+- **Predict first everywhere:** all 14 Teach-the-bunny levels now ask what the bunny will say before showing it (5 did). On the 8 grouping levels, the tightness meter waits until the child says how tight they think their groups are. After that one guess it works live, and a line says whether the guess matched.
+- **Grade modes outside the Teach levels:**
+  - Grades 5 to 7 get one deeper question after a pass:
+    - Fortune Teller: further out, a wider or narrower range?
+    - See Like a Computer: how many numbers is an 8 × 8 picture?
+    - You Be the Classifier: what should a careful computer say about a fruit on the line?
+    - grouping levels: does one more flag raise the score?
+    - Who Decides?: how many of 10 suggestions at 80% sure could be wrong?
+    - Is That Real?: how sure can looking alone make you?
+  - Grades 3 to 4 get one friendly line in place of a technical one (a miss score, an error allowance) on Fortune Teller, You Be the Classifier and the grouping levels. The picture and marks messages were already plain and keep their counts.
+- **Tested:** the full unit and integration suite; the full Playwright suite on a production build (95 passed); and "Show me the next step" finishing all 17 levels whose content changed.
+
 ### Checkpoint 14 — 2026-10-01 (second audit: every "Done" row re-checked against the code)
 
 - **Live:** nothing new.
@@ -161,7 +177,7 @@ they should be reviewed and merged in the order above.
   - Principal concept trends: the change over four weeks per class and concept, on the page and in the CSV.
   - Teacher and principal views reviewed separately (`STAFF-VIEWS-REVIEW.md`): no overflow, no serious accessibility findings, and a teacher is refused principal pages. Names now keep their own direction in Arabic pages.
   - Tests added for the honesty labels on grouping and simulation levels, and for The Berry That Lied passing once its wrong note is fixed.
-- **Waiting on a decision:** deeper tests for grades 5 to 7 and simpler wording for grades 3 to 4 exist only in the Teach levels, not in vision, prediction or ethics; "predict first" is on 5 of 14 classification levels and not on grouping levels.
+- **Then open, now built (checkpoint 15):** grade modes outside the Teach levels, and predict first on every classification and grouping level.
 
 ### Checkpoint 13 — 2026-10-01 (handoff audit: three rows marked done that were not)
 

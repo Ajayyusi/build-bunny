@@ -20,6 +20,7 @@ import { useDraftAutosave } from "./shared/useDraftAutosave";
 import { ResultBanner } from "./shared/ResultBanner";
 import { SuccessOverlay } from "./shared/SuccessOverlay";
 import { ResultNotesCard } from "./shared/ResultNotesCard";
+import { DeeperQuestion, type DeeperId } from "./shared/DeeperQuestion";
 import { WhatIsThisCalled } from "./shared/WhatIsThisCalled";
 import { LessonKindChip } from "./shared/LessonKindChip";
 import { boundaryResultNotes, markItemsResultNotes, pixelResultNotes, trendResultNotes, type ResultNotes } from "./result-notes";
@@ -67,6 +68,7 @@ export function AiSimPlayer({
   const t = useTranslations("student.play");
   const tSim = useTranslations("student.play.aiSim");
   const tResults = useTranslations("student.play.resultNotes");
+  const tMode = useTranslations("student.play.aiMode");
   const tNext = useTranslations("student.play.nextStep");
   const locale = useLocale();
   const tTrend = useTranslations("student.play.aiSim.trendLine");
@@ -285,6 +287,31 @@ export function AiSimPlayer({
     return null;
   })();
 
+  // Grades 5 to 7: one deeper question after a pass, per widget.
+  const deeper: { id: DeeperId; values?: Record<string, string | number> } | null = (() => {
+    if (intro.aiMode !== "older") return null;
+    const widget = payload.widget as Record<string, unknown>;
+    if (widgetId === "trend-line") {
+      const x = widget.predictAt as number;
+      const lastX = Math.max(...(widget.points as { x: number }[]).map((pt) => pt.x));
+      return { id: "trend", values: { x, further: x + (x > lastX ? x - lastX : 2) } };
+    }
+    if (widgetId === "pixel-playground") return { id: "pixel" };
+    if (widgetId === "boundary-builder") return { id: "boundary" };
+    return null;
+  })();
+  // Grades 3 to 4: one friendly line instead of a technical one (a miss
+  // score, an error allowance). The picture and marks messages are already
+  // plain and carry a count worth keeping.
+  const youngerLine =
+    intro.aiMode === "younger"
+      ? widgetId === "trend-line"
+        ? tMode("younger.trend")
+        : widgetId === "boundary-builder"
+          ? tMode("younger.boundary")
+          : null
+      : null;
+
   if (!Widget) {
     // Registry dispatch guarantees a known widgetId in practice; this is an
     // honest empty state, never a silent blank screen, if content drifts.
@@ -380,6 +407,7 @@ export function AiSimPlayer({
               feedback={submission?.server?.feedback ?? { code: "runtimeError" }}
               onTryAgain={handleTryAgain}
               showHintNudge={failedChecks >= 2}
+              overrideMessage={submission?.server?.feedback?.code === "runtimeError" ? null : youngerLine}
               onOpenHints={() => setHintOpen(true)}
               onWhy={() => openRobo("why")}
               whyLabel={t("help.whyWrong")}
@@ -508,7 +536,14 @@ export function AiSimPlayer({
           xpAwarded={submission.server ? submission.server.xpAwarded : null}
           explanation={intro.explanation}
           keyIdea={intro.keyIdea}
-          extra={resultNotes ? <ResultNotesCard notes={resultNotes} /> : undefined}
+          extra={
+            resultNotes || deeper ? (
+              <>
+                {resultNotes ? <ResultNotesCard notes={resultNotes} /> : null}
+                {deeper ? <DeeperQuestion id={deeper.id} values={deeper.values} /> : null}
+              </>
+            ) : undefined
+          }
           achievements={achievements}
           worldCompletedName={worldCompletedName}
           worldPower={submission?.server?.worldCompleted?.power ?? null}
