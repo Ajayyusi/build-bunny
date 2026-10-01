@@ -5,7 +5,7 @@ import type { SessionContext } from "@/modules/auth/server/session";
 import { localizedText, type LocalizedText } from "@/modules/curriculum/schemas";
 import { forStudents, secureByConcept, summariseAiConcepts, type AiConcept } from "../ai-concepts";
 import { weekStarts, weeklySeries, type WeekRow } from "../weekly";
-import { aiLevelIdsOf, countAiEvents, emptyCounts, type AiActivityCounts } from "./ai-activity";
+import { aiLevelIdsOf, countAiEvents, emptyCounts, returningAiStudents, type AiActivityCounts } from "./ai-activity";
 import { loadConceptInput } from "./ai-concepts-load";
 import { computeLevelActivityStats, rankMostAttempted, rankMostFailed } from "./level-activity";
 
@@ -69,6 +69,8 @@ export interface SchoolAiActivityClass extends AiActivityCounts {
   classId: string;
   className: string;
   studentCount: number;
+  /** Children who came back to the AI activities on another day. */
+  returned: number;
 }
 
 export interface SchoolAnalytics {
@@ -87,6 +89,8 @@ export interface SchoolAnalytics {
   aiActivity: SchoolAiActivityClass[];
   /** The same, for the whole school. */
   aiActivityTotal: AiActivityCounts;
+  /** Children (school-wide) who came back to the AI activities on another day. */
+  aiReturnedTotal: number;
   /** AI concept mastery (secure) by class — the concept trends. */
   aiConceptsByClass: SchoolAiConceptsClass[];
   /** AI activity week by week, the last 8 weeks, oldest first. */
@@ -306,7 +310,14 @@ export async function getSchoolAnalytics(ctx: SessionContext): Promise<SchoolAna
   // AI activity: per child over the last 30 days, then summed per class (a
   // child in two classes counts in both, as in byClass).
   const aiLevelIds = await aiLevelIdsOf(levelIds);
-  const aiByStudent = await countAiEvents({ schoolId, levelIds: aiLevelIds, since: monthAgo, by: "studentUserId" });
+  const [aiByStudent, returning] = await Promise.all([
+    countAiEvents({ schoolId, levelIds: aiLevelIds, since: monthAgo, by: "studentUserId" }),
+    db.school
+      .findUnique({ where: { id: schoolId }, select: { timezone: true } })
+      .then((school) =>
+        returningAiStudents({ schoolId, levelIds: aiLevelIds, since: monthAgo, timeZone: school?.timezone ?? "Asia/Dubai" }),
+      ),
+  ]);
   const aiActivityTotal = emptyCounts();
   for (const counts of aiByStudent.values()) {
     aiActivityTotal.starts += counts.starts;
@@ -326,7 +337,8 @@ export async function getSchoolAnalytics(ctx: SessionContext): Promise<SchoolAna
         sum.retries += counts.retries;
         sum.completions += counts.completions;
       }
-      return { classId: cls.id, className: cls.name, studentCount: studentIds.length, ...sum };
+      const returned = studentIds.filter((id) => returning.has(id)).length;
+      return { classId: cls.id, className: cls.name, studentCount: studentIds.length, returned, ...sum };
     })
     .sort((a, b) => b.starts - a.starts || a.className.localeCompare(b.className));
 
@@ -377,6 +389,7 @@ export async function getSchoolAnalytics(ctx: SessionContext): Promise<SchoolAna
     mostFailedLevels,
     aiActivity,
     aiActivityTotal,
+    aiReturnedTotal: returning.size,
     aiConceptsByClass,
     aiWeekly,
   };

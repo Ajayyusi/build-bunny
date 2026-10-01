@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { CHARACTER_IDS } from "@/modules/characters/cast";
 import { CHARACTER_STATES } from "@/modules/characters/states";
-import { beatIndexAt, EXPLAINER_FOR_LEVEL, EXPLAINERS } from "@/modules/explainers/scripts";
+import { beatIndexAt, CODING_LAB_EXPLAINER, EXPLAINER_FOR_LEVEL, EXPLAINERS } from "@/modules/explainers/scripts";
 
 import en from "../../messages/en.json";
 import ar from "../../messages/ar.json";
@@ -61,15 +61,20 @@ describe.each(EXPLAINERS.map((e) => [e.id, e] as const))("explainer %s", (_id, e
     expect(explainer.choice.options).toContain(explainer.choice.best);
   });
 
-  it("is offered on a level that exists", () => {
-    expect(slugs.has(explainer.levelSlug), explainer.levelSlug).toBe(true);
-    expect(EXPLAINER_FOR_LEVEL[explainer.levelSlug]).toBe(explainer.id);
+  it("is offered on a level that exists, or on the Coding Lab page", () => {
+    if ("level" in explainer.offeredOn) {
+      expect(slugs.has(explainer.offeredOn.level), explainer.offeredOn.level).toBe(true);
+      expect(EXPLAINER_FOR_LEVEL[explainer.offeredOn.level]).toBe(explainer.id);
+    } else {
+      expect(explainer.offeredOn.page).toBe("coding-lab");
+      expect(Object.values(EXPLAINER_FOR_LEVEL)).not.toContain(explainer.id);
+    }
   });
 });
 
 describe("the three explainers from the handoff", () => {
   it("covers the colour mistake (25 s), fair examples (30 s) and checking a source (30 s)", () => {
-    expect(EXPLAINERS.map((e) => [e.id, e.durationMs])).toEqual([
+    expect(EXPLAINERS.filter((e) => "level" in e.offeredOn).map((e) => [e.id, e.durationMs])).toEqual([
       ["copied-colour", 25_000],
       ["fair-examples", 30_000],
       ["check-the-source", 30_000],
@@ -84,5 +89,17 @@ describe("the three explainers from the handoff", () => {
     expect(beatIndexAt(e, 4_999)).toBe(0);
     expect(beatIndexAt(e, 5_000)).toBe(1);
     expect(beatIndexAt(e, 24_999)).toBe(e.beats.length - 1);
+  });
+});
+
+describe("the Coding Lab's optional short introduction", () => {
+  it("is a short explainer offered on the Coding Lab page, about exact steps", () => {
+    const intro = EXPLAINERS.find((e) => e.id === CODING_LAB_EXPLAINER)!;
+    expect(intro.offeredOn).toEqual({ page: "coding-lab" });
+    expect(intro.durationMs).toBeLessThanOrEqual(20_000);
+    expect(intro.choice.best).toBe("addBlock");
+    expect(at(en, "explainers.exact-steps.beats.2")).toMatch(/not what we meant/);
+    expect(at(en, "student.adventure.introNote")).toBeTypeOf("string");
+    expect(at(ar, "student.adventure.introNote")).toBeTypeOf("string");
   });
 });

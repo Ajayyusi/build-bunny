@@ -29,6 +29,7 @@ export async function GET() {
       "tests_30d",
       "retries_30d",
       "completions_30d",
+      "returned_another_day_30d",
       ...AI_CONCEPTS.map((c) => `secure_${c}`),
     ],
     ...rows.map((row) => {
@@ -40,6 +41,7 @@ export async function GET() {
         a?.tests ?? 0,
         a?.retries ?? 0,
         a?.completions ?? 0,
+        a?.returned ?? 0,
         ...AI_CONCEPTS.map((c) => (row.concepts[c].levels > 0 ? `${row.concepts[c].secure}/${row.concepts[c].students}` : "")),
       ];
     }),

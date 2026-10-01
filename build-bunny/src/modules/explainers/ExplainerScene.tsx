@@ -76,6 +76,39 @@ export function ExplainerSceneView({ scene }: { scene: Scene }) {
       </div>
     );
   }
+  if (scene.kind === "steps") {
+    const squares = Math.max(scene.carrotAt, scene.bunnyAt) + 1;
+    return (
+      // Clear of the character, who stands at the scene's start corner.
+      <div aria-hidden="true" className="flex flex-wrap items-center justify-center gap-3 p-4 ps-24">
+        <div className="flex min-h-16 min-w-32 flex-col gap-1 rounded-xl border border-border-token bg-surface p-2">
+          {Array.from({ length: scene.blocks }, (_, i) => (
+            <span key={i} className="rounded-md bg-info/20 px-2 py-1 text-xs font-bold text-ink">
+              ▶ {t("moveForward")}
+            </span>
+          ))}
+        </div>
+        <div className="flex flex-col items-center gap-1.5">
+          <div className="flex gap-1">
+            {Array.from({ length: squares }, (_, i) => (
+              <span
+                key={i}
+                className={cn(
+                  "grid size-10 place-items-center rounded-md border-2 bg-surface-raised text-xl sm:size-12 sm:text-2xl",
+                  scene.short && i > scene.bunnyAt && i < scene.carrotAt + 1 ? "border-dashed border-danger" : "border-ink/20",
+                )}
+              >
+                {i === scene.bunnyAt ? "🐰" : i === scene.carrotAt ? "🥕" : ""}
+              </span>
+            ))}
+          </div>
+          {scene.short ? (
+            <span className="rounded-full bg-danger px-2 py-0.5 text-[11px] font-bold text-surface-raised">✗ {t("oneShort")}</span>
+          ) : null}
+        </div>
+      </div>
+    );
+  }
   return (
     <div aria-hidden="true" className="flex flex-wrap items-center justify-center gap-3 p-4">
       {scene.show.includes("chat") ? (

@@ -258,6 +258,10 @@ A review of everything the product records about play, against the rule
   "revealGuesses" }`, `{ what: "pixelCheck", correct: true }`). Nothing is
   recorded while a platform admin views as a child. Teachers and school
   admins see class and school totals only.
+  The school page also counts children who came back to the AI
+  activities on another day (2026-10-01), read from these same rows: a
+  number per class, never which children. The "defend your model" answer
+  (grades 5 to 7) is not stored.
 - **ConceptCheck** (from 2026-09-25) stores which of three fixed answers a
   child picked first on an Explore AI quick check, and when they got it
   right. No free text.

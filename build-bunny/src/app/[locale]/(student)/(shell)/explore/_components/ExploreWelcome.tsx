@@ -59,7 +59,7 @@ export function ExploreWelcome({ show, userId, firstActivityHref }: Props) {
   if (!open) return null;
 
   return (
-    <div className={cn(styles.scrim, "fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-ink/40 p-4")}>
+    <div className={cn(styles.scrim, "fixed inset-0 z-50 flex overflow-y-auto bg-ink/40 p-4")}>
       <div
         ref={dialogRef}
         role="dialog"
@@ -71,7 +71,7 @@ export function ExploreWelcome({ show, userId, firstActivityHref }: Props) {
         }}
         className={cn(
           styles.card,
-          "flex w-full max-w-sm flex-col items-center gap-4 rounded-2xl border border-border-token bg-surface-raised p-6 text-center shadow-overlay focus:outline-none",
+          "m-auto flex w-full max-w-sm flex-col items-center gap-4 rounded-2xl border border-border-token bg-surface-raised p-6 text-center shadow-overlay focus:outline-none",
         )}
       >
         <BunnyMascot state="waving" size="lg" />

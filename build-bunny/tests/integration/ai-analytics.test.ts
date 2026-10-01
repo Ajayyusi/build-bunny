@@ -196,3 +196,24 @@ describe("two starts at once", () => {
     expect(await db.learningEvent.count({ where: { studentUserId: other.userId, levelId, type: "LEVEL_SESSION_STARTED" } })).toBe(1);
   });
 });
+
+describe("return session", () => {
+  it("counts children who came back to the AI activities on another day, never who", async () => {
+    // Everything on one day first: nobody has come back yet.
+    const now = new Date();
+    await db.learningEvent.updateMany({ where: { levelId: { in: [levelId, lockedId] } }, data: { createdAt: now } });
+    expect((await getSchoolAnalytics(admin))!.aiReturnedTotal).toBe(0);
+
+    // One of the child's sessions three days earlier: a return.
+    const first = await db.learningEvent.findFirstOrThrow({ where: { studentUserId: kid.userId, levelId } });
+    await db.learningEvent.update({ where: { id: first.id }, data: { createdAt: new Date(now.getTime() - 3 * 86_400_000) } });
+    const analytics = await getSchoolAnalytics(admin);
+    expect(analytics!.aiReturnedTotal).toBe(1);
+    expect(analytics!.aiActivity.find((r) => r.classId === classId)!.returned).toBe(1);
+    expect(JSON.stringify(analytics!.aiActivity)).not.toContain(kid.userId);
+
+    // Outside the 30-day window it no longer counts.
+    await db.learningEvent.update({ where: { id: first.id }, data: { createdAt: new Date(now.getTime() - 40 * 86_400_000) } });
+    expect((await getSchoolAnalytics(admin))!.aiReturnedTotal).toBe(0);
+  });
+});

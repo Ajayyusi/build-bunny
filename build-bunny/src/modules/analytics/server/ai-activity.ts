@@ -83,3 +83,29 @@ export async function countAiEvents(input: {
   }
   return result;
 }
+
+/**
+ * The handoff's "return session": children whose AI activity in the window
+ * falls on two or more different days (calendar days in the school's
+ * timezone), so they came back to it rather than finishing in one sitting.
+ * Returns the children's ids for the caller to COUNT per class; nothing
+ * leaves the server but the counts.
+ */
+export async function returningAiStudents(input: {
+  schoolId: string;
+  levelIds: string[];
+  since: Date;
+  timeZone: string;
+}): Promise<Set<string>> {
+  if (input.levelIds.length === 0) return new Set();
+  const rows = await db.$queryRaw<{ studentUserId: string }[]>`
+    SELECT "studentUserId"
+    FROM "LearningEvent"
+    WHERE "schoolId" = ${input.schoolId}
+      AND "createdAt" >= ${input.since}
+      AND "levelId" = ANY(${input.levelIds})
+      AND "type"::text IN ('LEVEL_SESSION_STARTED', 'LEVEL_STARTED', 'RUN_EXECUTED', 'AI_TEST', 'AI_RETRY', 'LEVEL_COMPLETED')
+    GROUP BY 1
+    HAVING COUNT(DISTINCT (("createdAt" AT TIME ZONE 'UTC') AT TIME ZONE ${input.timeZone})::date) >= 2`;
+  return new Set(rows.map((row) => row.studentUserId));
+}

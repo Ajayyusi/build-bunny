@@ -270,7 +270,8 @@
       "kind": {
         "ai": "AI",
         "coding": "Coding"
-      }
+      },
+      "introNote": "New to coding? Start here."
     },
     "play": {
       "backToMap": "Back to map",
@@ -1045,7 +1046,27 @@
         "youngerMissed": "It guessed wrong. Which example might help?",
         "deeperErrors": "Its mistakes: {falseYes, plural, one {# said “{positive}” when it wasn't} other {# said “{positive}” when they weren't}}, and {missed, plural, one {# missed a real “{positive}”} other {# missed a real “{positive}”}}.",
         "notSure": "Not sure: teach me one like this",
-        "notSureOlder": "Not sure ({sure}% sure): an example like this would help"
+        "notSureOlder": "Not sure ({sure}% sure): an example like this would help",
+        "grid": {
+          "caption": "Its test, in one picture",
+          "said": "It said “{label}”",
+          "really": "Really “{label}”",
+          "right": "right",
+          "wrong": "wrong"
+        },
+        "defend": {
+          "question": "Defend your model: why should someone trust it?",
+          "options": {
+            "unseen": "It got cases right that it never learned from",
+            "taught": "It gets my teaching examples right",
+            "many": "I taught it lots of examples"
+          },
+          "replies": {
+            "unseen": "Strong reason. Cases it never saw are the fair test, and it passed.",
+            "taught": "It learned those, so of course it gets them right. Cases it never saw are a fairer test.",
+            "many": "More examples can help, but only a test shows whether they worked."
+          }
+        }
       },
       "explain": {
         "title": "Say it your way",
@@ -2044,12 +2065,14 @@
           "tests": "Tests",
           "retries": "Retries",
           "completions": "Completions",
-          "note": "A session is each time a child opens an AI activity. A test is a check or a try inside it (showing the robot's guesses, checking a picture). A retry is trying again after something didn't work. Counts only: no child is named.",
+          "note": "A session is each time a child opens an AI activity. A test is a check or a try inside it (showing the robot's guesses, checking a picture). A retry is trying again after something didn't work. Counts only: no child is named. “Came back another day” counts children whose AI activity falls on two or more different days.",
           "secureOf": "{secure}/{students}",
           "conceptsHeading": "AI concepts by class: who's secure",
           "weeklyHeading": "AI activities week by week",
           "weekLine": "{starts, plural, one {# session} other {# sessions}} · {tests, plural, one {# test} other {# tests}} · {retries, plural, one {# retry} other {# retries}} · {completions, plural, one {# completion} other {# completions}}",
-          "weeklyKey": "Weeks start on Monday. Top bar: sessions. Bottom bar: tests."
+          "weeklyKey": "Weeks start on Monday. Top bar: sessions. Bottom bar: tests.",
+          "returned": "Came back another day",
+          "returnedSummary": "{returned, plural, =0 {No child has come back to them on another day yet.} one {# child came back to them on another day.} other {# children came back to them on another day.}}"
         }
       },
       "teachersPage": {
@@ -2823,7 +2846,9 @@
       "red": "red",
       "orange": "orange",
       "lightBird": "light bird",
-      "darkBird": "dark bird"
+      "darkBird": "dark bird",
+      "moveForward": "move forward",
+      "oneShort": "One square short"
     },
     "copied-colour": {
       "title": "Ruli copies the colour",
@@ -2889,6 +2914,28 @@
           "checkFirst": "Yes. A trusted source beats a confident guess.",
           "shareNow": "Sounding sure isn't the same as being right. Check first.",
           "askAgain": "It might make up another answer. Check a source you trust."
+        }
+      }
+    },
+    "exact-steps": {
+      "title": "Robo Bunny does exactly what you say",
+      "beats": {
+        "0": "This is the Coding Lab. Here we give Robo Bunny steps, one block at a time, and it follows them exactly.",
+        "1": "Robo Bunny wants the carrot, three squares away. We give it two “move forward” blocks.",
+        "2": "It moves twice and stops, one square short. It did exactly what we said, not what we meant.",
+        "3": "Robo Bunny: I only know the steps you give me. What should we change?"
+      },
+      "choice": {
+        "question": "What should we change?",
+        "options": {
+          "addBlock": "Add one more “move forward” block",
+          "sayCarrot": "Tell it “go get the carrot”",
+          "goFaster": "Make it move faster"
+        },
+        "replies": {
+          "addBlock": "Yes! Three squares, three blocks. That's coding: exact steps, in order.",
+          "sayCarrot": "Robo Bunny doesn't understand wishes, only blocks. Count the squares and add the missing step.",
+          "goFaster": "Moving faster still stops in the same place. It needs one more step."
         }
       }
     }

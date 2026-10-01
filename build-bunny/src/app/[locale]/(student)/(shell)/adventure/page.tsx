@@ -2,6 +2,8 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { redirect } from "@/i18n/navigation";
 import { MusicScene } from "@/modules/audio/scene";
+import { ExplainerOffer } from "@/modules/explainers/ExplainerPlayer";
+import { CODING_LAB_EXPLAINER } from "@/modules/explainers/scripts";
 import { requireRole } from "@/modules/auth/server/session";
 import { isFeatureEnabled } from "@/modules/shared/features";
 import { getMyStudentSnapshot } from "@/modules/students/server/queries";
@@ -48,6 +50,12 @@ export default async function CodingLabPage({ params }: Props) {
     <div className="flex flex-col gap-6">
       <MusicScene track="map" />
       <PageHeader title={t("pathTitle")} description={t("pathSubtitle")} />
+      {/* The optional short introduction (handoff): never a gate, for this
+          route or for Explore AI. */}
+      <div data-testid="coding-intro" className="-mt-3 flex flex-wrap items-center gap-x-3 gap-y-1">
+        <span className="text-sm font-semibold text-ink">{t("introNote")}</span>
+        <ExplainerOffer explainerId={CODING_LAB_EXPLAINER} />
+      </div>
       <AdventureTrail worlds={worlds} userId={ctx.userId} />
       <HorizonBand worlds={horizon} />
     </div>

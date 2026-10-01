@@ -143,6 +143,18 @@ they should be reviewed and merged in the order above.
 
 ## Checkpoint log
 
+### Checkpoint 13 — 2026-10-01 (handoff audit: three rows marked done that were not)
+
+- **Live:** nothing new.
+- **On branches:** `feat/audit-gaps`, stacked on `polish/phone-width` (#33).
+- **Found by reading the handoff line by line against the build:**
+  - Grades 5 to 7, "show confusion or error counts in a small visual": the counts were a sentence only. Now a 2×2 grid (what the bunny said against what was true) after every check in "More detail", and on the pass.
+  - Grades 5 to 7, "ask students to defend their model choice": not built. Now a question on the pass in "More detail": why should someone trust it? Each answer gets a reply. Nothing is graded.
+  - Coding Lab, "add an optional short introduction": not built (the world stories are per world). Now a 20-second captioned explainer on the Coding Lab page ("Robo Bunny does exactly what you say"), ending on a choice. It is optional and gates nothing.
+  - The handoff's "return session" measure: not counted. Now the school page and the AI CSV show children who came back to the AI activities on another day (calendar days in the school's timezone, last 30 days). Counts only.
+- **Also fixed:** six overlays (level complete, level briefing, learn done, Explore welcome, world intro, certificate) centred their card in a way that cut off its top, with no way to scroll to it, when the card was taller than the screen.
+- **Tested:** lint, type-check, 1,163 unit and integration tests, and the full Playwright suite on a production build: 87 passed, 1 known drag flake (it passed 3 of 3 on a rerun).
+
 ### Checkpoint 12 — 2026-09-28 (developer handoff: compliance matrix, P0 → P2)
 
 - **Tracker:** the compliance matrix, https://claude.ai/artifact/K2jfedWYWkXEjUGmyTwzZ6 (every handoff requirement against its own acceptance criterion).
