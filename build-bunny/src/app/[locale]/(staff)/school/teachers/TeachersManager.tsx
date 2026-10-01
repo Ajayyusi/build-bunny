@@ -135,7 +135,7 @@ export function TeachersManager({ teachers }: { teachers: TeacherRow[] }) {
       header: t("fieldName"),
       cell: (row) => (
         <div className="flex flex-col">
-          <span className="font-medium text-ink">{row.displayName}</span>
+          <span className="font-medium text-ink"><bdi>{row.displayName}</bdi></span>
           {row.teacherProfile?.title ? (
             <span className="text-xs text-ink-muted">{row.teacherProfile.title}</span>
           ) : null}

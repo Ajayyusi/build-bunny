@@ -91,7 +91,7 @@ export default async function TeachPage({ params }: Props) {
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div className="flex min-w-0 flex-col gap-0.5">
                       <span className="truncate font-semibold text-ink">
-                        {entry.displayName}
+                        <bdi>{entry.displayName}</bdi>
                       </span>
                       <span className="text-xs text-ink-muted">{entry.className}</span>
                     </div>

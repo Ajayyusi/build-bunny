@@ -143,6 +143,26 @@ they should be reviewed and merged in the order above.
 
 ## Checkpoint log
 
+### Checkpoint 14 — 2026-10-01 (second audit: every "Done" row re-checked against the code)
+
+- **Live:** nothing new.
+- **On branches:** `feat/audit-gaps-2`, stacked on `feat/audit-gaps` (#35).
+- **How:** each of the 53 rows the compliance matrix marked done was checked against the code, with file-level evidence, and every doubtful finding was re-checked by hand.
+- **Built or fixed:**
+  - "Back to map" from an AI lesson went to the Coding Lab; it now goes to the lesson's own route.
+  - See Like a Computer ("names a visual clue the model used and a clue it missed"): after each round the child names a clue still there in the squares and one lost in them.
+  - Train a Sorter ("3 to 5 examples"): testing is possible with three; it used to need four.
+  - Is That Real?: the homework scene asks what you think first, like the others.
+  - "A hint after repeated failure": offered after the second failed check in Teach, grouping and simulation levels.
+  - Result notes (what you tried, what changed, try one more) on grouping levels and You Be the Classifier.
+  - "What is this called?" in both modes: terms only when a child asks, and younger children can ask.
+  - Tessa reacts to each test and gestures when the hints open.
+  - Teacher replay of Teach-the-bunny attempts: what was taught, kept back, reported, and what changed since the previous try.
+  - Principal concept trends: the change over four weeks per class and concept, on the page and in the CSV.
+  - Teacher and principal views reviewed separately (`STAFF-VIEWS-REVIEW.md`): no overflow, no serious accessibility findings, and a teacher is refused principal pages. Names now keep their own direction in Arabic pages.
+  - Tests added for the honesty labels on grouping and simulation levels, and for The Berry That Lied passing once its wrong note is fixed.
+- **Waiting on a decision:** deeper tests for grades 5 to 7 and simpler wording for grades 3 to 4 exist only in the Teach levels, not in vision, prediction or ethics; "predict first" is on 5 of 14 classification levels and not on grouping levels.
+
 ### Checkpoint 13 — 2026-10-01 (handoff audit: three rows marked done that were not)
 
 - **Live:** nothing new.

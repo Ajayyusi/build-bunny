@@ -127,3 +127,14 @@ test("grouping and simulation levels say how real they are", async ({ page, base
   await openFromWorlds(/Fortune Teller/);
   await expect(page.getByText("Real — it actually computes").first()).toBeAttached();
 });
+
+test("names keep their own direction in Arabic staff pages", async ({ page, baseURL }, testInfo) => {
+  test.skip(testInfo.project.name !== "laptop", "one viewport is enough");
+  await signInTeacher(page, baseURL!);
+  await page.goto("/ar/teach");
+  const classHref = await page.locator('a[href*="/teach/classes/"]', { hasText: "3A" }).first().getAttribute("href");
+  await page.goto(classHref!);
+  await page.goto((await page.locator('a[href*="/students/"]').first().getAttribute("href"))!);
+  // "Adam B." in a right-to-left page: isolated, so the full stop stays after the name.
+  await expect(page.locator("h1 bdi")).toHaveCount(1);
+});
