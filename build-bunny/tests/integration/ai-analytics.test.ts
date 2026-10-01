@@ -224,3 +224,24 @@ describe("return session", () => {
     expect((await getSchoolAnalytics(admin))!.aiReturnedTotal).toBe(0);
   });
 });
+
+describe("the first session, timed", () => {
+  it("measures each child's minutes from first opening a level to finishing it, within the hour", async () => {
+    const { firstSessionMinutes } = await import("@/modules/analytics/server/ai-activity");
+    const schoolId = kid.schoolId!;
+    const t0 = new Date(Date.now() - 2 * 60 * 60 * 1000);
+    const at = (minutes: number) => new Date(t0.getTime() + minutes * 60_000);
+    await db.learningEvent.deleteMany({ where: { levelId: lockedId } });
+    await db.learningEvent.createMany({
+      data: [
+        { schoolId, studentUserId: kid.userId, levelId: lockedId, type: "LEVEL_SESSION_STARTED", createdAt: at(0) },
+        { schoolId, studentUserId: kid.userId, levelId: lockedId, type: "LEVEL_COMPLETED", createdAt: at(6) },
+        // The other child left and finished 90 minutes later: not a first session.
+        { schoolId, studentUserId: other.userId, levelId: lockedId, type: "LEVEL_SESSION_STARTED", createdAt: at(0) },
+        { schoolId, studentUserId: other.userId, levelId: lockedId, type: "LEVEL_COMPLETED", createdAt: at(90) },
+      ],
+    });
+    const minutes = await firstSessionMinutes({ schoolId, levelId: lockedId, since: new Date(t0.getTime() - 60_000) });
+    expect(minutes.map((m) => Math.round(m))).toEqual([6]);
+  });
+});

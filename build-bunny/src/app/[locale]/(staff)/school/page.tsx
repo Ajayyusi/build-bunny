@@ -235,7 +235,14 @@ export default async function SchoolPage({ params }: Props) {
               <h3 className="font-display text-base font-semibold">{tAnalytics("ai.heading")}</h3>
               <p className="text-sm text-ink-muted">
                 {tAnalytics("ai.summary", { ...analytics.aiActivityTotal })}{" "}
-                {tAnalytics("ai.returnedSummary", { returned: analytics.aiReturnedTotal })}
+                {tAnalytics("ai.returnedSummary", { returned: analytics.aiReturnedTotal })}{" "}
+                {analytics.firstSession
+                  ? tAnalytics("ai.firstSession", {
+                      median: analytics.firstSession.medianMinutes,
+                      children: analytics.firstSession.children,
+                      within: analytics.firstSession.withinTarget,
+                    })
+                  : tAnalytics("ai.firstSessionWaiting")}
               </p>
             </div>
             <DataTable

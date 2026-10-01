@@ -5,7 +5,8 @@ import type { SessionContext } from "@/modules/auth/server/session";
 import { localizedText, type LocalizedText } from "@/modules/curriculum/schemas";
 import { AI_CONCEPTS, conceptInputAsOf, forStudents, secureByConcept, summariseAiConcepts, type AiConcept } from "../ai-concepts";
 import { weekStarts, weeklySeries, type WeekRow } from "../weekly";
-import { aiLevelIdsOf, countAiEvents, emptyCounts, returningAiStudents, type AiActivityCounts } from "./ai-activity";
+import { summariseFirstSession, type FirstSessionSummary } from "../first-session";
+import { aiLevelIdsOf, countAiEvents, emptyCounts, firstSessionMinutes, returningAiStudents, type AiActivityCounts } from "./ai-activity";
 import { loadConceptInput } from "./ai-concepts-load";
 import { computeLevelActivityStats, rankMostAttempted, rankMostFailed } from "./level-activity";
 
@@ -93,6 +94,8 @@ export interface SchoolAnalytics {
   aiActivityTotal: AiActivityCounts;
   /** Children (school-wide) who came back to the AI activities on another day. */
   aiReturnedTotal: number;
+  /** The first session (Train a Sorter), timed; null under five children. */
+  firstSession: FirstSessionSummary | null;
   /** AI concept mastery (secure) by class — the concept trends. */
   aiConceptsByClass: SchoolAiConceptsClass[];
   /** AI activity week by week, the last 8 weeks, oldest first. */
@@ -351,6 +354,10 @@ export async function getSchoolAnalytics(ctx: SessionContext): Promise<SchoolAna
     [...levelIndex].map(([id, meta]) => ({ id, slug: meta.slug })),
   );
   const trendFrom = new Date(now.getTime() - 28 * 24 * 60 * 60 * 1000);
+  const sorterId = [...levelIndex].find(([, meta]) => meta.slug === "train-a-sorter")?.[0];
+  const firstSession = sorterId
+    ? summariseFirstSession(await firstSessionMinutes({ schoolId, levelId: sorterId, since: monthAgo }))
+    : null;
   const aiConceptsByClass: SchoolAiConceptsClass[] = classes
     .map((cls) => {
       const input = forStudents(conceptInput, new Set(studentIdsByClass.get(cls.id) ?? []));
@@ -398,6 +405,7 @@ export async function getSchoolAnalytics(ctx: SessionContext): Promise<SchoolAna
     aiActivity,
     aiActivityTotal,
     aiReturnedTotal: returning.size,
+    firstSession,
     aiConceptsByClass,
     aiWeekly,
   };

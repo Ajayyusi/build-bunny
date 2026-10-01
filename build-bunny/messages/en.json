@@ -2267,7 +2267,9 @@
           "weeklyKey": "Weeks start on Monday. Top bar: sessions. Bottom bar: tests.",
           "returned": "Came back another day",
           "returnedSummary": "{returned, plural, =0 {No child has come back to them on another day yet.} one {# child came back to them on another day.} other {# children came back to them on another day.}}",
-          "trend": "{change, plural, =0 {no change in 4 weeks} other {{change, number, ::sign-always} in 4 weeks}}"
+          "trend": "{change, plural, =0 {no change in 4 weeks} other {{change, number, ::sign-always} in 4 weeks}}",
+          "firstSession": "First session (Train a Sorter): a median of {median} minutes, across {children} children; {within} finished within 8 minutes (the aim is 5 to 8).",
+          "firstSessionWaiting": "First-session timing (Train a Sorter) shows once at least 5 children have finished it."
         }
       },
       "teachersPage": {
