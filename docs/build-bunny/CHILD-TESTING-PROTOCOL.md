@@ -91,6 +91,7 @@ Record these for every child. Where the product records something itself (`Learn
 | First AI action | Seconds from login to first example or guess in an AI activity | `LEVEL_SESSION_STARTED`, `AI_TEST` |
 | Coding before AI? | Did the child do any coding before their first AI action? (yes/no) | Level order of the events |
 | Loop completed | Finished at least one AI activity (yes/no, which one) | `LEVEL_COMPLETED` |
+| First session length | Minutes from opening Train a Sorter to finishing it (the handoff aims for 5 to 8) | The school page's first-session timing (median, once five children have finished) |
 | Predicted before seeing | Made a prediction before a reveal, unprompted (yes/no) | `AI_TEST` "revealGuesses", "lockPrediction" |
 | Retry after an error | After a wrong result, tried again rather than leaving (count, and yes/no for "at least once") | `AI_RETRY` |
 | Help used | "Show me the next step" and "Ask Robo Bunny" uses | Hint rows |
