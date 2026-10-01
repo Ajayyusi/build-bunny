@@ -66,5 +66,16 @@ test("My AI Project: teach, test fairly, and report a failure with a human safeg
   await safeguards.getByRole("radio", { name: /A person checks every berry/ }).click();
   await expect(page.getByText(/My report: My AI can go wrong on cases like this one:/)).toBeVisible();
   await check();
-  await expect(page.getByRole("dialog", { name: /complete/i })).toBeVisible();
+  const done = page.getByRole("dialog", { name: /complete/i });
+  await expect(done).toBeVisible();
+
+  // "Say it your way" on a lesson without a quick check: about fair testing.
+  await done.getByRole("radiogroup", { name: "What happened" }).getByRole("radio", { name: "I tested it on cases it had never seen" }).click();
+  await done.getByRole("radiogroup", { name: "Because…" }).getByRole("radio", { name: "a test on cases it learned from is too easy" }).click();
+  await done
+    .getByRole("radiogroup", { name: "So…" })
+    .getByRole("radio", { name: "I should say where it goes wrong and keep a person in charge" })
+    .click();
+  await done.getByRole("button", { name: "That's my sentence" }).click();
+  await expect(done.getByText("Saved. Your teacher can see your sentence.")).toBeVisible();
 });

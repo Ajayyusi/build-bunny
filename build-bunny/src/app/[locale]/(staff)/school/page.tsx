@@ -121,7 +121,7 @@ export default async function SchoolPage({ params }: Props) {
       cell: (row) => <span className="tabular-nums">{row.studentCount}</span>,
       align: "end",
     },
-    ...(["starts", "tests", "retries", "completions"] as const).map((key) => ({
+    ...(["starts", "tests", "retries", "completions", "returned"] as const).map((key) => ({
       key,
       header: tAnalytics(`ai.${key}`),
       cell: (row: NonNullable<typeof analytics>["aiActivity"][number]) => <span className="tabular-nums">{row[key]}</span>,
@@ -225,7 +225,8 @@ export default async function SchoolPage({ params }: Props) {
             <div className="flex flex-col gap-0.5">
               <h3 className="font-display text-base font-semibold">{tAnalytics("ai.heading")}</h3>
               <p className="text-sm text-ink-muted">
-                {tAnalytics("ai.summary", { ...analytics.aiActivityTotal })}
+                {tAnalytics("ai.summary", { ...analytics.aiActivityTotal })}{" "}
+                {tAnalytics("ai.returnedSummary", { returned: analytics.aiReturnedTotal })}
               </p>
             </div>
             <DataTable

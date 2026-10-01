@@ -143,3 +143,38 @@ export function mistakeKinds(
   }
   return { falseYes, missedYes };
 }
+
+/**
+ * The whole test as a 2×2 grid (grades 5 to 7: "show confusion or error
+ * counts in a small visual"): what the machine said against what was true.
+ * The truth of a probe follows from the guess and whether it was missed, so
+ * again no answer key reaches the browser. Probes it gave no guess for are
+ * left out.
+ */
+export interface ConfusionCounts {
+  /** Said positive, was positive. */
+  rightYes: number;
+  /** Said positive, was negative. */
+  falseYes: number;
+  /** Said negative, was positive. */
+  missedYes: number;
+  /** Said negative, was negative. */
+  rightNo: number;
+}
+
+export function confusionCounts(
+  guesses: readonly { id: string; guess: ClassLabel | null }[],
+  missed: readonly string[],
+): ConfusionCounts {
+  const counts: ConfusionCounts = { rightYes: 0, falseYes: 0, missedYes: 0, rightNo: 0 };
+  for (const { id, guess } of guesses) {
+    if (guess === null) continue;
+    const wrong = missed.includes(id);
+    if (guess === "positive") {
+      if (wrong) counts.falseYes += 1;
+      else counts.rightYes += 1;
+    } else if (wrong) counts.missedYes += 1;
+    else counts.rightNo += 1;
+  }
+  return counts;
+}

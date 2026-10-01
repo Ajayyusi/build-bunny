@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { closeCall, mistakeKinds } from "@/modules/ai/knn";
+import { closeCall, confusionCounts, mistakeKinds } from "@/modules/ai/knn";
 import { aiModeFor, aiModeFromGrade, choiceOf, storedFor } from "@/modules/students/ai-mode";
 
 describe("grade range modes", () => {
@@ -43,6 +43,20 @@ describe("the deeper test (grades 5-7)", () => {
     ];
     expect(mistakeKinds(guesses, ["a", "b", "c"])).toEqual({ falseYes: 2, missedYes: 1 });
     expect(mistakeKinds(guesses, [])).toEqual({ falseYes: 0, missedYes: 0 });
+  });
+
+  it("fills the older mode's 2×2 grid from the guesses and the missed list", () => {
+    const guesses = [
+      { id: "a", guess: "positive" as const },
+      { id: "b", guess: "negative" as const },
+      { id: "c", guess: "positive" as const },
+      { id: "d", guess: "negative" as const },
+      { id: "e", guess: null },
+    ];
+    // a: said yes, wrong (false yes); b: said no, wrong (missed);
+    // c: said yes, right; d: said no, right; e: no guess, left out.
+    expect(confusionCounts(guesses, ["a", "b", "e"])).toEqual({ rightYes: 1, falseYes: 1, missedYes: 1, rightNo: 1 });
+    expect(confusionCounts(guesses, [])).toEqual({ rightYes: 2, falseYes: 0, missedYes: 0, rightNo: 2 });
   });
 });
 

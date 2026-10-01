@@ -27,7 +27,10 @@ export type ExplainerScene =
   /** A training set of birds by tone, and a new bird the model got wrong. */
   | { kind: "birds"; trained: Record<Tone, number>; newBird?: { tone: Tone; mark: "wrong" | "new" } }
   /** A chatbot's confident answer beside a trusted timetable. */
-  | { kind: "source"; show: ("chat" | "timetable" | "check")[] };
+  | { kind: "source"; show: ("chat" | "timetable" | "check")[] }
+  /** A program of "move forward" blocks beside a track: Robo Bunny on one
+   *  square, the carrot on another; `short` marks it stopping short. */
+  | { kind: "steps"; blocks: number; bunnyAt: number; carrotAt: number; short?: boolean };
 
 export interface ExplainerBeat {
   /** When the beat starts, from the beginning. */
@@ -39,8 +42,9 @@ export interface ExplainerBeat {
 
 export interface Explainer {
   id: string;
-  /** The level it introduces (offered on that level's briefing). */
-  levelSlug: string;
+  /** Where it is offered: a level's briefing, or the Coding Lab page
+   *  (handoff: "Keep as Coding Lab; add an optional short introduction"). */
+  offeredOn: { level: string } | { page: "coding-lab" };
   durationMs: number;
   beats: readonly ExplainerBeat[];
   /** The ending choice: option ids; which one is the one to act on. */
@@ -55,7 +59,7 @@ export const EXPLAINERS: readonly Explainer[] = [
     // orange circle; Ruli guesses wrong. "I copied the color. What should I
     // look at instead?"
     id: "copied-colour",
-    levelSlug: "train-a-sorter",
+    offeredOn: { level: "train-a-sorter" },
     durationMs: 25_000,
     beats: [
       { atMs: 0, character: "bunny", state: "idle", scene: { kind: "shapes", items: RED_CIRCLES } },
@@ -70,7 +74,7 @@ export const EXPLAINERS: readonly Explainer[] = [
     // Example 2, 30 s: Noura shows a model trained on many light birds and
     // very few dark ones. It misses a dark bird. "Were our examples fair?"
     id: "fair-examples",
-    levelSlug: "bias-detective",
+    offeredOn: { level: "bias-detective" },
     durationMs: 30_000,
     beats: [
       { atMs: 0, character: "noura", state: "idle", scene: { kind: "birds", trained: { light: 8, dark: 1 } } },
@@ -85,7 +89,7 @@ export const EXPLAINERS: readonly Explainer[] = [
     // time; the child compares a trusted school timetable and chooses to
     // verify before sharing.
     id: "check-the-source",
-    levelSlug: "two-answers",
+    offeredOn: { level: "two-answers" },
     durationMs: 30_000,
     beats: [
       { atMs: 0, character: "bunny", state: "idle", scene: { kind: "source", show: ["chat"] } },
@@ -95,10 +99,28 @@ export const EXPLAINERS: readonly Explainer[] = [
     ],
     choice: { options: ["checkFirst", "shareNow", "askAgain"], best: "checkFirst" },
   },
+  {
+    // The Coding Lab's optional introduction, 20 s: Robo Bunny is given two
+    // "move forward" blocks for a carrot three squares away and stops one
+    // short. "It did exactly what we said, not what we meant."
+    id: "exact-steps",
+    offeredOn: { page: "coding-lab" },
+    durationMs: 20_000,
+    beats: [
+      { atMs: 0, character: "bunny", state: "idle", scene: { kind: "steps", blocks: 0, bunnyAt: 0, carrotAt: 3 } },
+      { atMs: 5_000, character: "bunny", state: "listening", scene: { kind: "steps", blocks: 2, bunnyAt: 0, carrotAt: 3 } },
+      { atMs: 10_000, character: "bunny", state: "error", scene: { kind: "steps", blocks: 2, bunnyAt: 2, carrotAt: 3, short: true } },
+      { atMs: 15_000, character: "bunny", state: "thinking", scene: { kind: "steps", blocks: 2, bunnyAt: 2, carrotAt: 3, short: true } },
+    ],
+    choice: { options: ["addBlock", "sayCarrot", "goFaster"], best: "addBlock" },
+  },
 ];
 
+/** The Coding Lab's optional introduction. */
+export const CODING_LAB_EXPLAINER = "exact-steps";
+
 export const EXPLAINER_FOR_LEVEL: Readonly<Record<string, string>> = Object.fromEntries(
-  EXPLAINERS.map((explainer) => [explainer.levelSlug, explainer.id]),
+  EXPLAINERS.flatMap((explainer) => ("level" in explainer.offeredOn ? [[explainer.offeredOn.level, explainer.id]] : [])),
 );
 
 export function explainerById(id: string): Explainer | undefined {

@@ -106,7 +106,7 @@ export function WorldIntro({ worlds, userId, replaySlug, onReplayDone }: WorldIn
     <div
       className={cn(
         styles.scrim,
-        "fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-ink/45 p-4",
+        "fixed inset-0 z-50 flex overflow-y-auto bg-ink/45 p-4",
       )}
     >
       <div
@@ -118,7 +118,7 @@ export function WorldIntro({ worlds, userId, replaySlug, onReplayDone }: WorldIn
         data-world-theme={world.theme}
         className={cn(
           styles.card,
-          "flex w-full max-w-md flex-col gap-4 rounded-2xl border border-border-token bg-surface-raised p-6 shadow-overlay focus:outline-none",
+          "m-auto flex w-full max-w-md flex-col gap-4 rounded-2xl border border-border-token bg-surface-raised p-6 shadow-overlay focus:outline-none",
         )}
       >
         <div className="flex items-center justify-between gap-2">

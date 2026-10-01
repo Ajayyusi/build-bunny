@@ -13,6 +13,7 @@ import {
 } from "@/modules/ai/glyph";
 import {
   closeCall,
+  confusionCounts,
   mistakeKinds,
   nearest,
   sureness,
@@ -24,6 +25,7 @@ import { BunnyMascot, Button, cn, useReducedMotion } from "@/ui";
 
 import { PlayerSoundControls } from "@/modules/audio/AudioControls";
 import { FeatureBoard } from "./FeatureBoard";
+import { DefendModel, MistakeGrid } from "./TeachMistakes";
 import { TeachRecap } from "./TeachRecap";
 import { TeachPredict } from "./TeachPredict";
 import { TeachRuleRound } from "./TeachRuleRound";
@@ -1139,17 +1141,29 @@ export function TeachPlayer({
               </p>
             ) : null}
 
-            {/* Grades 5 to 7: the two kinds of mistake, not just a count. */}
-            {intro.aiMode === "older" && result && result.verdict !== "PASS" && Array.isArray(result.missed) && result.missed.length > 0 ? (
-              <p className="text-sm text-ink-muted">
-                {(() => {
-                  const kinds = mistakeKinds(
+            {/* Grades 5 to 7: the two kinds of mistake, as a small grid and in
+                words, not just a count. */}
+            {intro.aiMode === "older" && result && result.verdict !== "PASS" && Array.isArray(result.missed) ? (
+              <div className="flex flex-col gap-1">
+                <MistakeGrid
+                  counts={confusionCounts(
                     guesses.map((g) => ({ id: g.probe.id, guess: g.guess })),
                     result.missed,
-                  );
-                  return tMode("deeperErrors", { falseYes: kinds.falseYes, missed: kinds.missedYes, positive: data.labels.positive });
-                })()}
-              </p>
+                  )}
+                  labels={data.labels}
+                />
+                {result.missed.length > 0 ? (
+                  <p className="text-sm text-ink-muted">
+                    {(() => {
+                      const kinds = mistakeKinds(
+                        guesses.map((g) => ({ id: g.probe.id, guess: g.guess })),
+                        result.missed,
+                      );
+                      return tMode("deeperErrors", { falseYes: kinds.falseYes, missed: kinds.missedYes, positive: data.labels.positive });
+                    })()}
+                  </p>
+                ) : null}
+              </div>
             ) : null}
 
             {/* Results by group (Find the Bias): how the bunny did on each
@@ -1247,6 +1261,24 @@ export function TeachPlayer({
           reducedMotion={reducedMotion}
           extra={
             <>
+            {/* Grades 5 to 7: the passing test as a grid (a safetyFirst
+                pass may hide budgeted mistakes the browser is not told
+                about, so it is shown only where a pass means none), then
+                "why should anyone trust it?". */}
+            {intro.aiMode === "older" ? (
+              <div className="flex flex-col items-center gap-3">
+                {data.passRule.kind !== "safetyFirst" ? (
+                  <MistakeGrid
+                    counts={confusionCounts(
+                      guesses.map((g) => ({ id: g.probe.id, guess: g.guess })),
+                      [],
+                    )}
+                    labels={data.labels}
+                  />
+                ) : null}
+                <DefendModel />
+              </div>
+            ) : null}
             <TeachWhatChanged
               before={firstTry}
               examples={examples}

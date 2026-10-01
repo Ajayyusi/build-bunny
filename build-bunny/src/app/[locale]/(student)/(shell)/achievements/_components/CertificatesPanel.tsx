@@ -93,7 +93,7 @@ export function CertificatesPanel({ certificates, locale, labels }: Props) {
           aria-modal="true"
           aria-label={open.title}
           tabIndex={-1}
-          className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-4 overflow-y-auto bg-ink/50 p-4 focus:outline-none print:static print:bg-transparent print:p-0"
+          className="fixed inset-0 z-50 flex flex-col items-center justify-center-safe gap-4 overflow-y-auto bg-ink/50 p-4 focus:outline-none print:static print:bg-transparent print:p-0"
           onClick={(event) => {
             if (event.target === event.currentTarget) setOpenId(null);
           }}

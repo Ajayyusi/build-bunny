@@ -122,10 +122,10 @@ export function IntroOverlay({
       aria-modal="true"
       aria-label={title}
       tabIndex={-1}
-      className={`${styles.overlay} absolute inset-0 z-30 flex items-center justify-center overflow-y-auto bg-surface p-4 focus:outline-none`}
+      className={`${styles.overlay} absolute inset-0 z-30 flex overflow-y-auto bg-surface p-4 focus:outline-none`}
     >
       <div
-        className={`${styles.card} flex w-full max-w-md flex-col gap-4 rounded-xl border border-border-token bg-surface-raised p-6 shadow-raised`}
+        className={`${styles.card} m-auto flex w-full max-w-md flex-col gap-4 rounded-xl border border-border-token bg-surface-raised p-6 shadow-raised`}
       >
         <div className="flex flex-col items-center gap-2 text-center">
           <h1 className="font-display text-xl font-bold text-ink">{title}</h1>
