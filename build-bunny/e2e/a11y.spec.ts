@@ -202,3 +202,100 @@ test("the AI-first additions have no serious or critical axe findings", async ({
 
   expect(findings, findings.join("\n")).toEqual([]);
 });
+
+test("the audit additions have no serious or critical axe findings", async ({ browser, page, baseURL }, testInfo) => {
+  test.skip(testInfo.project.name !== "laptop", "one viewport is enough for a structural scan");
+  test.setTimeout(240_000);
+  const kid = provisionStudent(studentName(testInfo.project.name, "ax3"));
+  await signIn(page, baseURL!, kid.username);
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  const findings: string[] = [];
+  const skipDialogs = async () => {
+    for (let i = 0; i < 10 && (await page.getByRole("dialog").count()) === 0; i++) await page.waitForTimeout(400);
+    while ((await page.getByRole("dialog").count()) > 0) await page.getByRole("dialog").getByRole("button").last().click();
+  };
+  const words = async (mode: "Simpler" | "More detail") => {
+    await page.goto("/en/explore");
+    const welcome = page.getByRole("dialog").getByRole("button", { name: "Look around first" });
+    await welcome.waitFor({ state: "visible", timeout: 5000 }).catch(() => {});
+    if (await welcome.isVisible().catch(() => false)) await welcome.click();
+    await page.getByRole("radiogroup", { name: "Words:" }).getByRole("radio", { name: mode }).click();
+  };
+
+  // More detail: Train a Sorter's mistake grid, then the pass with "defend your model".
+  await words("More detail");
+  await page.getByRole("link", { name: /Train a Sorter/ }).click();
+  await skipDialogs();
+  const card = (id: string) => page.getByRole("listitem").filter({ has: page.locator(`#specimen-${id}`) });
+  const test3 = async () => {
+    const reveal = page.getByRole("button", { name: "Show its guesses" });
+    if (await reveal.isVisible().catch(() => false)) {
+      const groups = page.locator("[role=radiogroup][aria-labelledby^=predict-]");
+      for (let i = 0; i < (await groups.count()); i++) await groups.nth(i).getByRole("radio").first().click();
+      await reveal.click();
+    }
+    await page.getByRole("button", { name: "Test the bunny" }).click();
+  };
+  for (const id of ["p1", "p2", "p3", "p4"]) await card(id).getByRole("button", { name: "Teach this one" }).click();
+  await test3();
+  await page.getByTestId("mistake-grid").waitFor();
+  findings.push(...(await scan(page, "en/teach (mistake grid)")));
+  await page.getByRole("button", { name: /^Take this shape back/ }).first().click();
+  for (const id of ["p5", "p6"]) await card(id).getByRole("button", { name: "Teach this one" }).click();
+  await test3();
+  const defend = page.getByTestId("defend-model");
+  await defend.waitFor();
+  await defend.getByRole("radio").first().check();
+  findings.push(...(await scan(page, "en/teach (defend your model)")));
+
+  // See Like a Computer: the clue questions after a settled round.
+  skipTo("see-like-a-computer", kid.username);
+  await page.goto("/en/explore");
+  await page.getByRole("link", { name: /See Like a Computer/ }).click();
+  await skipDialogs();
+  const round1 = page.getByRole("radiogroup", { name: "Your guess for Round 1" });
+  const card1 = round1.locator("xpath=ancestor::div[contains(@class,'rounded-xl')][1]");
+  await round1.getByText("Carrot", { exact: true }).click();
+  await card1.getByRole("button", { name: "Check my guess" }).click();
+  const notYet = card1.getByRole("button", { name: "Add more squares" });
+  if (await notYet.isVisible().catch(() => false)) {
+    await notYet.click();
+    await round1.getByText("Carrot", { exact: true }).click();
+    await card1.getByRole("button", { name: "Check my guess" }).click();
+  }
+  await card1.getByTestId("name-clues-round-1").waitFor();
+  findings.push(...(await scan(page, "en/see-like-a-computer (name the clues)")));
+
+  // Simpler: a grouping level's prediction.
+  await words("Simpler");
+  skipTo("two-piles", kid.username);
+  await page.goto("/en/ai-worlds");
+  const story = page.getByRole("dialog", { name: /the story/ });
+  await story.waitFor({ state: "visible", timeout: 5000 }).catch(() => {});
+  if (await story.isVisible().catch(() => false)) await story.getByRole("button", { name: "Skip" }).click();
+  await page.getByRole("button", { name: /Two Piles in the Sand/ }).click();
+  await page.getByRole("link", { name: "Start level" }).click();
+  await page.waitForURL(/\/play\//);
+  await skipDialogs();
+  await page.getByRole("group", { name: /how tight do you think your groups are/ }).waitFor();
+  findings.push(...(await scan(page, "en/grouping (predict first)")));
+
+  // The teacher's replay of the Train a Sorter attempt, and the principal's page.
+  const staff = await browser.newContext({ baseURL });
+  const teacher = await staff.newPage();
+  await teacher.emulateMedia({ reducedMotion: "reduce" });
+  const ok = await teacher.request.post("/api/auth/sign-in/email", {
+    data: { email: "sara@nitaqdemo.school", password: "TeachDemo-2026" },
+    headers: { Origin: baseURL! },
+  });
+  expect(ok.ok()).toBe(true);
+  await teacher.goto("/en/teach");
+  const classHref = await teacher.locator('a[href*="/teach/classes/"]', { hasText: "3A" }).first().getAttribute("href");
+  await teacher.goto(`${classHref!.replace(/\/$/, "")}/students/${kid.userId}`);
+  await teacher.locator('a[href*="/teach/attempts/"]').first().click();
+  await teacher.getByText("What they taught the bunny").waitFor();
+  findings.push(...(await scan(teacher, "en/teach/attempt (AI replay)")));
+  await staff.close();
+
+  expect(findings, findings.join("\n")).toEqual([]);
+});

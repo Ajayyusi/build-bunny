@@ -6,11 +6,13 @@ import { cn } from "./cn";
 // light for text, so it pairs with ink instead. brand/positive sit at /8
 // (not /12 like danger) because the NITAQ green is more saturated than the
 // old brand green — at /12 its own tint fell to 4.36:1 against itself,
-// under the 4.5:1 gate (recomputed in docs/accessibility.md).
+// under the 4.5:1 gate (recomputed in docs/accessibility.md). Their text
+// uses the -strong step: on a tinted staff surface (not white) the base
+// green read 4.37:1 against its own tint.
 const variantClasses = {
   neutral: "bg-ink/8 text-ink-muted",
-  brand: "bg-brand/8 text-brand",
-  positive: "bg-positive/8 text-positive",
+  brand: "bg-brand/8 text-brand-strong",
+  positive: "bg-positive/8 text-positive-strong",
   warning: "bg-warning/14 text-warning-strong",
   danger: "bg-danger/12 text-danger",
   accent: "bg-accent/25 text-ink",
