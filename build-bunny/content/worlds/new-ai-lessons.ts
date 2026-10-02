@@ -42,7 +42,7 @@ export const twoAnswers: LevelDraft = {
   ),
   mission: t(
     "Check every sentence against the library's notice. Which details did the chatbots make up?",
-    "تحقّق من كل جملة مقابل إعلان المكتبة. ما التفاصيل التي اخترعها روبوتا الدردشة؟",
+    "لنتحقّق من كل جملة بمقارنتها بإعلان المكتبة. ما التفاصيل التي اخترعها روبوتا الدردشة؟",
   ),
   instructions: t(
     "First, say which answer you trust more. Then read the library's own notice, and mark every sentence: does the notice say so, or not? Press “Check my work” when every sentence is marked.",
@@ -50,11 +50,11 @@ export const twoAnswers: LevelDraft = {
   ),
   explanation: t(
     "Both chatbots wrote smooth, confident sentences, and both mixed true details with made-up ones. That's how a text-generating AI works: it predicts words that sound right, and it has no idea whether they are. The fix isn't to stop using it; it's to check the details that matter against a source you trust — here, the library's own notice. The one that sounded most sure wasn't the one that was most right.",
-    "كتب روبوتا الدردشة جملًا سلسة وواثقة، وخلط كلاهما تفاصيل صحيحة بأخرى مخترعة. هكذا يعمل الذكاء الاصطناعي الذي يولّد النصوص: يتوقّع كلمات تبدو صحيحة، ولا يعرف إن كانت كذلك. والحل ليس التوقف عن استخدامه، بل التحقق من التفاصيل المهمة مقابل مصدر تثق به — وهنا، إعلان المكتبة نفسه. لم يكن الأكثر ثقة هو الأكثر صوابًا.",
+    "كتب روبوتا الدردشة جملًا سلسة وواثقة، وخلط كلاهما تفاصيل صحيحة بأخرى مخترعة. هكذا يعمل الذكاء الاصطناعي الذي يولّد النصوص: يتوقّع كلمات تبدو صحيحة، ولا يعرف إن كانت كذلك. والحل ليس التوقف عن استخدامه، بل التحقق من التفاصيل المهمة بمقارنتها بمصدر نثق به — وهنا، إعلان المكتبة نفسه. الذي بدا أكثر ثقة لم يكن الأكثر صوابًا.",
   ),
   keyIdea: t(
     "A chatbot can sound sure and still invent details, so check them against a source you trust.",
-    "قد يبدو روبوت الدردشة واثقًا ومع ذلك يخترع تفاصيل، لذا تحقّق منها مقابل مصدر تثق به.",
+    "قد يبدو روبوت الدردشة واثقًا ومع ذلك يخترع تفاصيل، لذا تحقّق منها في مصدر تثق به.",
   ),
   teacherNotes: t(
     "Both answers are written for this lesson — no model is called. Pip's cafe sentence is the interesting one: it may even be true, but the notice doesn't say so, so it can't be trusted yet. Discuss the difference between 'false' and 'not supported by the source'. Good question: which chatbot did the class trust before checking, and why?",
@@ -69,8 +69,8 @@ export const twoAnswers: LevelDraft = {
   requires: [],
   hints: hints(
     ["Read the notice first. It is the only thing here you know is true.", "اقرأ الإعلان أولًا. إنه الشيء الوحيد هنا الذي تعرف أنه صحيح."],
-    ["Take one sentence at a time and find the line in the notice it talks about.", "خذ جملة واحدة في كل مرة وابحث عن السطر الذي تتحدث عنه في الإعلان."],
-    ["If the notice doesn't mention something at all, it doesn't say so — even if it sounds nice.", "إذا لم يذكر الإعلان شيئًا أبدًا، فهو لا يقول ذلك — حتى لو بدا لطيفًا."],
+    ["Take one sentence at a time and find the line in the notice it talks about.", "خذ جملة واحدة في كل مرة، وابحث في الإعلان عن السطر الذي تتحدث عنه الجملة."],
+    ["If the notice doesn't mention something at all, it doesn't say so — even if it sounds nice.", "إذا لم يذكر الإعلان الأمرَ على الإطلاق، فالإعلان لا يقول ذلك — حتى لو بدا الأمر لطيفًا."],
     ["Look closely at the days and the numbers. That's where chatbots slip.", "انظر بدقة إلى الأيام والأرقام. هناك تخطئ روبوتات الدردشة."],
   ),
   payload: {
@@ -127,7 +127,7 @@ export const twoAnswers: LevelDraft = {
     },
     intro: L(
       "Two chatbots answered the same question. Check every sentence against the library's own notice.",
-      "أجاب روبوتا دردشة عن السؤال نفسه. تحقّق من كل جملة مقابل إعلان المكتبة نفسه.",
+      "أجاب روبوتا دردشة عن السؤال نفسه. لنتحقّق من كل جملة بمقارنتها بإعلان المكتبة نفسه.",
     ),
     honesty: {
       kind: "SIMULATED",
@@ -154,18 +154,18 @@ export const needToKnow: LevelDraft = {
     "Decide what information an AI helper needs for a task, and remove personal details it doesn't (data minimisation).",
     "تحديد المعلومات التي يحتاجها المساعد الذكي لمهمة ما، وحذف التفاصيل الشخصية التي لا يحتاجها (تقليل البيانات).",
   ),
-  mission: t("Strike out everything the helper doesn't need to know.", "احذف كل ما لا يحتاج المساعد إلى معرفته."),
+  mission: t("Strike out everything the helper doesn't need to know.", "لنحذف كل ما لا يحتاج المساعد إلى معرفته."),
   instructions: t(
     "Read what the helper has to do. Then tap each detail in Maya's message that the helper doesn't need, to strike it out. Tap again to keep it. Press “Check my work” when the message is ready to send.",
     "اقرأ ما يجب أن يفعله المساعد. ثم اضغط على كل تفصيل في رسالة مايا لا يحتاجه المساعد لتحذفه. اضغط مرة أخرى لتبقيه. اضغط «تحقّق من عملي» عندما تصبح الرسالة جاهزة للإرسال.",
   ),
   explanation: t(
     "To find a book about sharks for a Grade 4 project, the helper needs three things: sharks, Grade 4 and 'school project'. Maya's full name, her school, her street and her phone number don't help it find a book at all — they only tell a machine, and whoever runs it, who and where she is. Small details add up. Asking 'does it need this to do the job?' before you send is one of the simplest, strongest privacy habits there is.",
-    "لإيجاد كتاب عن أسماك القرش لمشروع الصف الرابع، يحتاج المساعد إلى ثلاثة أشياء: أسماك القرش، والصف الرابع، و«مشروع مدرسي». اسم مايا الكامل ومدرستها وشارعها ورقم هاتفها لا تساعده في إيجاد كتاب أبدًا — بل تخبر الآلة، ومن يشغّلها، من هي وأين هي. التفاصيل الصغيرة تتراكم. سؤال «هل يحتاج هذا ليقوم بعمله؟» قبل الإرسال من أبسط عادات الخصوصية وأقواها.",
+    "لإيجاد كتاب عن أسماك القرش لمشروع الصف الرابع، يحتاج المساعد إلى ثلاثة أشياء: أسماك القرش، والصف الرابع، و«مشروع مدرسي». اسم مايا الكامل ومدرستها وشارعها ورقم هاتفها لا تساعده في إيجاد كتاب أبدًا — بل تخبر الآلة، ومن يشغّلها، من هي وأين هي. التفاصيل الصغيرة تتراكم. سؤال «هل يحتاج إلى هذا ليقوم بعمله؟» قبل الإرسال من أبسط عادات الخصوصية وأقواها.",
   ),
   keyIdea: t(
     "Give a helper only what the task needs; everything else about you stays yours.",
-    "أعطِ المساعد ما تحتاجه المهمة فقط؛ وكل ما عدا ذلك عنك يبقى لك.",
+    "لا نعطي المساعد إلا ما تحتاجه المهمة؛ وكل ما عدا ذلك من معلوماتنا يبقى لنا.",
   ),
   teacherNotes: t(
     "The helper is pretend and nothing is sent anywhere. 'Grade 4' is kept because the task needs a book at the right level — a good discussion point: some details are personal but still needed. Ask: what would change if the task were 'send my project to my teacher'?",
@@ -222,7 +222,7 @@ export const needToKnow: LevelDraft = {
       ],
       tryNext: L(
         "Next time an app or chatbot asks you for something, ask: does it need this to do the job?",
-        "في المرة القادمة التي يطلب فيها منك تطبيق أو روبوت دردشة شيئًا، اسأل: هل يحتاج هذا ليقوم بعمله؟",
+        "في المرة القادمة التي يطلب فيها منك تطبيق أو روبوت دردشة شيئًا، اسأل: هل يحتاج إلى هذا ليقوم بعمله؟",
       ),
     },
     intro: L(
@@ -251,22 +251,22 @@ export const sayItClearly: LevelDraft = {
     "Identify ambiguous words in a natural-language instruction to an AI assistant and revise them into precise references (which, where, who, when).",
     "تحديد الكلمات الغامضة في تعليمات بلغة طبيعية لمساعد ذكي وتعديلها إلى إشارات دقيقة (أيّ، أين، من، متى).",
   ),
-  mission: t("Make every vague word say exactly what you mean.", "اجعل كل كلمة غامضة تقول بالضبط ما تعنيه."),
+  mission: t("Make every vague word say exactly what you mean.", "لنجعل كل كلمة غامضة تقول بالضبط ما نقصده."),
   instructions: t(
     "First, say whether Robo Helper will know exactly what to do. Then, for each highlighted vague word, choose the wording that says exactly which, where, who or when. Watch what Robo Helper hears change. Press “Check my work” when it's clear.",
-    "أولًا، قل هل سيعرف المساعد الآلي بالضبط ما يفعل. ثم، لكل كلمة غامضة مظلّلة، اختر الصياغة التي تقول بالضبط أيّ، أو أين، أو من، أو متى. شاهد ما يسمعه المساعد الآلي يتغيّر. اضغط «تحقّق من عملي» عندما تصبح واضحة.",
+    "أولًا، قل هل سيعرف المساعد الآلي بالضبط ما يفعل. ثم، لكل كلمة غامضة مظلّلة، اختر الصياغة التي تحدّد بالضبط أيّ شيء، أو أين، أو من، أو متى. وشاهد كيف يتغيّر ما يسمعه المساعد الآلي. اضغط «تحقّق من عملي» عندما تصبح التعليمات واضحة.",
   ),
   explanation: t(
     "People fill gaps with what they already know: you knew which table was 'the big one'. An AI assistant has only your words, so 'it', 'them' and 'soon' force it to guess, and a confident guess can be wrong. Clear instructions name the thing, the place, the people and the time. That isn't just good manners with machines: it's how you get the result you actually wanted.",
-    "يملأ الناس الفراغات بما يعرفونه مسبقًا: كنت تعرف أي طاولة هي «الكبيرة». أما المساعد الذكي فليس لديه إلا كلماتك، لذا فإن «هو» و«هم» و«قريبًا» تجبره على التخمين، والتخمين الواثق قد يكون خاطئًا. التعليمات الواضحة تسمّي الشيء والمكان والأشخاص والوقت. هذا ليس مجرد أدب مع الآلات: إنه الطريقة التي تحصل بها على النتيجة التي أردتها فعلًا.",
+    "يملأ الناس الفراغات بما يعرفونه مسبقًا: كنت تعرف أي طاولة هي «الكبيرة». أما المساعد الذكي فليس لديه إلا كلماتك، لذا فإن «ذلك» و«إليهم» و«قريبًا» تجبره على التخمين، والتخمين الواثق قد يكون خاطئًا. التعليمات الواضحة تسمّي الشيء والمكان والأشخاص والوقت. هذا ليس مجرد أدب مع الآلات: إنه الطريقة التي تحصل بها على النتيجة التي أردتها فعلًا.",
   ),
   keyIdea: t(
     "An assistant can only do what your words say, so say exactly which, where, who and when.",
-    "لا يستطيع المساعد أن يفعل إلا ما تقوله كلماتك، لذا قل بالضبط أيّ، وأين، ومن، ومتى.",
+    "لا يستطيع المساعد أن يفعل إلا ما تقوله كلماتنا، لذا نقول بالضبط أيّ شيء، وأين، ومن، ومتى.",
   ),
   teacherNotes: t(
     "Robo Helper is pretend; nothing is sent to a model. The level is about ambiguity (referents, deixis, vague time words), the heart of natural-language interaction. Extension: have pairs write an instruction for each other and find every word a stranger couldn't act on.",
-    "المساعد الآلي متخيَّل؛ لا يُرسل شيء إلى أي نموذج. يدور المستوى حول الغموض (المرجع، وكلمات الإشارة، وكلمات الوقت الغامضة)، وهو جوهر التفاعل باللغة الطبيعية. نشاط إضافي: يكتب كل زوج تعليمات للآخر ويبحث عن كل كلمة لا يستطيع شخص غريب أن يعمل بها.",
+    "المساعد الآلي متخيَّل؛ لا يُرسل شيء إلى أي نموذج. يدور المستوى حول الغموض (المرجع، وكلمات الإشارة، وكلمات الوقت الغامضة)، وهو جوهر التفاعل باللغة الطبيعية. نشاط إضافي: يعمل الطلاب في أزواج، فيكتب كل طالب تعليمات لزميله، ثم يبحثان معًا عن كل كلمة لا يستطيع شخص غريب أن يعمل بها.",
   ),
   difficulty: "MEDIUM",
   recommendedGradeMin: 5,
@@ -278,8 +278,8 @@ export const sayItClearly: LevelDraft = {
   hints: hints(
     ["Read the instruction as if you were a robot who has never seen the classroom.", "اقرأ التعليمات كأنك روبوت لم يرَ الصف من قبل."],
     ["For each highlighted word, ask: could this mean more than one thing?", "لكل كلمة مظلّلة، اسأل: هل يمكن أن تعني أكثر من شيء؟"],
-    ["The clear choice names exactly one thing, place, group of people or time.", "الاختيار الواضح يسمّي شيئًا واحدًا بالضبط، أو مكانًا، أو مجموعة أشخاص، أو وقتًا."],
-    ["'Soon' and 'them' are never clear to a machine. Pick the choice with a real time and real names.", "«قريبًا» و«هم» ليستا واضحتين أبدًا لآلة. اختر ما فيه وقت حقيقي وأسماء حقيقية."],
+    ["The clear choice names exactly one thing, place, group of people or time.", "الاختيار الواضح يحدّد بالضبط شيئًا واحدًا، أو مكانًا واحدًا، أو مجموعة واحدة من الأشخاص، أو وقتًا واحدًا."],
+    ["'Soon' and 'them' are never clear to a machine. Pick the choice with a real time and real names.", "«قريبًا» و«إليهم» ليستا واضحتين أبدًا لآلة. اختر ما فيه وقت حقيقي وأسماء حقيقية."],
   ),
   payload: {
     widget: {
@@ -290,7 +290,7 @@ export const sayItClearly: LevelDraft = {
         options: [
           { id: "yes", text: L("Yes", "نعم") },
           { id: "no", text: L("No, it's too vague", "لا، إنها غامضة جدًّا") },
-          { id: "unsure", text: L("Not sure", "لست متأكدًا") },
+          { id: "unsure", text: L("Not sure", "لا أعرف بعد") },
         ],
       },
       groups: [
@@ -320,14 +320,14 @@ export const sayItClearly: LevelDraft = {
               ],
               answer: "v2-clear",
             },
-            { id: "p3", text: L(", and email the plan to ", "، وأرسل الخطة بالبريد إلى ") },
+            { id: "p3", text: L(", and email the plan to ", "، وأرسل الخطة بالبريد ") },
             {
               id: "v3",
-              text: L("them", "هم"),
+              text: L("them", "إليهم"),
               options: [
-                { id: "v3-other", text: L("everyone who might want it", "كل من قد يريدها") },
-                { id: "v3-vague", text: L("them", "هم") },
-                { id: "v3-clear", text: L("Ms Sara and the Grade 6 class", "الأستاذة سارة وطلاب الصف السادس") },
+                { id: "v3-other", text: L("everyone who might want it", "إلى كل من قد يريدها") },
+                { id: "v3-vague", text: L("them", "إليهم") },
+                { id: "v3-clear", text: L("Ms Sara and the Grade 6 class", "إلى الأستاذة سارة وطلاب الصف السادس") },
               ],
               answer: "v3-clear",
             },
@@ -348,12 +348,12 @@ export const sayItClearly: LevelDraft = {
       ],
       tryNext: L(
         "Next time you ask an assistant for something, reread it: could 'it', 'them' or 'soon' mean more than one thing?",
-        "في المرة القادمة التي تطلب فيها شيئًا من مساعد، أعد قراءته: هل يمكن أن تعني «ذلك» أو «هم» أو «قريبًا» أكثر من شيء؟",
+        "في المرة القادمة التي تطلب فيها شيئًا من مساعد، أعد قراءة طلبك: هل يمكن أن تعني «ذلك» أو «إليهم» أو «قريبًا» أكثر من شيء؟",
       ),
     },
     intro: L(
       "Robo Helper has only your words. Make every vague one say exactly what you mean.",
-      "ليس لدى المساعد الآلي إلا كلماتك. اجعل كل كلمة غامضة تقول بالضبط ما تعنيه.",
+      "ليس لدى المساعد الآلي إلا كلماتنا. لنجعل كل كلمة غامضة تقول بالضبط ما نقصده.",
     ),
     honesty: {
       kind: "SIMULATED",
@@ -387,7 +387,7 @@ export const myAiProject: LevelDraft = {
   title: t("My AI Project", "مشروعي في الذكاء الاصطناعي"),
   story: t(
     "The village fair needs a berry-sorting robot for its fruit stall, and Dr. Nova has put you in charge of the whole project: teach it, test it on berries it has never seen, and write the report that says where it can go wrong.",
-    "يحتاج سوق القرية إلى روبوت يفرز التوت لكشك الفاكهة، وقد جعلتك الدكتورة نوفا مسؤولًا عن المشروع كله: علّمه، واختبره على حبّات لم يرها من قبل، واكتب التقرير الذي يقول أين قد يخطئ.",
+    "يحتاج معرض القرية إلى روبوت يفرز التوت لكشك الفاكهة، وقد أوكلت إليك الدكتورة نوفا المشروع كله: تعليمه، واختباره على حبّات لم يرها من قبل، وكتابة التقرير الذي يبيّن أين قد يخطئ.",
   ),
   objective: t(
     "Carry out a complete small AI project: train a classifier, test it on unseen cases, and report one failure and a human safeguard.",
@@ -395,11 +395,11 @@ export const myAiProject: LevelDraft = {
   ),
   mission: t(
     "Build the fair's berry sorter, test it fairly, and write an honest report.",
-    "ابنِ فارز التوت للسوق، واختبره بعدل، واكتب تقريرًا صادقًا.",
+    "لنبنِ فارز التوت للمعرض، ونختبره بإنصاف، ونكتب تقريرًا صادقًا.",
   ),
   instructions: t(
     "Teach the robot with berries in the two baskets, and keep at least 3 berries in your test pile. Say what you think it will answer, then show its guesses. Last, write your report: one berry from your test pile it got wrong or wasn't sure about, and how a person stays in charge. Press “Check” to hand in your project.",
-    "علّم الروبوت بوضع حبّات في السلّتين، واحتفظ بثلاث حبّات على الأقل في كومة اختبارك. قل ما تظن أنه سيجيب، ثم أظهر تخميناته. وأخيرًا، اكتب تقريرك: حبّة واحدة من كومة اختبارك أخطأ فيها أو لم يكن متأكدًا منها، وكيف يبقى إنسان هو المسؤول. اضغط «تحقّق» لتسلّم مشروعك.",
+    "علّم الروبوت بوضع حبّات في السلّتين، واحتفظ بثلاث حبّات على الأقل في كومة اختبارك. قل ما تظن أنه سيجيب به، ثم أظهر تخميناته. وأخيرًا، اكتب تقريرك: حبّة واحدة من كومة اختبارك أخطأ فيها أو لم يكن متأكدًا منها، وكيف يبقى إنسان هو المسؤول. اضغط «تحقّق» لتسلّم مشروعك.",
   ),
   explanation: t(
     "That was a whole AI project, the way real teams do it. You chose the examples, kept some back so the test was fair, and checked the robot on berries it had never seen. Then you did the part people often skip: you wrote down where it goes wrong, and you made sure a person checks those cases. No AI is right every time. A good project says so, and plans for it.",
@@ -407,7 +407,7 @@ export const myAiProject: LevelDraft = {
   ),
   keyIdea: t(
     "A good AI project tests on new cases, says where the AI goes wrong, and keeps a person in charge.",
-    "مشروع الذكاء الاصطناعي الجيد يختبر على حالات جديدة، ويقول أين يخطئ الذكاء الاصطناعي، ويُبقي إنسانًا هو المسؤول.",
+    "مشروع الذكاء الاصطناعي الجيد يختبر على حالات جديدة، ويقول أين يخطئ الذكاء الاصطناعي، ويُبقي القرار في يد إنسان.",
   ),
   teacherNotes: t(
     "The capstone of the AI strand. The model is easy to get right on purpose; the graded part is the report. The child must name a berry from their OWN test pile that the robot got wrong or was unsure about (if it was right and sure about every one, the least sure one counts), and choose a safeguard where a person stays in charge or testing continues. Two tempting wrong safeguards are offered: trusting the robot because it passed, and hiding its mistakes. The report is saved with the attempt. Good discussion: which real systems publish where they go wrong, and who checks them?",
@@ -422,9 +422,9 @@ export const myAiProject: LevelDraft = {
   requires: ["let-it-run"],
   hints: hints(
     ["Three jobs: teach, test fairly, then report. The report is part of the project, not an extra.", "ثلاث مهام: علّم، واختبر بعدل، ثم اكتب التقرير. التقرير جزء من المشروع، لا إضافة."],
-    ["Put both kinds of berry in your test pile, including some from near the middle. Those are the honest questions.", "ضع النوعين في كومة اختبارك، ومنها حبّات قريبة من الوسط. تلك هي الأسئلة الصادقة."],
+    ["Put both kinds of berry in your test pile, including some from near the middle. Those are the honest questions.", "ضع حبّات من النوعين في كومة اختبارك، ومنها بعض الحبّات القريبة من الوسط. تلك هي الأسئلة الصادقة."],
     ["In your report, look for a berry marked “Got it wrong” or “Not sure”. A berry it got right and was sure about isn't a failure.", "في تقريرك، ابحث عن حبّة مكتوب عليها «أخطأ فيها» أو «غير متأكد». الحبّة التي أصاب فيها وهو متأكد ليست إخفاقًا."],
-    ["A safeguard keeps a person in charge, or keeps testing the robot. Trusting it because it passed, or hiding its mistakes, isn't a safeguard.", "وسيلة الأمان تُبقي إنسانًا هو المسؤول، أو تواصل اختبار الروبوت. الثقة به لأنه نجح، أو إخفاء أخطائه، ليست وسيلة أمان."],
+    ["A safeguard keeps a person in charge, or keeps testing the robot. Trusting it because it passed, or hiding its mistakes, isn't a safeguard.", "وسيلة الأمان تُبقي القرار في يد إنسان، أو تواصل اختبار الروبوت. الثقة به لأنه نجح، أو إخفاء أخطائه، ليست وسيلة أمان."],
   ),
   payload: {
     conceptSlug: "ai-project",
@@ -487,9 +487,9 @@ export const myAiProject: LevelDraft = {
     report: {
       safeguards: [
         { id: "person-checks", text: t("A person checks every berry the robot wasn't sure about before it goes on the stall.", "يتحقّق إنسان من كل حبّة لم يكن الروبوت متأكدًا منها قبل أن توضع في الكشك."), safe: true },
-        { id: "trust-it", text: t("Let the robot decide on its own. It passed the test, so it's always right.", "دع الروبوت يقرّر وحده. لقد نجح في الاختبار، لذا فهو يصيب دائمًا."), safe: false },
-        { id: "keep-testing", text: t("Keep testing it on new berries every week, and teach it again when it gets some wrong.", "واصل اختباره على حبّات جديدة كل أسبوع، وعلّمه من جديد عندما يخطئ في بعضها."), safe: true },
-        { id: "hide-mistakes", text: t("Don't tell anyone about its mistakes, so people keep trusting the robot.", "لا تخبر أحدًا بأخطائه، حتى يظل الناس يثقون بالروبوت."), safe: false },
+        { id: "trust-it", text: t("Let the robot decide on its own. It passed the test, so it's always right.", "يقرّر الروبوت وحده. لقد نجح في الاختبار، لذا فهو يصيب دائمًا."), safe: false },
+        { id: "keep-testing", text: t("Keep testing it on new berries every week, and teach it again when it gets some wrong.", "نواصل اختباره على حبّات جديدة كل أسبوع، ونعلّمه من جديد عندما يخطئ في بعضها."), safe: true },
+        { id: "hide-mistakes", text: t("Don't tell anyone about its mistakes, so people keep trusting the robot.", "لا نخبر أحدًا بأخطائه، حتى يظل الناس يثقون بالروبوت."), safe: false },
       ],
     },
     starCriteria: {},

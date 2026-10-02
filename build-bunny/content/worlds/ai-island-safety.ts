@@ -219,7 +219,7 @@ export const safetyAndFairness: ModuleFixture = {
           },
         ],
         tryNext: { en: "Next time someone new messages you in a game, notice the first thing they ask for. Is it something a stranger needs?", ar: "في المرة القادمة التي يراسلك فيها شخص جديد في لعبة، لاحظ أول شيء يطلبه. هل هو شيء يحتاجه شخص غريب؟" },
-        checklist: { title: { en: "Your Safe Chat Checklist", ar: "قائمة الدردشة الآمنة الخاصة بك" }, icon: "💬" },
+        checklist: { title: { en: "Your Safe Chat Checklist", ar: "قائمتك للدردشة الآمنة" }, icon: "💬" },
         takeaways: [
           { en: "A friendly stranger online is still a stranger.", ar: "الغريب الودود على الإنترنت ما زال غريبًا." },
           { en: "I keep my school, my address and my full name to myself.", ar: "أحتفظ باسم مدرستي وعنواني واسمي الكامل لنفسي." },
@@ -293,8 +293,8 @@ export const safetyAndFairness: ModuleFixture = {
               question: { en: "Is this video real?", ar: "هل هذا الفيديو حقيقي؟" },
               options: [
                 { id: "real", text: { en: "Real", ar: "حقيقي" }, note: { en: "It looked real, but it was made by a machine. \"Looks real\" isn't proof.", ar: "بدا حقيقيًا، لكن آلة صنعته. «يبدو حقيقيًا» ليس دليلًا." } },
-                { id: "made-up", text: { en: "Made up", ar: "مصطنع" }, note: { en: "It was made up, but you couldn't know that from the video alone. What would tell you?", ar: "كان مصطنعًا، لكنك لم تكن لتعرف ذلك من الفيديو وحده. ما الذي سيخبرك؟" } },
-                { id: "not-enough", text: { en: "Not enough evidence yet", ar: "لا يوجد دليل كافٍ بعد" }, note: { en: "The careful answer: a video can't prove itself. You'd need a source you trust.", ar: "الإجابة الحذرة: الفيديو لا يثبت نفسه. تحتاج إلى مصدر تثق به." } },
+                { id: "made-up", text: { en: "Made up", ar: "مصطنع" }, note: { en: "It was made up, but you couldn't know that from the video alone. What would tell you?", ar: "كان مصطنعًا، لكن الفيديو وحده لم يكن ليكشف ذلك. ما الذي قد يكشفه؟" } },
+                { id: "not-enough", text: { en: "Not enough evidence yet", ar: "لا يوجد دليل كافٍ بعد" }, note: { en: "The careful answer: a video can't prove itself. You'd need a source you trust.", ar: "الإجابة الحذرة: الفيديو لا يثبت نفسه. نحتاج إلى مصدر نثق به." } },
               ],
             },
             choices: [
@@ -324,7 +324,7 @@ export const safetyAndFairness: ModuleFixture = {
                 },
                 outcome: {
                   en: "Smart. \"Everyone's sharing it\" isn't evidence. The first place it appeared, and whether a trusted news site reports it, tells you far more.",
-                  ar: "ذكي. «الجميع يشاركه» ليس دليلًا. أول مكان ظهر فيه، وهل ينشره موقع أخبار موثوق، يخبرك بأكثر من ذلك بكثير.",
+                  ar: "تصرّف ذكي. «الجميع يشاركه» ليس دليلًا. معرفة أول مكان ظهر فيه، وهل ينشره موقع أخبار موثوق، تخبرك بأكثر من ذلك بكثير.",
                 },
                 safe: true,
               },
@@ -333,7 +333,7 @@ export const safetyAndFairness: ModuleFixture = {
                 text: { en: "Ask a grown-up what they think", ar: "أسأل شخصًا بالغًا عن رأيه" },
                 outcome: {
                   en: "Sensible — a second pair of eyes catches fakes that look real. Sharing can wait.",
-                  ar: "منطقي — نظرة ثانية تلتقط المزيف الذي يبدو حقيقيًا. المشاركة يمكن أن تنتظر.",
+                  ar: "تصرّف منطقي — النظرة الثانية تكشف التزييف الذي يبدو حقيقيًا. المشاركة يمكن أن تنتظر.",
                 },
                 safe: true,
               },
@@ -349,9 +349,9 @@ export const safetyAndFairness: ModuleFixture = {
             predict: {
               question: { en: "Is the chatbot's answer right?", ar: "هل إجابة روبوت الدردشة صحيحة؟" },
               options: [
-                { id: "right", text: { en: "It's right", ar: "صحيحة" }, note: { en: "It sounded sure, but today it was wrong. Sure isn't the same as right.", ar: "بدا متأكدًا، لكنه كان مخطئًا اليوم. التأكد ليس الصواب." } },
-                { id: "wrong", text: { en: "It's wrong", ar: "خاطئة" }, note: { en: "It was wrong today, but you couldn't tell from how it sounded. What would tell you?", ar: "كانت خاطئة اليوم، لكنك لم تكن لتعرف من طريقة كلامه. ما الذي سيخبرك؟" } },
-                { id: "not-enough", text: { en: "Can't tell yet", ar: "لا أستطيع أن أعرف بعد" }, note: { en: "The careful answer: you'd need to check it somewhere else.", ar: "الإجابة الحذرة: تحتاج إلى التحقق منها في مكان آخر." } },
+                { id: "right", text: { en: "It's right", ar: "صحيحة" }, note: { en: "It sounded sure, but today it was wrong. Sure isn't the same as right.", ar: "بدا متأكدًا، لكنه كان مخطئًا اليوم. الثقة لا تعني الصواب." } },
+                { id: "wrong", text: { en: "It's wrong", ar: "خاطئة" }, note: { en: "It was wrong today, but you couldn't tell from how it sounded. What would tell you?", ar: "كانت خاطئة اليوم، لكن طريقة كلامه لم تكن لتكشف ذلك. ما الذي قد يكشفه؟" } },
+                { id: "not-enough", text: { en: "Can't tell yet", ar: "لا أستطيع أن أعرف بعد" }, note: { en: "The careful answer: you'd need to check it somewhere else.", ar: "الإجابة الحذرة: يجب التحقق منها في مكان آخر." } },
               ],
             },
             choices: [
@@ -426,7 +426,7 @@ export const safetyAndFairness: ModuleFixture = {
                 },
                 outcome: {
                   en: "Exactly the right question. A picture with no source isn't proof of anything, and until you know, it isn't yours to spread.",
-                  ar: "هذا هو السؤال الصحيح تمامًا. صورة بلا مصدر ليست دليلًا على أي شيء، وإلى أن تعرف، ليست لك لتنشرها.",
+                  ar: "هذا هو السؤال الصحيح تمامًا. صورة بلا مصدر ليست دليلًا على أي شيء، وما دام مصدرها مجهولًا فلا ينبغي نشرها.",
                 },
                 safe: true,
               },
@@ -435,7 +435,7 @@ export const safetyAndFairness: ModuleFixture = {
                 text: { en: "Tell a grown-up about it", ar: "أخبر شخصًا بالغًا عنها" },
                 outcome: {
                   en: "Right. If someone might be hurt, that's a grown-up's job to sort out — not something to spread.",
-                  ar: "صحيح. إذا كان أحد قد يتأذى، فهذا عمل شخص بالغ ليحلّه — لا شيء يُنشر.",
+                  ar: "صحيح. إذا كان هناك من قد يتأذى، فهذا أمر يحلّه شخص بالغ — وليس شيئًا يُنشر.",
                 },
                 safe: true,
               },
@@ -449,11 +449,11 @@ export const safetyAndFairness: ModuleFixture = {
             },
             art: "📝",
             predict: {
-              question: { en: "If you copy its answer, will you learn the homework?", ar: "إذا نسخت إجابته، هل ستتعلّم ما في الواجب؟" },
+              question: { en: "If you copy its answer, will you learn the homework?", ar: "هل نسخ إجابته يعلّمك ما في الواجب؟" },
               options: [
                 { id: "yes", text: { en: "Yes", ar: "نعم" }, note: { en: "It feels quicker, but the helper did the thinking, so the helper got the practice.", ar: "يبدو أسرع، لكن المساعد هو من فكّر، فحصل هو على التدريب." } },
                 { id: "no", text: { en: "No", ar: "لا" }, note: { en: "Right. Homework practises your own thinking; copied words skip that.", ar: "صحيح. الواجب يدرّب تفكيرك أنت، والكلمات المنسوخة تتخطّى ذلك." } },
-                { id: "not-sure", text: { en: "Not sure yet", ar: "لست متأكدًا بعد" }, note: { en: "A good question to ask: who did the thinking?", ar: "سؤال جيد نسأله: من الذي فكّر؟" } },
+                { id: "not-sure", text: { en: "Not sure yet", ar: "لم أتأكّد بعد" }, note: { en: "A good question to ask: who did the thinking?", ar: "سؤال جيد نسأله: من الذي فكّر؟" } },
               ],
             },
             choices: [
@@ -479,7 +479,7 @@ export const safetyAndFairness: ModuleFixture = {
           },
         ],
         tryNext: { en: "Next time a video or picture surprises you, find where it first appeared before you believe it or share it.", ar: "في المرة القادمة التي يفاجئك فيها فيديو أو صورة، ابحث عن أول مكان ظهر فيه قبل أن تصدّقه أو تشاركه." },
-        checklist: { title: { en: "Your Real-or-Not Checklist", ar: "قائمة «حقيقي أم لا» الخاصة بك" }, icon: "🔍" },
+        checklist: { title: { en: "Your Real-or-Not Checklist", ar: "قائمتك: «حقيقي أم لا»" }, icon: "🔍" },
         takeaways: [
           { en: "Videos and pictures can be made by machines. 'Looks real' isn't proof.", ar: "يمكن للآلات صنع مقاطع الفيديو والصور. «يبدو حقيقيًا» ليس دليلًا." },
           { en: "A chatbot predicts words — it can be confidently wrong. I check somewhere else.", ar: "روبوت الدردشة يتنبأ بالكلمات — وقد يخطئ بثقة. أتحقق في مكان آخر." },

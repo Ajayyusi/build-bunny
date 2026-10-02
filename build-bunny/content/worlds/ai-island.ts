@@ -111,7 +111,7 @@ export const aiIsland: WorldFixture = {
             en: "You never wrote a rule. You gave examples, and the bunny found the rule itself — that is machine learning, and it is a completely different job from programming. Notice what actually mattered: colour decided everything and size decided nothing. If you only ever taught it small berries, it had no idea what to do with a big one. That is why the examples you choose matter more than how many you give.",
             ar: "لم تكتب قاعدة قطّ. أعطيت أمثلة فاستنتج الأرنب القاعدة بنفسه — هذا هو تعلّم الآلة، وهو عمل مختلف تمامًا عن البرمجة. ولاحظ ما كان مهمًّا حقًّا: اللون هو ما حسم كل شيء، أما الحجم فلم يحسم شيئًا. وإذا لم تعلّمه إلا حبات صغيرة، فلن يعرف ما يفعل بحبة كبيرة. لهذا فإن اختيار الأمثلة أهمّ من عددها.",
           },
-          keyIdea: { en: "You didn't write a rule: the bunny found one in your examples, and that's machine learning.", ar: "لم تكتب قاعدة: وجد الأرنب قاعدة في أمثلتك، وهذا هو تعلّم الآلة." },
+          keyIdea: { en: "You didn't write a rule: the bunny found one in your examples, and that's machine learning.", ar: "لم نكتب قاعدة: وجد الأرنب قاعدة في الأمثلة، وهذا هو تعلّم الآلة." },
           teacherNotes: {
             en: "The first non-programming level in the product, and the moment to say that out loud: nobody writes instructions here. The hidden rule is colour; size is a decoy. Expect a class to teach only small berries and then be surprised when a big one is misread — let that happen before explaining it, because the surprise is the lesson. Good discussion question afterwards: the bunny was confident and wrong. How would you ever know?",
             ar: "أول مستوى في المنتج لا يتضمن برمجة، وهذه هي اللحظة المناسبة لقول ذلك بصوت عالٍ: لا أحد يكتب تعليمات هنا. القاعدة الخفية هي اللون؛ أما الحجم فمجرد تمويه. توقّع أن يعلّم الصف الأرنب حبات صغيرة فقط ثم يتفاجأ حين يُخطئ في قراءة حبة كبيرة — دع ذلك يحدث قبل أن تشرحه، لأن المفاجأة هي الدرس. سؤال جيد للنقاش بعد ذلك: كان الأرنب واثقًا ومخطئًا. كيف يمكنك أن تعرف ذلك أصلًا؟",
@@ -394,7 +394,7 @@ export const aiIsland: WorldFixture = {
           },
           explanation: {
             en: "The bunny checks nothing. It reads the note on a berry and believes it, so one wrong note turns into one wrong answer — and only for the ? berries sitting nearest to it. That is why the mess showed up in one small patch instead of all over the board. You fixed it by repairing the data (correcting the note, or taking the berry away), not by adding more, and that is the opposite of every other level here. One honest thing: you found the lie because we told you there was exactly one. Nobody tells you that about real notes.",
-            ar: "الأرنب لا يتحقّق من شيء. يقرأ الملاحظة المكتوبة على الحبة فيصدّقها، فتتحوّل ملاحظة واحدة خاطئة إلى إجابة واحدة خاطئة — ولا يظهر أثرها إلا في حبات «؟» الأقرب إليها. لهذا ظهرت الفوضى في بقعة صغيرة واحدة، لا في اللوحة كلها. وقد أصلحت الأمر بإصلاح البيانات (تصحيح الملاحظة، أو سحب الحبة)، لا بإضافة المزيد، وهذا عكس كل مستوى آخر هنا. وتبقى نقطة صادقة: عرفت مكان الكذبة لأننا أخبرناك أنها واحدة. أما في الملاحظات الحقيقية فلا أحد يخبرك.",
+            ar: "الأرنب لا يتحقّق من شيء. يقرأ الملاحظة المكتوبة على الحبة فيصدّقها، فتتحوّل ملاحظة واحدة خاطئة إلى إجابة واحدة خاطئة — ولا يظهر أثرها إلا في حبات «؟» الأقرب إليها. لهذا ظهرت الفوضى في بقعة صغيرة واحدة، لا في اللوحة كلها. وقد أصلحت الأمر بإصلاح البيانات (تصحيح الملاحظة، أو سحب الحبة)، لا بإضافة المزيد، وهذا عكس كل مستوى آخر هنا. ولنكن صريحين: عرفت مكان الكذبة لأننا أخبرناك أنها واحدة. أما في الملاحظات الحقيقية فلا أحد يخبرك.",
           },
           keyIdea: { en: "A machine believes its examples, so one wrong label becomes wrong answers: check your data.", ar: "تصدّق الآلة أمثلتها، فيتحوّل وصف خاطئ واحد إلى إجابات خاطئة: تحقّق من بياناتك." },
           teacherNotes: {
@@ -758,7 +758,7 @@ export const aiIsland: WorldFixture = {
           },
           instructions: {
             en: "Pick a picture and drag the slider from 64 down to 8: watch it break into fewer, bigger squares. Then the mystery pictures: each one starts as blocky as it gets. Pick your guess and press “Check my guess”. Not right yet? Add more squares and look again. Every answer shows the clue that gives the picture away.",
-            ar: "اختر صورة واسحب الشريط من 64 إلى 8: شاهدها تتحول إلى مربعات أقل وأكبر. ثم الصور الغامضة: تبدأ كل واحدة بأكثر شكل مربّع ممكن. اختر تخمينك واضغط «تحقّق من تخميني». لم يصب بعد؟ أضف مربعات أكثر وانظر من جديد. كل إجابة تُظهر الدليل الذي يكشف الصورة.",
+            ar: "اختر صورة واسحب الشريط من 64 إلى 8: ستراها تتحوّل إلى مربعات أقل وأكبر. ثم تأتي الصور الغامضة: تبدأ كل واحدة بأقل عدد ممكن من المربعات. اختر تخمينك واضغط «تحقّق من تخميني». التخمين ليس صحيحًا بعد؟ أضف مربعات أكثر وانظر من جديد. كل إجابة تُظهر الدليل الذي يكشف الصورة.",
           },
           explanation: {
             en: "A photo isn't really a 'picture' to a computer at all — it's a grid of numbers, one small set per square, and that's ALL a computer ever starts with. At 64×64 you could still guess easily; at 8×8 you needed real work, because most of the detail was simply gone. This is honestly why computer vision is hard: a computer never sees a rabbit or a rocket, it only ever sees a grid of numbers and has to work out what they probably mean — the exact same guessing game you just played, just done with maths instead of eyes.",
@@ -816,7 +816,7 @@ export const aiIsland: WorldFixture = {
                   name: { en: "Rabbit", ar: "أرنب" },
                   clue: { en: "two tall white ears above a round white body, on green", ar: "أذنان بيضاوان طويلتان فوق جسم أبيض مستدير، على خلفية خضراء" },
                   clueChoices: [
-                    { id: "colours", text: { en: "white shapes on green", ar: "أشكال بيضاء على خضرة" }, kept: true },
+                    { id: "colours", text: { en: "white shapes on green", ar: "أشكال بيضاء على خلفية خضراء" }, kept: true },
                     { id: "ears", text: { en: "two long shapes sticking up", ar: "شكلان طويلان يرتفعان إلى الأعلى" }, kept: true },
                     { id: "edge", text: { en: "the smooth round edge of the body", ar: "الحافة المستديرة الناعمة للجسم" }, kept: false },
                   ],
@@ -944,7 +944,7 @@ export const aiIsland: WorldFixture = {
             en: "Every 'ask' in this story was for something that feels small on its own — a name, a photo, a location, a friend's number — but adds up to a lot about you once it's all together. The safe habits you saw work every time: you can always say no, a nickname is enough, and asking a grown-up first is never the wrong move. And here's the honest bit — this whole adventure, on every level, we never once asked for your real name either. That's not an accident. It's the same rule.",
             ar: "كل «طلب» في هذه القصة كان لشيء يبدو صغيرًا بمفرده — اسم، صورة، موقع، رقم صديق — لكنه يتجمّع ليكشف الكثير عنك حين يجتمع معًا. العادات الآمنة التي رأيتها تنجح في كل مرة: يمكنك دائمًا أن تقول لا، والاسم المستعار كافٍ، وسؤال شخص بالغ أولًا ليس خطأً أبدًا. وهذا هو الجزء الصادق — طوال هذه المغامرة، في كل مستوى، لم نطلب منك اسمك الحقيقي ولو مرة واحدة. هذا ليس صدفة. إنها نفس القاعدة.",
           },
-          keyIdea: { en: "Small bits of personal information add up, so share only what a task really needs.", ar: "المعلومات الشخصية الصغيرة تتراكم، لذا شارك فقط ما تحتاجه المهمة فعلًا." },
+          keyIdea: { en: "Small bits of personal information add up, so share only what a task really needs.", ar: "المعلومات الشخصية الصغيرة تتراكم، لذا لا نشارك إلا ما تحتاجه المهمة فعلًا." },
           teacherNotes: {
             en: "Completion-based grading (there are no wrong feelings) — every finished path earns a PASS; 3 stars only reflects that the 'safe' option was picked at every visited scene, which is a bonus signal for discussion, not a judgement to relay to the child. The closing beat referencing 'we never asked your real name' is literally true across the whole product (students sign in by school-issued username, never by name) — do not let this level's copy drift from that fact if the app's data practices ever change.",
             ar: "التقييم قائم على الإكمال (لا توجد مشاعر خاطئة) — كل مسار مكتمل ينال نتيجة نجاح (PASS)؛ ونيل 3 نجوم يعني فقط أن الخيار «الآمن» اختير في كل مشهد تمت زيارته، وهذا مؤشر إضافي للنقاش، لا حكم يُنقل إلى الطفل. والخاتمة التي تشير إلى عبارة «لم نطلب منك اسمك الحقيقي» صحيحة حرفيًا في المنتج كله (يسجّل الطلاب الدخول باسم مستخدم تصدره المدرسة، لا بأسمائهم أبدًا) — فلا تدع نصوص هذا المستوى تبتعد عن هذه الحقيقة إذا تغيّرت ممارسات التطبيق في التعامل مع البيانات يومًا ما.",
@@ -1133,7 +1133,7 @@ export const aiIsland: WorldFixture = {
               },
             ],
             tryNext: { en: "Next time an app asks for something, ask yourself: does it really need this to do its job?", ar: "في المرة القادمة التي يطلب فيها تطبيق شيئًا، اسأل نفسك: هل يحتاجه فعلًا ليقوم بعمله؟" },
-            checklist: { title: { en: "Your Privacy Shield", ar: "درع الخصوصية الخاص بك" }, icon: "🛡️" },
+            checklist: { title: { en: "Your Privacy Shield", ar: "درع خصوصيتك" }, icon: "🛡️" },
             takeaways: [
               {
                 en: "I don't have to share my real name.",

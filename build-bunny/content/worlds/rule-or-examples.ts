@@ -47,24 +47,24 @@ export const ruleOrExamples: LevelDraft = {
   ),
   objective: t(
     "Compare a hand-written rule with a classifier trained on examples, on the same shapes challenge, and see that a rule only changes when someone rewrites it, while a learner changes when it is shown new examples.",
-    "المقارنة بين قاعدة يكتبها إنسان ومصنِّف يتدرّب على الأمثلة، في تحدّي الأشكال نفسه، وملاحظة أن القاعدة لا تتغيّر إلا إذا أعاد أحدهم كتابتها، أما المتعلّم فيتغيّر حين تريه أمثلة جديدة.",
+    "المقارنة بين قاعدة يكتبها إنسان ومصنِّف يتدرّب على الأمثلة، في تحدّي الأشكال نفسه، وملاحظة أن القاعدة لا تتغيّر إلا إذا أعاد أحدهم كتابتها، أما المتعلّم فيتغيّر حين تُعرض عليه أمثلة جديدة.",
   ),
   mission: t(
     "Pick a rule for yesterday's shapes, see it meet today's, then teach with examples.",
-    "اختر قاعدة لأشكال الأمس، وانظر ماذا تفعل بأشكال اليوم، ثم علّم بالأمثلة.",
+    "لنختر قاعدة لأشكال الأمس، ونرَ ماذا تفعل مع أشكال اليوم، ثم نعلّم الروبوت بالأمثلة.",
   ),
   instructions: t(
     "Now teach the sorting robot with examples instead, and make sure it can sort the new shapes marked ?.",
-    "والآن علّم روبوت الفرز بالأمثلة بدلًا من ذلك، وتأكّد أنه يستطيع فرز الأشكال الجديدة المعلَّمة بعلامة ؟.",
+    "والآن لنعلّم روبوت الفرز بالأمثلة بدلًا من ذلك، ونتأكّد أنه يستطيع فرز الأشكال الجديدة المعلَّمة بعلامة «؟».",
   ),
   explanation: t(
     "Ruli's rule did exactly what it said, and nothing else. It was right about yesterday's shapes, but it only looked at colour, so an orange circle and a red square fooled it. A rule only changes when a person rewrites it. The learner was different: you showed it an orange circle and a red square, and it sorted the new ones by copying those examples. That is the difference between coding and machine learning. Both need people: someone writes the rule, or someone chooses the examples.",
-    "فعلت قاعدة «رولي» ما تقوله بالضبط، ولا شيء غيره. كانت صحيحة مع أشكال الأمس، لكنها لم تنظر إلا إلى اللون، فخدعتها دائرة برتقالية ومربع أحمر. القاعدة لا تتغيّر إلا إذا أعاد إنسان كتابتها. أما المتعلّم فكان مختلفًا: أريته دائرة برتقالية ومربعًا أحمر، ففرز الأشكال الجديدة بتقليد هذين المثالين. هذا هو الفرق بين البرمجة وتعلّم الآلة. وكلاهما يحتاج إلى الناس: أحدٌ يكتب القاعدة، أو أحدٌ يختار الأمثلة.",
+    "فعلت قاعدة «رولي» ما تقوله بالضبط، ولا شيء غيره. كانت صحيحة مع أشكال الأمس، لكنها لم تنظر إلا إلى اللون، فخدعتها دائرة برتقالية ومربع أحمر. القاعدة لا تتغيّر إلا إذا أعاد إنسان كتابتها. أما المتعلّم فكان مختلفًا: رأى دائرة برتقالية ومربعًا أحمر، ففرز الأشكال الجديدة بتقليد هذين المثالين. هذا هو الفرق بين البرمجة وتعلّم الآلة. وكلاهما يحتاج إلى الناس: فإما أن يكتب أحدهم القاعدة، وإما أن يختار أحدهم الأمثلة.",
   ),
   keyIdea: { en: "A written rule only knows what its author thought of; a learner can be taught new cases with new examples.", ar: "القاعدة المكتوبة لا تعرف إلا ما فكّر فيه كاتبها؛ أما المتعلّم فيمكن تعليمه حالات جديدة بأمثلة جديدة." },
   teacherNotes: t(
     "The bridge between rules and learning, on the same circles-and-squares challenge as Train a Sorter. Part 1 is ungraded: children try Ruli's colour rule cards against yesterday's shapes until one fits all of them (only \"red shapes are circles\" does). Part 2 shows that rule meeting today's orange circle and red square and getting both wrong. Part 3 is the graded task: a 1-nearest-neighbour learner scored on held-out shapes, which fails unless an orange circle and a red square are taught. Say out loud that a person could rewrite the rule too (\"round shapes are circles\"); the point is WHO changes each one. Discussion: which would you rather maintain in a sorting room where new shapes keep arriving, and why might you still want a rule sometimes?",
-    "الجسر بين القواعد والتعلّم، في تحدّي الدوائر والمربعات نفسه الذي في «درّب آلة فرز». الجزء الأول غير مقيَّم: يجرّب الأطفال بطاقات قواعد اللون عند «رولي» على أشكال الأمس حتى تناسبها واحدة كلها (قاعدة «الأشكال الحمراء دوائر» وحدها تفعل ذلك). ويُظهر الجزء الثاني تلك القاعدة أمام دائرة برتقالية ومربع أحمر اليوم وهي تخطئ في الاثنين. أما الجزء الثالث فهو المهمة المقيَّمة: متعلّم «الجار الأقرب» يُختبر على أشكال محجوزة، ويفشل ما لم يُعلَّم دائرة برتقالية ومربعًا أحمر. قل بصوت عالٍ إن الإنسان يستطيع أيضًا إعادة كتابة القاعدة («الأشكال المستديرة دوائر»)؛ الفكرة هي مَن يغيّر كلًّا منهما. للنقاش: أيّهما تفضّل أن تعتني به في غرفة فرز تصلها أشكال جديدة باستمرار، ولماذا قد تريد قاعدة أحيانًا رغم ذلك؟",
+    "الجسر بين القواعد والتعلّم، في تحدّي الدوائر والمربعات نفسه الذي في «درّب آلة فرز». الجزء الأول غير مقيَّم: يجرّب الأطفال بطاقات قواعد اللون عند «رولي» على أشكال الأمس حتى يجدوا قاعدة تناسبها كلها (قاعدة «الأشكال الحمراء دوائر» وحدها تفعل ذلك). ويُظهر الجزء الثاني تلك القاعدة أمام الدائرة البرتقالية والمربع الأحمر اللذين وصلا اليوم وهي تخطئ في الاثنين. أما الجزء الثالث فهو المهمة المقيَّمة: متعلّم «الجار الأقرب» يُختبر على أشكال لم يتدرّب عليها، ويفشل ما لم يُعلَّم دائرة برتقالية ومربعًا أحمر. قل بصوت عالٍ إن الإنسان يستطيع أيضًا إعادة كتابة القاعدة («الأشكال المستديرة دوائر»)؛ الفكرة هي مَن يغيّر كلًّا منهما. للنقاش: أيّهما تفضّل أن تعتني به في غرفة فرز تصلها أشكال جديدة باستمرار، ولماذا قد تريد قاعدة أحيانًا رغم ذلك؟",
   ),
   difficulty: "EASY",
   recommendedGradeMin: 3,
@@ -104,7 +104,7 @@ export const ruleOrExamples: LevelDraft = {
         title: t("Two ways to sort", "طريقتان للفرز"),
         body: t(
           "You can WRITE a rule, like in the coding worlds. Or you can SHOW the robot examples and let it work the rule out. Today you'll try both.",
-          "يمكنك أن تكتب قاعدة، كما في عوالم البرمجة. أو أن تُري الروبوت أمثلة وتتركه يستنتج القاعدة بنفسه. اليوم ستجرّب الطريقتين.",
+          "يمكننا أن نكتب قاعدة، كما في عوالم البرمجة. أو أن نُري الروبوت أمثلة ونتركه يستنتج القاعدة بنفسه. اليوم سنجرّب الطريقتين.",
         ),
       },
       {

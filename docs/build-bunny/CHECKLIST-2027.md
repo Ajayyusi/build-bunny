@@ -163,7 +163,12 @@ they should be reviewed and merged in the order above.
   - The return-session test picked an event without saying which type, which failed CI once; it is fixed.
   - Raw-SQL time windows now compare in UTC.
   - Safari's engine (WebKit) on an emulated iPad: all 106 levels finish by following their hints, and the six Explore AI activities and both routes don't scroll sideways in portrait. One thing needs a real iPad first: emulated WebKit misdraws Arabic vowel marks with the app's font, though the font files and Chromium are fine (`IPAD-CHECK.md`).
-- **Tested:** the full unit and integration suite; the full Playwright suite on a production build (95 passed); and "Show me the next step" finishing all 17 levels whose content changed.
+- **Arabic, reviewed carefully (not by a native speaker):**
+  - every Arabic UI string added in #25 to #37 (about 640), and the level content added since main (338 strings);
+  - fixes for wrong meanings, number and gender agreement (counts of 2 and 100+), a sentence template that put a verb after لأن, and neutral wording in place of masculine-only forms where it reads naturally.
+  - A native review is still to do.
+- **Accessibility:** axe now scans the audit's new screens. It found the shared green badge at 4.37:1 on a tinted staff surface, fixed with the darker text step.
+- **Tested:** the full unit and integration suite; the full Playwright suite on a production build (96 passed); and "Show me the next step" finishing all 17 levels whose content changed.
 
 ### Checkpoint 14 — 2026-10-01 (second audit: every "Done" row re-checked against the code)
 
