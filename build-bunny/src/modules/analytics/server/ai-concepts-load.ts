@@ -52,7 +52,9 @@ export async function loadConceptInput(
       ? Promise.resolve([])
       : db.explanationSentence.findMany({
           where: { schoolId, levelId: { in: levelIds }, studentUserId: { in: studentIds }, soundParts: 3 },
-          select: { studentUserId: true, levelId: true, updatedAt: true },
+          // createdAt, not updatedAt: re-saving a sentence must not move its
+          // date forward and fake a rise in the four-week trend.
+          select: { studentUserId: true, levelId: true, createdAt: true },
         }),
     studentIds.length
       ? db.conceptObservation.findMany({
@@ -76,7 +78,7 @@ export async function loadConceptInput(
     checkConceptOf,
     attemptsByLevel: new Map(attempts.map((row) => [row.levelId, row._count._all])),
     retriesByLevel: new Map([...events].map(([id, counts]) => [id, counts.retries])),
-    soundSentences: sentences.map((row) => ({ studentId: row.studentUserId, levelId: row.levelId, at: row.updatedAt })),
+    soundSentences: sentences.map((row) => ({ studentId: row.studentUserId, levelId: row.levelId, at: row.createdAt })),
     observed: observed.map((row) => ({ studentId: row.studentUserId, concept: row.concept, at: row.createdAt })),
   };
 }

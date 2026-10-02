@@ -115,7 +115,7 @@ export const mlLab: WorldFixture = {
             en: "If you held back only the easy cells, your own scoreboard said perfect — and the lab's exam still failed you, because your model had never faced a hard case and your test never asked it to. A score only means something when the test is honest and the model has not seen it. And every cell you reserve is one you cannot learn from: the big cool cell is worth more in training than in the exam. Splitting data well is a real engineering decision, and now it is yours.",
             ar: "إذا لم تحجز إلا الخلايا السهلة، قالت لوحتك إن العلامة كاملة — ثم أسقطك امتحان المختبر، لأن نموذجك لم يواجه حالة صعبة قط ولم يسأله اختبارك عنها. العلامة لا تعني شيئًا إلا حين يكون الاختبار نزيهًا ولم يرَه النموذج. وكل خلية تحجزها خلية لا تتعلم منها: الخلية الكبيرة الباردة أنفع في التدريب منها في الامتحان. تقسيم البيانات قرار هندسي حقيقي، وهو الآن قرارك.",
           },
-          keyIdea: { en: "Test a machine on hard cases it hasn't seen, or its score means little.", ar: "اختبر الآلة على حالات صعبة لم ترها، وإلا فلن تعني نتيجتها الكثير." },
+          keyIdea: { en: "Test a machine on hard cases it hasn't seen, or its score means little.", ar: "نختبر الآلة على حالات صعبة لم ترها من قبل، وإلا فلن تعني نتيجتها الكثير." },
           teacherNotes: {
             en: "The one level whose signature failure is passing your own test and losing anyway — let it happen before explaining it. The pinned trap: holding back the three obvious extremes {k1,k2,k10} self-scores 3/3 and fails the hidden set (k2 is the ONLY large cool cell; reserved, the model calls big cells hot). The diagnostic split {k2,k4,k8} self-scores 1/3 and the self-misses tell the student exactly what the model does not know. Vocabulary: train/test split, overfitting to your own test. Ask: why do real exams keep questions secret?",
             ar: "هذا هو المستوى الوحيد الذي يتمثّل إخفاقه المميّز في أن تنجح في اختبارك أنت ثم تخسر رغم ذلك — دع ذلك يحدث قبل أن تشرحه. الفخ المثبّت: حجز الحالات المتطرفة الثلاث الواضحة {k1,k2,k10} يعطي علامة ذاتية 3/3 لكنه يرسب في المجموعة الخفية (k2 هي الخلية الكبيرة الباردة الوحيدة؛ وحين تُحجز، يصف النموذج الخلايا الكبيرة بأنها ساخنة). أما التقسيم التشخيصي {k2,k4,k8} فيعطي علامة ذاتية 1/3، والأخطاء في الاختبار الذاتي تخبر الطالب بدقة بما لا يعرفه النموذج. المصطلحات: تقسيم البيانات إلى تدريب واختبار (train/test split)، وفرط التخصيص لاختبارك أنت (overfitting). اسأل: لماذا تبقى أسئلة الامتحانات الحقيقية سرية؟",
@@ -227,6 +227,8 @@ export const mlLab: WorldFixture = {
             rule: { kind: "threshold", feature: "color", threshold: 0.5 },
             holdout: { min: 3 },
             minPerLabel: 2,
+            // Say what the bunny will answer before seeing it (the handoff's loop).
+            predictFirst: true,
             starCriteria: {},
           } satisfies AiDraft,
         },
@@ -377,6 +379,8 @@ export const mlLab: WorldFixture = {
             rule: { kind: "threshold", feature: "color", threshold: 0.5 },
             passRule: { kind: "safetyFirst", neverMisclassify: "negative", maxOtherErrors: 2 },
             minPerLabel: 2,
+            // Say what the bunny will answer before seeing it (the handoff's loop).
+            predictFirst: true,
             maxExamples: 8,
             starCriteria: {},
           } satisfies AiDraft,
@@ -504,6 +508,8 @@ export const mlLab: WorldFixture = {
             ],
             markers: { min: 3, max: 3 },
             maxExclusions: 0,
+            // Say how tight the groups are before the meter shows (the handoff's loop).
+            predictFirst: true,
             // Pinned in tests/unit/pattern-recognition.test.ts: a one-per-
             // clump seed converges to 0.9534 (PASS); a two-flags-in-the-big-
             // clump seed converges to a stable 0.8859 (FAIL); the sloppy seed

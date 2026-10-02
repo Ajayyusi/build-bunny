@@ -263,7 +263,10 @@ A review of everything the product records about play, against the rule
   number per class, never which children. The "defend your model" answer
   (grades 5 to 7) is not stored. "Say it your way" (below) is now offered
   on every AI lesson, not only those with a quick check; it stores the
-  same phrase ids as before.
+  same phrase ids as before. The school page also times the first
+  session (minutes from first opening Train a Sorter to finishing it): a
+  median and a count, shown only once at least five children have
+  finished, never per child.
 - **ConceptCheck** (from 2026-09-25) stores which of three fixed answers a
   child picked first on an Explore AI quick check, and when they got it
   right. No free text.

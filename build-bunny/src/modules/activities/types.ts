@@ -329,6 +329,7 @@ export interface GroupActivityPayload {
   specimens: { id: string; size: number; color: number }[];
   markers: { min: number; max: number };
   maxExclusions: number;
+  predictFirst?: boolean;
   objective: { minTightness: number };
   /** Present = the submission is a seed and the grader replays the loop. */
   training?: { kind: "lloyd"; iterations: number };

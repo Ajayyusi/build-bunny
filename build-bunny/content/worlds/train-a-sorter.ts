@@ -41,22 +41,22 @@ export const firstSorts: ModuleFixture = {
       title: t("Train a Sorter", "درّب آلة فرز"),
       story: t(
         "Robo Bunny's sorting robot has never seen a shape. Everything it will ever know about circles and squares, it learns from the examples you show it.",
-        "روبوت الفرز عند الأرنب الآلي لم يرَ شكلًا قطّ. كل ما سيعرفه عن الدوائر والمربعات سيتعلّمه من الأمثلة التي تريه إياها.",
+        "روبوت الفرز الذي يملكه الأرنب الآلي لم يرَ شكلًا قطّ. كل ما سيعرفه عن الدوائر والمربعات سيتعلّمه من الأمثلة التي نُريه إياها.",
       ),
       objective: t(
         "Train a classifier with a few labelled examples, predict what it will do on new shapes, watch it copy a misleading feature (colour), and fix it with a better example.",
         "تدريب مصنِّف بأمثلة قليلة مصنّفة، وتوقّع ما سيفعله مع أشكال جديدة، وملاحظة تقليده لخاصية مضلِّلة (اللون)، وإصلاح ذلك بمثال أفضل.",
       ),
-      mission: t("Teach the robot circles and squares with a few examples.", "علّم الروبوت الدوائر والمربعات ببضعة أمثلة."),
+      mission: t("Teach the robot circles and squares with a few examples.", "لنعلّم الروبوت الدوائر والمربعات ببضعة أمثلة."),
       instructions: t(
         "Pick a few shapes to teach with. Then guess what the robot will say about the new shapes marked ?, and test it.",
-        "اختر بضعة أشكال لتعلّم بها. ثم خمّن ماذا سيقول الروبوت عن الأشكال الجديدة المعلَّمة بعلامة ؟، واختبره.",
+        "لنختر بضعة أشكال نعلّمه بها، ثم نخمّن ماذا سيقول الروبوت عن الأشكال الجديدة المعلَّمة بعلامة «؟»، ونختبره.",
       ),
       explanation: t(
         "The robot never knew what a circle was. It copied the example that looked most like each new shape — and at first, colour was what looked most alike, so it thought red meant circle. When you showed it an orange circle and a red square, colour stopped working and shape started to. That is how machines learn: from examples. Change the examples, and you change what it learns.",
-        "لم يعرف الروبوت قطّ ما هي الدائرة. كان يقلّد المثال الأشبه بكل شكل جديد — وفي البداية كان اللون هو الأشبه، فظنّ أن الأحمر يعني دائرة. وحين أريته دائرة برتقالية ومربعًا أحمر، لم يعد اللون ينفع وصار الشكل هو ما ينفع. هكذا تتعلّم الآلات: من الأمثلة. غيّر الأمثلة، تغيّر ما تتعلّمه.",
+        "لم يعرف الروبوت قطّ ما هي الدائرة. كان يقلّد المثال الأشبه بكل شكل جديد — وفي البداية كان اللون هو الأشبه، فظنّ أن الأحمر يعني دائرة. وحين رأى دائرة برتقالية ومربعًا أحمر، لم يعد اللون ينفع وصار الشكل هو ما ينفع. هكذا تتعلّم الآلات: من الأمثلة. إذا تغيّرت الأمثلة، تغيّر ما تتعلّمه الآلة.",
       ),
-      keyIdea: { en: "A robot that learns from examples copies what they have in common, so it can get new cases wrong until you show it better examples.", ar: "الروبوت الذي يتعلّم من الأمثلة ينسخ ما تشترك فيه، لذلك قد يخطئ في الحالات الجديدة حتى تُريه أمثلة أفضل." },
+      keyIdea: { en: "A robot that learns from examples copies what they have in common, so it can get new cases wrong until you show it better examples.", ar: "الروبوت الذي يتعلّم من الأمثلة ينسخ ما تشترك فيه، لذلك قد يخطئ في الحالات الجديدة حتى يرى أمثلة أفضل." },
       teacherNotes: t(
         "The first-session activity from the redesign brief (\"Can you teach a robot to sort shapes?\"). Two parts matter. PREDICT: before the robot's guesses appear, children say what they think it will answer — most will expect it to get the shapes right, because THEY can see the shapes. OBSERVE: it copies colour instead, because the first examples line colour up with shape. Let the surprise land, then ask: which one example would stop it copying colour? The fix is one orange circle and one red square. Discussion: the robot was not wrong about what it saw — it learned exactly what the examples taught it.",
         "النشاط الأول في الجلسة الأولى من موجز إعادة التصميم («هل تستطيع أن تعلّم روبوتًا فرز الأشكال؟»). جزءان مهمّان. التوقّع: قبل ظهور تخمينات الروبوت يقول الأطفال ماذا يظنّون أنه سيجيب — وسيتوقّع أكثرهم أن يصيب في الأشكال لأنهم هم يرون الأشكال. الملاحظة: إنه يقلّد اللون بدلًا من ذلك، لأن الأمثلة الأولى تربط اللون بالشكل. دع المفاجأة تحدث، ثم اسأل: أيّ مثال واحد سيمنعه من تقليد اللون؟ الحل دائرة برتقالية ومربع أحمر. للنقاش: لم يخطئ الروبوت فيما رآه — لقد تعلّم بالضبط ما علّمته إياه الأمثلة.",

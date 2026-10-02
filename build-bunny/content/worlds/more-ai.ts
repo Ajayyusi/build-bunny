@@ -119,7 +119,7 @@ export const onlineLife: ModuleFixture = {
           },
         ],
         tryNext: { en: "Next time a chat turns unkind, pick one kind move before you reply: support, don't pile on, or tell a grown-up.", ar: "في المرة القادمة التي تصبح فيها دردشة غير لطيفة، اختر خطوة لطيفة قبل أن تردّ: ادعم، ولا تشارك في المضايقة، أو أخبر شخصًا بالغًا." },
-        checklist: { title: { en: "Your Kind Online Checklist", ar: "قائمة اللطف على الإنترنت الخاصة بك" }, icon: "💛" },
+        checklist: { title: { en: "Your Kind Online Checklist", ar: "قائمتك للّطف على الإنترنت" }, icon: "💛" },
         takeaways: [
           t("I don't join in when someone is being picked on.", "لا أنضم عندما يتعرّض أحد للمضايقة."),
           t("A kind message to the person helps a lot.", "رسالة لطيفة للشخص تساعد كثيرًا."),
@@ -196,7 +196,7 @@ export const onlineLife: ModuleFixture = {
           },
         ],
         tryNext: { en: "Think of a silly three-word sentence you'd remember. Would a friend be able to guess it?", ar: "فكّر في جملة طريفة من ثلاث كلمات تتذكّرها. هل يستطيع صديق أن يخمّنها؟" },
-        checklist: { title: { en: "Your Strong Password Checklist", ar: "قائمة كلمات المرور القوية الخاصة بك" }, icon: "🔑" },
+        checklist: { title: { en: "Your Strong Password Checklist", ar: "قائمتك لكلمات المرور القوية" }, icon: "🔑" },
         takeaways: [
           t("A long, silly sentence makes a strong password.", "الجملة الطويلة المضحكة تصنع كلمة مرور قوية."),
           t("I never use my name, birthday or 1234.", "لا أستخدم اسمي أو تاريخ ميلادي أو 1234 أبدًا."),
@@ -273,7 +273,7 @@ export const onlineLife: ModuleFixture = {
           },
         ],
         tryNext: { en: "Next time a game says \"free\" or \"only today\", spot the clue and ask a grown-up before you tap.", ar: "في المرة القادمة التي تقول فيها لعبة «مجاني» أو «اليوم فقط»، التقط الإشارة واسأل شخصًا بالغًا قبل أن تضغط." },
-        checklist: { title: { en: "Your Smart Offer Checklist", ar: "قائمة العروض الذكية الخاصة بك" }, icon: "🏷️" },
+        checklist: { title: { en: "Your Smart Offer Checklist", ar: "قائمتك للتعامل الذكي مع العروض" }, icon: "🏷️" },
         takeaways: [
           t("Pop-up prizes are usually adverts.", "الجوائز المنبثقة غالبًا إعلانات."),
           t("I ask a grown-up before buying anything.", "أسأل شخصًا بالغًا قبل شراء أي شيء."),
@@ -346,6 +346,8 @@ export const onlineLife: ModuleFixture = {
         ],
         rule: { feature: "size", threshold: 0.5 },
         minPerLabel: 2,
+        // Say what the bunny will answer before seeing it (the handoff's loop).
+        predictFirst: true,
         starCriteria: { threeStarMaxBlocks: 6 },
       } satisfies AiClassificationDraft,
     },
@@ -418,6 +420,8 @@ export const moreReadings: ModuleFixture = {
         ],
         markers: { min: 2, max: 2 },
         maxExclusions: 0,
+        // Say how tight the groups are before the meter shows (the handoff's loop).
+        predictFirst: true,
         objective: { minTightness: 0.75 },
         groundTruth: {
           referencePlacement: [
@@ -450,7 +454,7 @@ export const moreReadings: ModuleFixture = {
         "Four flags, four groups — found without a single label. The more groups there are, the more it matters that every flag has its own crowd.",
         "أربعة أعلام، وأربع مجموعات — وُجدت دون تسمية واحدة. كلما زادت المجموعات، زادت أهمية أن يكون لكل علم حشده.",
       ),
-      keyIdea: { en: "More groups need every flag to have its own crowd.", ar: "كلما زادت المجموعات، احتاج كل علَم إلى حشد خاص به." },
+      keyIdea: { en: "More groups need every flag to have its own crowd.", ar: "مع زيادة عدد المجموعات، يجب أن يكون لكل علَم حشد خاص به." },
       teacherNotes: { en: "Four well-separated clusters in the corners. A common mistake is two flags in one corner.", ar: "أربع مجموعات متباعدة جيدًا في الزوايا. من الأخطاء الشائعة وضع علمين في زاوية واحدة." },
       difficulty: "MEDIUM",
       recommendedGradeMin: 4,
@@ -476,6 +480,8 @@ export const moreReadings: ModuleFixture = {
         ],
         markers: { min: 4, max: 4 },
         maxExclusions: 0,
+        // Say how tight the groups are before the meter shows (the handoff's loop).
+        predictFirst: true,
         objective: { minTightness: 0.85 },
         groundTruth: {
           referencePlacement: [
@@ -513,7 +519,7 @@ export const moreReadings: ModuleFixture = {
         "One bad reading can drag a whole group's flag away. Real data scientists look for readings that can't be real before they trust the groups — and they write down why they removed each one.",
         "قراءة سيئة واحدة تستطيع سحب علم مجموعة كاملة بعيدًا. يبحث علماء البيانات الحقيقيون عن القراءات المستحيلة قبل أن يثقوا بالمجموعات — ويدوّنون سبب حذف كل واحدة.",
       ),
-      keyIdea: { en: "One strange reading can drag a whole group off course, so check readings before trusting groups.", ar: "قراءة غريبة واحدة قد تسحب مجموعة كاملة بعيدًا، لذا تحقّق من القراءات قبل أن تثق بالمجموعات." },
+      keyIdea: { en: "One strange reading can drag a whole group off course, so check readings before trusting groups.", ar: "قراءة غريبة واحدة قد تسحب مجموعة كاملة بعيدًا عن مسارها، لذا نتحقّق من القراءات قبل أن نثق بالمجموعات." },
       teacherNotes: { en: "Echoes impossible-reading with a clearer outlier. Discuss: when is removing data honest, and when is it cheating?", ar: "يستعيد فكرة مستوى «القراءة التي يستحيل أن تكون حقيقية» (impossible-reading) مع قيمة شاذة أوضح. ناقش: متى يكون حذف البيانات أمانة، ومتى يكون غشًّا؟" },
       difficulty: "MEDIUM",
       recommendedGradeMin: 5,
@@ -538,6 +544,8 @@ export const moreReadings: ModuleFixture = {
         ],
         markers: { min: 2, max: 2 },
         maxExclusions: 1,
+        // Say how tight the groups are before the meter shows (the handoff's loop).
+        predictFirst: true,
         objective: { minTightness: 0.93 },
         groundTruth: {
           referencePlacement: [
@@ -602,6 +610,8 @@ export const moreReadings: ModuleFixture = {
         ],
         rule: { feature: "color", threshold: 0.3 },
         minPerLabel: 1,
+        // Say what the bunny will answer before seeing it (the handoff's loop).
+        predictFirst: true,
         maxExamples: 4,
         starCriteria: { threeStarMaxBlocks: 3 },
       } satisfies AiClassificationDraft,
@@ -640,7 +650,7 @@ export const decidingWell: ModuleFixture = {
         "Machines make mistakes, like people do. When a mistake is small (a wrong song suggestion) the machine can decide. When a mistake could hurt someone (health, fairness, safety), a person should check. That rule is how responsible teams use AI.",
         "الآلات تخطئ كما يخطئ الناس. عندما يكون الخطأ صغيرًا (اقتراح أغنية خاطئ) تستطيع الآلة أن تقرّر. وعندما قد يؤذي الخطأ أحدًا (الصحة، الإنصاف، السلامة) يجب أن يتحقق شخص. هذه القاعدة هي طريقة الفرق المسؤولة في استخدام الذكاء الاصطناعي.",
       ),
-      keyIdea: { en: "The more a mistake could hurt someone, the more a person should check the machine.", ar: "كلما زاد احتمال أن يؤذي الخطأ أحدًا، وجب أن يتحقّق شخص من الآلة أكثر." },
+      keyIdea: { en: "The more a mistake could hurt someone, the more a person should check the machine.", ar: "كلما زاد الضرر الذي قد يسبّبه الخطأ، وجب أن يتحقّق إنسان من الآلة أكثر." },
       teacherNotes: { en: "Completion-based. The idea is 'cost of a mistake decides how much a human checks' — human-in-the-loop, without the jargon.", ar: "يُقيَّم بالإكمال. الفكرة هي «كلفة الخطأ تحدّد مقدار تحقّق الإنسان» — أي مبدأ «الإنسان ضمن الحلقة» (human-in-the-loop)، دون مصطلحات تقنية." },
       difficulty: "MEDIUM",
       recommendedGradeMin: 5,
@@ -663,11 +673,11 @@ export const decidingWell: ModuleFixture = {
             text: t("The machine picks which song to play next at the Fair.", "تختار الآلة الأغنية التالية في المعرض."),
             art: "🎵",
             predict: {
-              question: { en: "Is the machine's suggestion right?", ar: "هل اقتراح الآلة صحيح؟" },
+              question: { en: "Is the machine's suggestion right?", ar: "هل الآلة محقة في اقتراحها؟" },
               options: [
                 { id: "right", text: { en: "Probably right", ar: "على الأرجح محقة" }, note: { en: "Probably, and if not, it's only a song.", ar: "على الأرجح، وإن لم تكن، فهي مجرد أغنية." } },
                 { id: "wrong", text: { en: "Probably wrong", ar: "على الأرجح مخطئة" }, note: { en: "Maybe, but a wrong song costs almost nothing.", ar: "ربما، لكن الأغنية الخاطئة لا تكلّف شيئًا تقريبًا." } },
-                { id: "unsure", text: { en: "Can't tell from this", ar: "لا أستطيع أن أعرف من هذا" }, note: { en: "Fair, and for a song, not knowing is fine.", ar: "منصف، وفي أغنية، لا بأس في ألّا تعرف." } },
+                { id: "unsure", text: { en: "Can't tell from this", ar: "لا أستطيع أن أعرف من هذا" }, note: { en: "Fair, and for a song, not knowing is fine.", ar: "معقول، ففي أغنية لا بأس في ألّا تعرف." } },
               ],
             },
             suggestion: {
@@ -678,7 +688,7 @@ export const decidingWell: ModuleFixture = {
             choices: [
               { ...choice("machine", ["Approve it — let the machine choose", "أوافق — أدع الآلة تختار"], ["Fine — if it picks a song nobody likes, you just skip it.", "لا بأس — إن اختارت أغنية لا يحبها أحد، تتخطاها فحسب."], true), action: "approve" },
               { ...choice("ask-songs", ["Ask it for more reasons first", "أطلب منها أسبابًا أكثر أولًا"], ["You can, but for a song it's a lot of checking. A wrong song is a tiny mistake anyone can skip.", "يمكنك ذلك، لكنه تحقق كثير لأغنية. الأغنية الخاطئة خطأ صغير يستطيع أي أحد تخطيه."], false), action: "askMore" },
-              { ...choice("committee", ["Override it — a person must approve every song", "أتجاوزها — يجب أن يوافق شخص على كل أغنية"], ["That works, but it's a lot of checking for a very small mistake.", "هذا ينجح، لكنه تحقق كثير لخطأ صغير جدًّا."], false), action: "override" },
+              { ...choice("committee", ["Override it — a person must approve every song", "أتجاوزها — يجب أن يوافق شخص على كل أغنية"], ["That works, but it's a lot of checking for a very small mistake.", "هذا يفي بالغرض، لكنه تحقق كثير لخطأ صغير جدًّا."], false), action: "override" },
             ],
           },
           {
@@ -686,10 +696,10 @@ export const decidingWell: ModuleFixture = {
             text: t("The machine guesses which berries are safe for the whole village to eat.", "تخمّن الآلة أي حبات التوت آمنة ليأكلها أهل القرية كلهم."),
             art: "🫐",
             predict: {
-              question: { en: "Is the machine's suggestion right?", ar: "هل اقتراح الآلة صحيح؟" },
+              question: { en: "Is the machine's suggestion right?", ar: "هل الآلة محقة في اقتراحها؟" },
               options: [
-                { id: "right", text: { en: "Probably right", ar: "على الأرجح محقة" }, note: { en: "It might be, but 70% sure means it's wrong about some berries. Would you eat one?", ar: "قد تكون، لكن ثقة 70% تعني أنها مخطئة في بعض الحبات. هل ستأكل واحدة؟" } },
-                { id: "wrong", text: { en: "Probably wrong", ar: "على الأرجح مخطئة" }, note: { en: "It might be. You can't tell from a guess, which is why someone who knows should check.", ar: "قد تكون. لا يمكنك أن تعرف من تخمين، ولهذا يجب أن يتحقق شخص عارف." } },
+                { id: "right", text: { en: "Probably right", ar: "على الأرجح محقة" }, note: { en: "It might be, but 70% sure means it's wrong about some berries. Would you eat one?", ar: "قد تكون محقة، لكن ثقة 70% تعني أنها تخطئ في بعض الحبات. هل نأكل واحدة منها؟" } },
+                { id: "wrong", text: { en: "Probably wrong", ar: "على الأرجح مخطئة" }, note: { en: "It might be. You can't tell from a guess, which is why someone who knows should check.", ar: "قد تكون مخطئة. لا يمكن أن نعرف من مجرد تخمين، ولهذا يجب أن يتحقق شخص خبير." } },
                 { id: "unsure", text: { en: "Can't tell from this", ar: "لا أستطيع أن أعرف من هذا" }, note: { en: "The careful answer: \"looks like\" isn't proof. An expert can check.", ar: "الإجابة الحذرة: «تشبه» ليست دليلًا. يستطيع خبير أن يتحقق." } },
               ],
             },
@@ -709,9 +719,9 @@ export const decidingWell: ModuleFixture = {
             text: t("The machine chooses who gets to be on the Fair team, from their photos.", "تختار الآلة من يكون في فريق المعرض، من صورهم."),
             art: "📷",
             predict: {
-              question: { en: "Is the machine's suggestion right?", ar: "هل اقتراح الآلة صحيح؟" },
+              question: { en: "Is the machine's suggestion right?", ar: "هل الآلة محقة في اقتراحها؟" },
               options: [
-                { id: "right", text: { en: "Probably right", ar: "على الأرجح محقة" }, note: { en: "Very sure isn't right: its only reason was photos.", ar: "الثقة الكبيرة ليست الصواب: سببها الوحيد كان الصور." } },
+                { id: "right", text: { en: "Probably right", ar: "على الأرجح محقة" }, note: { en: "Very sure isn't right: its only reason was photos.", ar: "الثقة الكبيرة لا تعني الصواب: سببها الوحيد كان الصور." } },
                 { id: "wrong", text: { en: "Probably wrong", ar: "على الأرجح مخطئة" }, note: { en: "Yes. A photo says nothing about how good someone is.", ar: "نعم. الصورة لا تقول شيئًا عن مهارة الشخص." } },
                 { id: "unsure", text: { en: "Can't tell from this", ar: "لا أستطيع أن أعرف من هذا" }, note: { en: "Look at its reason: photos only. That isn't a fair reason.", ar: "انظر إلى سببها: الصور فقط. هذا ليس سببًا منصفًا." } },
               ],
@@ -722,9 +732,9 @@ export const decidingWell: ModuleFixture = {
               confidence: 0.9,
             },
             choices: [
-              { ...choice("photos", ["Approve it — it's very sure", "أوافق — إنها واثقة جدًّا"], ["Very sure isn't the same as right. A photo says nothing about how good someone is — and the machine may copy unfair patterns.", "الثقة الكبيرة ليست الصواب. الصورة لا تقول شيئًا عن مهارة الشخص — وقد تنسخ الآلة أنماطًا غير منصفة."], false), action: "approve" },
+              { ...choice("photos", ["Approve it — it's very sure", "أوافق — إنها واثقة جدًّا"], ["Very sure isn't the same as right. A photo says nothing about how good someone is — and the machine may copy unfair patterns.", "الثقة الكبيرة لا تعني الصواب. الصورة لا تقول شيئًا عن مهارة الشخص — وقد تنسخ الآلة أنماطًا غير منصفة."], false), action: "approve" },
               { ...choice("ask-team", ["Ask for more: what else did it look at?", "أطلب المزيد: إلى ماذا نظرت أيضًا؟"], ["Nothing else: only photos. That's the problem. Asking was the right move, and now people should decide.", "لا شيء آخر: الصور فقط. وهذه هي المشكلة. كان السؤال هو الخطوة الصحيحة، والآن يجب أن يقرّر الناس."], true), action: "askMore" },
-              { ...choice("people", ["Override it — people choose, fairly, using what matters", "أتجاوزها — يختار الناس بإنصاف، بما هو مهم"], ["Yes. Decisions about people need people, and fair reasons.", "نعم. القرارات المتعلقة بالناس تحتاج إلى ناس، وإلى أسباب منصفة."], true), action: "override" },
+              { ...choice("people", ["Override it — people choose, fairly, using what matters", "أتجاوزها — يختار الناس بإنصاف، بناءً على ما يهمّ فعلًا"], ["Yes. Decisions about people need people, and fair reasons.", "نعم. القرارات المتعلقة بالناس يجب أن يتخذها الناس، بأسباب منصفة."], true), action: "override" },
             ],
           },
         ],
@@ -758,7 +768,7 @@ export const decidingWell: ModuleFixture = {
         "With only three examples, each one had to earn its place: the ones near the edge between safe and unsafe carried the most information. Real machine learning is often limited like this — by memory, time or the cost of collecting data.",
         "مع ثلاثة أمثلة فقط، كان على كل مثال أن يستحق مكانه: الأمثلة القريبة من الحدّ بين الآمن وغير الآمن حملت أكثر المعلومات. تعلّم الآلة الحقيقي محدود هكذا غالبًا — بالذاكرة أو الوقت أو كلفة جمع البيانات.",
       ),
-      keyIdea: { en: "With few examples, choose the ones near the edge: they carry the most information.", ar: "مع أمثلة قليلة، اختر الأقرب إلى الحدّ: فهي تحمل أكثر المعلومات." },
+      keyIdea: { en: "With few examples, choose the ones near the edge: they carry the most information.", ar: "عندما تكون الأمثلة قليلة، نختار الأقرب إلى الحدّ: فهي تحمل أكثر المعلومات." },
       teacherNotes: { en: "maxExamples 3. The winning sets include examples close to the colour boundary; the playthrough proves one exists.", ar: "maxExamples 3. المجموعات الناجحة تتضمن أمثلة قريبة من حدّ اللون؛ ويُثبت اختبار اللعب الآلي (playthrough) وجود مجموعة واحدة على الأقل منها." },
       difficulty: "HARD",
       recommendedGradeMin: 5,
@@ -791,6 +801,8 @@ export const decidingWell: ModuleFixture = {
         ],
         rule: { feature: "color", threshold: 0.5 },
         minPerLabel: 1,
+        // Say what the bunny will answer before seeing it (the handoff's loop).
+        predictFirst: true,
         maxExamples: 3,
         starCriteria: { threeStarMaxBlocks: 3 },
       } satisfies AiClassificationDraft,

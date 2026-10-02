@@ -102,10 +102,34 @@ export async function returningAiStudents(input: {
     SELECT "studentUserId"
     FROM "LearningEvent"
     WHERE "schoolId" = ${input.schoolId}
-      AND "createdAt" >= ${input.since}
+      AND "createdAt" >= (${input.since}::timestamptz AT TIME ZONE 'UTC')
       AND "levelId" = ANY(${input.levelIds})
       AND "type"::text IN ('LEVEL_SESSION_STARTED', 'LEVEL_STARTED', 'RUN_EXECUTED', 'AI_TEST', 'AI_RETRY', 'LEVEL_COMPLETED')
     GROUP BY 1
     HAVING COUNT(DISTINCT (("createdAt" AT TIME ZONE 'UTC') AT TIME ZONE ${input.timeZone})::date) >= 2`;
   return new Set(rows.map((row) => row.studentUserId));
+}
+
+/**
+ * Minutes from each child's first session start on a level to their first
+ * completion of it, within the hour (analytics/first-session.ts). Numbers
+ * only, no ids, for one school.
+ */
+export async function firstSessionMinutes(input: { schoolId: string; levelId: string; since: Date }): Promise<number[]> {
+  const rows = await db.$queryRaw<{ minutes: number }[]>`
+    WITH s AS (
+      SELECT "studentUserId", MIN("createdAt") AS t0
+      FROM "LearningEvent"
+      WHERE "schoolId" = ${input.schoolId} AND "levelId" = ${input.levelId} AND "type"::text = 'LEVEL_SESSION_STARTED'
+      GROUP BY 1
+    ), c AS (
+      SELECT "studentUserId", MIN("createdAt") AS t1
+      FROM "LearningEvent"
+      WHERE "schoolId" = ${input.schoolId} AND "levelId" = ${input.levelId} AND "type"::text = 'LEVEL_COMPLETED'
+      GROUP BY 1
+    )
+    SELECT EXTRACT(EPOCH FROM (c.t1 - s.t0)) / 60.0 AS minutes
+    FROM s JOIN c USING ("studentUserId")
+    WHERE s.t0 >= (${input.since}::timestamptz AT TIME ZONE 'UTC') AND c.t1 >= s.t0 AND c.t1 - s.t0 < INTERVAL '60 minutes'`;
+  return rows.map((row) => Number(row.minutes));
 }

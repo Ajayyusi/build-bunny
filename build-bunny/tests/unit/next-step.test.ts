@@ -308,6 +308,8 @@ describe("following 'Show me the next step' finishes every level, through the ro
       } else if (type === "PATTERN_RECOGNITION") {
         state.markers = [];
         state.excluded = [];
+        // Predict first: the meter waits for the child's guess.
+        state.predicting = (level.payload as { predictFirst?: boolean }).predictFirst === true;
         finalAnswer = () => ({ markers: state.markers, excluded: state.excluded });
       } else if (type === "AI_ETHICS") {
         const p = aiEthicsPayload.parse(level.payload);
@@ -456,7 +458,7 @@ describe("following 'Show me the next step' finishes every level, through the ro
             state.excluded = state.excluded!.filter((id) => id !== step.specimenId);
             break;
           case "answerQuestion": {
-            if (type === "AI_SIM") {
+            if (type === "AI_SIM" || type === "PATTERN_RECOGNITION") {
               if (!state.predicting) throw new Error("unfollowable: no question on screen");
               state.predicting = false;
               break;
@@ -579,10 +581,30 @@ describe("following 'Show me the next step' finishes every level, through the ro
       const verdict = grade(routed).verdict;
       expect({ slug: level.slug, verdict, steps: seen.length }).toMatchObject({ slug: level.slug, verdict: "PASS" });
       // The learning loop's predict step is part of the path, not skipped.
-      if (payload.predictFirst) expect(seen, level.slug).toContain("predictGuesses");
+      if (payload.predictFirst) {
+        // Teach levels predict the bunny's guesses; grouping levels the meter.
+        expect(seen, level.slug).toContain(type === "PATTERN_RECOGNITION" ? "answerQuestion" : "predictGuesses");
+      }
       if (type === "AI_ETHICS" && aiEthicsPayload.parse(level.payload).scenes.some((sc) => sc.predict)) {
         expect(seen, level.slug).toContain("answerQuestion");
       }
     });
   }
+});
+
+describe("grouping levels, predict first", () => {
+  it("the meter waits for the child's guess, and the next step says so once the flags are right", async () => {
+    const { computeNextStep } = await import("@/modules/hints/server/next-step");
+    const { tightGuessFits } = await import("@/modules/ai/tight-guess");
+    const level = bundle.worlds.flatMap((w) => w.modules.flatMap((m) => m.levels)).find((l) => l.slug === "two-piles")!;
+    const ref = (level.payload as { groundTruth: { referencePlacement: { size: number; color: number }[] } }).groundTruth.referencePlacement;
+    const at = (predicting: boolean) => computeNextStep("PATTERN_RECOGNITION", level.payload, { markers: ref, excluded: [], predicting }, () => ({ pass: true, top: true }));
+    expect(at(true)).toEqual({ code: "answerQuestion" });
+    expect(at(false).code).toBe("ready");
+    // How a guess is judged against the meter (bar at 60%).
+    expect(tightGuessFits("loose", 50, 60)).toBe(true);
+    expect(tightGuessFits("justOver", 65, 60)).toBe(true);
+    expect(tightGuessFits("veryTight", 80, 60)).toBe(true);
+    expect(tightGuessFits("veryTight", 65, 60)).toBe(false);
+  });
 });

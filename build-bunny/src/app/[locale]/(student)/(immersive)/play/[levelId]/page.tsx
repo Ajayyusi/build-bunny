@@ -303,6 +303,7 @@ export default async function PlayLevelPage({ params }: Props) {
       specimens: raw.specimens,
       markers: raw.markers,
       maxExclusions: raw.maxExclusions,
+      predictFirst: raw.predictFirst,
       objective: raw.objective,
       training: raw.training,
       theme: raw.theme

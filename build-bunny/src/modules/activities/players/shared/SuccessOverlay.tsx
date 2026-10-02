@@ -397,14 +397,21 @@ export function SuccessOverlay({
         ) : null}
 
         <div className="flex flex-col-reverse gap-2 pt-1 sm:flex-row sm:flex-wrap sm:justify-end">
-          {onReplay && maxStars > 0 && stars < maxStars && !saving ? (
+          {/* Replay is always allowed (handoff: "allow replay"); with stars
+              still to earn it says so. */}
+          {onReplay && !saving ? (
             <button
               type="button"
               onClick={onReplay}
-              className="inline-flex h-11 items-center justify-center gap-2 rounded-lg border-2 border-accent bg-accent/15 px-5 text-base font-semibold text-ink transition-colors hover:bg-accent/30"
+              className={cn(
+                "inline-flex h-11 items-center justify-center gap-2 rounded-lg px-5 text-base font-semibold text-ink transition-colors",
+                maxStars > 0 && stars < maxStars
+                  ? "border-2 border-accent bg-accent/15 hover:bg-accent/30"
+                  : "border border-border-token bg-surface-raised hover:bg-surface-sunken",
+              )}
             >
               <span aria-hidden="true">↺</span>
-              {t("replay", { stars: maxStars })}
+              {maxStars > 0 && stars < maxStars ? t("replay", { stars: maxStars }) : t("replayAgain")}
             </button>
           ) : null}
           {level?.explore?.isExplore ? (

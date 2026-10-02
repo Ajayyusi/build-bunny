@@ -2,6 +2,8 @@
 
 import { useTranslations } from "next-intl";
 
+import { ReadAloudButton } from "@/modules/audio/AudioControls";
+
 /**
  * The level's objective, pinned under the player's top bar.
  *
@@ -9,7 +11,8 @@ import { useTranslations } from "next-intl";
  * child pressed "Let's build!" the only way to re-read what they were meant
  * to do was to leave the level. The strip keeps the goal on screen (one
  * line, truncated on narrow screens) and tapping it reopens the full
- * briefing — story, mission and the how-to animation.
+ * briefing — story, mission and the how-to animation. With the voice on,
+ * the mission can also be read aloud (handoff: spoken prompts, optional).
  */
 export function MissionStrip({
   objective,
@@ -21,11 +24,12 @@ export function MissionStrip({
   const t = useTranslations("student.play.mission");
   if (!objective.trim()) return null;
   return (
+    <div className="flex w-full shrink-0 items-center border-b border-border-token bg-brand/10 pe-2">
     <button
       type="button"
       onClick={onShow}
       aria-label={`${t("label")}: ${objective}. ${t("show")}`}
-      className="flex min-h-11 w-full shrink-0 items-center gap-2 border-b border-border-token bg-brand/10 px-3 py-1.5 text-start text-sm text-ink transition-colors hover:bg-brand/15 sm:px-4"
+      className="flex min-h-11 min-w-0 flex-1 items-center gap-2 px-3 py-1.5 text-start text-sm text-ink transition-colors hover:bg-brand/15 sm:px-4"
     >
       <span aria-hidden="true" className="text-base leading-none">
         🎯
@@ -39,5 +43,7 @@ export function MissionStrip({
         {t("show")}
       </span>
     </button>
+    <ReadAloudButton text={objective} />
+    </div>
   );
 }

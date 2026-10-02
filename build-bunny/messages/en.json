@@ -397,7 +397,8 @@
         "improveFirstTry": "Get it right on your first try for the third star.",
         "moreAi": "More AI to explore",
         "keyIdeaHeading": "The big idea",
-        "tellMeMore": "Tell me more"
+        "tellMeMore": "Tell me more",
+        "replayAgain": "Play again"
       },
       "blockNames": {
         "bb_whenStart": "when start",
@@ -571,7 +572,17 @@
         "walk3Title": "The meter tells you how tight",
         "walk3Body": "Tight piles — everything close to its own flag — score high. A flag stuck between two piles scores low. Watch it move as you work.",
         "walk4Title": "Find the real piles",
-        "walk4Body": "Place your flags so every pile keeps to itself, then test. If the meter will not budge, maybe the problem is not your flags — look closely at the dots."
+        "walk4Body": "Place your flags so every pile keeps to itself, then test. If the meter will not budge, maybe the problem is not your flags — look closely at the dots.",
+        "predict": {
+          "question": "Before you see the meter: how tight do you think your groups are?",
+          "questionRun": "Before it runs: how tight do you think the groups will be?",
+          "loose": "Loose: under the bar",
+          "justOver": "Just over the bar",
+          "veryTight": "Very tight",
+          "placeFirst": "Place your flags first.",
+          "matched": "You said “{guess}”, and the meter reads {score}%. Your guess matched.",
+          "surprised": "You said “{guess}”, but the meter reads {score}%. That surprised you: look at which readings are far from their flag."
+        }
       },
       "aiEthics": {
         "continueStory": "Continue",
@@ -1092,6 +1103,92 @@
             "taught": "It learned those, so of course it gets them right. Cases it never saw are a fairer test.",
             "many": "More examples can help, but only a test shows whether they worked."
           }
+        },
+        "deeper": {
+          "heading": "A deeper question",
+          "trend": {
+            "question": "If you predicted for {further} instead of {x}, would the likely range be wider or narrower?",
+            "options": {
+              "wider": "Wider",
+              "narrower": "Narrower",
+              "same": "The same"
+            },
+            "replies": {
+              "wider": "Yes. The further past the data you go, the less the dots can tell you, so the honest range grows.",
+              "narrower": "Further from the data, there's less to go on, so the range gets wider, not narrower.",
+              "same": "The range depends on how far you are from the data. Further out, it grows."
+            }
+          },
+          "pixel": {
+            "question": "Each square is three numbers: how red, how green, how blue. At 8 × 8 squares, how many numbers does the computer get?",
+            "options": {
+              "n64": "64",
+              "n192": "192",
+              "n8": "8"
+            },
+            "replies": {
+              "n192": "Yes: 64 squares × 3 colours = 192 numbers. That's the whole picture, to a computer.",
+              "n64": "64 is the squares. Each square has 3 colour numbers, so it's 192.",
+              "n8": "8 is one side of the grid. 8 × 8 = 64 squares, × 3 colours = 192 numbers."
+            }
+          },
+          "boundary": {
+            "question": "A new fruit lands exactly on your line. What should a careful computer say?",
+            "options": {
+              "notSure": "“Not sure: I need more information”",
+              "tart": "“Tart”, every time",
+              "random": "Pick one at random"
+            },
+            "replies": {
+              "notSure": "Yes. Right on the line, both answers fit equally well, so “not sure” is the honest answer.",
+              "tart": "Always picking one side hides that it really doesn't know. On the line, it should say it isn't sure.",
+              "random": "A coin flip looks like an answer but isn't one. Saying “not sure” is more honest."
+            }
+          },
+          "group": {
+            "question": "If you added one more flag, would the tightness score go up or down?",
+            "options": {
+              "up": "Up",
+              "down": "Down",
+              "same": "Stay the same"
+            },
+            "replies": {
+              "up": "Yes: more flags always make tighter groups. That's why the score can't choose how many groups make sense. A person has to.",
+              "down": "It goes up: every extra flag sits closer to some dots. That's why the score alone can't choose how many groups.",
+              "same": "It goes up: an extra flag is always closer to some dots. So a higher score doesn't mean better groups."
+            }
+          },
+          "whoDecides": {
+            "question": "A robot is 80% sure about each suggestion. Out of 10 suggestions like that, about how many could be wrong?",
+            "options": {
+              "two": "About 2",
+              "none": "None",
+              "eight": "About 8"
+            },
+            "replies": {
+              "two": "Yes. 80% sure means about 2 in 10 could be wrong, which is why a person checks before acting.",
+              "none": "80% sure isn't 100%. About 2 in 10 could be wrong.",
+              "eight": "It's the other way round: about 8 in 10 right, so about 2 in 10 wrong."
+            }
+          },
+          "isThatReal": {
+            "question": "A video looks completely real. How sure can you be from looking alone?",
+            "options": {
+              "source": "Not sure, until I know where it came from",
+              "looks": "Very sure: it looks real",
+              "sure": "Sure, if lots of people shared it"
+            },
+            "replies": {
+              "source": "Yes. Machines can make things that look real, so the source is the evidence, not the look.",
+              "looks": "Looking real isn't proof: machines can make real-looking video. Check where it came from.",
+              "sure": "Lots of shares don't make something true. Check where it first came from."
+            }
+          }
+        },
+        "younger": {
+          "trend": "Your line isn't close to the dots yet. Which way could it move?",
+          "boundary": "Some fruit are on the wrong side. Which way could your line move?",
+          "group": "The groups aren't tight yet. Which flag could move closer to its dots?"
         }
       },
       "explain": {
@@ -2171,7 +2268,9 @@
           "weeklyKey": "Weeks start on Monday. Top bar: sessions. Bottom bar: tests.",
           "returned": "Came back another day",
           "returnedSummary": "{returned, plural, =0 {No child has come back to them on another day yet.} one {# child came back to them on another day.} other {# children came back to them on another day.}}",
-          "trend": "{change, plural, =0 {no change in 4 weeks} other {{change, number, ::sign-always} in 4 weeks}}"
+          "trend": "{change, plural, =0 {no change in 4 weeks} other {{change, number, ::sign-always} in 4 weeks}}",
+          "firstSession": "First session (Train a Sorter): a median of {median} minutes, across {children} children; {within} finished within 8 minutes (the aim is 5 to 8).",
+          "firstSessionWaiting": "First-session timing (Train a Sorter) shows once at least 5 children have finished it."
         }
       },
       "teachersPage": {

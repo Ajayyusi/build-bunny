@@ -337,3 +337,11 @@ describe("AI level coverage", () => {
     expect(aiLevels.length).toBeGreaterThan(0);
   });
 });
+
+describe("predict first (the handoff's loop: predict, try, observe, retry)", () => {
+  it("every Teach-the-bunny level asks what the bunny will say before showing it", () => {
+    const levels = bundle.worlds.flatMap((w) => w.modules.flatMap((m) => m.levels)).filter((l) => l.activityType === "AI_CLASSIFICATION");
+    expect(levels.length).toBeGreaterThanOrEqual(14);
+    for (const level of levels) expect((level.payload as { predictFirst?: boolean }).predictFirst, level.slug).toBe(true);
+  });
+});

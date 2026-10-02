@@ -137,11 +137,38 @@ they should be reviewed and merged in the order above.
 | Arabic content + RTL verified in the game | 🟡 | first-run flow verified in ar; native review flags pending |
 | Weak Wi-Fi / offline queue / reconnect / no duplicate submissions | ✅ | **attempt outbox** (`players/shared/attempt-outbox.ts`) used by all 8 players: every graded run is stored on the device before sending and removed only when the server answers; resent on the next level open, on reconnect, and every 10 s while the success card is open; same attemptRunId, so the server never counts it twice; entries tied to the child (never sent under another child on a shared tablet), dropped after 7 days. Success card says "kept on this device…". Offline draft saves no longer throw. Unit `attempt-outbox.test.ts` (5), e2e `offline.spec.ts` (Wi-Fi drops on Run → reconnect → saved, map shows it completed) |
 | Telemetry data-minimisation review | ✅ | `build-bunny/docs/privacy-data-inventory.md` §8b–8d: family links, everything kept on the device, and a review of every event/attempt/log field. No third-party analytics; no child text to any model. Open item recorded: `LearningEvent.classId` stays unwritten |
-| Performance on school devices | 🟡 | Production build, emulated low-end tablet (4× CPU slowdown, 1.6 Mbps, 150 ms latency; `scripts/perf-tablet.mjs`): home 1.1 s cold / 0.5 s warm; level briefing 2.1 s cold / 1.1 s warm; block editor ready 0.1 s after the tap. Level player 136 kB first-load JS. Re-measured 2026-10-01 with the AI-first stack (P0 → #33) against main, three cold runs each: Explore AI 0.57 → 0.66 s, level briefing 2.12 → 2.19 s (one outlier 2.6 s), block editor unchanged; server time unchanged (~12 ms); the difference is ~11 kB more compressed HTML, mostly message strings (all namespaces reach the client). **Not done:** measurements on a real low-end tablet and a real school network |
+| Performance on school devices | 🟡 | Production build, emulated low-end tablet (4× CPU slowdown, 1.6 Mbps, 150 ms latency; `scripts/perf-tablet.mjs`): home 1.1 s cold / 0.5 s warm; level briefing 2.1 s cold / 1.1 s warm; block editor ready 0.1 s after the tap. Level player 136 kB first-load JS. Re-measured 2026-10-01 with the AI-first stack (P0 → #33) against main, three cold runs each: Explore AI 0.57 → 0.66 s, level briefing 2.12 → 2.19 s (one outlier 2.6 s), block editor unchanged; server time unchanged (~12 ms); the difference is ~11 kB more compressed HTML, mostly message strings (all namespaces reach the client). Re-measured 2026-10-02 at #37 against #33 on the same machine, back to back. Medians of three cold runs: Explore AI 0.67 → 0.71 s, level briefing between 2.2 and 2.65 s in both builds, home unchanged. About 4 kB more HTML. Single runs jump by about 0.4 s in both builds. **Not done:** measurements on a real low-end tablet and a real school network |
 
 ---
 
 ## Checkpoint log
+
+### Checkpoint 15 — 2026-10-01 (the two open audit items, built with the proposed defaults)
+
+- **Live:** nothing new.
+- **On branches:** `feat/audit-gaps-3`, stacked on `feat/audit-gaps-2` (#36).
+- **Predict first everywhere:** all 14 Teach-the-bunny levels now ask what the bunny will say before showing it (5 did). On the 8 grouping levels, the tightness meter waits until the child says how tight they think their groups are. After that one guess it works live, and a line says whether the guess matched.
+- **Grade modes outside the Teach levels:**
+  - Grades 5 to 7 get one deeper question after a pass:
+    - Fortune Teller: further out, a wider or narrower range?
+    - See Like a Computer: how many numbers is an 8 × 8 picture?
+    - You Be the Sorter: what should a careful computer say about a fruit on the line?
+    - grouping levels: does one more flag raise the score?
+    - Who Decides?: how many of 10 suggestions at 80% sure could be wrong?
+    - Is That Real?: how sure can looking alone make you?
+  - Grades 3 to 4 get one friendly line in place of a technical one (a miss score, an error allowance) on Fortune Teller, You Be the Sorter and the grouping levels. The picture and marks messages were already plain and keep their counts.
+- **Also:**
+  - "You Be the Classifier" is now "You Be the Sorter" ("classifier" stays behind "What is this called?"), with a test that keeps AI titles and mission lines free of technical terms.
+  - The first session is timed in real classrooms: the school page shows the median minutes to finish Train a Sorter, and how many finished within 8 minutes, once five children have.
+  - The return-session test picked an event without saying which type, which failed CI once; it is fixed.
+  - Raw-SQL time windows now compare in UTC.
+  - Safari's engine (WebKit) on an emulated iPad: all 106 levels finish by following their hints, and the six Explore AI activities and both routes don't scroll sideways in portrait. One thing needs a real iPad first: emulated WebKit misdraws Arabic vowel marks with the app's font, though the font files and Chromium are fine (`IPAD-CHECK.md`).
+- **Arabic, reviewed carefully (not by a native speaker):**
+  - every Arabic UI string added in #25 to #37 (about 640), and the level content added since main (338 strings);
+  - fixes for wrong meanings, number and gender agreement (counts of 2 and 100+), a sentence template that put a verb after لأن, and neutral wording in place of masculine-only forms where it reads naturally.
+  - A native review is still to do.
+- **Accessibility:** axe now scans the audit's new screens. It found the shared green badge at 4.37:1 on a tinted staff surface, fixed with the darker text step.
+- **Tested:** the full unit and integration suite; the full Playwright suite on a production build (96 passed); and "Show me the next step" finishing all 17 levels whose content changed.
 
 ### Checkpoint 14 — 2026-10-01 (second audit: every "Done" row re-checked against the code)
 
@@ -154,14 +181,14 @@ they should be reviewed and merged in the order above.
   - Train a Sorter ("3 to 5 examples"): testing is possible with three; it used to need four.
   - Is That Real?: the homework scene asks what you think first, like the others.
   - "A hint after repeated failure": offered after the second failed check in Teach, grouping and simulation levels.
-  - Result notes (what you tried, what changed, try one more) on grouping levels and You Be the Classifier.
+  - Result notes (what you tried, what changed, try one more) on grouping levels and You Be the Sorter.
   - "What is this called?" in both modes: terms only when a child asks, and younger children can ask.
   - Tessa reacts to each test and gestures when the hints open.
   - Teacher replay of Teach-the-bunny attempts: what was taught, kept back, reported, and what changed since the previous try.
   - Principal concept trends: the change over four weeks per class and concept, on the page and in the CSV.
   - Teacher and principal views reviewed separately (`STAFF-VIEWS-REVIEW.md`): no overflow, no serious accessibility findings, and a teacher is refused principal pages. Names now keep their own direction in Arabic pages.
   - Tests added for the honesty labels on grouping and simulation levels, and for The Berry That Lied passing once its wrong note is fixed.
-- **Waiting on a decision:** deeper tests for grades 5 to 7 and simpler wording for grades 3 to 4 exist only in the Teach levels, not in vision, prediction or ethics; "predict first" is on 5 of 14 classification levels and not on grouping levels.
+- **Then open, now built (checkpoint 15):** grade modes outside the Teach levels, and predict first on every classification and grouping level.
 
 ### Checkpoint 13 — 2026-10-01 (handoff audit: three rows marked done that were not)
 

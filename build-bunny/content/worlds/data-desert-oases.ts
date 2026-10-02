@@ -54,7 +54,7 @@ export const threeOases: ModuleFixture = {
         en: "Three flags, three crowds — and still nobody told the machine what a sand cat is. The only thing that changed from two piles is how many flags you were allowed. Choosing that number is the hardest part of this kind of learning; here the valley made it obvious, and you'll see how it's chosen when it isn't.",
         ar: "ثلاثة أعلام وثلاثة حشود — ولم يخبر أحد الآلة بعد ما هو قط الرمال. الشيء الوحيد الذي تغيّر عن الكومتين هو عدد الأعلام المسموح بها. اختيار هذا العدد هو الجزء الأصعب في هذا النوع من التعلم؛ هنا جعله الوادي واضحًا، وسترى كيف يُختار عندما لا يكون كذلك.",
       },
-      keyIdea: { en: "The machine finds the groups; choosing how many to look for is up to you.", ar: "تجد الآلة المجموعات؛ أما اختيار عدد ما تبحث عنه فيعود إليك." },
+      keyIdea: { en: "The machine finds the groups; choosing how many to look for is up to you.", ar: "تجد الآلة المجموعات؛ أما اختيار عدد المجموعات التي تبحث عنها فيعود إليك." },
       teacherNotes: {
         en: "Three well-separated clumps of five; markers fixed at three. The reference placement scores well above the pass bar (see tests/unit/pattern-recognition.test.ts). Discussion: what if only two flags were allowed — which two crowds would get merged, and what would the meter say?",
         ar: "ثلاثة تجمّعات متباعدة جيدًا في كل منها خمس قراءات؛ وعدد العلامات مثبّت على ثلاث. يحقق الوضع المرجعي درجة أعلى بكثير من حدّ النجاح (انظر tests/unit/pattern-recognition.test.ts). للنقاش: ماذا لو سُمح بعلمين فقط — أي حشدين سيُدمجان، وماذا سيُظهر العداد؟",
@@ -94,6 +94,8 @@ export const threeOases: ModuleFixture = {
         ],
         markers: { min: 3, max: 3 },
         maxExclusions: 0,
+        // Say how tight the groups are before the meter shows (the handoff's loop).
+        predictFirst: true,
         objective: { minTightness: 0.8 },
         groundTruth: {
           referencePlacement: [

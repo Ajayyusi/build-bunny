@@ -213,6 +213,8 @@ export const dataDesert: WorldFixture = {
             ],
             markers: { min: 2, max: 2 },
             maxExclusions: 0,
+            // Say how tight the groups are before the meter shows (the handoff's loop).
+            predictFirst: true,
             // Reference scores 0.9676; a sloppy one-per-clump answer 0.9100;
             // one flag in the gap 0.3894. Verified in
             // tests/unit/pattern-recognition.test.ts.
@@ -262,7 +264,7 @@ export const dataDesert: WorldFixture = {
             en: "The meter never once went DOWN when you added a flag — more flags always score higher, even when the fourth one cut a real crowd in two. That is why choosing how many groups is YOUR job, not the machine's: a number that only ever goes up cannot tell you when to stop. Scientists call this the elbow — the moment adding more stops being worth it.",
             ar: "لم ينخفض العداد مرة واحدة حين أضفت علمًا — فالأعلام الأكثر تسجّل دائمًا نتيجة أعلى، حتى حين شطر العلم الرابع حشدًا حقيقيًا نصفين. لهذا كان اختيار عدد المجموعات مهمتك أنت لا مهمة الآلة: رقمٌ لا يعرف إلا الصعود لا يستطيع أن يقول لك متى تتوقف. يسمّي العلماء هذه اللحظة «الكوع» — اللحظة التي يكفّ فيها المزيد عن أن يستحق.",
           },
-          keyIdea: { en: "More groups always score better, so choosing how many is a person's job.", ar: "المزيد من المجموعات يحصل دائمًا على نتيجة أفضل، لذا فإن اختيار العدد مهمة إنسان." },
+          keyIdea: { en: "More groups always score better, so choosing how many is a person's job.", ar: "كلما زادت المجموعات تحسّنت النتيجة دائمًا، لذا فإن اختيار عددها مهمة الإنسان." },
           teacherNotes: {
             en: "The first level in the product where doing MORE is penalised. Let students discover the plateau themselves: ask everyone to try their best two-flag answer first and report the highest meter reading anyone found (~53%). Then three flags (~97%). Then ask a volunteer to add a fourth and read the meter (~98%, higher!) while the class looks at the board and says what went wrong. The star loss for four flags is the graded form of that discussion. Vocabulary if wanted: this is why 'K' in K-means is a human decision.",
             ar: "أول مستوى في المنتج يُعاقَب فيه فعل المزيد. دع الطلاب يكتشفون الثبات بأنفسهم: اطلب من الجميع تجربة أفضل إجابة بعلمين أولًا والإبلاغ عن أعلى قراءة للعداد وجدها أي منهم (~53%). ثم ثلاثة أعلام (~97%). ثم اطلب من متطوّع إضافة علم رابع وقراءة العداد (~98%، أعلى!) بينما ينظر الصف إلى اللوحة ويقول ما الخطأ الذي حدث. خسارة النجمة عند استخدام أربعة أعلام هي الصورة المقيَّمة لذلك النقاش. مفردات إن رغبت: لهذا السبب يكون «K» في خوارزمية K-means قرارًا بشريًا.",
@@ -356,6 +358,8 @@ export const dataDesert: WorldFixture = {
             ],
             markers: { min: 2, max: 4 },
             maxExclusions: 0,
+            // Say how tight the groups are before the meter shows (the handoff's loop).
+            predictFirst: true,
             // Three flags on the clump means → 0.9728. Best possible two-flag
             // answer → 0.5291 (unreachable bar). Four flags → 0.9756, passes,
             // and the 3-flag star budget takes the third star. Verified.
@@ -398,7 +402,7 @@ export const dataDesert: WorldFixture = {
             en: "With the headlight in, every answer was bad — either a flag wasted guarding one fake dot, or a flag dragged out of its crowd toward the corner. And the pile that suffered was on the FAR side of the board: leverage means the damage appears where the cause is not. Striking out one impossible reading fixed all three groups at once. Cleaning data is not cheating — it is the job.",
             ar: "بوجود ضوء الشاحنة كانت كل إجابة سيئة: إما علم مهدور يحرس نقطة زائفة واحدة، وإما علم مجرور خارج حشده نحو الزاوية. والكومة التي عانت كانت في الطرف البعيد من اللوحة: قوة الجذب تعني أن الضرر يظهر حيث لا يوجد السبب. شطبُ قراءة واحدة مستحيلة أصلح المجموعات الثلاث دفعة واحدة. تنظيف البيانات ليس غشًّا — إنه صميم العمل.",
           },
-          keyIdea: { en: "One impossible reading can spoil the groups, so look for bad data first.", ar: "قراءة مستحيلة واحدة قد تفسد المجموعات، لذا ابحث عن البيانات الخاطئة أولًا." },
+          keyIdea: { en: "One impossible reading can spoil the groups, so look for bad data first.", ar: "قراءة مستحيلة واحدة قد تفسد المجموعات، لذا نبحث عن البيانات الخاطئة أولًا." },
           teacherNotes: {
             en: "The first data-cleaning act in the curriculum. The trap is REMOTE damage: with the outlier kept, the best three-flag answer strands a flag near the corner and forces two real clumps to share — students will try placement and counting first and both fail, which is the intended path. Ask afterwards WHY the reading had to be fake (enormous + freezing has no desert animal) — the justification matters, because striking out data you merely dislike is the opposite lesson. Contrast with the-berry-that-lied if the class played AI Island: there the bad record had a wrong ANSWER on it; here it has an impossible VALUE and no answer at all.",
             ar: "أول عملية تنظيف بيانات في المنهج. الفخ هو الضرر البعيد: عند إبقاء القراءة الشاذة، تترك أفضل إجابة بثلاثة أعلام علمًا عالقًا قرب الزاوية وتُجبر حشدين حقيقيين على التقاسم — سيجرّب الطلاب الوضع والعدّ أولًا ويفشل كلاهما، وهذا هو المسار المقصود. اسأل بعد ذلك لماذا كان لا بد أن تكون القراءة زائفة (لا يوجد حيوان صحراوي ضخم ومتجمد معًا) — فالتبرير مهم، لأن شطب بيانات لمجرد أنها لا تعجبك هو الدرس المعاكس تمامًا. قارن بمستوى «الحبة الكاذبة» إن كان الصف قد لعب جزيرة الذكاء الاصطناعي: هناك كان السجل السيئ يحمل إجابة خاطئة؛ أما هنا فيحمل قيمة مستحيلة ولا إجابة على الإطلاق.",
@@ -492,6 +496,8 @@ export const dataDesert: WorldFixture = {
             ],
             markers: { min: 3, max: 3 },
             maxExclusions: 1,
+            // Say how tight the groups are before the meter shows (the handoff's loop).
+            predictFirst: true,
             // Keep the outlier: best three-clump placement 0.6032; best
             // spend-a-flag-on-it placement 0.7983 — both under the bar.
             // Exclude it: reference 0.9595; even 0.06 off on every axis
@@ -657,6 +663,8 @@ export const dataDesert: WorldFixture = {
             ],
             rule: { kind: "threshold", feature: "size", threshold: 0.5 },
             minPerLabel: 2,
+            // Say what the bunny will answer before seeing it (the handoff's loop).
+            predictFirst: true,
             maxExamples: 5,
             starCriteria: { threeStarMaxBlocks: 4 },
           } satisfies AiDraft,
@@ -683,7 +691,8 @@ export const dataDesert: WorldFixture = {
           order: 1,
           activityType: "AI_SIM",
           track: "AI_CONCEPTS",
-          title: { en: "You Be the Classifier", ar: "كن أنت المصنِّف" },
+          // Plain words on screen; "classifier" waits behind "What is this called?".
+          title: { en: "You Be the Sorter", ar: "كن أنت آلة الفرز" },
           story: {
             en: "A desert market stall has a basket of mixed fruit: some tart, some sweet, and no labels. The stallholder wants a quick way to sort future baskets without tasting every single piece.",
             ar: "على كشك في سوق الصحراء سلة فواكه مختلطة: بعضها حامض وبعضها حلو، بلا بطاقات. يريد صاحب الكشك طريقة سريعة لفرز السلال القادمة دون تذوّق كل قطعة.",
@@ -845,9 +854,9 @@ export const dataDesert: WorldFixture = {
           },
           explanation: {
             en: "The computer's line is the ONE line that makes the 'total miss' score as small as it can possibly be, checked by real arithmetic, not a guess. But look at your prediction: it came with a band around it, not one exact number. That band is the honest part — more sunlight almost always means a taller plant here, but 'almost always' is not 'always', and the further you predict beyond the real data, the less certain any line can be. Predictions are educated guesses built from real evidence — not facts, and not magic.",
-            ar: "خط الحاسوب هو الخط الوحيد الذي يجعل درجة «الخطأ الكلي» أصغر ما يمكن، محسوبًا بعملية حسابية حقيقية، لا تخمينًا. لكن انظر إلى توقّعك: جاء مصحوبًا بمدى حوله، لا برقم واحد دقيق. هذا المدى هو الجزء الصادق — ضوء الشمس الأكثر يعني غالبًا نبتة أطول هنا، لكن «غالبًا» ليست «دائمًا»، وكلما توقّعت أبعد عن البيانات الحقيقية، قلّ يقين أي خط. التوقّعات تخمينات مبنية على أدلّة حقيقية — وليست حقائق، وليست سحرًا.",
+            ar: "خط الحاسوب هو الخط الوحيد الذي يجعل درجة «الخطأ الكلي» أصغر ما يمكن، وقد حُسب بعملية حسابية حقيقية، لا بالتخمين. لكن انظر إلى توقّعك: جاء مصحوبًا بمدى حوله، لا برقم واحد دقيق. هذا المدى هو الجزء الصادق — فزيادة ضوء الشمس تعني هنا نبتة أطول دائمًا تقريبًا، لكن «دائمًا تقريبًا» ليست «دائمًا»، وكلما توقّعت أبعد عن البيانات الحقيقية، قلّ يقين أي خط. التوقّعات تخمينات مبنية على أدلّة حقيقية — وليست حقائق، وليست سحرًا.",
           },
-          keyIdea: { en: "A prediction is an estimate, and it gets less sure the further it goes beyond the data.", ar: "التنبؤ تقدير، ويصبح أقل يقينًا كلما ابتعد عن البيانات." },
+          keyIdea: { en: "A prediction is an estimate, and it gets less sure the further it goes beyond the data.", ar: "التوقّع تقدير، ويصبح أقل يقينًا كلما ابتعد عن البيانات." },
           teacherNotes: {
             en: "The dataset has small deliberate noise (real measurements never sit on a perfect line) — do not let a student 'fix' this by insisting their line should touch every point. predictAt (12 hours) sits beyond the dataset's max (10 hours) on purpose, so the error band widens honestly. Good discussion prompt: 'why can't the computer be 100% sure about 12 hours, when it was so close for the points it already measured?'",
             ar: "تحتوي البيانات على تشويش صغير مقصود (القياسات الحقيقية لا تقع أبدًا على خط مثالي) — لا تدع الطالب «يصلح» ذلك بالإصرار على أن خطه يجب أن يلمس كل نقطة. تقع predictAt (12 ساعة) عمدًا خارج الحد الأقصى للبيانات (10 ساعات)، فيتسع مدى الخطأ بصدق. سؤال جيد للنقاش: «لماذا لا يستطيع الحاسوب أن يكون متأكدًا 100% بشأن 12 ساعة، مع أنه كان قريبًا جدًا من النقاط التي قاسها بالفعل؟»",
